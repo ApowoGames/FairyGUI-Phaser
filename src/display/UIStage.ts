@@ -101,103 +101,144 @@ namespace fgui {
         }
     }
 
-    export class UIStage extends Phaser.GameObjects.Container {
-        constructor(scene: Phaser.Scene) {
-            super(scene);
+    export class UIStage extends Phaser.Events.EventEmitter {
+        protected $appStage: Phaser.GameObjects.Container;
+
+        protected $options: UIStageOptions;
+        protected $width: number = 0;
+        protected $height: number = 0;
+        protected $scaleX: number = 1;
+        protected $scaleY: number = 1;
+
+        protected $canvasMatrix: Phaser.GameObjects.Components.TransformMatrix = new Phaser.GameObjects.Components.TransformMatrix();
+
+        public offsetX: number = 0;
+        public offsetY: number = 0;
+
+        private $sizeCalcer: DefaultBoudingRectCalculator = new DefaultBoudingRectCalculator();
+
+        constructor(private scene: Phaser.Scene) {
+            super();
+
+            UIStageInst.push(this);
+        }
+
+        public get nativeStage(): Phaser.Input.InputPlugin {
+            return this.scene.input;
+        }
+
+        public get stageWidth(): number {
+            return this.$width;
+        }
+
+        public get stageHeight(): number {
+            return this.$height;
+        }
+
+        addChild(child: Phaser.GameObjects.GameObject, type: UISceneDisplay, index: number = -1) {
+            if (index < 0) {
+                this.scene.sys.displayList[type].addChild(child);
+            } else {
+                this.scene.sys.displayList[type].addChildAt(child, index);
+            }
+        }
+
+        removeChild(child: Phaser.GameObjects.GameObject, type: UISceneDisplay) {
+            this.scene.sys.displayList[type].removeChild(child);
         }
 
         /**@internal */
         updateScreenSize(): void {
+            // todo resize screen
+            // if (HTMLInput.isTyping) return;
 
-            if (HTMLInput.isTyping) return;
+            // let canvas = this.$appContext.view;
+            // let canvasStyle: any = canvas.style;
 
-            let canvas = this.$appContext.view;
-            let canvasStyle: any = canvas.style;
+            // let rect = this.$sizeCalcer.getRect(canvas, this.$options.fallbackWidth, this.$options.fallbackHeight);
 
-            let rect = this.$sizeCalcer.getRect(canvas, this.$options.fallbackWidth, this.$options.fallbackHeight);
+            // let shouldRotate = false;
+            // let orientation: string = this.$options.orientation;
+            // if (orientation != StageOrientation.AUTO) {
+            //     shouldRotate = orientation != StageOrientation.PORTRAIT && rect.height > rect.width
+            //         || orientation == StageOrientation.PORTRAIT && rect.width > rect.height;
+            // }
+            // let screenWidth = shouldRotate ? rect.height : rect.width;
+            // let screenHeight = shouldRotate ? rect.width : rect.height;
 
-            let shouldRotate = false;
-            let orientation: string = this.$options.orientation;
-            if (orientation != StageOrientation.AUTO) {
-                shouldRotate = orientation != StageOrientation.PORTRAIT && rect.height > rect.width
-                    || orientation == StageOrientation.PORTRAIT && rect.width > rect.height;
-            }
-            let screenWidth = shouldRotate ? rect.height : rect.width;
-            let screenHeight = shouldRotate ? rect.width : rect.height;
+            // let stageSize = this.calculateStageSize(this.$options.scaleMode, screenWidth, screenHeight, this.$options.designWidth, this.$options.designHeight);
+            // let stageWidth = stageSize.stageWidth;
+            // let stageHeight = stageSize.stageHeight;
+            // let displayWidth = stageSize.displayWidth;
+            // let displayHeight = stageSize.displayHeight;
+            // if (canvas.width !== stageWidth)
+            //     canvas.width = stageWidth;
+            // if (canvas.height !== stageHeight)
+            //     canvas.height = stageHeight;
+            // canvasStyle.transformOrigin = canvasStyle.webkitTransformOrigin = canvasStyle.msTransformOrigin = canvasStyle.mozTransformOrigin = canvasStyle.oTransformOrigin = "0px 0px 0px";
+            // canvasStyle.width = displayWidth + "px";
+            // canvasStyle.height = displayHeight + "px";
 
-            let stageSize = this.calculateStageSize(this.$options.scaleMode, screenWidth, screenHeight, this.$options.designWidth, this.$options.designHeight);
-            let stageWidth = stageSize.stageWidth;
-            let stageHeight = stageSize.stageHeight;
-            let displayWidth = stageSize.displayWidth;
-            let displayHeight = stageSize.displayHeight;
-            if (canvas.width !== stageWidth)
-                canvas.width = stageWidth;
-            if (canvas.height !== stageHeight)
-                canvas.height = stageHeight;
-            canvasStyle.transformOrigin = canvasStyle.webkitTransformOrigin = canvasStyle.msTransformOrigin = canvasStyle.mozTransformOrigin = canvasStyle.oTransformOrigin = "0px 0px 0px";
-            canvasStyle.width = displayWidth + "px";
-            canvasStyle.height = displayHeight + "px";
+            // //kevin add
+            // this.$appContext.renderer.resize(stageWidth, stageHeight);
 
-            //kevin add
-            this.$appContext.renderer.resize(stageWidth, stageHeight);
+            // let mat = this.$canvasMatrix.identity();
 
-            let mat = this.$canvasMatrix.identity();
+            // let dispWidth = shouldRotate ? displayHeight : displayWidth;
+            // let dispHeight = shouldRotate ? displayWidth : displayHeight;
 
-            let dispWidth = shouldRotate ? displayHeight : displayWidth;
-            let dispHeight = shouldRotate ? displayWidth : displayHeight;
+            // let offx: number, offy: number;
+            // if (this.$options.alignH == StageAlign.LEFT) offx = 0;
+            // else if (this.$options.alignH == StageAlign.RIGHT) offx = rect.width - dispWidth;
+            // else offx = (rect.width - dispWidth) * 0.5;
 
-            let offx: number, offy: number;
-            if (this.$options.alignH == StageAlign.LEFT) offx = 0;
-            else if (this.$options.alignH == StageAlign.RIGHT) offx = rect.width - dispWidth;
-            else offx = (rect.width - dispWidth) * 0.5;
+            // if (this.$options.alignV == StageAlign.TOP) offy = 0;
+            // else if (this.$options.alignV == StageAlign.BOTTOM) offy = rect.height - dispHeight;
+            // else offy = (rect.height - dispHeight) * 0.5;
 
-            if (this.$options.alignV == StageAlign.TOP) offy = 0;
-            else if (this.$options.alignV == StageAlign.BOTTOM) offy = rect.height - dispHeight;
-            else offy = (rect.height - dispHeight) * 0.5;
+            // let rotDeg = 0;
+            // if (shouldRotate) {
+            //     if (this.$options.orientation == StageOrientation.LANDSCAPE) {
+            //         mat.rotate(Math.PI / 2);
+            //         mat.translate(screenHeight - offx, offy);
+            //         rotDeg = 90;
+            //     }
+            //     else {
+            //         mat.rotate(-Math.PI / 2);
+            //         mat.translate(offx, screenWidth - offy);
+            //         rotDeg = -90;
+            //     }
+            // }
+            // else
+            //     mat.translate(offx, offy);
 
-            let rotDeg = 0;
-            if (shouldRotate) {
-                if (this.$options.orientation == StageOrientation.LANDSCAPE) {
-                    mat.rotate(Math.PI / 2);
-                    mat.translate(screenHeight - offx, offy);
-                    rotDeg = 90;
-                }
-                else {
-                    mat.rotate(-Math.PI / 2);
-                    mat.translate(offx, screenWidth - offy);
-                    rotDeg = -90;
-                }
-            }
-            else
-                mat.translate(offx, offy);
+            // if (shouldRotate) {
+            //     mat.tx += this.offsetY;
+            //     mat.ty += this.offsetX;
+            // }
+            // else {
+            //     mat.tx += this.offsetX;
+            //     mat.ty += this.offsetY;
+            // }
 
-            if (shouldRotate) {
-                mat.tx += this.offsetY;
-                mat.ty += this.offsetX;
-            }
-            else {
-                mat.tx += this.offsetX;
-                mat.ty += this.offsetY;
-            }
+            // mat.a = this.formatData(mat.a), mat.d = this.formatData(mat.d),
+            //     mat.tx = this.formatData(mat.tx), mat.ty = this.formatData(mat.ty);
 
-            mat.a = this.formatData(mat.a), mat.d = this.formatData(mat.d),
-                mat.tx = this.formatData(mat.tx), mat.ty = this.formatData(mat.ty);
+            // canvasStyle.transformOrigin = canvasStyle.webkitTransformOrigin = canvasStyle.msTransformOrigin = canvasStyle.mozTransformOrigin = canvasStyle.oTransformOrigin = "0px 0px 0px";
+            // canvasStyle.transform = canvasStyle.webkitTransform = canvasStyle.msTransform = canvasStyle.mozTransform = canvasStyle.oTransform = `matrix(${mat.a},${mat.b},${mat.c},${mat.d},${mat.tx},${mat.ty})`;
 
-            canvasStyle.transformOrigin = canvasStyle.webkitTransformOrigin = canvasStyle.msTransformOrigin = canvasStyle.mozTransformOrigin = canvasStyle.oTransformOrigin = "0px 0px 0px";
-            canvasStyle.transform = canvasStyle.webkitTransform = canvasStyle.msTransform = canvasStyle.mozTransform = canvasStyle.oTransform = `matrix(${mat.a},${mat.b},${mat.c},${mat.d},${mat.tx},${mat.ty})`;
+            // this.$width = stageWidth;
+            // this.$height = stageHeight;
 
-            this.$width = stageWidth;
-            this.$height = stageHeight;
+            // this.$scaleX = stageWidth / displayWidth
+            // this.$scaleY = stageHeight / displayHeight;
 
-            this.$scaleX = stageWidth / displayWidth
-            this.$scaleY = stageHeight / displayHeight;
-
-            let im = this.$appContext.renderer.plugins.interaction as PIXI.extras.InteractionManager;
-            im.stageRotation = rotDeg;
-            im.stageScaleX = this.$scaleX;
-            im.stageScaleY = this.$scaleY;
-            this.$appContext.renderer.resize(stageWidth, stageHeight);
-            HTMLInput.inst.updateSize(displayWidth / stageWidth, displayHeight / stageHeight);
+            // let im = this.$appContext.renderer.plugins.interaction as PIXI.extras.InteractionManager;
+            // im.stageRotation = rotDeg;
+            // im.stageScaleX = this.$scaleX;
+            // im.stageScaleY = this.$scaleY;
+            // this.$appContext.renderer.resize(stageWidth, stageHeight);
+            // HTMLInput.inst.updateSize(displayWidth / stageWidth, displayHeight / stageHeight);
 
             this.emit(DisplayObjectEvent.SIZE_CHANGED, this);
         }

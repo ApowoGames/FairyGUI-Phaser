@@ -1,7 +1,4 @@
 namespace fgui.utils {
-    export enum DOMEvent {
-        Wheel = "dom_wheel",
-    }
     export class DOMEventManager extends Phaser.Events.EventEmitter {
 
         public static inst: DOMEventManager = new DOMEventManager();
@@ -104,7 +101,7 @@ namespace fgui.utils {
             if (this.nullLowestDeltaTimeout) { clearTimeout(this.nullLowestDeltaTimeout); }
             this.nullLowestDeltaTimeout = setTimeout(() => this.nullLowestDelta(), 200);
 
-            this.emit(DOMEvent.Wheel, this.retEvent);
+            this.emit(DisplayObjectEvent.MOUSE_WHEEL, this.retEvent);
         }
 
         private retEvent: any = {};
