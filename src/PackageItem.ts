@@ -71,5 +71,9 @@ namespace fgui {
         public toString(): string {
             return this.name;
         }
+
+        public load(): Object {
+            return this.owner.getItemAsset(this);
+        }
     }
 }

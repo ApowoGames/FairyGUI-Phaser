@@ -1,6 +1,4 @@
-
 module fgui {
-
     export class UIObjectFactory {
         public static extensions: { [index: string]: new () => GComponent } = {};
         public static loaderType: new () => GLoader;
