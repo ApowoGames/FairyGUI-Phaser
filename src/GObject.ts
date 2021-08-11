@@ -30,12 +30,13 @@ namespace fgui {
         private _relations: Relations;
         private _group?: GGroup;
         private _gears: GearBase[];
-        private _dragBounds?: Laya.Rectangle;
+        private _dragBounds?: Phaser.Geom.Rectangle;
         private _dragTesting?: boolean;
-        private _dragStartPos?: Laya.Point;
+        private _dragStartPos?: Phaser.Geom.Point;
 
-        protected _displayObject: Laya.Sprite;
+        protected _displayObject: Phaser.GameObjects.Container;
         protected _yOffset: number = 0;
+        protected _scene: Phaser.Scene;
 
         public minWidth: number = 0;
         public minHeight: number = 0;
@@ -96,6 +97,13 @@ namespace fgui {
             this.setXY(this._x, value);
         }
 
+        public get scene(): Phaser.Scene {
+            return this._scene;
+        }
+        public set scene(value: Phaser.Scene) {
+            this._scene = value;
+        }
+
         public setXY(xv: number, yv: number): void {
             if (this._x != xv || this._y != yv) {
                 var dx: number = xv - this._x;
@@ -113,7 +121,7 @@ namespace fgui {
                     this._parent.setBoundsChangedFlag();
                     if (this._group)
                         this._group.setBoundsChangedFlag(true);
-                    this.displayObject.event(Events.XY_CHANGED);
+                    this.displayObject.emit(Events.XY_CHANGED);
                 }
 
                 if (GObject.draggingObject == this && !sUpdateInDragging)
@@ -155,7 +163,7 @@ namespace fgui {
         }
 
         public center(restraint?: boolean): void {
-            var r: GComponent;
+            let r: GComponent;
             if (this._parent)
                 r = this.parent;
             else
@@ -230,7 +238,7 @@ namespace fgui {
                         this._group.setBoundsChangedFlag();
                 }
 
-                this.displayObject.event(Events.SIZE_CHANGED);
+                this.displayObject.emit(Events.SIZE_CHANGED);
             }
         }
 
@@ -347,7 +355,7 @@ namespace fgui {
                 if (this._displayObject.transform && (this._pivotX != 0 || this._pivotY != 0)) {
                     sHelperPoint.x = this._pivotX * this._width;
                     sHelperPoint.y = this._pivotY * this._height;
-                    var pt: Laya.Point = this._displayObject.transform.transformPoint(sHelperPoint);
+                    var pt: Phaser.Geom.Point = this._displayObject.transform.transformPoint(sHelperPoint);
                     this._pivotOffsetX = this._pivotX * this._width - pt.x;
                     this._pivotOffsetY = this._pivotY * this._height - pt.y;
                 }
@@ -524,11 +532,11 @@ namespace fgui {
             this.root.hideTooltips();
         }
 
-        public get blendMode(): string {
+        public get blendMode(): Phaser.BlendModes | string {
             return this._displayObject.blendMode;
         }
 
-        public set blendMode(value: string) {
+        public set blendMode(value: Phaser.BlendModes | string) {
             this._displayObject.blendMode = value;
         }
 
@@ -541,7 +549,7 @@ namespace fgui {
         }
 
         public get inContainer(): boolean {
-            return this._displayObject != null && this._displayObject.parent != null;
+            return this._displayObject != null && this._displayObject.parentContainer != null;
         }
 
         public get onStage(): boolean {
@@ -644,7 +652,7 @@ namespace fgui {
             this._relations.remove(target, relationType);
         }
 
-        public get displayObject(): Laya.Sprite {
+        public get displayObject(): Phaser.GameObjects.Container {
             return this._displayObject;
         }
 
@@ -803,11 +811,11 @@ namespace fgui {
             }
         }
 
-        public get dragBounds(): Laya.Rectangle {
+        public get dragBounds(): Phaser.Geom.Rectangle {
             return this._dragBounds;
         }
 
-        public set dragBounds(value: Laya.Rectangle) {
+        public set dragBounds(value: Phaser.Geom.Rectangle) {
             this._dragBounds = value;
         }
 
@@ -862,8 +870,8 @@ namespace fgui {
             ay = ay || 0;
             aw = aw || 0;
             ah = ah || 0;
-            result = result || new Laya.Rectangle();
-            var pt: Laya.Point = this.localToGlobal(ax, ay);
+            result = result || new Phaser.Geom.Rectangle();
+            var pt: Phaser.Geom.Point = this.localToGlobal(ax, ay);
             result.x = pt.x;
             result.y = pt.y;
             pt = this.localToGlobal(ax + aw, ay + ah);
@@ -877,8 +885,8 @@ namespace fgui {
             ay = ay || 0;
             aw = aw || 0;
             ah = ah || 0;
-            result = result || new Laya.Rectangle();
-            var pt: Laya.Point = this.globalToLocal(ax, ay);
+            result = result || new Phaser.Geom.Rectangle();
+            var pt: Phaser.Geom.Point = this.globalToLocal(ax, ay);
             result.x = pt.x;
             result.y = pt.y;
             pt = this.globalToLocal(ax + aw, ay + ah);
@@ -900,7 +908,7 @@ namespace fgui {
         }
 
         protected createDisplayObject(): void {
-            this._displayObject = new Laya.Sprite();
+            this._displayObject = new Phaser.GameObjects.Container(this.scene);
             this._displayObject["$owner"] = this;
         }
 
@@ -920,11 +928,11 @@ namespace fgui {
         }
 
         protected handleSizeChanged(): void {
-            this._displayObject.size(this._width, this._height);
+            this._displayObject.setSize(this._width, this._height);
         }
 
         protected handleScaleChanged(): void {
-            this._displayObject.scale(this._scaleX, this._scaleY, true);
+            this._displayObject.setScale(this._scaleX, this._scaleY);
         }
 
         protected handleGrayedChanged(): void {
@@ -1071,12 +1079,12 @@ namespace fgui {
             var cnt: number = buffer.getInt16();
             for (var i: number = 0; i < cnt; i++) {
                 var nextPos: number = buffer.getInt16();
-                nextPos += buffer.pos;
+                nextPos += buffer.position;
 
                 var gear: GearBase = this.getGear(buffer.readByte());
                 gear.setup(buffer);
 
-                buffer.pos = nextPos;
+                buffer.position = nextPos;
             }
         }
 
@@ -1126,7 +1134,7 @@ namespace fgui {
 
         private __begin(): void {
             if (!this._dragStartPos)
-                this._dragStartPos = new Laya.Point();
+                this._dragStartPos = new Phaser.Geom.Point();
             this._dragStartPos.x = Laya.stage.mouseX;
             this._dragStartPos.y = Laya.stage.mouseY;
             this._dragTesting = true;
@@ -1176,7 +1184,7 @@ namespace fgui {
                 }
 
                 sUpdateInDragging = true;
-                var pt: Laya.Point = this.parent.globalToLocal(xx, yy, sHelperPoint);
+                var pt: Phaser.Geom.Point = this.parent.globalToLocal(xx, yy, sHelperPoint);
                 this.setXY(Math.round(pt.x), Math.round(pt.y));
                 sUpdateInDragging = false;
 
@@ -1198,22 +1206,22 @@ namespace fgui {
         }
         //-------------------------------------------------------------------
 
-        public static cast(sprite: Laya.Sprite): GObject {
+        public static cast(sprite: Phaser.GameObjects.Container): GObject {
             return <GObject>(sprite["$owner"]);
         }
     }
 
     export const BlendMode = {
-        2: Laya.BlendMode.LIGHTER,
-        3: Laya.BlendMode.MULTIPLY,
-        4: Laya.BlendMode.SCREEN
+        2: Phaser.BlendModes.LIGHTER,
+        3: Phaser.BlendModes.MULTIPLY,
+        4: Phaser.BlendModes.SCREEN
     }
 
     var _gInstanceCounter: number = 0;
-    var sGlobalDragStart: Laya.Point = new Laya.Point();
-    var sGlobalRect: Laya.Rectangle = new Laya.Rectangle();
-    var sHelperPoint: Laya.Point = new Laya.Point();
-    var sDragHelperRect: Laya.Rectangle = new Laya.Rectangle();
+    var sGlobalDragStart: Phaser.Geom.Point = new Phaser.Geom.Point();
+    var sGlobalRect: Phaser.Geom.Rectangle = new Phaser.Geom.Rectangle();
+    var sHelperPoint: Phaser.Geom.Point = new Phaser.Geom.Point();
+    var sDragHelperRect: Phaser.Geom.Rectangle = new Phaser.Geom.Rectangle();
     var sUpdateInDragging: boolean;
     var sDraggingQuery: boolean;
 }

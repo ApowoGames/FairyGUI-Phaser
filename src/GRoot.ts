@@ -16,13 +16,20 @@ namespace fgui {
     /**
      * gui根对象（逻辑对象）
      */
-    export class GRoot {
+    export class GRoot extends GComponent{
+        
         private static _inst: GRoot;
         private static _gmStatus = new GRootMouseStatus();
         private _uiStage: UIStage;
-        private _container: Phaser.GameObjects.Container;
-        private _scene: Phaser.Scene;
+        private _modalLayer: GGraph;
+        private _popupStack: GObject[];
+        private _justClosedPopups: GObject[];
+        private _modalWaitPane: GObject;
+        private _tooltipWin: GObject;
+        private _defaultTooltipWin: GObject;
+        private _checkPopups: boolean;
         constructor() {
+            super();
         }
 
         public get displayObject(): Phaser.GameObjects.Container {
@@ -49,7 +56,7 @@ namespace fgui {
         public attachTo(scene: Phaser.Scene, stageOptions?: UIStageOptions): void {
 
             this._scene = scene;
-            this.createDisplayObject(scene);
+            this.createDisplayObject();
             // todo deal stageoptions
             if (this._uiStage) {
                 this.removeListen();
@@ -60,10 +67,6 @@ namespace fgui {
             this._uiStage = new UIStage(scene);
             this._uiStage.addChild(this._container, UISceneDisplay.LAYER_ROOT);
             this.addListen();
-        }
-
-        public createDisplayObject(scene: Phaser.Scene) {
-            this._container = scene.add.container(0, 0);
         }
 
         public addListen() {
@@ -79,6 +82,10 @@ namespace fgui {
             this._uiStage.nativeStage.off("pointerdown", this.onStageDown, this);
             this._uiStage.nativeStage.off("pointerup", this.onStageUp, this);
             this._uiStage.nativeStage.off("pointermove", this.onStageMove, this);
+        }
+
+        protected createDisplayObject() {
+            this._container = this._scene.add.container(0, 0);
         }
 
         private onStageDown(pointer: Phaser.Input.Pointer) {

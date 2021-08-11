@@ -5,7 +5,7 @@ namespace fgui {
         private _sortingChildCount: number = 0;
         private _opaque: boolean;
         private _applyingController?: Controller;
-        private _mask?: Laya.Sprite;
+        private _mask?: Phaser.GameObjects.Container;
 
         protected _margin: Margin;
         protected _trackBounds: boolean;
@@ -17,9 +17,9 @@ namespace fgui {
         public _children: GObject[];
         public _controllers: Controller[];
         public _transitions: Transition[];
-        public _container: Laya.Sprite;
+        public _container: Phaser.GameObjects.Container;
         public _scrollPane?: ScrollPane;
-        public _alignOffset: Laya.Point;
+        public _alignOffset: Phaser.Geom.Point;
 
         constructor() {
             super();
@@ -27,7 +27,7 @@ namespace fgui {
             this._controllers = [];
             this._transitions = [];
             this._margin = new Margin();
-            this._alignOffset = new Laya.Point();
+            this._alignOffset = new Phaser.Geom.Point();
             this._opaque = false;
             this._childrenRenderOrder = 0;
             this._apexIndex = 0;
@@ -35,8 +35,7 @@ namespace fgui {
 
         protected createDisplayObject(): void {
             super.createDisplayObject();
-            this._displayObject.mouseEnabled = true;
-            this._displayObject.mouseThrough = true;
+            this._displayObject.setInteractive(true);
             this._container = this._displayObject;
         }
 
@@ -70,11 +69,11 @@ namespace fgui {
             super.dispose();
         }
 
-        public get displayListContainer(): Laya.Sprite {
+        public get displayListContainer(): Phaser.GameObjects.Container {
             return this._container;
         }
 
-        public addChild(child: GObject): GObject {
+        public add(child: GObject): GObject {
             this.addChildAt(child, this._children.length);
             return child;
         }
@@ -150,7 +149,7 @@ namespace fgui {
                 this._children.splice(index, 1);
                 child.group = null;
                 if (child.inContainer) {
-                    this._container.removeChild(child.displayObject);
+                    this._container.remove(child.displayObject);
 
                     if (this._childrenRenderOrder == ChildrenRenderOrder.Arch)
                         Laya.timer.callLater(this, this.buildNativeDisplayList);
@@ -315,9 +314,9 @@ namespace fgui {
                         if (g.inContainer)
                             displayIndex++;
                     }
-                    if (displayIndex == this._container.numChildren)
+                    if (displayIndex === this._container.displayList.length)
                         displayIndex--;
-                    this._container.setChildIndex(child.displayObject, displayIndex);
+                    this._container.addAt(child.displayObject, displayIndex);
                 }
                 else if (this._childrenRenderOrder == ChildrenRenderOrder.Descent) {
                     for (i = cnt - 1; i > index; i--) {
@@ -325,9 +324,9 @@ namespace fgui {
                         if (g.inContainer)
                             displayIndex++;
                     }
-                    if (displayIndex == this._container.numChildren)
+                    if (displayIndex === this._container.displayList.length)
                         displayIndex--;
-                    this._container.setChildIndex(child.displayObject, displayIndex);
+                    this._container.addAt(child.displayObject, displayIndex);
                 }
                 else {
                     Laya.timer.callLater(this, this.buildNativeDisplayList);
@@ -430,8 +429,8 @@ namespace fgui {
             if (!child.displayObject)
                 return;
 
-            if (child.internalVisible && child.displayObject != this._displayObject.mask) {
-                if (!child.displayObject.parent) {
+            if (child.internalVisible){ // && child.displayObject !== this._displayObject.mask) {
+                if (!child.displayObject.parentContainer) {
                     var index: number = 0
                     if (this._childrenRenderOrder == ChildrenRenderOrder.Ascent) {
                         for (i = 0; i < cnt; i++) {
@@ -439,10 +438,10 @@ namespace fgui {
                             if (g == child)
                                 break;
 
-                            if (g.displayObject && g.displayObject.parent)
+                            if (g.displayObject && g.displayObject.parentContainer)
                                 index++;
                         }
-                        this._container.addChildAt(child.displayObject, index);
+                        this._container.addAt(child.displayObject, index);
                     }
                     else if (this._childrenRenderOrder == ChildrenRenderOrder.Descent) {
                         for (i = cnt - 1; i >= 0; i--) {
@@ -450,21 +449,21 @@ namespace fgui {
                             if (g == child)
                                 break;
 
-                            if (g.displayObject && g.displayObject.parent)
+                            if (g.displayObject && g.displayObject.parentContainer)
                                 index++;
                         }
-                        this._container.addChildAt(child.displayObject, index);
+                        this._container.addAt(child.displayObject, index);
                     }
                     else {
-                        this._container.addChild(child.displayObject);
+                        this._container.add(child.displayObject);
 
                         Laya.timer.callLater(this, this.buildNativeDisplayList);
                     }
                 }
             }
             else {
-                if (child.displayObject.parent) {
-                    this._container.removeChild(child.displayObject);
+                if (child.displayObject.parentContainer) {
+                    this._container.remove(child.displayObject);
 
                     if (this._childrenRenderOrder == ChildrenRenderOrder.Arch)
                         Laya.timer.callLater(this, this.buildNativeDisplayList);
@@ -487,7 +486,7 @@ namespace fgui {
                         for (i = 0; i < cnt; i++) {
                             child = this._children[i];
                             if (child.displayObject && child.internalVisible)
-                                this._container.addChild(child.displayObject);
+                                this._container.add(child.displayObject);
                         }
                     }
                     break;
@@ -496,7 +495,7 @@ namespace fgui {
                         for (i = cnt - 1; i >= 0; i--) {
                             child = this._children[i];
                             if (child.displayObject && child.internalVisible)
-                                this._container.addChild(child.displayObject);
+                                this._container.add(child.displayObject);
                         }
                     }
                     break;
@@ -507,12 +506,12 @@ namespace fgui {
                         for (i = 0; i < apex; i++) {
                             child = this._children[i];
                             if (child.displayObject && child.internalVisible)
-                                this._container.addChild(child.displayObject);
+                                this._container.add(child.displayObject);
                         }
                         for (i = cnt - 1; i >= apex; i--) {
                             child = this._children[i];
                             if (child.displayObject && child.internalVisible)
-                                this._container.addChild(child.displayObject);
+                                this._container.add(child.displayObject);
                         }
                     }
                     break;
@@ -612,17 +611,17 @@ namespace fgui {
             if (this._opaque != value) {
                 this._opaque = value;
                 if (this._opaque) {
-                    if (!this._displayObject.hitArea)
-                        this._displayObject.hitArea = new Laya.Rectangle();
+                    if (!this._displayObject.input.hitArea)
+                        this._displayObject.input.hitArea = new Phaser.Geom.Rectangle();
 
-                    if (this._displayObject.hitArea instanceof Laya.Rectangle)
-                        this._displayObject.hitArea.setTo(0, 0, this._width, this._height);
+                    if (this._displayObject.input.hitArea instanceof Phaser.Geom.Rectangle)
+                        this._displayObject.input.hitArea.setTo(0, 0, this._width, this._height);
 
                     this._displayObject.mouseThrough = false;
                 }
                 else {
-                    if (this._displayObject.hitArea instanceof Laya.Rectangle)
-                        this._displayObject.hitArea = null;
+                    if (this._displayObject.input.hitArea instanceof Phaser.Geom.Rectangle)
+                        this._displayObject.input.hitArea = null;
 
                     this._displayObject.mouseThrough = true;
                 }
@@ -636,7 +635,7 @@ namespace fgui {
         public set margin(value: Margin) {
             this._margin.copy(value);
             if (this._displayObject.scrollRect) {
-                this._container.pos(this._margin.left + this._alignOffset.x, this._margin.top + this._alignOffset.y);
+                this._container.setPosition(this._margin.left + this._alignOffset.x, this._margin.top + this._alignOffset.y);
             }
             this.handleSizeChanged();
         }
@@ -665,15 +664,15 @@ namespace fgui {
             }
         }
 
-        public get mask(): Laya.Sprite {
+        public get mask(): Phaser.GameObjects.Container {
             return this._mask;
         }
 
-        public set mask(value: Laya.Sprite) {
+        public set mask(value: Phaser.GameObjects.Container) {
             this.setMask(value, false);
         }
 
-        public setMask(value: Laya.Sprite, reversed: boolean): void {
+        public setMask(value: Phaser.GameObjects.Container, reversed: boolean): void {
             if (this._mask && this._mask != value) {
                 if (this._mask.blendMode == "destination-out")
                     this._mask.blendMode = null;
@@ -682,13 +681,13 @@ namespace fgui {
             this._mask = value;
             if (!this._mask) {
                 this._displayObject.mask = null;
-                if (this._displayObject.hitArea instanceof ChildHitArea)
-                    this._displayObject.hitArea = null;
+                if (this._displayObject.input.hitArea instanceof ChildHitArea)
+                    this._displayObject.input.hitArea = null;
                 return;
             }
 
-            if (this._mask.hitArea) {
-                this._displayObject.hitArea = new ChildHitArea(this._mask, reversed);
+            if (this._mask.input.hitArea) {
+                this._displayObject.input.hitArea = new ChildHitArea(this._mask, reversed);
                 this._displayObject.mouseThrough = false;
                 this._displayObject.hitTestPrior = true;
             }
@@ -708,22 +707,22 @@ namespace fgui {
         }
 
         protected updateHitArea(): void {
-            if (this._displayObject.hitArea instanceof PixelHitTest) {
-                var hitTest: PixelHitTest = <PixelHitTest>(this._displayObject.hitArea);
+            if (this._displayObject.input.hitArea instanceof PixelHitTest) {
+                var hitTest: PixelHitTest = <PixelHitTest>(this._displayObject.input.hitArea);
                 if (this.sourceWidth != 0)
                     hitTest.scaleX = this._width / this.sourceWidth;
                 if (this.sourceHeight != 0)
                     hitTest.scaleY = this._height / this.sourceHeight;
             }
-            else if (this._displayObject.hitArea instanceof Laya.Rectangle) {
-                this._displayObject.hitArea.setTo(0, 0, this._width, this._height);
+            else if (this._displayObject.input.hitArea instanceof Phaser.Geom.Rectangle) {
+                this._displayObject.input.hitArea.setTo(0, 0, this._width, this._height);
             }
         }
 
         protected updateMask(): void {
-            var rect: Laya.Rectangle = this._displayObject.scrollRect;
+            var rect: Phaser.Geom.Rectangle = this._displayObject.scrollRect;
             if (!rect)
-                rect = new Laya.Rectangle();
+                rect = new Phaser.Geom.Rectangle();
 
             rect.x = this._margin.left;
             rect.y = this._margin.top;
@@ -735,8 +734,8 @@ namespace fgui {
 
         protected setupScroll(buffer: ByteBuffer): void {
             if (this._displayObject == this._container) {
-                this._container = new Laya.Sprite();
-                this._displayObject.addChild(this._container);
+                this._container = new Phaser.GameObjects.Container(this.scene);
+                this._displayObject.add(this._container);
             }
             this._scrollPane = new ScrollPane(this);
             this._scrollPane.setup(buffer);
@@ -745,18 +744,18 @@ namespace fgui {
         protected setupOverflow(overflow: number): void {
             if (overflow == OverflowType.Hidden) {
                 if (this._displayObject == this._container) {
-                    this._container = new Laya.Sprite();
-                    this._displayObject.addChild(this._container);
+                    this._container = new Phaser.GameObjects.Container(this.scene);
+                    this._displayObject.add(this._container);
                 }
                 this.updateMask();
-                this._container.pos(this._margin.left, this._margin.top);
+                this._container.setPosition(this._margin.left, this._margin.top);
             }
             else if (this._margin.left != 0 || this._margin.top != 0) {
                 if (this._displayObject == this._container) {
-                    this._container = new Laya.Sprite();
-                    this._displayObject.addChild(this._container);
+                    this._container = new Phaser.GameObjects.Container(this.scene);
+                    this._displayObject.add(this._container);
                 }
-                this._container.pos(this._margin.left, this._margin.top);
+                this._container.setPosition(this._margin.left, this._margin.top);
             }
         }
 
@@ -768,7 +767,7 @@ namespace fgui {
             else if (this._displayObject.scrollRect)
                 this.updateMask();
 
-            if (this._displayObject.hitArea)
+            if (this._displayObject.input.hitArea)
                 this.updateHitArea();
         }
 
@@ -895,16 +894,16 @@ namespace fgui {
                 this.height = value + this._margin.top + this._margin.bottom;
         }
 
-        public getSnappingPosition(xValue: number, yValue: number, result?: Laya.Point): Laya.Point {
+        public getSnappingPosition(xValue: number, yValue: number, result?: Phaser.Geom.Point): Phaser.Geom.Point {
             return this.getSnappingPositionWithDir(xValue, yValue, 0, 0, result);
         }
 
         /**
          * dir正数表示右移或者下移，负数表示左移或者上移
          */
-        public getSnappingPositionWithDir(xValue: number, yValue: number, xDir: number, yDir: number, result?: Laya.Point): Laya.Point {
+        public getSnappingPositionWithDir(xValue: number, yValue: number, xDir: number, yDir: number, result?: Phaser.Geom.Point): Phaser.Geom.Point {
             if (!result)
-                result = new Laya.Point();
+                result = new Phaser.Geom.Point();
 
             var cnt: number = this._children.length;
             if (cnt == 0) {
@@ -1044,10 +1043,10 @@ namespace fgui {
 
             var overflow: number = buffer.readByte();
             if (overflow == OverflowType.Scroll) {
-                var savedPos: number = buffer.pos;
+                var savedPos: number = buffer.position;
                 buffer.seek(0, 7);
                 this.setupScroll(buffer);
-                buffer.pos = savedPos;
+                buffer.position = savedPos;
             }
             else
                 this.setupOverflow(overflow);
@@ -1062,14 +1061,14 @@ namespace fgui {
             var controllerCount: number = buffer.getInt16();
             for (i = 0; i < controllerCount; i++) {
                 nextPos = buffer.getInt16();
-                nextPos += buffer.pos;
+                nextPos += buffer.position;
 
                 var controller: Controller = new Controller();
                 this._controllers.push(controller);
                 controller.parent = this;
                 controller.setup(buffer);
 
-                buffer.pos = nextPos;
+                buffer.position = nextPos;
             }
 
             buffer.seek(0, 2);
@@ -1078,7 +1077,7 @@ namespace fgui {
             var childCount: number = buffer.getInt16();
             for (i = 0; i < childCount; i++) {
                 dataLen = buffer.getInt16();
-                curPos = buffer.pos;
+                curPos = buffer.position;
 
                 if (objectPool)
                     child = objectPool[poolIndex + i];
@@ -1113,7 +1112,7 @@ namespace fgui {
                 child.parent = this;
                 this._children.push(child);
 
-                buffer.pos = curPos + dataLen;
+                buffer.position = curPos + dataLen;
             }
 
             buffer.seek(0, 3);
@@ -1124,12 +1123,12 @@ namespace fgui {
 
             for (i = 0; i < childCount; i++) {
                 nextPos = buffer.getInt16();
-                nextPos += buffer.pos;
+                nextPos += buffer.position;
 
-                buffer.seek(buffer.pos, 3);
+                buffer.seek(buffer.position, 3);
                 this._children[i].relations.setup(buffer, false);
 
-                buffer.pos = nextPos;
+                buffer.position = nextPos;
             }
 
             buffer.seek(0, 2);
@@ -1137,13 +1136,13 @@ namespace fgui {
 
             for (i = 0; i < childCount; i++) {
                 nextPos = buffer.getInt16();
-                nextPos += buffer.pos;
+                nextPos += buffer.position;
 
                 child = this._children[i];
-                child.setup_afterAdd(buffer, buffer.pos);
+                child.setup_afterAdd(buffer, buffer.position);
                 child._underConstruct = false;
 
-                buffer.pos = nextPos;
+                buffer.position = nextPos;
             }
 
             buffer.seek(0, 4);
@@ -1158,7 +1157,7 @@ namespace fgui {
             var hitTestId: string = buffer.readS();
             i1 = buffer.getInt32();
             i2 = buffer.getInt32();
-            var hitArea: Laya.HitArea;
+            var hitArea: Phaser.input.hitArea;
 
             if (hitTestId) {
                 pi = contentItem.owner.getItemById(hitTestId);
@@ -1170,7 +1169,7 @@ namespace fgui {
             }
 
             if (hitArea) {
-                this._displayObject.hitArea = hitArea;
+                this._displayObject.input.hitArea = hitArea;
                 this._displayObject.mouseThrough = false;
                 this._displayObject.hitTestPrior = true;
             }
@@ -1180,13 +1179,13 @@ namespace fgui {
             var transitionCount: number = buffer.getInt16();
             for (i = 0; i < transitionCount; i++) {
                 nextPos = buffer.getInt16();
-                nextPos += buffer.pos;
+                nextPos += buffer.position;
 
                 var trans: Transition = new Transition(this);
                 trans.setup(buffer);
                 this._transitions.push(trans);
 
-                buffer.pos = nextPos;
+                buffer.position = nextPos;
             }
 
             if (this._transitions.length > 0) {
