@@ -68,7 +68,7 @@ namespace fgui {
             let p = view.parentElement;
             if (!p)
                 //this should be impossible situation unless the user forget to append the view into the DOM.
-                throw new Error("Your view of PIXI are still in memory but not appended to DOM yet? it's necessary that there is a parent element to wrap your view up.");
+                throw new Error("Your view of Phaser are still in memory but not appended to DOM yet? it's necessary that there is a parent element to wrap your view up.");
             let rect = p.getBoundingClientRect();
             let ret: BoundingRect = {
                 x: 0,
@@ -92,7 +92,7 @@ namespace fgui {
 
             //consider the worst situation: window does not have size!!
             if (ret.width <= 0 || ret.height <= 0) {
-                console.warn("fetch container size to initialize PIXI in all ways have failed, now use default size (fallbackWidth / fallbackHeight) specified in the options instead.");
+                console.warn("fetch container size to initialize Phaser in all ways have failed, now use default size (fallbackWidth / fallbackHeight) specified in the options instead.");
                 ret.width = fallbackWidth;
                 ret.height = fallbackHeight;
             }
