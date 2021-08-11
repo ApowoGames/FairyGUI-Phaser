@@ -1,7 +1,7 @@
 namespace fgui {
     var _nextPageId: number = 0;
 
-    export class Controller extends Laya.EventDispatcher {
+    export class Controller extends Phaser.Events.EventEmitter {
         private _selectedIndex: number;
         private _previousIndex: number;
         private _pageIds: string[];
@@ -40,7 +40,7 @@ namespace fgui {
                 this._selectedIndex = value;
                 this.parent.applyController(this);
 
-                this.event(Events.STATE_CHANGED, this);
+                this.emit(Events.STATE_CHANGED, this);
 
                 this.changing = false;
             }

@@ -22,8 +22,8 @@ namespace fgui {
             this._uiSources = [];
             this.bringToFontOnClick = UIConfig.bringWindowToFrontOnClick;
 
-            this.displayObject.on(Laya.Event.DISPLAY, this, this.__onShown);
-            this.displayObject.on(Laya.Event.UNDISPLAY, this, this.__onHidden);
+            this.displayObject.on(Phaser.GameObjects.Events.ADDED_TO_SCENE, this, this.__onShown);
+            this.displayObject.on(Phaser.GameObjects.Events.REMOVED_FROM_SCENE, this, this.__onHidden);
             this.displayObject.on(Laya.Event.MOUSE_DOWN, this, this.__mouseDown);
         }
 

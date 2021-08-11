@@ -30,11 +30,11 @@ namespace fgui {
         private _relations: Relations;
         private _group?: GGroup;
         private _gears: GearBase[];
-        private _dragBounds?: Phaser.Geom.Rectangle;
+        private _dragBounds?: Laya.Rectangle;
         private _dragTesting?: boolean;
-        private _dragStartPos?: Phaser.Geom.Point;
+        private _dragStartPos?: Laya.Point;
 
-        protected _displayObject: Phaser.GameObjects.Container;
+        protected _displayObject: Laya.Sprite;
         protected _yOffset: number = 0;
 
         public minWidth: number = 0;
@@ -826,7 +826,7 @@ namespace fgui {
             return GObject.draggingObject == this;
         }
 
-        public localToGlobal(ax?: number, ay?: number, result?: Laya.Point): Laya.Point {
+        public localToGlobal(ax?: number, ay?: number, result?: Phaser.Geom.Point): Phaser.Geom.Point {
             ax = ax || 0;
             ay = ay || 0;
 
@@ -835,16 +835,16 @@ namespace fgui {
                 ay += this._pivotY * this._height;
             }
 
-            result = result || new Laya.Point();
+            result = result || new Phaser.Geom.Point();
             result.x = ax;
             result.y = ay;
             return this._displayObject.localToGlobal(result, false);
         }
 
-        public globalToLocal(ax?: number, ay?: number, result?: Laya.Point): Laya.Point {
+        public globalToLocal(ax?: number, ay?: number, result?: Phaser.Geom.Point): Phaser.Geom.Point {
             ax = ax || 0;
             ay = ay || 0;
-            result = result || new Laya.Point();
+            result = result || new Phaser.Geom.Point();
             result.x = ax;
             result.y = ay;
             result = this._displayObject.globalToLocal(result, false);

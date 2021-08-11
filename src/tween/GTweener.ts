@@ -413,7 +413,7 @@ namespace fgui {
                 }
             }
             else if (this._path) {
-                var pt: Laya.Point = s_vec2;
+                var pt: Phaser.Geom.Point = s_vec2;
                 this._path.getPointAt(this._normalizedTime, pt);
                 if (this._snapping) {
                     pt.x = Math.round(pt.x);
@@ -425,8 +425,7 @@ namespace fgui {
                 this._value.y = pt.y;
             }
             else {
-                let cnt = Math.min(this._valueSize, 4);
-                for (var i: number = 0; i < cnt; i++) {
+                for (var i: number = 0; i < this._valueSize; i++) {
                     var n1: number = this._startValue.getField(i);
                     var n2: number = this._endValue.getField(i);
                     var f: number = n1 + (n2 - n1) * this._normalizedTime;
@@ -505,5 +504,5 @@ namespace fgui {
         }
     }
 
-    var s_vec2: Laya.Point = new Laya.Point();
+    var s_vec2: Phaser.Geom.Point = new Phaser.Geom.Point();
 }

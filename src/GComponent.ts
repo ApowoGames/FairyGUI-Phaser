@@ -1,6 +1,5 @@
 ///<reference path="GObject.ts"/>
 ///<reference path="Margin.ts"/>
-
 namespace fgui {
     export class GComponent extends GObject {
         private _sortingChildCount: number = 0;
