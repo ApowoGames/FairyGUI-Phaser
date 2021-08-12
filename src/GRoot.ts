@@ -48,6 +48,18 @@ namespace fgui {
         public static get globalMouseStatus(): GRootMouseStatus {
             return GRoot._gmStatus;
         }
+
+        public get focus(): GObject {
+            return null;
+        }
+
+        public set focus(value: GObject) {
+            this.setFocus(value);
+        }
+
+        private setFocus(value: GObject): void {
+        }
+
         /**
          * 游戏/编辑器启动ui入口,注入uiScene
          * @param scene 

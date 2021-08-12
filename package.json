@@ -4,5 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "dependencies": {},
-  "devDependencies": {}
+  "devDependencies": {
+    "phaser": "^3.55.2"
+  }
 }

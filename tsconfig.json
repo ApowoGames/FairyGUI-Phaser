@@ -3,18 +3,21 @@
     "declaration": true,
     "sourceMap": true,
     "experimentalDecorators": true,
-    "target": "es6",                          /* Specify ECMAScript target version: 'ES3' (default), 'ES5', 'ES2015', 'ES2016', 'ES2017', 'ES2018', 'ES2019' or 'ESNEXT'. */
-    "module": "esnext",                     /* Specify module code generation: 'none', 'commonjs', 'amd', 'system', 'umd', 'es2015', or 'ESNext'. */
-    "strict": false,   
-    "noImplicitUseStrict": true,                       /* Enable all strict type-checking options. */         /* Enable strict 'bind', 'call', and 'apply' methods on functions. */
+    "target": "es6", /* Specify ECMAScript target version: 'ES3' (default), 'ES5', 'ES2015', 'ES2016', 'ES2017', 'ES2018', 'ES2019' or 'ESNEXT'. */
+    "module": "esnext", /* Specify module code generation: 'none', 'commonjs', 'amd', 'system', 'umd', 'es2015', or 'ESNext'. */
+    "strict": false,
+    "noImplicitUseStrict": true, /* Enable all strict type-checking options. */ /* Enable strict 'bind', 'call', and 'apply' methods on functions. */
     // "strictPropertyInitialization": false,  /* Enable strict checking of property initialization in classes. */
-    "moduleResolution": "node",            /* Specify module resolution strategy: 'node' (Node.js) or 'classic' (TypeScript pre-1.6). */
+    "moduleResolution": "node", /* Specify module resolution strategy: 'node' (Node.js) or 'classic' (TypeScript pre-1.6). */
     "alwaysStrict": false,
+    "typeRoots": [
+      "node_modules/@types",
+      "node_modules/phaser/types",
+    ]
     // "esModuleInterop": true,                  /* Enables emit interoperability between CommonJS and ES Modules via creation of namespace objects for all imports. Implies 'allowSyntheticDefaultImports'. */
     // "forceConsistentCasingInFileNames": true  /* Disallow inconsistently-cased references to the same file. */
   },
   "exclude": [
-    "node_modules", 
-    "bin/**/*.d.ts",
+    "node_modules",
   ]
 }

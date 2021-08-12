@@ -11,9 +11,11 @@ namespace fgui {
         static POINTER_UP = "pointerup";
         static POINTER_OVER = "pointerover";
         static POINTER_OUT = "pointerout";
+        static POINTER_MOVE = "pointermove";
         static GAMEOBJECT_DOWN = "gameobjectdown";
         static GAMEOBJECT_UP = "gameobjectup";
         static GAMEOBJECT_OVER = "gameobjectover";
         static GAMEOBJECT_OUT = "gameobjectout";
+        static GAMEOBJECT_MOVE = "gameobjectmove";
     }
 }

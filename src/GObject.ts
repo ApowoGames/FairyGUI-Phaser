@@ -71,8 +71,19 @@ namespace fgui {
             this._gears = new Array<GearBase>(10);
         }
 
+        public get dpr(): number {
+            return this._dpr;
+        }
+        public set dpr(value: number) {
+            this._dpr = value;
+        }
+
         public get id(): string {
             return this._id;
+        }
+
+        public set id(value: string) {
+            this._id = value;
         }
 
         public get name(): string {
@@ -547,11 +558,11 @@ namespace fgui {
         }
 
         public get filters(): any[] {
-            return this._displayObject.filters;
+            return null;// this._displayObject.filters;
         }
 
         public set filters(value: any[]) {
-            this._displayObject.filters = value;
+            // this._displayObject.filters = value;
         }
 
         public get inContainer(): boolean {
@@ -795,7 +806,7 @@ namespace fgui {
         }
 
         public hasClickListener(): boolean {
-            return this._displayObject.set// hasListener(InteractiveEvent.CLICK);
+            return this._displayObject && this._touchable;// hasListener(InteractiveEvent.CLICK);
         }
 
         public on(type: string, thisObject: any, listener: Function, args?: any[]): void {
@@ -930,7 +941,7 @@ namespace fgui {
                 yv = Math.round(yv);
             }
 
-            this._displayObject.pos(xv + this._pivotOffsetX, yv + this._pivotOffsetY);
+            this._displayObject.setPosition(xv + this._pivotOffsetX, yv + this._pivotOffsetY);
         }
 
         protected handleSizeChanged(): void {
@@ -1099,9 +1110,9 @@ namespace fgui {
 
         private initDrag(): void {
             if (this._draggable)
-                this.on(InteractiveEvent.MOUSE_DOWN, this, this.__begin);
+                this.on(InteractiveEvent.GAMEOBJECT_DOWN, this, this.__begin);
             else
-                this.off(InteractiveEvent.MOUSE_DOWN, this, this.__begin);
+                this.off(InteractiveEvent.GAMEOBJECT_DOWN, this, this.__begin);
         }
 
         private dragBegin(touchID?: number): void {
@@ -1120,8 +1131,8 @@ namespace fgui {
             this._dragTesting = true;
             GObject.draggingObject = this;
 
-            Laya.stage.on(InteractiveEvent.MOUSE_MOVE, this, this.__moving);
-            Laya.stage.on(InteractiveEvent.MOUSE_UP, this, this.__end);
+            Laya.stage.on(InteractiveEvent.GAMEOBJECT_MOVE, this, this.__moving);
+            Laya.stage.on(InteractiveEvent.GAMEOBJECT_UP, this, this.__end);
         }
 
         private dragEnd(): void {
@@ -1134,8 +1145,8 @@ namespace fgui {
         }
 
         private reset(): void {
-            Laya.stage.off(InteractiveEvent.MOUSE_MOVE, this, this.__moving);
-            Laya.stage.off(InteractiveEvent.MOUSE_UP, this, this.__end);
+            Laya.stage.off(InteractiveEvent.GAMEOBJECT_MOVE, this, this.__moving);
+            Laya.stage.off(InteractiveEvent.GAMEOBJECT_UP, this, this.__end);
         }
 
         private __begin(): void {
@@ -1145,8 +1156,8 @@ namespace fgui {
             this._dragStartPos.y = Laya.stage.mouseY;
             this._dragTesting = true;
 
-            Laya.stage.on(InteractiveEvent.MOUSE_MOVE, this, this.__moving);
-            Laya.stage.on(InteractiveEvent.MOUSE_UP, this, this.__end);
+            Laya.stage.on(InteractiveEvent.GAMEOBJECT_MOVE, this, this.__moving);
+            Laya.stage.on(InteractiveEvent.GAMEOBJECT_UP, this, this.__end);
         }
 
         private __moving(evt: InteractiveEvent): void {
@@ -1170,7 +1181,7 @@ namespace fgui {
                 var yy: number = Laya.stage.mouseY - sGlobalDragStart.y + sGlobalRect.y;
 
                 if (this._dragBounds) {
-                    var rect: Laya.Rectangle = GRoot.inst.localToGlobalRect(this._dragBounds.x, this._dragBounds.y,
+                    var rect: Phaser.Geom.Rectangle = GRoot.inst.localToGlobalRect(this._dragBounds.x, this._dragBounds.y,
                         this._dragBounds.width, this._dragBounds.height, sDragHelperRect);
                     if (xx < rect.x)
                         xx = rect.x;

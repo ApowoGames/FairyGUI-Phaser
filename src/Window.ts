@@ -1,3 +1,4 @@
+///<reference types="phaser"/>
 namespace fgui {
     export class Window extends GComponent {
         private _contentPane: GComponent;
