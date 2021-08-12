@@ -1,6 +1,7 @@
 {
   "name": "fairygui-phaser",
-  "version": "1.0.0",
+  "description": "A GUI Editor & framework for Phaser",
+  "version": "0.1.0",
   "main": "index.js",
   "license": "MIT",
   "dependencies": {},
