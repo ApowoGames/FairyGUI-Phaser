@@ -65,10 +65,10 @@ namespace fgui {
 
         public set closeButton(value: GObject) {
             if (this._closeButton)
-                this._closeButton.offClick(this, this.closeEventHandler);
+                this._closeButton.offClick(this.closeEventHandler);
             this._closeButton = value;
             if (this._closeButton)
-                this._closeButton.onClick(this, this.closeEventHandler);
+                this._closeButton.onClick(this.closeEventHandler);
         }
 
         public get dragArea(): GObject {
@@ -79,7 +79,7 @@ namespace fgui {
             if (this._dragArea != value) {
                 if (this._dragArea) {
                     this._dragArea.draggable = false;
-                    this._dragArea.off(Events.DRAG_START, this, this.__dragStart);
+                    this._dragArea.off(Events.DRAG_START, this.__dragStart);
                 }
 
                 this._dragArea = value;

@@ -1,4 +1,26 @@
 namespace fgui {
+    export class MatrixStyle {
+        /**水平缩放 */
+        scaleX: number = 1;
+        /**垂直缩放 */
+        scaleY: number = 1;
+        /**水平倾斜角度 */
+        skewX: number = 0;
+        /**垂直倾斜角度 */
+        skewY: number = 0;
+        /**X轴心点 */
+        pivotX: number = 0;
+        /**Y轴心点 */
+        pivotY: number = 0;
+        /**旋转角度 */
+        rotation: number = 0;
+        /**透明度 */
+        alpha: number = 1;
+        /**滚动区域 */
+        scrollRect: Phaser.Geom.Rectangle;
+        /**视口 */
+        viewport: Phaser.Geom.Rectangle;
+    }
     export class GObject {
         public data: Object;
         public packageItem: PackageItem;
@@ -36,6 +58,8 @@ namespace fgui {
         private _dragTesting?: boolean;
         private _dragStartPos?: Phaser.Geom.Point;
 
+        private _matrixStyle: MatrixStyle;
+
         protected _displayObject: Phaser.GameObjects.Container;
         protected _yOffset: number = 0;
         protected _scene: Phaser.Scene;
@@ -66,6 +90,7 @@ namespace fgui {
             this._name = "";
 
             this.createDisplayObject();
+            this._matrixStyle = new MatrixStyle();
 
             this._relations = new Relations(this);
             this._gears = new Array<GearBase>(10);
@@ -318,10 +343,41 @@ namespace fgui {
                 this._skewX = sx;
                 this._skewY = sy;
                 if (this._displayObject) {
-                    this._displayObject.skew(-sx, sy);
+                    this._matrixStyle.skewX = -sx,
+                        this._matrixStyle.skewY = sy;
+                    this._adjustTransform();
+                    // this._displayObject.skew(-sx, sy);
                     this.applyPivot();
                 }
             }
+        }
+
+        protected _adjustTransform(): Phaser.GameObjects.Components.TransformMatrix {
+            var sx: number = this._matrixStyle.scaleX, sy: number = this._matrixStyle.scaleY;
+            var sskx: number = this._matrixStyle.skewX;
+            var ssky: number = this._matrixStyle.skewY;
+            var rot: number = this._matrixStyle.rotation;
+            const m = this._displayObject.getLocalTransformMatrix();
+            // var m: Matrix = this._transform || (this._transform = this._createTransform());
+            if (rot || sx !== 1 || sy !== 1 || sskx !== 0 || ssky !== 0) {
+                // m._bTransform = true;
+                var skx: number = (rot - sskx) * 0.0174532922222222;//laya.CONST.PI180;
+                var sky: number = (rot + ssky) * 0.0174532922222222;
+                var cx: number = Math.cos(sky);
+                var ssx: number = Math.sin(sky);
+                var cy: number = Math.sin(skx);
+                var ssy: number = Math.cos(skx);
+                m.a = sx * cx;
+                m.b = sx * ssx;
+                m.c = -sy * cy;
+                m.d = sy * ssy;
+                m.tx = m.ty = 0;
+            } else {
+                m.loadIdentity();
+                // this._renderType &= ~SpriteConst.TRANSFORM;
+                // this._setRenderType(this._renderType);
+            }
+            return m;
         }
 
         public get pivotX(): number {
@@ -365,10 +421,12 @@ namespace fgui {
 
         private updatePivotOffset(): void {
             if (this._displayObject) {
-                if (this._displayObject.transform && (this._pivotX != 0 || this._pivotY != 0)) {
+                const transform = this._displayObject.getLocalTransformMatrix();
+                if (transform && (this._pivotX != 0 || this._pivotY != 0)) {
                     sHelperPoint.x = this._pivotX * this._width;
                     sHelperPoint.y = this._pivotY * this._height;
-                    var pt: Phaser.Geom.Point = this._displayObject.transform.transformPoint(sHelperPoint);
+                    const pt: Phaser.Geom.Point = new Phaser.Geom.Point();
+                    (<Phaser.Geom.Point>transform.transformPoint(this._pivotX * this._width, this._pivotY * this._height, pt));
                     this._pivotOffsetX = this._pivotX * this._width - pt.x;
                     this._pivotOffsetY = this._pivotY * this._height - pt.y;
                 }
@@ -523,14 +581,14 @@ namespace fgui {
 
         public set tooltips(value: string) {
             if (this._tooltips) {
-                this.off(InteractiveEvent.GAMEOBJECT_OVER, this, this.__rollOver);
-                this.off(InteractiveEvent.GAMEOBJECT_OUT, this, this.__rollOut);
+                this.off(InteractiveEvent.GAMEOBJECT_OVER, this.__rollOver);
+                this.off(InteractiveEvent.GAMEOBJECT_OUT, this.__rollOut);
             }
 
             this._tooltips = value;
             if (this._tooltips) {
-                this.on(InteractiveEvent.GAMEOBJECT_OVER, this, this.__rollOver);
-                this.on(InteractiveEvent.GAMEOBJECT_OUT, this, this.__rollOut);
+                this.on(InteractiveEvent.GAMEOBJECT_OVER, this.__rollOver);
+                this.on(InteractiveEvent.GAMEOBJECT_OUT, this.__rollOut);
             }
         }
 
@@ -570,7 +628,8 @@ namespace fgui {
         }
 
         public get onStage(): boolean {
-            return this._displayObject != null && this._displayObject.stage != null;
+            return this._displayObject != null;
+            // return this._displayObject != null && this._displayObject.stage != null;
         }
 
         public get resourceURL(): string {
@@ -797,24 +856,24 @@ namespace fgui {
             }
         }
 
-        public onClick(thisObj: any, listener: Function, args?: any[]): void {
-            this.on(InteractiveEvent.CLICK, thisObj, listener, args);
+        public onClick(listener: Function): void {
+            this.on(InteractiveEvent.GAMEOBJECT_UP, listener);
         }
 
-        public offClick(thisObj: any, listener: Function): void {
-            this.off(InteractiveEvent.CLICK, thisObj, listener);
+        public offClick(listener: Function, once: boolean = false): void {
+            this.off(InteractiveEvent.GAMEOBJECT_UP, listener, once);
         }
 
         public hasClickListener(): boolean {
             return this._displayObject && this._touchable;// hasListener(InteractiveEvent.CLICK);
         }
 
-        public on(type: string, thisObject: any, listener: Function, args?: any[]): void {
-            this._displayObject.on(type, thisObject, listener, args);
+        public on(type: string, listener: Function): void {
+            this._displayObject.on(type, listener, this);
         }
 
-        public off(type: string, thisObject: any, listener: Function): void {
-            this._displayObject.off(type, thisObject, listener);
+        public off(type: string, listener: Function, once: boolean = false): void {
+            this._displayObject.off(type, listener, this, once);
         }
 
         public get draggable(): boolean {
@@ -837,8 +896,8 @@ namespace fgui {
         }
 
         public startDrag(touchID?: number): void {
-            if (this._displayObject.stage == null)
-                return;
+            // if (this._displayObject.stage == null)
+            //     return;
 
             this.dragBegin(touchID);
         }
@@ -863,7 +922,20 @@ namespace fgui {
             result = result || new Phaser.Geom.Point();
             result.x = ax;
             result.y = ay;
-            return this._displayObject.localToGlobal(result, false);
+            return this._localToGlobal(result, false);
+
+        }
+
+        _localToGlobal(point: Phaser.Geom.Point, createNewPoint: boolean = false): Phaser.Geom.Point {
+            if (createNewPoint === true) {
+                point = new Phaser.Geom.Point(point.x, point.y);
+            }
+            let ele: Phaser.GameObjects.Container = this._displayObject;
+            while (ele) {
+                if (!ele.parentContainer) break;
+                ele = ele.parentContainer;
+            }
+            return new Phaser.Geom.Point(ele.x, ele.y);
         }
 
         public globalToLocal(ax?: number, ay?: number, result?: Phaser.Geom.Point): Phaser.Geom.Point {
@@ -872,17 +944,121 @@ namespace fgui {
             result = result || new Phaser.Geom.Point();
             result.x = ax;
             result.y = ay;
-            result = this._displayObject.globalToLocal(result, false);
+            result = this._globalToLocal(result, false);
 
             if (this._pivotAsAnchor) {
                 result.x -= this._pivotX * this._width;
                 result.y -= this._pivotY * this._height;
             }
-
             return result;
+
+            // let ele: Phaser.GameObjects.Container = this._displayObject;
+            // let list: any[] = [];
+            // while (ele) {
+            //     list.push(ele);
+            //     if (!ele.parentContainer) break;
+            //     ele = ele.parentContainer;
+            // }
+            // var i: number = list.length - 1;
+            // while (i >= 0) {
+            //     ele = list[i];
+            //     i--;
+            // }
+            // return new Phaser.Geom.Point(ele.x, ele.y);
         }
 
-        public localToGlobalRect(ax?: number, ay?: number, aw?: number, ah?: number, result?: Laya.Rectangle): Laya.Rectangle {
+        _globalToLocal(point: Phaser.Geom.Point, createNewPoint: boolean = false): Phaser.Geom.Point {
+            if (createNewPoint) {
+                point = new Phaser.Geom.Point(point.x, point.y);
+            }
+            let ele: Phaser.GameObjects.Container = this._displayObject;
+            let list: any[] = [];
+            while (ele) {
+                list.push(ele);
+                if (!ele.parentContainer) break;
+                ele = ele.parentContainer;
+            }
+            var i: number = list.length - 1;
+            while (i >= 0) {
+                ele = list[i];
+                point = this.fromParentPoint(point);
+                i--;
+            }
+            return point;
+        }
+
+        /**
+     * 将本地坐标系坐标转转换到父容器坐标系。
+     * @param point 本地坐标点。
+     * @return  转换后的点。
+     */
+        toParentPoint(point: Phaser.Geom.Point): Phaser.Geom.Point {
+            if (!point) return point;
+            point.x -= this.pivotX;
+            point.y -= this.pivotY;
+            const tmpPoint = new Phaser.Geom.Point();
+            if (this._displayObject) {
+                const matrix = this._displayObject.getLocalTransformMatrix();
+                matrix.transformPoint(point.x, point.y, tmpPoint);
+            }
+            tmpPoint.x += this._displayObject.x;
+            tmpPoint.y += this._displayObject.y;
+            var scroll: Phaser.Geom.Rectangle = this._matrixStyle.scrollRect;
+            if (scroll) {
+                point.x -= scroll.x;
+                point.y -= scroll.y;
+            }
+            return point;
+        }
+
+        /**
+         * 将父容器坐标系坐标转换到本地坐标系。
+         * @param point 父容器坐标点。
+         * @return  转换后的点。
+         */
+        fromParentPoint(point: Phaser.Geom.Point): Phaser.Geom.Point {
+            if (!point) return point;
+            point.x -= this._displayObject.x;
+            point.y -= this._displayObject.y;
+            var scroll: Phaser.Geom.Rectangle = this._matrixStyle.scrollRect;
+            if (scroll) {
+                point.x += scroll.x;
+                point.y += scroll.y;
+            }
+            const matrix = this._displayObject.getLocalTransformMatrix();
+            if (matrix) {
+                //_transform.setTranslate(0,0);
+                this.invertTransformPoint(point);
+            }
+            point.x += this.pivotX;
+            point.y += this.pivotY;
+            return point;
+        }
+
+        /**
+     * 对指定的点应用当前矩阵的逆转化并返回此点。
+     * @param	out 待转化的点 Point 对象。
+     * @return	返回out
+     */
+        invertTransformPoint(out: Phaser.Geom.Point): Phaser.Geom.Point {
+            const matrix = this._displayObject.getLocalTransformMatrix();
+            var a1: number = matrix.a;
+            var b1: number = matrix.b;
+            var c1: number = matrix.c;
+            var d1: number = matrix.d;
+            var tx1: number = matrix.tx;
+            var n: number = a1 * d1 - b1 * c1;
+
+            var a2: number = d1 / n;
+            var b2: number = -b1 / n;
+            var c2: number = -c1 / n;
+            var d2: number = a1 / n;
+            var tx2: number = (c1 * matrix.ty - d1 * tx1) / n;
+            var ty2: number = -(a1 * matrix.ty - b1 * tx1) / n;
+            return out.setTo(a2 * out.x + c2 * out.y + tx2, b2 * out.x + d2 * out.y + ty2);
+        }
+
+        public localToGlobalRect(ax?: number, ay?: number, aw?: number, ah?: number, result?: Phaser.Geom.Rectangle): Phaser.Geom.Rectangle {
             ax = ax || 0;
             ay = ay || 0;
             aw = aw || 0;
@@ -897,7 +1073,7 @@ namespace fgui {
             return result;
         }
 
-        public globalToLocalRect(ax?: number, ay?: number, aw?: number, ah?: number, result?: Laya.Rectangle): Laya.Rectangle {
+        public globalToLocalRect(ax?: number, ay?: number, aw?: number, ah?: number, result?: Phaser.Geom.Rectangle): Phaser.Geom.Rectangle {
             ax = ax || 0;
             ay = ay || 0;
             aw = aw || 0;
@@ -1110,9 +1286,9 @@ namespace fgui {
 
         private initDrag(): void {
             if (this._draggable)
-                this.on(InteractiveEvent.GAMEOBJECT_DOWN, this, this.__begin);
+                this.on(InteractiveEvent.GAMEOBJECT_DOWN, this.__begin);
             else
-                this.off(InteractiveEvent.GAMEOBJECT_DOWN, this, this.__begin);
+                this.off(InteractiveEvent.GAMEOBJECT_DOWN, this.__begin);
         }
 
         private dragBegin(touchID?: number): void {
@@ -1124,15 +1300,15 @@ namespace fgui {
                 Events.dispatch(Events.DRAG_END, tmp._displayObject, { touchId: touchID });
             }
 
-            sGlobalDragStart.x = Laya.stage.mouseX;
-            sGlobalDragStart.y = Laya.stage.mouseY;
+            sGlobalDragStart.x = this.scene.input.activePointer.x;// Laya.stage.mouseX;
+            sGlobalDragStart.y = this.scene.input.activePointer.y;// Laya.stage.mouseY;
 
             this.localToGlobalRect(0, 0, this.width, this.height, sGlobalRect);
             this._dragTesting = true;
             GObject.draggingObject = this;
 
-            Laya.stage.on(InteractiveEvent.GAMEOBJECT_MOVE, this, this.__moving);
-            Laya.stage.on(InteractiveEvent.GAMEOBJECT_UP, this, this.__end);
+            this._displayObject.on(InteractiveEvent.GAMEOBJECT_MOVE, this.__moving);
+            this._displayObject.on(InteractiveEvent.GAMEOBJECT_UP, this.__end);
         }
 
         private dragEnd(): void {
@@ -1145,27 +1321,27 @@ namespace fgui {
         }
 
         private reset(): void {
-            Laya.stage.off(InteractiveEvent.GAMEOBJECT_MOVE, this, this.__moving);
-            Laya.stage.off(InteractiveEvent.GAMEOBJECT_UP, this, this.__end);
+            this._displayObject.off(InteractiveEvent.GAMEOBJECT_MOVE, this.__moving);
+            this._displayObject.off(InteractiveEvent.GAMEOBJECT_UP, this.__end);
         }
 
         private __begin(): void {
             if (!this._dragStartPos)
                 this._dragStartPos = new Phaser.Geom.Point();
-            this._dragStartPos.x = Laya.stage.mouseX;
-            this._dragStartPos.y = Laya.stage.mouseY;
+            this._dragStartPos.x = this.scene.input.activePointer.x;
+            this._dragStartPos.y = this.scene.input.activePointer.y;
             this._dragTesting = true;
 
-            Laya.stage.on(InteractiveEvent.GAMEOBJECT_MOVE, this, this.__moving);
-            Laya.stage.on(InteractiveEvent.GAMEOBJECT_UP, this, this.__end);
+            this._displayObject.on(InteractiveEvent.GAMEOBJECT_MOVE, this.__moving);
+            this._displayObject.on(InteractiveEvent.GAMEOBJECT_UP, this.__end);
         }
 
         private __moving(evt: InteractiveEvent): void {
             if (GObject.draggingObject != this && this._draggable && this._dragTesting) {
                 var sensitivity: number = UIConfig.touchDragSensitivity;
                 if (this._dragStartPos
-                    && Math.abs(this._dragStartPos.x - Laya.stage.mouseX) < sensitivity
-                    && Math.abs(this._dragStartPos.y - Laya.stage.mouseY) < sensitivity)
+                    && Math.abs(this._dragStartPos.x - this.scene.input.activePointer.x) < sensitivity
+                    && Math.abs(this._dragStartPos.y - this.scene.input.activePointer.y) < sensitivity)
                     return;
 
                 this._dragTesting = false;
@@ -1177,8 +1353,8 @@ namespace fgui {
             }
 
             if (GObject.draggingObject == this) {
-                var xx: number = Laya.stage.mouseX - sGlobalDragStart.x + sGlobalRect.x;
-                var yy: number = Laya.stage.mouseY - sGlobalDragStart.y + sGlobalRect.y;
+                var xx: number = this.scene.input.activePointer.x - sGlobalDragStart.x + sGlobalRect.x;
+                var yy: number = this.scene.input.activePointer.y - sGlobalDragStart.y + sGlobalRect.y;
 
                 if (this._dragBounds) {
                     var rect: Phaser.Geom.Rectangle = GRoot.inst.localToGlobalRect(this._dragBounds.x, this._dragBounds.y,
