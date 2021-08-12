@@ -9,7 +9,9 @@ namespace fgui {
         private _alpha: number = 1;
         private _rotation: number = 0;
         private _visible: boolean = true;
-        private _touchable: boolean = true;
+        private _dpr: number = 1;
+        // 可交互默认false
+        private _touchable: boolean = false;
         private _grayed: boolean;
         private _draggable?: boolean;
         private _scaleX: number = 1;
@@ -388,7 +390,11 @@ namespace fgui {
                     return;
 
                 if (this._displayObject)
-                    this._displayObject.mouseEnabled = this._touchable;
+                    if (this._touchable) {
+                        this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this._width / this.scaleX, this._height / this.scaleY), Phaser.Geom.Rectangle.Contains);
+                    } else {
+                        this._displayObject.disableInteractive();
+                    }
             }
         }
 
@@ -506,18 +512,18 @@ namespace fgui {
 
         public set tooltips(value: string) {
             if (this._tooltips) {
-                this.off(Laya.Event.ROLL_OVER, this, this.__rollOver);
-                this.off(Laya.Event.ROLL_OUT, this, this.__rollOut);
+                this.off(InteractiveEvent.GAMEOBJECT_OVER, this, this.__rollOver);
+                this.off(InteractiveEvent.GAMEOBJECT_OUT, this, this.__rollOut);
             }
 
             this._tooltips = value;
             if (this._tooltips) {
-                this.on(Laya.Event.ROLL_OVER, this, this.__rollOver);
-                this.on(Laya.Event.ROLL_OUT, this, this.__rollOut);
+                this.on(InteractiveEvent.GAMEOBJECT_OVER, this, this.__rollOver);
+                this.on(InteractiveEvent.GAMEOBJECT_OUT, this, this.__rollOut);
             }
         }
 
-        private __rollOver(evt: Laya.Event): void {
+        private __rollOver(evt: InteractiveEvent): void {
             Laya.timer.once(100, this, this.__doShowTooltips);
         }
 
@@ -527,7 +533,7 @@ namespace fgui {
                 this.root.showTooltips(this._tooltips);
         }
 
-        private __rollOut(evt: Laya.Event): void {
+        private __rollOut(evt: InteractiveEvent): void {
             Laya.timer.clear(this, this.__doShowTooltips);
             this.root.hideTooltips();
         }
@@ -781,15 +787,15 @@ namespace fgui {
         }
 
         public onClick(thisObj: any, listener: Function, args?: any[]): void {
-            this.on(Laya.Event.CLICK, thisObj, listener, args);
+            this.on(InteractiveEvent.CLICK, thisObj, listener, args);
         }
 
         public offClick(thisObj: any, listener: Function): void {
-            this.off(Laya.Event.CLICK, thisObj, listener);
+            this.off(InteractiveEvent.CLICK, thisObj, listener);
         }
 
         public hasClickListener(): boolean {
-            return this._displayObject.hasListener(Laya.Event.CLICK);
+            return this._displayObject.set// hasListener(InteractiveEvent.CLICK);
         }
 
         public on(type: string, thisObject: any, listener: Function, args?: any[]): void {
@@ -1093,9 +1099,9 @@ namespace fgui {
 
         private initDrag(): void {
             if (this._draggable)
-                this.on(Laya.Event.MOUSE_DOWN, this, this.__begin);
+                this.on(InteractiveEvent.MOUSE_DOWN, this, this.__begin);
             else
-                this.off(Laya.Event.MOUSE_DOWN, this, this.__begin);
+                this.off(InteractiveEvent.MOUSE_DOWN, this, this.__begin);
         }
 
         private dragBegin(touchID?: number): void {
@@ -1114,8 +1120,8 @@ namespace fgui {
             this._dragTesting = true;
             GObject.draggingObject = this;
 
-            Laya.stage.on(Laya.Event.MOUSE_MOVE, this, this.__moving);
-            Laya.stage.on(Laya.Event.MOUSE_UP, this, this.__end);
+            Laya.stage.on(InteractiveEvent.MOUSE_MOVE, this, this.__moving);
+            Laya.stage.on(InteractiveEvent.MOUSE_UP, this, this.__end);
         }
 
         private dragEnd(): void {
@@ -1128,8 +1134,8 @@ namespace fgui {
         }
 
         private reset(): void {
-            Laya.stage.off(Laya.Event.MOUSE_MOVE, this, this.__moving);
-            Laya.stage.off(Laya.Event.MOUSE_UP, this, this.__end);
+            Laya.stage.off(InteractiveEvent.MOUSE_MOVE, this, this.__moving);
+            Laya.stage.off(InteractiveEvent.MOUSE_UP, this, this.__end);
         }
 
         private __begin(): void {
@@ -1139,11 +1145,11 @@ namespace fgui {
             this._dragStartPos.y = Laya.stage.mouseY;
             this._dragTesting = true;
 
-            Laya.stage.on(Laya.Event.MOUSE_MOVE, this, this.__moving);
-            Laya.stage.on(Laya.Event.MOUSE_UP, this, this.__end);
+            Laya.stage.on(InteractiveEvent.MOUSE_MOVE, this, this.__moving);
+            Laya.stage.on(InteractiveEvent.MOUSE_UP, this, this.__end);
         }
 
-        private __moving(evt: Laya.Event): void {
+        private __moving(evt: InteractiveEvent): void {
             if (GObject.draggingObject != this && this._draggable && this._dragTesting) {
                 var sensitivity: number = UIConfig.touchDragSensitivity;
                 if (this._dragStartPos
@@ -1192,7 +1198,7 @@ namespace fgui {
             }
         }
 
-        private __end(evt: Laya.Event): void {
+        private __end(evt: InteractiveEvent): void {
             if (GObject.draggingObject == this) {
                 GObject.draggingObject = null;
                 this.reset();
