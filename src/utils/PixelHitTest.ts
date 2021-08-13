@@ -1,5 +1,5 @@
 namespace fgui {
-    export class PixelHitTest extends Laya.HitArea {
+    export class PixelHitTest extends HitArea {
         private _data: PixelHitTestData;
 
         public offsetX: number;
@@ -43,7 +43,7 @@ namespace fgui {
         constructor() {
         }
 
-        public load(ba: Laya.Byte): void {
+        public load(ba: Byte): void {
             ba.getInt32();
             this.pixelWidth = ba.getInt32();
             this.scale = 1 / ba.readByte();

@@ -5,7 +5,7 @@ namespace fgui {
         private _sortingChildCount: number = 0;
         private _opaque: boolean;
         private _applyingController?: Controller;
-        private _mask?: Phaser.GameObjects.Container;
+        private _mask?: Graphics;
 
         protected _margin: Margin;
         protected _trackBounds: boolean;
@@ -33,7 +33,7 @@ namespace fgui {
             this._apexIndex = 0;
         }
 
-        protected createDisplayObject(): void {
+        public createDisplayObject(): void {
             super.createDisplayObject();
             this._displayObject.setInteractive(true);
             this._container = this._displayObject;
@@ -150,9 +150,8 @@ namespace fgui {
                 child.group = null;
                 if (child.inContainer) {
                     this._container.remove(child.displayObject);
-
-                    if (this._childrenRenderOrder == ChildrenRenderOrder.Arch)
-                        Laya.timer.callLater(this, this.buildNativeDisplayList);
+                    // if (this._childrenRenderOrder == ChildrenRenderOrder.Arch)
+                    //     Laya.timer.callLater(this, this.buildNativeDisplayList);
                 }
 
                 if (dispose)
@@ -328,9 +327,9 @@ namespace fgui {
                         displayIndex--;
                     this._container.addAt(child.displayObject, displayIndex);
                 }
-                else {
-                    Laya.timer.callLater(this, this.buildNativeDisplayList);
-                }
+                // else {
+                //     Laya.timer.callLater(this, this.buildNativeDisplayList);
+                // }
 
                 this.setBoundsChangedFlag();
             }
@@ -429,7 +428,7 @@ namespace fgui {
             if (!child.displayObject)
                 return;
 
-            if (child.internalVisible){ // && child.displayObject !== this._displayObject.mask) {
+            if (child.internalVisible) { // && child.displayObject !== this._displayObject.mask) {
                 if (!child.displayObject.parentContainer) {
                     var index: number = 0
                     if (this._childrenRenderOrder == ChildrenRenderOrder.Ascent) {
@@ -457,7 +456,7 @@ namespace fgui {
                     else {
                         this._container.add(child.displayObject);
 
-                        Laya.timer.callLater(this, this.buildNativeDisplayList);
+                        // Laya.timer.callLater(this, this.buildNativeDisplayList);
                     }
                 }
             }
@@ -465,8 +464,8 @@ namespace fgui {
                 if (child.displayObject.parentContainer) {
                     this._container.remove(child.displayObject);
 
-                    if (this._childrenRenderOrder == ChildrenRenderOrder.Arch)
-                        Laya.timer.callLater(this, this.buildNativeDisplayList);
+                    //     if (this._childrenRenderOrder == ChildrenRenderOrder.Arch)
+                    //         Laya.timer.callLater(this, this.buildNativeDisplayList);
                 }
             }
         }
@@ -578,7 +577,7 @@ namespace fgui {
         }
 
         public isChildInView(child: GObject): boolean {
-            if (this._displayObject.scrollRect) {
+            if (this.scrollRect) {
                 return child.x + child.width >= 0 && child.x <= this.width
                     && child.y + child.height >= 0 && child.y <= this.height;
             }
@@ -611,19 +610,20 @@ namespace fgui {
             if (this._opaque != value) {
                 this._opaque = value;
                 if (this._opaque) {
-                    if (!this._displayObject.input.hitArea)
-                        this._displayObject.input.hitArea = new Phaser.Geom.Rectangle();
+                    if (!this.hitArea)
+                        this.hitArea = new Phaser.Geom.Rectangle();
 
-                    if (this._displayObject.input.hitArea instanceof Phaser.Geom.Rectangle)
-                        this._displayObject.input.hitArea.setTo(0, 0, this._width, this._height);
+                    if (this.hitArea instanceof Phaser.Geom.Rectangle)
+                        this.hitArea.setTo(0, 0, this._width, this._height);
 
-                    this._displayObject.mouseThrough = false;
+                    this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this._width, this._height), Phaser.Geom.Rectangle.Contains);
                 }
                 else {
-                    if (this._displayObject.input.hitArea instanceof Phaser.Geom.Rectangle)
-                        this._displayObject.input.hitArea = null;
+                    if (this.hitArea instanceof Phaser.Geom.Rectangle)
+                        this.hitArea = null;
 
-                    this._displayObject.mouseThrough = true;
+                    this._displayObject.disableInteractive();
+                    // this._displayObject.mouseThrough = true;
                 }
             }
         }
@@ -634,7 +634,7 @@ namespace fgui {
 
         public set margin(value: Margin) {
             this._margin.copy(value);
-            if (this._displayObject.scrollRect) {
+            if (this.scrollRect) {
                 this._container.setPosition(this._margin.left + this._alignOffset.x, this._margin.top + this._alignOffset.y);
             }
             this.handleSizeChanged();
@@ -664,15 +664,15 @@ namespace fgui {
             }
         }
 
-        public get mask(): Phaser.GameObjects.Container {
+        public get mask(): Graphics {
             return this._mask;
         }
 
-        public set mask(value: Phaser.GameObjects.Container) {
+        public set mask(value: Graphics) {
             this.setMask(value, false);
         }
 
-        public setMask(value: Phaser.GameObjects.Container, reversed: boolean): void {
+        public setMask(value: Graphics, reversed: boolean): void {
             if (this._mask && this._mask != value) {
                 if (this._mask.blendMode == "destination-out")
                     this._mask.blendMode = null;
@@ -681,23 +681,27 @@ namespace fgui {
             this._mask = value;
             if (!this._mask) {
                 this._displayObject.mask = null;
-                if (this._displayObject.input.hitArea instanceof ChildHitArea)
-                    this._displayObject.input.hitArea = null;
+                if (this.hitArea instanceof ChildHitArea)
+                    this.hitArea = null;
                 return;
             }
 
-            if (this._mask.input.hitArea) {
-                this._displayObject.input.hitArea = new ChildHitArea(this._mask, reversed);
-                this._displayObject.mouseThrough = false;
-                this._displayObject.hitTestPrior = true;
-            }
+            // if (this._mask.displayObject.input.hitArea) {
+            // this.hitArea = new ChildHitArea(this._mask, reversed);
+            // this._displayObject.mouseThrough = false;
+            // this._displayObject.hitTestPrior = true;
+            // }
+            const maskObj = new GObject();
+            maskObj.scene = this.scene;
+            maskObj.setDisplayObject(this._mask);
+            this.hitArea = new ChildHitArea(maskObj, reversed);
             if (reversed) {
                 this._displayObject.mask = null;
-                this._displayObject.cacheAs = "bitmap";
+                // this._displayObject.cacheAs = "bitmap";
                 this._mask.blendMode = "destination-out";
             }
             else
-                this._displayObject.mask = this._mask;
+                this._displayObject.mask = this._mask.createGeometryMask();
         }
 
         public get baseUserData(): string {
@@ -707,20 +711,20 @@ namespace fgui {
         }
 
         protected updateHitArea(): void {
-            if (this._displayObject.input.hitArea instanceof PixelHitTest) {
-                var hitTest: PixelHitTest = <PixelHitTest>(this._displayObject.input.hitArea);
+            if (this.hitArea instanceof PixelHitTest) {
+                var hitTest: PixelHitTest = <PixelHitTest>(this.hitArea);
                 if (this.sourceWidth != 0)
                     hitTest.scaleX = this._width / this.sourceWidth;
                 if (this.sourceHeight != 0)
                     hitTest.scaleY = this._height / this.sourceHeight;
             }
-            else if (this._displayObject.input.hitArea instanceof Phaser.Geom.Rectangle) {
-                this._displayObject.input.hitArea.setTo(0, 0, this._width, this._height);
+            else if (this.hitArea instanceof Phaser.Geom.Rectangle) {
+                this.hitArea.setTo(0, 0, this._width, this._height);
             }
         }
 
         protected updateMask(): void {
-            var rect: Phaser.Geom.Rectangle = this._displayObject.scrollRect;
+            var rect: Phaser.Geom.Rectangle = this.scrollRect;
             if (!rect)
                 rect = new Phaser.Geom.Rectangle();
 
@@ -729,7 +733,7 @@ namespace fgui {
             rect.width = this._width - this._margin.right;
             rect.height = this._height - this._margin.bottom;
 
-            this._displayObject.scrollRect = rect;
+            this.scrollRect = rect;
         }
 
         protected setupScroll(buffer: ByteBuffer): void {
@@ -764,10 +768,10 @@ namespace fgui {
 
             if (this._scrollPane)
                 this._scrollPane.onOwnerSizeChanged();
-            else if (this._displayObject.scrollRect)
+            else if (this.scrollRect)
                 this.updateMask();
 
-            if (this._displayObject.input.hitArea)
+            if (this.hitArea)
                 this.updateHitArea();
         }
 
@@ -799,7 +803,7 @@ namespace fgui {
             if (!this._boundsChanged) {
                 this._boundsChanged = true;
 
-                Laya.timer.callLater(this, this.__render);
+                //Laya.timer.callLater(this, this.__render);
             }
         }
 
@@ -1043,10 +1047,10 @@ namespace fgui {
 
             var overflow: number = buffer.readByte();
             if (overflow == OverflowType.Scroll) {
-                var savedPos: number = buffer.position;
+                var savedPos: number = buffer.pos;
                 buffer.seek(0, 7);
                 this.setupScroll(buffer);
-                buffer.position = savedPos;
+                buffer.pos = savedPos;
             }
             else
                 this.setupOverflow(overflow);
@@ -1061,14 +1065,14 @@ namespace fgui {
             var controllerCount: number = buffer.getInt16();
             for (i = 0; i < controllerCount; i++) {
                 nextPos = buffer.getInt16();
-                nextPos += buffer.position;
+                nextPos += buffer.pos;
 
                 var controller: Controller = new Controller();
                 this._controllers.push(controller);
                 controller.parent = this;
                 controller.setup(buffer);
 
-                buffer.position = nextPos;
+                buffer.pos = nextPos;
             }
 
             buffer.seek(0, 2);
@@ -1077,7 +1081,7 @@ namespace fgui {
             var childCount: number = buffer.getInt16();
             for (i = 0; i < childCount; i++) {
                 dataLen = buffer.getInt16();
-                curPos = buffer.position;
+                curPos = buffer.pos;
 
                 if (objectPool)
                     child = objectPool[poolIndex + i];
@@ -1112,7 +1116,7 @@ namespace fgui {
                 child.parent = this;
                 this._children.push(child);
 
-                buffer.position = curPos + dataLen;
+                buffer.pos = curPos + dataLen;
             }
 
             buffer.seek(0, 3);
@@ -1123,12 +1127,12 @@ namespace fgui {
 
             for (i = 0; i < childCount; i++) {
                 nextPos = buffer.getInt16();
-                nextPos += buffer.position;
+                nextPos += buffer.pos;
 
-                buffer.seek(buffer.position, 3);
+                buffer.seek(buffer.pos, 3);
                 this._children[i].relations.setup(buffer, false);
 
-                buffer.position = nextPos;
+                buffer.pos = nextPos;
             }
 
             buffer.seek(0, 2);
@@ -1136,13 +1140,13 @@ namespace fgui {
 
             for (i = 0; i < childCount; i++) {
                 nextPos = buffer.getInt16();
-                nextPos += buffer.position;
+                nextPos += buffer.pos;
 
                 child = this._children[i];
-                child.setup_afterAdd(buffer, buffer.position);
+                child.setup_afterAdd(buffer, buffer.pos);
                 child._underConstruct = false;
 
-                buffer.position = nextPos;
+                buffer.pos = nextPos;
             }
 
             buffer.seek(0, 4);
@@ -1151,13 +1155,13 @@ namespace fgui {
             this.opaque = buffer.readBool();
             var maskId: number = buffer.getInt16();
             if (maskId != -1) {
-                this.setMask(this.getChildAt(maskId).displayObject, buffer.readBool());
+                this.setMask((<Graphics>this.getChildAt(maskId).displayObject), buffer.readBool());
             }
 
             var hitTestId: string = buffer.readS();
             i1 = buffer.getInt32();
             i2 = buffer.getInt32();
-            var hitArea: Phaser.input.hitArea;
+            var hitArea: HitArea;
 
             if (hitTestId) {
                 pi = contentItem.owner.getItemById(hitTestId);
@@ -1165,13 +1169,14 @@ namespace fgui {
                     hitArea = new PixelHitTest(pi.pixelHitTestData, i1, i2);
             }
             else if (i1 != 0 && i2 != -1) {
-                hitArea = new ChildHitArea(this.getChildAt(i2).displayObject);
+                hitArea = new ChildHitArea(this.getChildAt(i2));
             }
 
             if (hitArea) {
-                this._displayObject.input.hitArea = hitArea;
-                this._displayObject.mouseThrough = false;
-                this._displayObject.hitTestPrior = true;
+                // this._displayObject.setInteractive(hitArea,Phaser.Geom.Rectangle.Contains);
+                this.hitArea = hitArea;
+                // this._displayObject.mouseThrough = false;
+                // this._displayObject.hitTestPrior = true;
             }
 
             buffer.seek(0, 5);
@@ -1179,18 +1184,18 @@ namespace fgui {
             var transitionCount: number = buffer.getInt16();
             for (i = 0; i < transitionCount; i++) {
                 nextPos = buffer.getInt16();
-                nextPos += buffer.position;
+                nextPos += buffer.pos;
 
                 var trans: Transition = new Transition(this);
                 trans.setup(buffer);
                 this._transitions.push(trans);
 
-                buffer.position = nextPos;
+                buffer.pos = nextPos;
             }
 
             if (this._transitions.length > 0) {
-                this.displayObject.on(Laya.Event.DISPLAY, this, this.___added);
-                this.displayObject.on(Laya.Event.UNDISPLAY, this, this.___removed);
+                this.displayObject.on(Phaser.GameObjects.Events.ADDED_TO_SCENE, this.___added);
+                this.displayObject.on(Phaser.GameObjects.Events.REMOVED_FROM_SCENE, this.___removed);
             }
 
             this.applyAllControllers();

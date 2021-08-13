@@ -1,5 +1,6 @@
 namespace fgui {
-    export class MatrixStyle {
+    export class DisplayStyle {
+        static EMPTY: DisplayStyle = new DisplayStyle();
         /**水平缩放 */
         scaleX: number = 1;
         /**垂直缩放 */
@@ -20,6 +21,8 @@ namespace fgui {
         scrollRect: Phaser.Geom.Rectangle;
         /**视口 */
         viewport: Phaser.Geom.Rectangle;
+        /**点击区域 */
+        hitArea: any;
     }
     export class GObject {
         public data: Object;
@@ -58,7 +61,8 @@ namespace fgui {
         private _dragTesting?: boolean;
         private _dragStartPos?: Phaser.Geom.Point;
 
-        private _matrixStyle: MatrixStyle;
+        private _displayStyle: DisplayStyle;
+        private _timeEvent: Phaser.Time.TimerEvent;
 
         protected _displayObject: Phaser.GameObjects.Container;
         protected _yOffset: number = 0;
@@ -88,9 +92,9 @@ namespace fgui {
         constructor() {
             this._id = "" + _gInstanceCounter++;
             this._name = "";
-
-            this.createDisplayObject();
-            this._matrixStyle = new MatrixStyle();
+            // todo 优先传入scene在创建display
+            // this.createDisplayObject();
+            this._displayStyle = new DisplayStyle();
 
             this._relations = new Relations(this);
             this._gears = new Array<GearBase>(10);
@@ -140,6 +144,13 @@ namespace fgui {
         }
         public set scene(value: Phaser.Scene) {
             this._scene = value;
+        }
+
+        public get timeEvent(): Phaser.Time.TimerEvent {
+            return this._timeEvent;
+        }
+        public set timeEvent(value: Phaser.Time.TimerEvent) {
+            this._timeEvent = value;
         }
 
         public setXY(xv: number, yv: number): void {
@@ -343,8 +354,8 @@ namespace fgui {
                 this._skewX = sx;
                 this._skewY = sy;
                 if (this._displayObject) {
-                    this._matrixStyle.skewX = -sx,
-                        this._matrixStyle.skewY = sy;
+                    this._displayStyle.skewX = -sx,
+                        this._displayStyle.skewY = sy;
                     this._adjustTransform();
                     // this._displayObject.skew(-sx, sy);
                     this.applyPivot();
@@ -353,10 +364,10 @@ namespace fgui {
         }
 
         protected _adjustTransform(): Phaser.GameObjects.Components.TransformMatrix {
-            var sx: number = this._matrixStyle.scaleX, sy: number = this._matrixStyle.scaleY;
-            var sskx: number = this._matrixStyle.skewX;
-            var ssky: number = this._matrixStyle.skewY;
-            var rot: number = this._matrixStyle.rotation;
+            var sx: number = this._displayStyle.scaleX, sy: number = this._displayStyle.scaleY;
+            var sskx: number = this._displayStyle.skewX;
+            var ssky: number = this._displayStyle.skewY;
+            var rot: number = this._displayStyle.rotation;
             const m = this._displayObject.getLocalTransformMatrix();
             // var m: Matrix = this._transform || (this._transform = this._createTransform());
             if (rot || sx !== 1 || sy !== 1 || sskx !== 0 || ssky !== 0) {
@@ -593,18 +604,20 @@ namespace fgui {
         }
 
         private __rollOver(evt: InteractiveEvent): void {
-            Laya.timer.once(100, this, this.__doShowTooltips);
+            this._timeEvent = GRoot.inst.addTimeEvent(new Phaser.Time.TimerEvent({ delay: 100, callback: this.__doShowTooltips }));
+            // Laya.timer.once(100, this, this.__doShowTooltips);
         }
 
         private __doShowTooltips(): void {
-            var r: GRoot = this.root;
-            if (r)
-                this.root.showTooltips(this._tooltips);
+            // var r: GRoot = this.root;
+            // if (r)
+            // this.root.showTooltips(this._tooltips);
         }
 
         private __rollOut(evt: InteractiveEvent): void {
-            Laya.timer.clear(this, this.__doShowTooltips);
-            this.root.hideTooltips();
+            if (this._timeEvent) GRoot.inst.removeTimeEvent(this._timeEvent);
+            // Laya.timer.clear(this, this.__doShowTooltips);
+            // this.root.hideTooltips();
         }
 
         public get blendMode(): Phaser.BlendModes | string {
@@ -728,7 +741,7 @@ namespace fgui {
             this._relations.remove(target, relationType);
         }
 
-        public get displayObject(): Phaser.GameObjects.Container {
+        public get displayObject(): Phaser.GameObjects.GameObject {
             return this._displayObject;
         }
 
@@ -749,7 +762,7 @@ namespace fgui {
             if (this instanceof GRoot)
                 return this;
 
-            var p: GObject = this._parent;
+            let p: GObject = this._parent;
             while (p) {
                 if (p instanceof GRoot)
                     return p;
@@ -842,6 +855,26 @@ namespace fgui {
 
         public get isDisposed(): boolean {
             return this._displayObject == null;
+        }
+
+        public get scrollRect(): Phaser.Geom.Rectangle {
+            return this._displayStyle && this._displayStyle.scrollRect;
+        }
+
+        public set scrollRect(val: Phaser.Geom.Rectangle) {
+            this._displayStyle.scrollRect = val;
+        }
+
+        /**
+         * <p>可以设置一个Rectangle区域作为点击区域，或者设置一个<code>HitArea</code>实例作为点击区域，HitArea内可以设置可点击和不可点击区域。</p>
+         * <p>如果不设置hitArea，则根据宽高形成的区域进行碰撞。</p>
+        */
+        get hitArea(): any {
+            return this._displayStyle.hitArea;
+        }
+
+        set hitArea(value: any) {
+            this._displayStyle.hitArea = value;
         }
 
         public dispose(): void {
@@ -1003,7 +1036,7 @@ namespace fgui {
             }
             tmpPoint.x += this._displayObject.x;
             tmpPoint.y += this._displayObject.y;
-            var scroll: Phaser.Geom.Rectangle = this._matrixStyle.scrollRect;
+            var scroll: Phaser.Geom.Rectangle = this._displayStyle.scrollRect;
             if (scroll) {
                 point.x -= scroll.x;
                 point.y -= scroll.y;
@@ -1020,7 +1053,7 @@ namespace fgui {
             if (!point) return point;
             point.x -= this._displayObject.x;
             point.y -= this._displayObject.y;
-            var scroll: Phaser.Geom.Rectangle = this._matrixStyle.scrollRect;
+            var scroll: Phaser.Geom.Rectangle = this._displayStyle.scrollRect;
             if (scroll) {
                 point.x += scroll.x;
                 point.y += scroll.y;
@@ -1100,8 +1133,13 @@ namespace fgui {
             this.checkGearDisplay();
         }
 
-        protected createDisplayObject(): void {
+        public createDisplayObject(): void {
             this._displayObject = new Phaser.GameObjects.Container(this.scene);
+            this._displayObject["$owner"] = this;
+        }
+
+        public setDisplayObject(val) {
+            this._displayObject = val;
             this._displayObject["$owner"] = this;
         }
 
@@ -1272,12 +1310,12 @@ namespace fgui {
             var cnt: number = buffer.getInt16();
             for (var i: number = 0; i < cnt; i++) {
                 var nextPos: number = buffer.getInt16();
-                nextPos += buffer.position;
+                nextPos += buffer.pos;
 
                 var gear: GearBase = this.getGear(buffer.readByte());
                 gear.setup(buffer);
 
-                buffer.position = nextPos;
+                buffer.pos = nextPos;
             }
         }
 

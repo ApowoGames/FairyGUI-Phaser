@@ -16,8 +16,8 @@ namespace fgui {
     /**
      * gui根对象（逻辑对象）
      */
-    export class GRoot extends GComponent{
-        
+    export class GRoot extends GComponent {
+
         private static _inst: GRoot;
         private static _gmStatus = new GRootMouseStatus();
         private _uiStage: UIStage;
@@ -96,7 +96,14 @@ namespace fgui {
             this._uiStage.nativeStage.off("pointermove", this.onStageMove, this);
         }
 
-        protected createDisplayObject() {
+        public addTimeEvent(timeEvent: Phaser.Time.TimerEvent): Phaser.Time.TimerEvent {
+            return this.scene.time.addEvent(timeEvent);
+        }
+
+        public removeTimeEvent(timeEvent: Phaser.Time.TimerEvent) {
+            if (timeEvent) timeEvent.remove();
+        }
+        public createDisplayObject() {
             this._container = this._scene.add.container(0, 0);
         }
 

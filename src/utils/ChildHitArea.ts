@@ -1,12 +1,13 @@
 namespace fgui {
-    let _func: Function = Laya.HitArea["_isHitGraphic"];
+    let _func: Function = HitArea["_isHitGraphic"];
 
-    export class ChildHitArea extends Laya.HitArea {
+    export class ChildHitArea extends HitArea {
 
-        private _child: Laya.Sprite;
+        private _child: GObject;
         private _reversed: boolean;
+        private _tPos: Phaser.Geom.Point = new Phaser.Geom.Point();;
 
-        constructor(child: Laya.Sprite, reversed?: boolean) {
+        constructor(child: GObject, reversed?: boolean) {
             super();
 
             this._child = child;
@@ -19,8 +20,8 @@ namespace fgui {
         }
 
         public contains(x: number, y: number): boolean {
-            var tPos: Laya.Point;
-            tPos = Laya.Point.TEMP;
+            var tPos: Phaser.Geom.Point;
+            tPos = this._tPos;
             tPos.setTo(0, 0);
             tPos = this._child.toParentPoint(tPos);
             if (this._reversed)
