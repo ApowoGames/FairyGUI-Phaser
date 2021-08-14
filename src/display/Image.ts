@@ -55,7 +55,8 @@ namespace fgui {
                     else
                         this.setSize(0, 0);
                 }
-                this.repaint();
+                // todo 重绘
+                // this.repaint();
                 this.markChanged(1);
             }
         }
@@ -101,14 +102,14 @@ namespace fgui {
                 this._fillMethod = value;
                 if (this._fillMethod != 0) {
                     if (!this._mask) {
-                        this._mask = new Laya.Sprite();
-                        this._mask.mouseEnabled = false;
+                        this._mask = new Graphics(this.scene);
+                        // this._mask.mouseEnabled = false;
                     }
-                    this.mask = this._mask;
+                    this.mask = this._mask.createGeometryMask();
                     this.markChanged(2);
                 }
                 else if (this.mask) {
-                    this._mask.graphics.clear();
+                    this._mask.clear();
                     this.mask = null;
                 }
             }
@@ -182,7 +183,7 @@ namespace fgui {
         private doDraw(): void {
             var w: number = this["_width"];
             var h: number = this["_height"];
-            var g: Graphics = this.graphics;
+            var g: Graphics = new Graphics(this.scene);
             var tex: Phaser.Textures.Texture = this._source;
 
             g.clear();
@@ -192,12 +193,13 @@ namespace fgui {
             }
 
             if (this._scaleByTile) {
-                g.fillTexture(tex, 0, 0, w, h);
+                // todo draw texture
+                //  g.fillTexture(tex, 0, 0, w, h);
             }
             else if (this._scale9Grid) {
                 if (!this._sizeGrid) {
-                    var tw: number = tex.width;
-                    var th: number = tex.height;
+                    var tw: number = tex.source[0].width;
+                    var th: number = tex.source[0].height;
                     var left: number = this._scale9Grid.x;
                     var right: number = Math.max(tw - this._scale9Grid.right, 0);
                     var top: number = this._scale9Grid.y;
@@ -205,17 +207,19 @@ namespace fgui {
                     this._sizeGrid = [top, right, bottom, left, this._tileGridIndice];
                 }
 
-                g.draw9Grid(tex, 0, 0, w, h, this._sizeGrid);
+                // todo draw9Grid
+                //g.draw9Grid(tex, 0, 0, w, h, this._sizeGrid);
             }
             else {
-                g.drawImage(tex, 0, 0, w, h);
+                // todo drawImage
+                //g.drawImage(tex, 0, 0, w, h);
             }
         }
 
         private doFill(): void {
             var w: number = this["_width"];
             var h: number = this["_height"];
-            var g: Laya.Graphics = this._mask.graphics;
+            var g: Graphics = this._mask;
             g.clear();
 
             if (w == 0 || h == 0)
@@ -225,11 +229,12 @@ namespace fgui {
             if (points == null) {
                 //不知道为什么，不这样操作一下空白的遮罩不能生效
                 this.mask = null;
-                this.mask = this._mask;
+                this.mask = this._mask.createGeometryMask();
                 return;
             }
 
-            g.drawPoly(0, 0, points, "#FFFFFF");
+            // todo drawPoly
+            // g.drawPoly(0, 0, points, "#FFFFFF");
         }
     }
 }

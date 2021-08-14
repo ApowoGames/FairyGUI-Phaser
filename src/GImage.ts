@@ -74,8 +74,8 @@ namespace fgui {
         }
 
         public createDisplayObject(): void {
-            this._displayObject = this._image = new Image();
-            this.image.mouseEnabled = false;
+            this._displayObject = this._image = new Image(this.scene);
+            // this.image.mouseEnabled = false;
             this._displayObject["$owner"] = this;
         }
 
