@@ -24,6 +24,8 @@ namespace fgui {
 
         private _down: boolean;
         private _over: boolean;
+        // private _downTimeEvent: Phaser.Time.TimerEvent;
+        // private _upTimeEvent: Phaser.Time.TimerEvent;
 
         public static UP: string = "up";
         public static DOWN: string = "down";
@@ -240,53 +242,55 @@ namespace fgui {
                 return null;
         }
 
-        public fireClick(downEffect?: boolean): void {
-            if (downEffect == null) downEffect = true;
-            if (downEffect && this._mode == ButtonMode.Common) {
-                this.setState(GButton.OVER);
-                Laya.timer.once(100, this, this.setState, [GButton.DOWN], false);
-                Laya.timer.once(200, this, this.setState, [GButton.UP], false);
-            }
-            this.__click(Events.createEvent(Laya.Event.CLICK, this.displayObject));
-        }
+        // public fireClick(downEffect?: boolean): void {
+        //     if (downEffect == null) downEffect = true;
+        //     if (downEffect && this._mode == ButtonMode.Common) {
+        //         this.setState(GButton.OVER);
+        //         this._downTimeEvent = GRoot.inst.addTimeEvent(new Phaser.Time.TimerEvent({ delay: 100, callback: this.setState, callbackScope: [GButton.DOWN] }));
+        //         this._upTimeEvent = GRoot.inst.addTimeEvent(new Phaser.Time.TimerEvent({ delay: 200, callback: this.setState, callbackScope: [GButton.UP] }));
+        //         // Laya.timer.once(100, this, this.setState, [GButton.DOWN], false);
+        //         // Laya.timer.once(200, this, this.setState, [GButton.UP], false);
+        //     }
+        //     this.__click(Events.createEvent(InteractiveEvent.GAMEOBJECT_DOWN, this.displayObject));
+        // }
 
         protected setState(val: string): void {
             if (this._buttonController)
                 this._buttonController.selectedPage = val;
 
-            if (this._downEffect == 1) {
-                var cnt: number = this.numChildren;
-                if (val == GButton.DOWN || val == GButton.SELECTED_OVER || val == GButton.SELECTED_DISABLED) {
-                    var r: number = this._downEffectValue * 255;
-                    var color: string = Laya.Utils.toHexColor((r << 16) + (r << 8) + r);
-                    for (var i: number = 0; i < cnt; i++) {
-                        var obj: GObject = this.getChildAt(i);
-                        if (!(obj instanceof GTextField))
-                            obj.setProp(ObjectPropID.Color, color);
-                    }
-                }
-                else {
-                    for (i = 0; i < cnt; i++) {
-                        obj = this.getChildAt(i);
-                        if (!(obj instanceof GTextField))
-                            obj.setProp(ObjectPropID.Color, "#FFFFFF");
-                    }
-                }
-            }
-            else if (this._downEffect == 2) {
-                if (val == GButton.DOWN || val == GButton.SELECTED_OVER || val == GButton.SELECTED_DISABLED) {
-                    if (!this._downScaled) {
-                        this.setScale(this.scaleX * this._downEffectValue, this.scaleY * this._downEffectValue);
-                        this._downScaled = true;
-                    }
-                }
-                else {
-                    if (this._downScaled) {
-                        this.setScale(this.scaleX / this._downEffectValue, this.scaleY / this._downEffectValue);
-                        this._downScaled = false;
-                    }
-                }
-            }
+            // if (this._downEffect == 1) {
+            //     var cnt: number = this.numChildren;
+            //     if (val == GButton.DOWN || val == GButton.SELECTED_OVER || val == GButton.SELECTED_DISABLED) {
+            //         var r: number = this._downEffectValue * 255;
+            //         var color: string = Laya.Utils.toHexColor((r << 16) + (r << 8) + r);
+            //         for (var i: number = 0; i < cnt; i++) {
+            //             var obj: GObject = this.getChildAt(i);
+            //             if (!(obj instanceof GTextField))
+            //                 obj.setProp(ObjectPropID.Color, color);
+            //         }
+            //     }
+            //     else {
+            //         for (i = 0; i < cnt; i++) {
+            //             obj = this.getChildAt(i);
+            //             if (!(obj instanceof GTextField))
+            //                 obj.setProp(ObjectPropID.Color, "#FFFFFF");
+            //         }
+            //     }
+            // }
+            // else if (this._downEffect == 2) {
+            //     if (val == GButton.DOWN || val == GButton.SELECTED_OVER || val == GButton.SELECTED_DISABLED) {
+            //         if (!this._downScaled) {
+            //             this.setScale(this.scaleX * this._downEffectValue, this.scaleY * this._downEffectValue);
+            //             this._downScaled = true;
+            //         }
+            //     }
+            //     else {
+            //         if (this._downScaled) {
+            //             this.setScale(this.scaleX / this._downEffectValue, this.scaleY / this._downEffectValue);
+            //             this._downScaled = false;
+            //         }
+            //     }
+            // }
         }
 
         public handleControllerChanged(c: Controller): void {
@@ -382,10 +386,10 @@ namespace fgui {
             if (this._mode == ButtonMode.Common)
                 this.setState(GButton.UP);
 
-            this.on(Laya.Event.ROLL_OVER, this, this.__rollover);
-            this.on(Laya.Event.ROLL_OUT, this, this.__rollout);
-            this.on(Laya.Event.MOUSE_DOWN, this, this.__mousedown);
-            this.on(Laya.Event.CLICK, this, this.__click);
+            this.on(InteractiveEvent.GAMEOBJECT_OVER, this.__rollover);
+            this.on(InteractiveEvent.GAMEOBJECT_OUT, this.__rollout);
+            this.on(InteractiveEvent.GAMEOBJECT_DOWN, this.__mousedown);
+            this.on(InteractiveEvent.GAMEOBJECT_UP, this.__click);
         }
 
         public setup_afterAdd(buffer: ByteBuffer, beginPos: number): void {
@@ -459,11 +463,11 @@ namespace fgui {
             this.setState(this._selected ? GButton.DOWN : GButton.UP);
         }
 
-        private __mousedown(evt: Laya.Event): void {
+        private __mousedown(pointer: Phaser.Input.Pointer): void {
             this._down = true;
-            GRoot.inst.checkPopups(evt.target);
+            // GRoot.inst.checkPopups(evt.target);
 
-            Laya.stage.on(Laya.Event.MOUSE_UP, this, this.__mouseup);
+            this.scene.input.on(InteractiveEvent.POINTER_UP, this.__mouseup);
 
             if (this._mode == ButtonMode.Common) {
                 if (this.grayed && this._buttonController && this._buttonController.hasPage(GButton.DISABLED))
@@ -472,17 +476,17 @@ namespace fgui {
                     this.setState(GButton.DOWN);
             }
 
-            if (this._linkedPopup) {
-                if (this._linkedPopup instanceof Window)
-                    this._linkedPopup.toggleStatus();
-                else
-                    this.root.togglePopup(this._linkedPopup, this);
-            }
+            // if (this._linkedPopup) {
+            //     if (this._linkedPopup instanceof Window)
+            //         this._linkedPopup.toggleStatus();
+            //     else
+            //         this.root.togglePopup(this._linkedPopup, this);
+            // }
         }
 
         private __mouseup(): void {
             if (this._down) {
-                Laya.stage.off(Laya.Event.MOUSE_UP, this, this.__mouseup);
+                this.scene.input.off(InteractiveEvent.POINTER_UP, this.__mouseup);
                 this._down = false;
 
                 if (this._displayObject == null)
@@ -499,7 +503,7 @@ namespace fgui {
             }
         }
 
-        private __click(evt: Laya.Event): void {
+        private __click(evt: DisplayObjectEvent): void {
             if (this._sound) {
                 var pi: PackageItem = UIPackage.getItemByURL(this._sound);
                 if (pi)
@@ -511,13 +515,13 @@ namespace fgui {
             if (this._mode == ButtonMode.Check) {
                 if (this._changeStateOnClick) {
                     this.selected = !this._selected;
-                    Events.dispatch(Events.STATE_CHANGED, this.displayObject, evt);
+                    // Events.dispatch(Events.STATE_CHANGED, this.displayObject, evt);
                 }
             }
             else if (this._mode == ButtonMode.Radio) {
                 if (this._changeStateOnClick && !this._selected) {
                     this.selected = true;
-                    Events.dispatch(Events.STATE_CHANGED, this.displayObject, evt);
+                    // Events.dispatch(Events.STATE_CHANGED, this.displayObject, evt);
                 }
             }
             else {

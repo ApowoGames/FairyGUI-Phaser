@@ -1,8 +1,8 @@
 namespace fgui {
-    export class Image extends Laya.Sprite {
-        protected _source: Laya.Texture;
+    export class Image extends Phaser.GameObjects.Container {
+        protected _source: Phaser.Textures.Texture;
         protected _scaleByTile?: boolean;
-        protected _scale9Grid?: Laya.Rectangle;
+        protected _scale9Grid?: Phaser.Geom.Rectangle;
 
         private _tileGridIndice: number = 0;
         private _sizeGrid: number[];
@@ -11,53 +11,60 @@ namespace fgui {
         private _fillOrigin: number = 0;
         private _fillAmount: number = 0;
         private _fillClockwise?: boolean;
-        private _mask?: Laya.Sprite;
+        private _mask?: Graphics;
         private _color: string;
 
-        constructor() {
-            super();
+        constructor(scene: Phaser.Scene) {
+            super(scene);
 
-            this.mouseEnabled = false;
+            // this.mouseEnabled = false;
             this._color = "#FFFFFF";
+            this.width
         }
 
-        public set width(value: number) {
-            if (this["_width"] !== value) {
-                super.set_width(value);
-                this.markChanged(1);
-            }
+        // public set width(value: number) {
+        //     if (this["_width"] !== value) {
+        //         super.set_width(value);
+        //         this.markChanged(1);
+        //     }
+        // }
+
+        // public set height(value: number) {
+        //     if (this["_height"] !== value) {
+        //         super.set_height(value);
+        //         this.markChanged(1);
+        //     }
+        // }
+        public setSize(width: number, height: number): this {
+            this.width = width;
+            this.height = height;
+            this.markChanged(1);
+            return this;
         }
 
-        public set height(value: number) {
-            if (this["_height"] !== value) {
-                super.set_height(value);
-                this.markChanged(1);
-            }
-        }
-
-        public get texture(): Laya.Texture {
+        public get texture(): Phaser.Textures.Texture {
             return this._source;
         }
 
-        public set texture(value: Laya.Texture) {
+        public set texture(value: Phaser.Textures.Texture) {
             if (this._source != value) {
                 this._source = value;
                 if (this["_width"] == 0) {
                     if (this._source)
-                        this.size(this._source.width, this._source.height);
+                        this.setSize(this._source.source[0].width, this._source.source[0].height);
                     else
-                        this.size(0, 0);
+                        this.setSize(0, 0);
                 }
                 this.repaint();
                 this.markChanged(1);
             }
         }
 
-        public get scale9Grid(): Laya.Rectangle {
+        public get scale9Grid(): Phaser.Geom.Rectangle {
             return this._scale9Grid;
         }
 
-        public set scale9Grid(value: Laya.Rectangle) {
+        public set scale9Grid(value: Phaser.Geom.Rectangle) {
             this._scale9Grid = value;
             this._sizeGrid = null;
             this.markChanged(1);
@@ -158,7 +165,7 @@ namespace fgui {
             if (!this._needRebuild) {
                 this._needRebuild = flag;
 
-                Laya.timer.callLater(this, this.rebuild);
+                // Laya.timer.callLater(this, this.rebuild);
             }
             else
                 this._needRebuild |= flag;
@@ -175,8 +182,8 @@ namespace fgui {
         private doDraw(): void {
             var w: number = this["_width"];
             var h: number = this["_height"];
-            var g: Laya.Graphics = this.graphics;
-            var tex: Laya.Texture = this._source;
+            var g: Graphics = this.graphics;
+            var tex: Phaser.Textures.Texture = this._source;
 
             g.clear();
 

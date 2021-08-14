@@ -107,8 +107,8 @@ namespace fgui {
 
                 if (!this._boundsChanged) {
                     this._boundsChanged = true;
-                    if (this._layout != GroupLayoutType.None)
-                        Laya.timer.callLater(this, this.ensureBoundsCorrect);
+                    // if (this._layout != GroupLayoutType.None)
+                    //     Laya.timer.callLater(this, this.ensureBoundsCorrect);
                 }
             }
         }
@@ -144,7 +144,7 @@ namespace fgui {
         }
 
         private updateBounds(): void {
-            Laya.timer.clear(this, this.ensureBoundsCorrect);
+            // Laya.timer.clear(this, this.ensureBoundsCorrect);
 
             var cnt: number = this._parent.numChildren;
             var i: number;

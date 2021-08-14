@@ -103,6 +103,14 @@ namespace fgui {
         public removeTimeEvent(timeEvent: Phaser.Time.TimerEvent) {
             if (timeEvent) timeEvent.remove();
         }
+
+        public playOneShotSound(url: string, volumeScale?: number): void {
+            if (ToolSet.startsWith(url, "ui://"))
+                return;
+
+            this.scene.sound.play(url);
+        }
+
         public createDisplayObject() {
             this._container = this._scene.add.container(0, 0);
         }

@@ -73,7 +73,7 @@ namespace fgui {
             this.image.fillAmount = value;
         }
 
-        protected createDisplayObject(): void {
+        public createDisplayObject(): void {
             this._displayObject = this._image = new Image();
             this.image.mouseEnabled = false;
             this._displayObject["$owner"] = this;
