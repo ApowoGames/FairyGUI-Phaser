@@ -10,12 +10,12 @@ namespace fgui {
         private _scrollPerc: number;
         private _fixedGripSize: boolean;
 
-        private _dragOffset: Laya.Point;
+        private _dragOffset: Phaser.Geom.Point;
         private _gripDragging: boolean;
 
         constructor() {
             super();
-            this._dragOffset = new Laya.Point();
+            this._dragOffset = new Phaser.Geom.Point();
             this._scrollPerc = 0;
         }
 
@@ -59,109 +59,116 @@ namespace fgui {
         }
 
         protected constructExtension(buffer: ByteBuffer): void {
-            buffer.seek(0, 6);
+            throw new Error("TODO");
+            // buffer.seek(0, 6);
 
-            this._fixedGripSize = buffer.readBool();
+            // this._fixedGripSize = buffer.readBool();
 
-            this._grip = this.getChild("grip");
-            if (!this._grip) {
-                Laya.Log.print("需要定义grip");
-                return;
-            }
+            // this._grip = this.getChild("grip");
+            // if (!this._grip) {
+            //     Laya.Log.print("需要定义grip");
+            //     return;
+            // }
 
-            this._bar = this.getChild("bar");
-            if (!this._bar) {
-                Laya.Log.print("需要定义bar");
-                return;
-            }
+            // this._bar = this.getChild("bar");
+            // if (!this._bar) {
+            //     Laya.Log.print("需要定义bar");
+            //     return;
+            // }
 
-            this._arrowButton1 = this.getChild("arrow1");
-            this._arrowButton2 = this.getChild("arrow2");
+            // this._arrowButton1 = this.getChild("arrow1");
+            // this._arrowButton2 = this.getChild("arrow2");
 
-            this._grip.on(Laya.Event.MOUSE_DOWN, this, this.__gripMouseDown);
+            // this._grip.on(Laya.Event.MOUSE_DOWN, this, this.__gripMouseDown);
 
-            if (this._arrowButton1)
-                this._arrowButton1.on(Laya.Event.MOUSE_DOWN, this, this.__arrowButton1Click);
-            if (this._arrowButton2)
-                this._arrowButton2.on(Laya.Event.MOUSE_DOWN, this, this.__arrowButton2Click);
+            // if (this._arrowButton1)
+            //     this._arrowButton1.on(Laya.Event.MOUSE_DOWN, this, this.__arrowButton1Click);
+            // if (this._arrowButton2)
+            //     this._arrowButton2.on(Laya.Event.MOUSE_DOWN, this, this.__arrowButton2Click);
 
-            this.on(Laya.Event.MOUSE_DOWN, this, this.__barMouseDown);
+            // this.on(Laya.Event.MOUSE_DOWN, this, this.__barMouseDown);
         }
 
-        private __gripMouseDown(evt: Laya.Event): void {
-            evt.stopPropagation();
+        private __gripMouseDown(evt: any): void {
+            throw new Error("TODO");
+            // evt.stopPropagation();
 
-            this._gripDragging = true;
-            this._target.updateScrollBarVisible();
+            // this._gripDragging = true;
+            // this._target.updateScrollBarVisible();
 
-            Laya.stage.on(Laya.Event.MOUSE_MOVE, this, this.__gripMouseMove);
-            Laya.stage.on(Laya.Event.MOUSE_UP, this, this.__gripMouseUp);
+            // Laya.stage.on(Laya.Event.MOUSE_MOVE, this, this.__gripMouseMove);
+            // Laya.stage.on(Laya.Event.MOUSE_UP, this, this.__gripMouseUp);
 
-            this.globalToLocal(Laya.stage.mouseX, Laya.stage.mouseY, this._dragOffset);
-            this._dragOffset.x -= this._grip.x;
-            this._dragOffset.y -= this._grip.y;
+            // this.globalToLocal(Laya.stage.mouseX, Laya.stage.mouseY, this._dragOffset);
+            // this._dragOffset.x -= this._grip.x;
+            // this._dragOffset.y -= this._grip.y;
         }
 
         private __gripMouseMove(): void {
-            if (!this.onStage)
-                return;
+            throw new Error("TODO");
+            // if (!this.onStage)
+            //     return;
 
-            var pt: Laya.Point = this.globalToLocal(Laya.stage.mouseX, Laya.stage.mouseY, s_vec2);
-            if (this._vertical) {
-                var curY: number = pt.y - this._dragOffset.y;
-                this._target.setPercY((curY - this._bar.y) / (this._bar.height - this._grip.height), false);
-            }
-            else {
-                var curX: number = pt.x - this._dragOffset.x;
-                this._target.setPercX((curX - this._bar.x) / (this._bar.width - this._grip.width), false);
-            }
+            // var pt: Laya.Point = this.globalToLocal(Laya.stage.mouseX, Laya.stage.mouseY, s_vec2);
+            // if (this._vertical) {
+            //     var curY: number = pt.y - this._dragOffset.y;
+            //     this._target.setPercY((curY - this._bar.y) / (this._bar.height - this._grip.height), false);
+            // }
+            // else {
+            //     var curX: number = pt.x - this._dragOffset.x;
+            //     this._target.setPercX((curX - this._bar.x) / (this._bar.width - this._grip.width), false);
+            // }
         }
 
-        private __gripMouseUp(evt: Laya.Event): void {
-            if (!this.onStage)
-                return;
+        private __gripMouseUp(evt: any): void {
+            throw new Error("TODO");
+            // if (!this.onStage)
+            //     return;
 
-            Laya.stage.off(Laya.Event.MOUSE_MOVE, this, this.__gripMouseMove);
-            Laya.stage.off(Laya.Event.MOUSE_UP, this, this.__gripMouseUp);
+            // Laya.stage.off(Laya.Event.MOUSE_MOVE, this, this.__gripMouseMove);
+            // Laya.stage.off(Laya.Event.MOUSE_UP, this, this.__gripMouseUp);
 
-            this._gripDragging = false;
-            this._target.updateScrollBarVisible();
+            // this._gripDragging = false;
+            // this._target.updateScrollBarVisible();
         }
 
-        private __arrowButton1Click(evt: Laya.Event): void {
-            evt.stopPropagation();
+        private __arrowButton1Click(evt: any): void {
+            throw new Error("TODO");
+            // evt.stopPropagation();
 
-            if (this._vertical)
-                this._target.scrollUp();
-            else
-                this._target.scrollLeft();
+            // if (this._vertical)
+            //     this._target.scrollUp();
+            // else
+            //     this._target.scrollLeft();
         }
 
-        private __arrowButton2Click(evt: Laya.Event): void {
-            evt.stopPropagation();
+        private __arrowButton2Click(evt: any): void {
+            throw new Error("TODO");
+            // evt.stopPropagation();
 
-            if (this._vertical)
-                this._target.scrollDown();
-            else
-                this._target.scrollRight();
+            // if (this._vertical)
+            //     this._target.scrollDown();
+            // else
+            //     this._target.scrollRight();
         }
 
-        private __barMouseDown(evt: Laya.Event): void {
-            var pt: Laya.Point = this._grip.globalToLocal(Laya.stage.mouseX, Laya.stage.mouseY, s_vec2);
-            if (this._vertical) {
-                if (pt.y < 0)
-                    this._target.scrollUp(4);
-                else
-                    this._target.scrollDown(4);
-            }
-            else {
-                if (pt.x < 0)
-                    this._target.scrollLeft(4);
-                else
-                    this._target.scrollRight(4);
-            }
+        private __barMouseDown(evt: any): void {
+            throw new Error("TODO");
+            // var pt: Laya.Point = this._grip.globalToLocal(Laya.stage.mouseX, Laya.stage.mouseY, s_vec2);
+            // if (this._vertical) {
+            //     if (pt.y < 0)
+            //         this._target.scrollUp(4);
+            //     else
+            //         this._target.scrollDown(4);
+            // }
+            // else {
+            //     if (pt.x < 0)
+            //         this._target.scrollLeft(4);
+            //     else
+            //         this._target.scrollRight(4);
+            // }
         }
     }
 
-    var s_vec2: Laya.Point = new Laya.Point();
+    var s_vec2: Phaser.Geom.Point = new Phaser.Geom.Point();
 }

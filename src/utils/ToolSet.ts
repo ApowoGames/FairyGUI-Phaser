@@ -76,13 +76,16 @@ namespace fgui {
                 return parseInt(str, 16);
         }
 
-        public static displayObjectToGObject(obj: Laya.Node): GObject {
-            while (obj && !(obj instanceof Laya.Stage)) {
-                if (obj["$owner"])
-                    return obj["$owner"];
+        public static displayObjectToGObject(obj: any): GObject {
+        // public static displayObjectToGObject(obj: Laya.Node): GObject {
+            // while (obj && !(obj instanceof Laya.Stage)) {
+            //     if (obj["$owner"])
+            //         return obj["$owner"];
 
-                obj = obj.parent;
-            }
+            //     obj = obj.parent;
+            // }
+            // TODO
+            throw new Error("TODO");
             return null;
         }
 
@@ -124,72 +127,75 @@ namespace fgui {
             return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
         }
 
-        public static setColorFilter(obj: Laya.Sprite, color?: string | number[] | boolean): void {
-            var filter: Laya.ColorFilter = (<any>obj).$_colorFilter_; //cached instance
-            var filters: any[] = obj.filters;
+        // public static setColorFilter(obj: Laya.Sprite, color?: string | number[] | boolean): void {
+        public static setColorFilter(obj: any, color?: string | number[] | boolean): void {
+            // TODO
+            throw new Error("TODO");
+            // var filter: Laya.ColorFilter = (<any>obj).$_colorFilter_; //cached instance
+            // var filters: any[] = obj.filters;
 
-            var toApplyColor: any;
-            var toApplyGray: boolean;
-            var tp: string = typeof (color);
-            if (tp == "boolean") //gray
-            {
-                toApplyColor = filter ? (<any>filter).$_color_ : null;
-                toApplyGray = <boolean>color;
-            }
-            else {
-                if (tp == "string") {
-                    var arr: any[] = Laya.ColorUtils.create(color).arrColor;
-                    if (arr[0] == 1 && arr[1] == 1 && arr[2] == 1)
-                        color = null;
-                    else {
-                        color = [arr[0], 0, 0, 0, 0,
-                            0, arr[1], 0, 0, 0,
-                            0, 0, arr[2], 0, 0,
-                            0, 0, 0, 1, 0];
-                    }
-                }
-                toApplyColor = color;
-                toApplyGray = filter ? (<any>filter).$_grayed_ : false;
-            }
+            // var toApplyColor: any;
+            // var toApplyGray: boolean;
+            // var tp: string = typeof (color);
+            // if (tp == "boolean") //gray
+            // {
+            //     toApplyColor = filter ? (<any>filter).$_color_ : null;
+            //     toApplyGray = <boolean>color;
+            // }
+            // else {
+            //     if (tp == "string") {
+            //         var arr: any[] = Laya.ColorUtils.create(color).arrColor;
+            //         if (arr[0] == 1 && arr[1] == 1 && arr[2] == 1)
+            //             color = null;
+            //         else {
+            //             color = [arr[0], 0, 0, 0, 0,
+            //                 0, arr[1], 0, 0, 0,
+            //                 0, 0, arr[2], 0, 0,
+            //                 0, 0, 0, 1, 0];
+            //         }
+            //     }
+            //     toApplyColor = color;
+            //     toApplyGray = filter ? (<any>filter).$_grayed_ : false;
+            // }
 
-            if ((!toApplyColor && toApplyColor != 0) && !toApplyGray) {
-                if (filters && filter) {
-                    let i: number = filters.indexOf(filter);
-                    if (i != -1) {
-                        filters.splice(i, 1);
-                        if (filters.length > 0)
-                            obj.filters = filters;
-                        else
-                            obj.filters = null;
-                    }
-                }
-                return;
-            }
+            // if ((!toApplyColor && toApplyColor != 0) && !toApplyGray) {
+            //     if (filters && filter) {
+            //         let i: number = filters.indexOf(filter);
+            //         if (i != -1) {
+            //             filters.splice(i, 1);
+            //             if (filters.length > 0)
+            //                 obj.filters = filters;
+            //             else
+            //                 obj.filters = null;
+            //         }
+            //     }
+            //     return;
+            // }
 
-            if (!filter) {
-                filter = new Laya.ColorFilter();
-                (<any>obj).$_colorFilter_ = filter;
-            }
-            if (!filters)
-                filters = [filter];
-            else {
-                let i: number = filters.indexOf(filter);
-                if (i == -1)
-                    filters.push(filter);
-            }
-            obj.filters = filters;
+            // if (!filter) {
+            //     filter = new Laya.ColorFilter();
+            //     (<any>obj).$_colorFilter_ = filter;
+            // }
+            // if (!filters)
+            //     filters = [filter];
+            // else {
+            //     let i: number = filters.indexOf(filter);
+            //     if (i == -1)
+            //         filters.push(filter);
+            // }
+            // obj.filters = filters;
 
-            (<any>filter).$_color_ = toApplyColor;
-            (<any>filter).$_grayed_ = toApplyGray;
+            // (<any>filter).$_color_ = toApplyColor;
+            // (<any>filter).$_grayed_ = toApplyGray;
 
-            filter.reset();
+            // filter.reset();
 
-            if (toApplyGray)
-                filter.gray();
-            else if (toApplyColor.length == 20)
-                filter.setByMatrix(toApplyColor);
-            else
-                filter.setByMatrix(getColorMatrix(toApplyColor[0], toApplyColor[1], toApplyColor[2], toApplyColor[3]));
+            // if (toApplyGray)
+            //     filter.gray();
+            // else if (toApplyColor.length == 20)
+            //     filter.setByMatrix(toApplyColor);
+            // else
+            //     filter.setByMatrix(getColorMatrix(toApplyColor[0], toApplyColor[1], toApplyColor[2], toApplyColor[3]));
         }
     }
 

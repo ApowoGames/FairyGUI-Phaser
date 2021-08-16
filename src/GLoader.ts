@@ -27,12 +27,12 @@ namespace fgui {
             this._showErrorSign = true;
         }
 
-        protected createDisplayObject(): void {
+        public createDisplayObject(): void {
             super.createDisplayObject();
-
-            this._content = new MovieClip();
-            this._displayObject.addChild(this._content);
-            this._displayObject.mouseEnabled = true;
+            throw new Error("TODO");
+            // this._content = new MovieClip();
+            // this._displayObject.addChild(this._content);
+            // this._displayObject.mouseEnabled = true;
         }
 
         public dispose(): void {
@@ -216,82 +216,85 @@ namespace fgui {
         }
 
         protected loadFromPackage(itemURL: string): void {
-            this._contentItem = UIPackage.getItemByURL(itemURL);
-            if (this._contentItem) {
-                this._contentItem = this._contentItem.getBranch();
-                this.sourceWidth = this._contentItem.width;
-                this.sourceHeight = this._contentItem.height;
-                this._contentItem = this._contentItem.getHighResolution();
-                this._contentItem.load();
+            throw new Error("TODO");
+            // this._contentItem = UIPackage.getItemByURL(itemURL);
+            // if (this._contentItem) {
+            //     this._contentItem = this._contentItem.getBranch();
+            //     this.sourceWidth = this._contentItem.width;
+            //     this.sourceHeight = this._contentItem.height;
+            //     this._contentItem = this._contentItem.getHighResolution();
+            //     this._contentItem.load();
 
-                if (this._autoSize)
-                    this.setSize(this.sourceWidth, this.sourceHeight);
+            //     if (this._autoSize)
+            //         this.setSize(this.sourceWidth, this.sourceHeight);
 
-                if (this._contentItem.type == PackageItemType.Image) {
-                    if (!this._contentItem.texture) {
-                        this.setErrorState();
-                    }
-                    else {
-                        this._content.texture = this._contentItem.texture;
-                        this._content.scale9Grid = this._contentItem.scale9Grid;
-                        this._content.scaleByTile = this._contentItem.scaleByTile;
-                        this._content.tileGridIndice = this._contentItem.tileGridIndice;
-                        this.sourceWidth = this._contentItem.width;
-                        this.sourceHeight = this._contentItem.height;
-                        this.updateLayout();
-                    }
-                }
-                else if (this._contentItem.type == PackageItemType.MovieClip) {
-                    this.sourceWidth = this._contentItem.width;
-                    this.sourceHeight = this._contentItem.height;
-                    this._content.interval = this._contentItem.interval;
-                    this._content.swing = this._contentItem.swing;
-                    this._content.repeatDelay = this._contentItem.repeatDelay;
-                    this._content.frames = this._contentItem.frames;
-                    this.updateLayout();
-                }
-                else if (this._contentItem.type == PackageItemType.Component) {
-                    var obj: GObject = UIPackage.createObjectFromURL(itemURL);
-                    if (!obj)
-                        this.setErrorState();
-                    else if (!(obj instanceof GComponent)) {
-                        obj.dispose();
-                        this.setErrorState();
-                    }
-                    else {
-                        this._content2 = obj.asCom;
-                        this._displayObject.addChild(this._content2.displayObject);
-                        this.updateLayout();
-                    }
-                }
-                else
-                    this.setErrorState();
-            }
-            else
-                this.setErrorState();
+            //     if (this._contentItem.type == PackageItemType.Image) {
+            //         if (!this._contentItem.texture) {
+            //             this.setErrorState();
+            //         }
+            //         else {
+            //             this._content.texture = this._contentItem.texture;
+            //             this._content.scale9Grid = this._contentItem.scale9Grid;
+            //             this._content.scaleByTile = this._contentItem.scaleByTile;
+            //             this._content.tileGridIndice = this._contentItem.tileGridIndice;
+            //             this.sourceWidth = this._contentItem.width;
+            //             this.sourceHeight = this._contentItem.height;
+            //             this.updateLayout();
+            //         }
+            //     }
+            //     else if (this._contentItem.type == PackageItemType.MovieClip) {
+            //         this.sourceWidth = this._contentItem.width;
+            //         this.sourceHeight = this._contentItem.height;
+            //         this._content.interval = this._contentItem.interval;
+            //         this._content.swing = this._contentItem.swing;
+            //         this._content.repeatDelay = this._contentItem.repeatDelay;
+            //         this._content.frames = this._contentItem.frames;
+            //         this.updateLayout();
+            //     }
+            //     else if (this._contentItem.type == PackageItemType.Component) {
+            //         var obj: GObject = UIPackage.createObjectFromURL(itemURL);
+            //         if (!obj)
+            //             this.setErrorState();
+            //         else if (!(obj instanceof GComponent)) {
+            //             obj.dispose();
+            //             this.setErrorState();
+            //         }
+            //         else {
+            //             this._content2 = obj.asCom;
+            //             this._displayObject.addChild(this._content2.displayObject);
+            //             this.updateLayout();
+            //         }
+            //     }
+            //     else
+            //         this.setErrorState();
+            // }
+            // else
+            //     this.setErrorState();
         }
 
         protected loadExternal(): void {
-            AssetProxy.inst.load(this._url, Laya.Handler.create(this, this.__getResCompleted), null, Laya.Loader.IMAGE);
+            throw new Error("TODO");
+            // AssetProxy.inst.load(this._url, Laya.Handler.create(this, this.__getResCompleted), null, Laya.Loader.IMAGE);
         }
 
-        protected freeExternal(texture: Laya.Texture): void {
+        protected freeExternal(texture: Phaser.Textures.Texture): void {
         }
 
-        protected onExternalLoadSuccess(texture: Laya.Texture): void {
-            this._content.texture = texture;
-            this._content.scale9Grid = null;
-            this._content.scaleByTile = false;
-            this.sourceWidth = texture.width;
-            this.sourceHeight = texture.height;
-            this.updateLayout();
+        protected onExternalLoadSuccess(texture: Phaser.Textures.Texture): void {
+            throw new Error("TODO");
+            // this._content.texture = texture;
+            // this._content.scale9Grid = null;
+            // this._content.scaleByTile = false;
+            // this.sourceWidth = texture.width;
+            // this.sourceHeight = texture.height;
+            // this.updateLayout();
         }
 
         protected onExternalLoadFailed(): void {
             this.setErrorState();
         }
 
-        private __getResCompleted(tex: Laya.Texture): void {
+        private __getResCompleted(tex: Phaser.Textures.Texture): void {
             if (tex != null)
                 this.onExternalLoadSuccess(tex);
             else
@@ -310,111 +313,114 @@ namespace fgui {
 
             if (this._errorSign) {
                 this._errorSign.setSize(this.width, this.height);
-                this._displayObject.addChild(this._errorSign.displayObject);
+                throw new Error("TODO");
+                // this._displayObject.addChild(this._errorSign.displayObject);
             }
         }
 
         private clearErrorState(): void {
             if (this._errorSign) {
-                this._displayObject.removeChild(this._errorSign.displayObject);
+                throw new Error("TODO");
+                // this._displayObject.removeChild(this._errorSign.displayObject);
                 GLoader._errorSignPool.returnObject(this._errorSign);
                 this._errorSign = null;
             }
         }
 
         private updateLayout(): void {
-            if (!this._content2 && !this._content.texture && !this._content.frames) {
-                if (this._autoSize) {
-                    this._updatingLayout = true;
-                    this.setSize(50, 30);
-                    this._updatingLayout = false;
-                }
-                return;
-            }
+            throw new Error("TODO");
+            // if (!this._content2 && !this._content.texture && !this._content.frames) {
+            //     if (this._autoSize) {
+            //         this._updatingLayout = true;
+            //         this.setSize(50, 30);
+            //         this._updatingLayout = false;
+            //     }
+            //     return;
+            // }
 
-            let cw = this.sourceWidth;
-            let ch = this.sourceHeight;
+            // let cw = this.sourceWidth;
+            // let ch = this.sourceHeight;
 
-            if (this._autoSize) {
-                this._updatingLayout = true;
-                if (cw == 0)
-                    cw = 50;
-                if (ch == 0)
-                    ch = 30;
-                this.setSize(cw, ch);
-                this._updatingLayout = false;
+            // if (this._autoSize) {
+            //     this._updatingLayout = true;
+            //     if (cw == 0)
+            //         cw = 50;
+            //     if (ch == 0)
+            //         ch = 30;
+            //     this.setSize(cw, ch);
+            //     this._updatingLayout = false;
 
-                if (cw == this._width && ch == this._height) {
-                    if (this._content2) {
-                        this._content2.setXY(0, 0);
-                        this._content2.setScale(1, 1);
-                    }
-                    else {
-                        this._content.size(cw, ch);
-                        this._content.pos(0, 0);
-                    }
-                    return;
-                }
-            }
+            //     if (cw == this._width && ch == this._height) {
+            //         if (this._content2) {
+            //             this._content2.setXY(0, 0);
+            //             this._content2.setScale(1, 1);
+            //         }
+            //         else {
+            //             this._content.size(cw, ch);
+            //             this._content.pos(0, 0);
+            //         }
+            //         return;
+            //     }
+            // }
 
-            var sx: number = 1, sy: number = 1;
-            if (this._fill != LoaderFillType.None) {
-                sx = this.width / this.sourceWidth;
-                sy = this.height / this.sourceHeight;
+            // var sx: number = 1, sy: number = 1;
+            // if (this._fill != LoaderFillType.None) {
+            //     sx = this.width / this.sourceWidth;
+            //     sy = this.height / this.sourceHeight;
 
-                if (sx != 1 || sy != 1) {
-                    if (this._fill == LoaderFillType.ScaleMatchHeight)
-                        sx = sy;
-                    else if (this._fill == LoaderFillType.ScaleMatchWidth)
-                        sy = sx;
-                    else if (this._fill == LoaderFillType.Scale) {
-                        if (sx > sy)
-                            sx = sy;
-                        else
-                            sy = sx;
-                    }
-                    else if (this._fill == LoaderFillType.ScaleNoBorder) {
-                        if (sx > sy)
-                            sy = sx;
-                        else
-                            sx = sy;
-                    }
+            //     if (sx != 1 || sy != 1) {
+            //         if (this._fill == LoaderFillType.ScaleMatchHeight)
+            //             sx = sy;
+            //         else if (this._fill == LoaderFillType.ScaleMatchWidth)
+            //             sy = sx;
+            //         else if (this._fill == LoaderFillType.Scale) {
+            //             if (sx > sy)
+            //                 sx = sy;
+            //             else
+            //                 sy = sx;
+            //         }
+            //         else if (this._fill == LoaderFillType.ScaleNoBorder) {
+            //             if (sx > sy)
+            //                 sy = sx;
+            //             else
+            //                 sx = sy;
+            //         }
 
-                    if (this._shrinkOnly) {
-                        if (sx > 1)
-                            sx = 1;
-                        if (sy > 1)
-                            sy = 1;
-                    }
+            //         if (this._shrinkOnly) {
+            //             if (sx > 1)
+            //                 sx = 1;
+            //             if (sy > 1)
+            //                 sy = 1;
+            //         }
 
-                    cw = this.sourceWidth * sx;
-                    ch = this.sourceHeight * sy;
-                }
-            }
+            //         cw = this.sourceWidth * sx;
+            //         ch = this.sourceHeight * sy;
+            //     }
+            // }
 
-            if (this._content2)
-                this._content2.setScale(sx, sy);
-            else
-                this._content.size(cw, ch);
+            // if (this._content2)
+            //     this._content2.setScale(sx, sy);
+            // else
+            //     this._content.size(cw, ch);
 
-            var nx: number, ny: number;
-            if (this._align == "center")
-                nx = Math.floor((this.width - cw) / 2);
-            else if (this._align == "right")
-                nx = this.width - cw;
-            else
-                nx = 0;
-            if (this._valign == "middle")
-                ny = Math.floor((this.height - ch) / 2);
-            else if (this._valign == "bottom")
-                ny = this.height - ch;
-            else
-                ny = 0;
+            // var nx: number, ny: number;
+            // if (this._align == "center")
+            //     nx = Math.floor((this.width - cw) / 2);
+            // else if (this._align == "right")
+            //     nx = this.width - cw;
+            // else
+            //     nx = 0;
+            // if (this._valign == "middle")
+            //     ny = Math.floor((this.height - ch) / 2);
+            // else if (this._valign == "bottom")
+            //     ny = this.height - ch;
+            // else
+            //     ny = 0;
 
-            if (this._content2)
-                this._content2.setXY(nx, ny);
-            else
-                this._content.pos(nx, ny);
+            // if (this._content2)
+            //     this._content2.setXY(nx, ny);
+            // else
+            //     this._content.pos(nx, ny);
         }
 
         private clearContent(): void {
@@ -496,7 +502,7 @@ namespace fgui {
             this._autoSize = buffer.readBool();
             this._showErrorSign = buffer.readBool();
             this._content.playing = buffer.readBool();
-            this._content.frame = buffer.getInt32();
+            this._content.frame = buffer.readInt();
 
             if (buffer.readBool())
                 this.color = buffer.readColorS();
@@ -505,7 +511,7 @@ namespace fgui {
             if (this._content.fillMethod != 0) {
                 this._content.fillOrigin = buffer.readByte();
                 this._content.fillClockwise = buffer.readBool();
-                this._content.fillAmount = buffer.getFloat32();
+                this._content.fillAmount = buffer.readFloat();
             }
 
             if (this._url)

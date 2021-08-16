@@ -42,19 +42,19 @@ module fgui {
                         return new GImage();
 
                     case ObjectType.MovieClip:
-                        return new GMovieClip();
+                        // return new GMovieClip();
 
                     case ObjectType.Component:
                         return new GComponent();
 
                     case ObjectType.Text:
-                        return new GBasicTextField();
+                        // return new GBasicTextField();
 
                     case ObjectType.RichText:
-                        return new GRichTextField();
+                        // return new GRichTextField();
 
                     case ObjectType.InputText:
-                        return new GTextInput();
+                        // return new GTextInput();
 
                     case ObjectType.Group:
                         return new GGroup();
@@ -63,37 +63,29 @@ module fgui {
                         return new GList();
 
                     case ObjectType.Graph:
-                        return new GGraph();
+                        // return new GGraph();
 
                     case ObjectType.Loader:
-                        if (UIObjectFactory.loaderType)
-                            return new UIObjectFactory.loaderType();
-                        else
-                            return new GLoader();
+                        // if (UIObjectFactory.loaderType)
+                            // return new UIObjectFactory.loaderType();
+                        // else
+                            // return new GLoader();
+                            return;
 
                     case ObjectType.Button:
                         return new GButton();
-
                     case ObjectType.Label:
                         return new GLabel();
-
                     case ObjectType.ProgressBar:
                         return new GProgressBar();
-
                     case ObjectType.Slider:
                         return new GSlider();
-
                     case ObjectType.ScrollBar:
                         return new GScrollBar();
-
                     case ObjectType.ComboBox:
                         return new GComboBox();
-
                     case ObjectType.Tree:
                         return new GTree();
-
-                    case ObjectType.Loader3D:
-                        return new GLoader3D();
 
                     default:
                         return null;

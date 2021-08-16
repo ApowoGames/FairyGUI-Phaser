@@ -109,7 +109,8 @@ namespace fgui {
                     child._level = this._level + 1;
                     child._setTree(this._tree);
                     if (this._tree && this == this._tree.rootNode || this._cell && this._cell.parent && this._expanded)
-                        this._tree._afterInserted(child);
+                        throw new Error("TODO");
+                        // this._tree._afterInserted(child);
                 }
 
                 return child;
@@ -244,7 +245,7 @@ namespace fgui {
         public _setTree(value: GTree): void {
             this._tree = value;
             if (this._tree && this._tree.treeNodeWillExpand && this._expanded)
-                this._tree.treeNodeWillExpand.runWith([this, true]);
+                this._tree.treeNodeWillExpand(this, true);
 
             if (this._children) {
                 var cnt: number = this._children.length;

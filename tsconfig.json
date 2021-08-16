@@ -5,11 +5,10 @@
     "experimentalDecorators": true,
     "target": "es6", /* Specify ECMAScript target version: 'ES3' (default), 'ES5', 'ES2015', 'ES2016', 'ES2017', 'ES2018', 'ES2019' or 'ESNEXT'. */
     "module": "esnext", /* Specify module code generation: 'none', 'commonjs', 'amd', 'system', 'umd', 'es2015', or 'ESNext'. */
-    "strict": false,
     "noImplicitUseStrict": true, /* Enable all strict type-checking options. */ /* Enable strict 'bind', 'call', and 'apply' methods on functions. */
-    // "strictPropertyInitialization": false,  /* Enable strict checking of property initialization in classes. */
+    "strictPropertyInitialization": false,  /* Enable strict checking of property initialization in classes. */
     "moduleResolution": "node", /* Specify module resolution strategy: 'node' (Node.js) or 'classic' (TypeScript pre-1.6). */
-    "alwaysStrict": false,
+    "alwaysStrict": true,
     "typeRoots": [
       "node_modules/@types",
       "node_modules/phaser/types",

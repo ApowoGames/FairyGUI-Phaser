@@ -4,11 +4,11 @@ namespace fgui {
         /**
          * (node: GTreeNode, obj: GComponent) => void
          */
-        public treeNodeRender: Laya.Handler;
+        public treeNodeRender: (node: GTreeNode, obj: GComponent) => void;
         /**
          * (node: GTreeNode, expanded: boolean) => void;
          */
-        public treeNodeWillExpand: Laya.Handler;
+        public treeNodeWillExpand: (node: GTreeNode, expanded: boolean) => void;
 
         private _indent: number;
         private _clickToExpand: number;
@@ -115,47 +115,48 @@ namespace fgui {
         }
 
         private createCell(node: GTreeNode): void {
-            var child: GComponent = <GComponent>this.getFromPool(node._resURL ? node._resURL : this.defaultItem);
-            if (!child)
-                throw new Error("cannot create tree node object.");
+            throw new Error("TODO")
+        //     var child: GComponent = <GComponent>this.getFromPool(node._resURL ? node._resURL : this.defaultItem);
+        //     if (!child)
+        //         throw new Error("cannot create tree node object.");
 
-            child._treeNode = node;
-            node._cell = child;
+        //     child._treeNode = node;
+        //     node._cell = child;
 
-            var indentObj: GObject = child.getChild("indent");
-            if (indentObj)
-                indentObj.width = (node.level - 1) * this._indent;
+        //     var indentObj: GObject = child.getChild("indent");
+        //     if (indentObj)
+        //         indentObj.width = (node.level - 1) * this._indent;
 
-            var cc: Controller;
+        //     var cc: Controller;
 
-            cc = child.getController("expanded");
-            if (cc) {
-                cc.on(Events.STATE_CHANGED, this, this.__expandedStateChanged);
-                cc.selectedIndex = node.expanded ? 1 : 0;
-            }
+        //     cc = child.getController("expanded");
+        //     if (cc) {
+        //         cc.on(Events.STATE_CHANGED, this, this.__expandedStateChanged);
+        //         cc.selectedIndex = node.expanded ? 1 : 0;
+        //     }
 
-            cc = child.getController("leaf");
-            if (cc)
-                cc.selectedIndex = node.isFolder ? 0 : 1;
+        //     cc = child.getController("leaf");
+        //     if (cc)
+        //         cc.selectedIndex = node.isFolder ? 0 : 1;
 
-            if (node.isFolder)
-                child.on(Laya.Event.MOUSE_DOWN, this, this.__cellMouseDown);
+        //     if (node.isFolder)
+        //         child.on(Laya.Event.MOUSE_DOWN, this, this.__cellMouseDown);
 
-            if (this.treeNodeRender)
-                this.treeNodeRender.runWith([node, child]);
-        }
+        //     if (this.treeNodeRender)
+        //         this.treeNodeRender.runWith([node, child]);
+        // }
 
-        public _afterInserted(node: GTreeNode): void {
-            if (!node._cell)
-                this.createCell(node);
+        // public _afterInserted(node: GTreeNode): void {
+        //     if (!node._cell)
+        //         this.createCell(node);
 
-            var index: number = this.getInsertIndexForNode(node);
-            this.addChildAt(node._cell, index);
-            if (this.treeNodeRender)
-                this.treeNodeRender.runWith([node, node._cell]);
+        //     var index: number = this.getInsertIndexForNode(node);
+        //     this.addChildAt(node._cell, index);
+        //     if (this.treeNodeRender)
+        //         this.treeNodeRender.runWith([node, node._cell]);
 
-            if (node.isFolder && node.expanded)
-                this.checkChildren(node, index);
+        //     if (node.isFolder && node.expanded)
+        //         this.checkChildren(node, index);
         }
 
         private getInsertIndexForNode(node: GTreeNode): number {
@@ -187,13 +188,13 @@ namespace fgui {
             }
 
             if (this.treeNodeWillExpand != null)
-                this.treeNodeWillExpand.runWith([node, true]);
+                this.treeNodeWillExpand(node, true);
 
             if (!node._cell)
                 return;
 
             if (this.treeNodeRender)
-                this.treeNodeRender.runWith([node, node._cell]);
+                this.treeNodeRender(node, node._cell);
 
             var cc: Controller = node._cell.getController("expanded");
             if (cc)
@@ -210,13 +211,13 @@ namespace fgui {
             }
 
             if (this.treeNodeWillExpand)
-                this.treeNodeWillExpand.runWith([node, false]);
+                this.treeNodeWillExpand(node, false);
 
             if (!node._cell)
                 return;
 
             if (this.treeNodeRender)
-                this.treeNodeRender.runWith([node, node._cell]);
+                this.treeNodeRender(node, node._cell);
 
             var cc: Controller = node._cell.getController("expanded");
             if (cc)
@@ -309,7 +310,8 @@ namespace fgui {
             }
         }
 
-        private __cellMouseDown(evt: Laya.Event): void {
+        private __cellMouseDown(evt: any): void {
+            throw new Error("TODO");
             var node: GTreeNode = GObject.cast(evt.currentTarget)._treeNode;
             this._expandedStatusInEvt = node.expanded;
         }
@@ -319,7 +321,8 @@ namespace fgui {
             node.expanded = cc.selectedIndex == 1;
         }
 
-        protected dispatchItemEvent(item: GObject, evt: Laya.Event): void {
+        protected dispatchItemEvent(item: GObject, evt: any): void {
+            throw new Error("TODO");
             if (this._clickToExpand != 0) {
                 var node: GTreeNode = item._treeNode;
                 if (node && node.isFolder && this._expandedStatusInEvt == node.expanded) {
@@ -340,8 +343,8 @@ namespace fgui {
 
             buffer.seek(beginPos, 9);
 
-            this._indent = buffer.getInt32();
-            this._clickToExpand = buffer.getUint8();
+            this._indent = buffer.readInt();
+            this._clickToExpand = buffer.readByte();
         }
 
         protected readItems(buffer: ByteBuffer): void {
@@ -354,22 +357,22 @@ namespace fgui {
             var level: number;
             var prevLevel: number = 0;
 
-            cnt = buffer.getInt16();
+            cnt = buffer.readShort();
             for (i = 0; i < cnt; i++) {
-                nextPos = buffer.getInt16();
-                nextPos += buffer.pos;
+                nextPos = buffer.readShort();
+                nextPos += buffer.position;
 
                 str = buffer.readS();
                 if (str == null) {
                     str = this.defaultItem;
                     if (!str) {
-                        buffer.pos = nextPos;
+                        buffer.position = nextPos;
                         continue;
                     }
                 }
 
                 isFolder = buffer.readBool();
-                level = buffer.getUint8();
+                level = buffer.readByte();
 
                 var node: GTreeNode = new GTreeNode(isFolder, str);
                 node.expanded = true;
@@ -391,7 +394,7 @@ namespace fgui {
 
                 this.setupItem(buffer, node.cell);
 
-                buffer.pos = nextPos;
+                buffer.position = nextPos;
             }
         }
     }

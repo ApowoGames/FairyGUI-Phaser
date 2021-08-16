@@ -1230,46 +1230,46 @@ namespace fgui {
 
             this._id = buffer.readS();
             this._name = buffer.readS();
-            f1 = buffer.getInt32();
-            f2 = buffer.getInt32();
+            f1 = buffer.readInt();
+            f2 = buffer.readInt();
             this.setXY(f1, f2);
 
             if (buffer.readBool()) {
-                this.initWidth = buffer.getInt32();
-                this.initHeight = buffer.getInt32();
+                this.initWidth = buffer.readInt();
+                this.initHeight = buffer.readInt();
                 this.setSize(this.initWidth, this.initHeight, true);
             }
 
             if (buffer.readBool()) {
-                this.minWidth = buffer.getInt32();
-                this.maxWidth = buffer.getInt32();
-                this.minHeight = buffer.getInt32();
-                this.maxHeight = buffer.getInt32();
+                this.minWidth = buffer.readInt();
+                this.maxWidth = buffer.readInt();
+                this.minHeight = buffer.readInt();
+                this.maxHeight = buffer.readInt();
             }
 
             if (buffer.readBool()) {
-                f1 = buffer.getFloat32();
-                f2 = buffer.getFloat32();
+                f1 = buffer.readShort();
+                f2 = buffer.readShort();
                 this.setScale(f1, f2);
             }
 
             if (buffer.readBool()) {
-                f1 = buffer.getFloat32();
-                f2 = buffer.getFloat32();
+                f1 = buffer.readShort();
+                f2 = buffer.readShort();
                 this.setSkew(f1, f2);
             }
 
             if (buffer.readBool()) {
-                f1 = buffer.getFloat32();
-                f2 = buffer.getFloat32();
+                f1 = buffer.readShort();
+                f2 = buffer.readShort();
                 this.setPivot(f1, f2, buffer.readBool());
             }
 
-            f1 = buffer.getFloat32();
+            f1 = buffer.readShort();
             if (f1 != 1)
                 this.alpha = f1;
 
-            f1 = buffer.getFloat32();
+            f1 = buffer.readShort();
             if (f1 != 0)
                 this.rotation = f1;
 

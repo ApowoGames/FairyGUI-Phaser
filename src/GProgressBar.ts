@@ -196,10 +196,10 @@ namespace fgui {
                 return;
             }
 
-            this._value = buffer.getInt32();
-            this._max = buffer.getInt32();
+            this._value = buffer.readInt();
+            this._max = buffer.readInt();
             if (buffer.version >= 2)
-                this._min = buffer.getInt32();
+                this._min = buffer.readInt();
 
             this.update(this._value);
         }

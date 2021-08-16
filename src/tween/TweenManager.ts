@@ -2,7 +2,9 @@ namespace fgui {
     export class TweenManager {
         public static createTween(): GTweener {
             if (!_inited) {
-                Laya.timer.frameLoop(1, null, TweenManager.update);
+                // TODO
+                throw new Error("TODO")
+                // Laya.timer.frameLoop(1, null, TweenManager.update);
                 _inited = true;
             }
 
@@ -71,7 +73,8 @@ namespace fgui {
         }
 
         public static update(): void {
-            var dt: number = Laya.timer.delta / 1000;
+            // var dt: number = Laya.timer.delta / 1000;
+            throw new Error("TODO")
 
             var cnt: number = _totalActiveTweens;
             var freePosStart: number = -1;

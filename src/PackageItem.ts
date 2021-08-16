@@ -18,11 +18,11 @@ namespace fgui {
         public branches?: Array<string>;
 
         //image
-        public scale9Grid?: Laya.Rectangle;
+        public scale9Grid?: Phaser.Geom.Rectangle;
         public scaleByTile?: boolean;
         public tileGridIndice?: number;
         public smoothing?: boolean;
-        public texture?: Laya.Texture;
+        public texture?: Phaser.Textures.Texture;
         public pixelHitTestData?: PixelHitTestData;
 
         //movieclip
@@ -38,14 +38,10 @@ namespace fgui {
         public bitmapFont?: BitmapFont;
 
         //skeleton
-        public templet?: Laya.Templet;
-        public skeletonAnchor?: Laya.Point;
+        // public templet?: Laya.Templet;
+        public skeletonAnchor?: Phaser.Geom.Point;
 
         constructor() {
-        }
-
-        public load(): Object {
-            return this.owner.getItemAsset(this);
         }
 
         public getBranch(): PackageItem {
@@ -59,11 +55,12 @@ namespace fgui {
         }
 
         public getHighResolution(): PackageItem {
-            if (this.highResolution && GRoot.contentScaleLevel > 0) {
-                var itemId: string = this.highResolution[GRoot.contentScaleLevel - 1];
-                if (itemId)
-                    return this.owner.getItemById(itemId);
-            }
+            // if (this.highResolution && GRoot.contentScaleLevel > 0) {
+            //     var itemId: string = this.highResolution[GRoot.contentScaleLevel - 1];
+            //     if (itemId)
+            //         return this.owner.getItemById(itemId);
+            // }
+            throw new Error("TODO");
 
             return this;
         }

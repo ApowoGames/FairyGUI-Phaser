@@ -1018,39 +1018,39 @@ namespace fgui {
 
             this._underConstruct = true;
 
-            this.sourceWidth = buffer.getInt32();
-            this.sourceHeight = buffer.getInt32();
+            this.sourceWidth = buffer.readInt();
+            this.sourceHeight = buffer.readInt();
             this.initWidth = this.sourceWidth;
             this.initHeight = this.sourceHeight;
 
             this.setSize(this.sourceWidth, this.sourceHeight);
 
             if (buffer.readBool()) {
-                this.minWidth = buffer.getInt32();
-                this.maxWidth = buffer.getInt32();
-                this.minHeight = buffer.getInt32();
-                this.maxHeight = buffer.getInt32();
+                this.minWidth = buffer.readInt();
+                this.maxWidth = buffer.readInt();
+                this.minHeight = buffer.readInt();
+                this.maxHeight = buffer.readInt();
             }
 
             if (buffer.readBool()) {
-                f1 = buffer.getFloat32();
-                f2 = buffer.getFloat32();
+                f1 = buffer.readFloat();
+                f2 = buffer.readFloat();
                 this.internalSetPivot(f1, f2, buffer.readBool());
             }
 
             if (buffer.readBool()) {
-                this._margin.top = buffer.getInt32();
-                this._margin.bottom = buffer.getInt32();
-                this._margin.left = buffer.getInt32();
-                this._margin.right = buffer.getInt32();
+                this._margin.top = buffer.readInt();
+                this._margin.bottom = buffer.readInt();
+                this._margin.left = buffer.readInt();
+                this._margin.right = buffer.readInt();
             }
 
             var overflow: number = buffer.readByte();
             if (overflow == OverflowType.Scroll) {
-                var savedPos: number = buffer.pos;
+                var savedPos: number = buffer.position;
                 buffer.seek(0, 7);
                 this.setupScroll(buffer);
-                buffer.pos = savedPos;
+                buffer.position = savedPos;
             }
             else
                 this.setupOverflow(overflow);
@@ -1062,26 +1062,26 @@ namespace fgui {
 
             buffer.seek(0, 1);
 
-            var controllerCount: number = buffer.getInt16();
+            var controllerCount: number = buffer.readShort();
             for (i = 0; i < controllerCount; i++) {
-                nextPos = buffer.getInt16();
-                nextPos += buffer.pos;
+                nextPos = buffer.readShort();
+                nextPos += buffer.position;
 
                 var controller: Controller = new Controller();
                 this._controllers.push(controller);
                 controller.parent = this;
                 controller.setup(buffer);
 
-                buffer.pos = nextPos;
+                buffer.position = nextPos;
             }
 
             buffer.seek(0, 2);
 
             var child: GObject;
-            var childCount: number = buffer.getInt16();
+            var childCount: number = buffer.readShort();
             for (i = 0; i < childCount; i++) {
-                dataLen = buffer.getInt16();
-                curPos = buffer.pos;
+                dataLen = buffer.readShort();
+                curPos = buffer.position;
 
                 if (objectPool)
                     child = objectPool[poolIndex + i];
@@ -1116,7 +1116,7 @@ namespace fgui {
                 child.parent = this;
                 this._children.push(child);
 
-                buffer.pos = curPos + dataLen;
+                buffer.position = curPos + dataLen;
             }
 
             buffer.seek(0, 3);
@@ -1126,41 +1126,41 @@ namespace fgui {
             buffer.skip(2);
 
             for (i = 0; i < childCount; i++) {
-                nextPos = buffer.getInt16();
-                nextPos += buffer.pos;
+                nextPos = buffer.readShort();
+                nextPos += buffer.position;
 
-                buffer.seek(buffer.pos, 3);
+                buffer.seek(buffer.position, 3);
                 this._children[i].relations.setup(buffer, false);
 
-                buffer.pos = nextPos;
+                buffer.position = nextPos;
             }
 
             buffer.seek(0, 2);
             buffer.skip(2);
 
             for (i = 0; i < childCount; i++) {
-                nextPos = buffer.getInt16();
-                nextPos += buffer.pos;
+                nextPos = buffer.readShort();
+                nextPos += buffer.position;
 
                 child = this._children[i];
-                child.setup_afterAdd(buffer, buffer.pos);
+                child.setup_afterAdd(buffer, buffer.position);
                 child._underConstruct = false;
 
-                buffer.pos = nextPos;
+                buffer.position = nextPos;
             }
 
             buffer.seek(0, 4);
 
             buffer.skip(2); //customData
             this.opaque = buffer.readBool();
-            var maskId: number = buffer.getInt16();
+            var maskId: number = buffer.readShort();
             if (maskId != -1) {
                 this.setMask((<Graphics>this.getChildAt(maskId).displayObject), buffer.readBool());
             }
 
             var hitTestId: string = buffer.readS();
-            i1 = buffer.getInt32();
-            i2 = buffer.getInt32();
+            i1 = buffer.readInt();
+            i2 = buffer.readInt();
             var hitArea: HitArea;
 
             if (hitTestId) {
@@ -1181,16 +1181,16 @@ namespace fgui {
 
             buffer.seek(0, 5);
 
-            var transitionCount: number = buffer.getInt16();
+            var transitionCount: number = buffer.readShort();
             for (i = 0; i < transitionCount; i++) {
-                nextPos = buffer.getInt16();
-                nextPos += buffer.pos;
+                nextPos = buffer.readShort();
+                nextPos += buffer.position;
 
                 var trans: Transition = new Transition(this);
                 trans.setup(buffer);
                 this._transitions.push(trans);
 
-                buffer.pos = nextPos;
+                buffer.position = nextPos;
             }
 
             if (this._transitions.length > 0) {
@@ -1227,14 +1227,14 @@ namespace fgui {
 
             buffer.seek(beginPos, 4);
 
-            var pageController: number = buffer.getInt16();
+            var pageController: number = buffer.readShort();
             if (pageController != -1 && this._scrollPane)
                 this._scrollPane.pageController = this._parent.getControllerAt(pageController);
 
             var cnt: number;
             var i: number;
 
-            cnt = buffer.getInt16();
+            cnt = buffer.readShort();
             for (i = 0; i < cnt; i++) {
                 var cc: Controller = this.getController(buffer.readS());
                 var pageId: string = buffer.readS();
@@ -1243,10 +1243,10 @@ namespace fgui {
             }
 
             if (buffer.version >= 2) {
-                cnt = buffer.getInt16();
+                cnt = buffer.readShort();
                 for (i = 0; i < cnt; i++) {
                     var target: string = buffer.readS();
-                    var propertyId: number = buffer.getInt16();
+                    var propertyId: number = buffer.readShort();
                     var value: String = buffer.readS();
                     var obj: GObject = this.getChildByPath(target);
                     if (obj)

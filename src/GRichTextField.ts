@@ -1,19 +1,21 @@
 namespace fgui {
     export class GRichTextField extends GTextField {
-        private _div: Laya.HTMLDivElement;
+        private _div: any;
 
         constructor() {
             super();
             this._text = "";
         }
 
-        protected createDisplayObject(): void {
-            this._displayObject = this._div = new Laya.HTMLDivElement();
-            this._displayObject.mouseEnabled = true;
-            this._displayObject["$owner"] = this;
+        public createDisplayObject(): void {
+            // this._displayObject = this._div = new Laya.HTMLDivElement();
+            // this._displayObject.mouseEnabled = true;
+            // this._displayObject["$owner"] = this;
+            throw new Error("TODO");
         }
 
-        public get div(): Laya.HTMLDivElement {
+        public get div(): any {
+            throw new Error("TODO");
             return this._div;
         }
 

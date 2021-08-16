@@ -162,7 +162,7 @@ namespace fgui {
                 this.icon = str;
             if (buffer.readBool())
                 this.titleColor = buffer.readColorS();
-            var iv: number = buffer.getInt32();
+            var iv: number = buffer.readInt();
             if (iv != 0)
                 this.titleFontSize = iv;
 
@@ -177,15 +177,16 @@ namespace fgui {
                     if (str != null)
                         input.restrict = str;
 
-                    iv = buffer.getInt32();
+                    iv = buffer.readInt();
                     if (iv != 0)
                         input.maxLength = iv;
-                    iv = buffer.getInt32();
+                    iv = buffer.readInt();
                     if (iv != 0) {
-                        if (iv == 4)
-                            input.keyboardType = Laya.Input.TYPE_NUMBER;
-                        else if (iv == 3)
-                            input.keyboardType = Laya.Input.TYPE_URL;
+                        // TODO
+                        // if (iv == 4)
+                            // input.keyboardType = Laya.Input.TYPE_NUMBER;
+                        // else if (iv == 3)
+                            // input.keyboardType = Laya.Input.TYPE_URL;
                     }
                     if (buffer.readBool())
                         input.password = true;

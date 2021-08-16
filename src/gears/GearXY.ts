@@ -32,8 +32,8 @@ namespace fgui {
                 gv = this._default;
             else
                 this._storage[pageId] = gv = {};
-            gv.x = buffer.getInt32();
-            gv.y = buffer.getInt32();
+            gv.x = buffer.readInt();
+            gv.y = buffer.readInt();
         }
 
         public addExtStatus(pageId: string, buffer: ByteBuffer): void {
@@ -42,8 +42,8 @@ namespace fgui {
                 gv = this._default;
             else
                 gv = this._storage[pageId];
-            gv.px = buffer.getFloat32();
-            gv.py = buffer.getFloat32();
+            gv.px = buffer.readFloat();
+            gv.py = buffer.readFloat();
         }
 
         public apply(): void {

@@ -216,7 +216,7 @@ namespace fgui {
         }
 
         public setup(buffer: ByteBuffer): void {
-            var beginPos: number = buffer.pos;
+            var beginPos: number = buffer.position;
             buffer.seek(beginPos, 0);
 
             this.name = buffer.readS();
@@ -227,7 +227,7 @@ namespace fgui {
 
             var i: number;
             var nextPos: number;
-            var cnt: number = buffer.getInt16();
+            var cnt: number = buffer.readShort();
 
             for (i = 0; i < cnt; i++) {
                 this._pageIds.push(buffer.readS());
@@ -236,10 +236,10 @@ namespace fgui {
 
             var homePageIndex: number = 0;
             if (buffer.version >= 2) {
-                var homePageType: number = buffer.getByte();
+                var homePageType: number = buffer.readByte();
                 switch (homePageType) {
                     case 1:
-                        homePageIndex = buffer.getInt16();
+                        homePageIndex = buffer.readShort();
                         break;
 
                     case 2:
@@ -258,20 +258,20 @@ namespace fgui {
 
             buffer.seek(beginPos, 2);
 
-            cnt = buffer.getInt16();
+            cnt = buffer.readShort();
             if (cnt > 0) {
                 if (!this._actions)
                     this._actions = [];
 
                 for (i = 0; i < cnt; i++) {
-                    nextPos = buffer.getInt16();
-                    nextPos += buffer.pos;
+                    nextPos = buffer.readShort();
+                    nextPos += buffer.position;
 
                     var action: ControllerAction = ControllerAction.createAction(buffer.readByte());
                     action.setup(buffer);
                     this._actions.push(action);
 
-                    buffer.pos = nextPos;
+                    buffer.position = nextPos;
                 }
             }
 

@@ -14,10 +14,11 @@ namespace fgui {
             this._movieClip.color = value;
         }
 
-        protected createDisplayObject(): void {
-            this._displayObject = this._movieClip = new MovieClip();
-            this._movieClip.mouseEnabled = false;
-            this._displayObject["$owner"] = this;
+        public createDisplayObject(): void {
+            throw new Error("TODO");
+            // this._displayObject = this._movieClip = new MovieClip();
+            // this._movieClip.mouseEnabled = false;
+            // this._displayObject["$owner"] = this;
         }
 
         public get playing(): boolean {
@@ -132,7 +133,7 @@ namespace fgui {
             if (buffer.readBool())
                 this.color = buffer.readColorS();
             buffer.readByte(); //flip
-            this._movieClip.frame = buffer.getInt32();
+            this._movieClip.frame = buffer.readInt();
             this._movieClip.playing = buffer.readBool();
         }
     }

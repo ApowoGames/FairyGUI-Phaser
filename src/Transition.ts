@@ -10,7 +10,7 @@ namespace fgui {
         private _totalTasks: number;
         private _playing: boolean;
         private _paused: boolean;
-        private _onComplete: Laya.Handler;
+        private _onComplete: () => void;
         private _options: number;
         private _reversed: boolean;
         private _totalDuration: number;
@@ -32,11 +32,11 @@ namespace fgui {
             this._endTime = 0;
         }
 
-        public play(onComplete?: Laya.Handler, times?: number, delay?: number, startTime?: number, endTime?: number): void {
+        public play(onComplete?: () => void, times?: number, delay?: number, startTime?: number, endTime?: number): void {
             this._play(onComplete, times, delay, startTime, endTime, false);
         }
 
-        public playReverse(onComplete?: Laya.Handler, times?: number, delay?: number, startTime?: number, endTime?: number): void {
+        public playReverse(onComplete?: () => void, times?: number, delay?: number, startTime?: number, endTime?: number): void {
             this._play(onComplete, 1, delay, startTime, endTime, true);
         }
 
@@ -63,7 +63,7 @@ namespace fgui {
             }
         }
 
-        private _play(onComplete: Laya.Handler, times: number, delay: number, startTime: number, endTime: number, reversed: boolean): void {
+        private _play(onComplete: () => void, times: number, delay: number, startTime: number, endTime: number, reversed: boolean): void {
             if (times == undefined) times = 1;
             if (delay == undefined) delay = 0;
             if (startTime == undefined) startTime = 0;
@@ -134,7 +134,7 @@ namespace fgui {
             this._playing = false;
             this._totalTasks = 0;
             this._totalTimes = 0;
-            var handler: Laya.Handler = this._onComplete;
+            var handler = this._onComplete;
             this._onComplete = null;
 
             GTween.kill(this);//delay start
@@ -160,7 +160,7 @@ namespace fgui {
             }
 
             if (processCallback && handler) {
-                handler.run();
+                handler();
             }
         }
 
@@ -339,7 +339,7 @@ namespace fgui {
                 throw new Error("this.label not exists");
         }
 
-        public setHook(label: string, callback: Laya.Handler): void {
+        public setHook(label: string, callback: (label?: string) => void): void {
             var cnt: number = this._items.length;
             var found: boolean = false;
             for (var i: number = 0; i < cnt; i++) {
@@ -500,9 +500,9 @@ namespace fgui {
                 }
             }
             else if (this._onComplete) {
-                var handler: Laya.Handler = this._onComplete;
+                var handler = this._onComplete;
                 this._onComplete = null;
-                handler.run();
+                handler();
             }
         }
 
@@ -856,11 +856,11 @@ namespace fgui {
         private callHook(item: Item, tweenEnd: boolean): void {
             if (tweenEnd) {
                 if (item.tweenConfig && item.tweenConfig.endHook)
-                    item.tweenConfig.endHook.run();
+                    item.tweenConfig.endHook();
             }
             else {
                 if (item.time >= this._startTime && item.hook)
-                    item.hook.run();
+                    item.hook();
             }
         }
 
@@ -891,9 +891,9 @@ namespace fgui {
                         }
 
                         if (this._onComplete) {
-                            var handler: Laya.Handler = this._onComplete;
+                            var handler = this._onComplete;
                             this._onComplete = null;
-                            handler.run();
+                            handler();
                         }
                     }
                 }
@@ -988,7 +988,7 @@ namespace fgui {
                             if (value.stopTime >= 0 && (endTime < 0 || endTime > value.stopTime))
                                 endTime = value.stopTime;
                             trans.timeScale = this._timeScale;
-                            trans._play(Laya.Handler.create(this, this.onPlayTransCompleted, [item]), value.playTimes, 0, startTime, endTime, this._reversed);
+                            trans._play(() => this.onPlayTransCompleted(item), value.playTimes, 0, startTime, endTime, this._reversed);
                         }
                     }
                     break;
@@ -1033,23 +1033,23 @@ namespace fgui {
 
         public setup(buffer: ByteBuffer): void {
             this.name = buffer.readS();
-            this._options = buffer.getInt32();
+            this._options = buffer.readInt();
             this._autoPlay = buffer.readBool();
-            this._autoPlayTimes = buffer.getInt32();
-            this._autoPlayDelay = buffer.getFloat32();
+            this._autoPlayTimes = buffer.readInt();
+            this._autoPlayDelay = buffer.readFloat();
 
-            var cnt: number = buffer.getInt16();
+            var cnt: number = buffer.readShort();
             for (var i: number = 0; i < cnt; i++) {
-                var dataLen: number = buffer.getInt16();
-                var curPos: number = buffer.pos;
+                var dataLen: number = buffer.readShort();
+                var curPos: number = buffer.position;
 
                 buffer.seek(curPos, 0);
 
                 var item: Item = new Item(buffer.readByte());
                 this._items[i] = item;
 
-                item.time = buffer.getFloat32();
-                var targetId: number = buffer.getInt16();
+                item.time = buffer.readFloat();
+                var targetId: number = buffer.readShort();
                 if (targetId < 0)
                     item.targetId = "";
                 else
@@ -1060,11 +1060,11 @@ namespace fgui {
                     buffer.seek(curPos, 1);
 
                     item.tweenConfig = new TweenConfig();
-                    item.tweenConfig.duration = buffer.getFloat32();
+                    item.tweenConfig.duration = buffer.readFloat();
                     if (item.time + item.tweenConfig.duration > this._totalDuration)
                         this._totalDuration = item.time + item.tweenConfig.duration;
                     item.tweenConfig.easeType = buffer.readByte();
-                    item.tweenConfig.repeat = buffer.getInt32();
+                    item.tweenConfig.repeat = buffer.readInt();
                     item.tweenConfig.yoyo = buffer.readBool();
                     item.tweenConfig.endLabel = buffer.readS();
 
@@ -1077,27 +1077,27 @@ namespace fgui {
                     this.decodeValue(item, buffer, item.tweenConfig.endValue);
 
                     if (buffer.version >= 2) {
-                        var pathLen: number = buffer.getInt32();
+                        var pathLen: number = buffer.readInt();
                         if (pathLen > 0) {
                             item.tweenConfig.path = new GPath();
                             var pts: Array<GPathPoint> = new Array<GPathPoint>();
 
                             for (var j: number = 0; j < pathLen; j++) {
-                                var curveType: number = buffer.getUint8();
+                                var curveType: number = buffer.readByte();
                                 switch (curveType) {
                                     case CurveType.Bezier:
-                                        pts.push(GPathPoint.newBezierPoint(buffer.getFloat32(), buffer.getFloat32(),
-                                            buffer.getFloat32(), buffer.getFloat32()));
+                                        pts.push(GPathPoint.newBezierPoint(buffer.readFloat(), buffer.readFloat(),
+                                            buffer.readFloat(), buffer.readFloat()));
                                         break;
 
                                     case CurveType.CubicBezier:
-                                        pts.push(GPathPoint.newCubicBezierPoint(buffer.getFloat32(), buffer.getFloat32(),
-                                            buffer.getFloat32(), buffer.getFloat32(),
-                                            buffer.getFloat32(), buffer.getFloat32()));
+                                        pts.push(GPathPoint.newCubicBezierPoint(buffer.readFloat(), buffer.readFloat(),
+                                            buffer.readFloat(), buffer.readFloat(),
+                                            buffer.readFloat(), buffer.readFloat()));
                                         break;
 
                                     default:
-                                        pts.push(GPathPoint.newPoint(buffer.getFloat32(), buffer.getFloat32(), curveType));
+                                        pts.push(GPathPoint.newPoint(buffer.readFloat(), buffer.readFloat(), curveType));
                                         break;
                                 }
                             }
@@ -1115,7 +1115,7 @@ namespace fgui {
                     this.decodeValue(item, buffer, item.value);
                 }
 
-                buffer.pos = curPos + dataLen;
+                buffer.position = curPos + dataLen;
             }
         }
 
@@ -1127,8 +1127,8 @@ namespace fgui {
                 case ActionType.Skew:
                     value.b1 = buffer.readBool();
                     value.b2 = buffer.readBool();
-                    value.f1 = buffer.getFloat32();
-                    value.f2 = buffer.getFloat32();
+                    value.f1 = buffer.readFloat();
+                    value.f2 = buffer.readFloat();
 
                     if (buffer.version >= 2 && item.type == ActionType.XY)
                         value.b3 = buffer.readBool(); //percent
@@ -1136,12 +1136,12 @@ namespace fgui {
 
                 case ActionType.Alpha:
                 case ActionType.Rotation:
-                    value.f1 = buffer.getFloat32();
+                    value.f1 = buffer.readFloat();
                     break;
 
                 case ActionType.Scale:
-                    value.f1 = buffer.getFloat32();
-                    value.f2 = buffer.getFloat32();
+                    value.f1 = buffer.readFloat();
+                    value.f2 = buffer.readFloat();
                     break;
 
                 case ActionType.Color:
@@ -1150,7 +1150,7 @@ namespace fgui {
 
                 case ActionType.Animation:
                     value.playing = buffer.readBool();
-                    value.frame = buffer.getInt32();
+                    value.frame = buffer.readInt();
                     break;
 
                 case ActionType.Visible:
@@ -1159,24 +1159,24 @@ namespace fgui {
 
                 case ActionType.Sound:
                     value.sound = buffer.readS();
-                    value.volume = buffer.getFloat32();
+                    value.volume = buffer.readFloat();
                     break;
 
                 case ActionType.Transition:
                     value.transName = buffer.readS();
-                    value.playTimes = buffer.getInt32();
+                    value.playTimes = buffer.readInt();
                     break;
 
                 case ActionType.Shake:
-                    value.amplitude = buffer.getFloat32();
-                    value.duration = buffer.getFloat32();
+                    value.amplitude = buffer.readFloat();
+                    value.duration = buffer.readFloat();
                     break;
 
                 case ActionType.ColorFilter:
-                    value.f1 = buffer.getFloat32();
-                    value.f2 = buffer.getFloat32();
-                    value.f3 = buffer.getFloat32();
-                    value.f4 = buffer.getFloat32();
+                    value.f1 = buffer.readFloat();
+                    value.f2 = buffer.readFloat();
+                    value.f3 = buffer.readFloat();
+                    value.f4 = buffer.readFloat();
                     break;
 
                 case ActionType.Text:
@@ -1214,7 +1214,7 @@ namespace fgui {
         public tweenConfig?: TweenConfig;
         public label?: string;
         public value: TValue;
-        public hook?: Laya.Handler;
+        public hook?: Function;
 
         public tweener?: GTweener;
         public target: GObject;
@@ -1235,7 +1235,7 @@ namespace fgui {
         public startValue: TValue;
         public endValue: TValue;
         public endLabel: string;
-        public endHook?: Laya.Handler;
+        public endHook?: Function;
         public path?: GPath;
 
         constructor() {

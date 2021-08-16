@@ -15,7 +15,7 @@ namespace fgui {
         private _barMaxWidthDelta: number = 0;
         private _barMaxHeightDelta: number = 0;
         private _gripObject: GObject;
-        private _clickPos: Laya.Point;
+        private _clickPos: Phaser.Geom.Point;
         private _clickPercent: number = 0;
         private _barStartX: number = 0;
         private _barStartY: number = 0;
@@ -31,7 +31,7 @@ namespace fgui {
             this._titleType = ProgressTitleType.Percent;
             this._value = 50;
             this._max = 100;
-            this._clickPos = new Laya.Point();
+            this._clickPos = new Phaser.Geom.Point();
         }
 
         public get titleType(): number {
@@ -90,9 +90,10 @@ namespace fgui {
             this.updateWithPercent((this._value - this._min) / (this._max - this._min));
         }
 
-        private updateWithPercent(percent: number, evt?: Laya.Event): void {
+        private updateWithPercent(percent: number, evt?: any): void {
             percent = ToolSet.clamp01(percent);
             if (evt) {
+                throw new Error("TODO");
                 var newValue: number = ToolSet.clamp(this._min + (this._max - this._min) * percent, this._min, this._max);
                 if (this._wholeNumbers) {
                     newValue = Math.round(newValue);
@@ -146,6 +147,7 @@ namespace fgui {
         }
 
         protected constructExtension(buffer: ByteBuffer): void {
+            throw new Error("TODO");
             buffer.seek(0, 6);
 
             this._titleType = buffer.readByte();
@@ -171,10 +173,10 @@ namespace fgui {
                 this._barStartY = this._barObjectV.y;
             }
             if (this._gripObject) {
-                this._gripObject.on(Laya.Event.MOUSE_DOWN, this, this.__gripMouseDown);
+                // this._gripObject.on(Laya.Event.MOUSE_DOWN, this, this.__gripMouseDown);
             }
 
-            this.displayObject.on(Laya.Event.MOUSE_DOWN, this, this.__barMouseDown);
+            // this.displayObject.on(Laya.Event.MOUSE_DOWN, this, this.__barMouseDown);
         }
 
         protected handleSizeChanged(): void {
@@ -201,66 +203,69 @@ namespace fgui {
                 return;
             }
 
-            this._value = buffer.getInt32();
-            this._max = buffer.getInt32();
+            this._value = buffer.readInt();
+            this._max = buffer.readInt();
             if (buffer.version >= 2)
-                this._min = buffer.getInt32();
+                this._min = buffer.readInt();
 
             this.update();
         }
 
-        private __gripMouseDown(evt: Laya.Event): void {
-            this.canDrag = true;
-            evt.stopPropagation();
+        private __gripMouseDown(evt: any): void {
+            // this.canDrag = true;
+            // evt.stopPropagation();
 
-            this._clickPos = this.globalToLocal(Laya.stage.mouseX, Laya.stage.mouseY);
-            this._clickPercent = ToolSet.clamp01((this._value - this._min) / (this._max - this._min));
+            // this._clickPos = this.globalToLocal(Laya.stage.mouseX, Laya.stage.mouseY);
+            // this._clickPercent = ToolSet.clamp01((this._value - this._min) / (this._max - this._min));
 
-            Laya.stage.on(Laya.Event.MOUSE_MOVE, this, this.__gripMouseMove);
-            Laya.stage.on(Laya.Event.MOUSE_UP, this, this.__gripMouseUp);
+            // Laya.stage.on(Laya.Event.MOUSE_MOVE, this, this.__gripMouseMove);
+            // Laya.stage.on(Laya.Event.MOUSE_UP, this, this.__gripMouseUp);
         }
 
-        private __gripMouseMove(evt: Laya.Event): void {
-            if (!this.canDrag) {
-                return;
-            }
+        private __gripMouseMove(evt: any): void {
+            throw new Error("TODO");
+            // if (!this.canDrag) {
+            //     return;
+            // }
 
-            var pt: Laya.Point = this.globalToLocal(Laya.stage.mouseX, Laya.stage.mouseY, s_vec2);
-            var deltaX: number = pt.x - this._clickPos.x;
-            var deltaY: number = pt.y - this._clickPos.y;
-            if (this._reverse) {
-                deltaX = -deltaX;
-                deltaY = -deltaY;
-            }
-            var percent: number;
-            if (this._barObjectH)
-                percent = this._clickPercent + deltaX / this._barMaxWidth;
-            else
-                percent = this._clickPercent + deltaY / this._barMaxHeight;
-            this.updateWithPercent(percent, evt);
+            // var pt: Laya.Point = this.globalToLocal(Laya.stage.mouseX, Laya.stage.mouseY, s_vec2);
+            // var deltaX: number = pt.x - this._clickPos.x;
+            // var deltaY: number = pt.y - this._clickPos.y;
+            // if (this._reverse) {
+            //     deltaX = -deltaX;
+            //     deltaY = -deltaY;
+            // }
+            // var percent: number;
+            // if (this._barObjectH)
+            //     percent = this._clickPercent + deltaX / this._barMaxWidth;
+            // else
+            //     percent = this._clickPercent + deltaY / this._barMaxHeight;
+            // this.updateWithPercent(percent, evt);
         }
 
-        private __gripMouseUp(evt: Laya.Event): void {
-            Laya.stage.off(Laya.Event.MOUSE_MOVE, this, this.__gripMouseMove);
-            Laya.stage.off(Laya.Event.MOUSE_UP, this, this.__gripMouseUp);
+        private __gripMouseUp(evt: any): void {
+            throw new Error("TODO");
+            // Laya.stage.off(Laya.Event.MOUSE_MOVE, this, this.__gripMouseMove);
+            // Laya.stage.off(Laya.Event.MOUSE_UP, this, this.__gripMouseUp);
         }
 
-        private __barMouseDown(evt: Laya.Event): void {
-            if (!this.changeOnClick)
-                return;
+        private __barMouseDown(evt: any): void {
+            throw new Error("TODO");
+            // if (!this.changeOnClick)
+            //     return;
 
-            var pt: Laya.Point = this._gripObject.globalToLocal(evt.stageX, evt.stageY, s_vec2);
-            var percent: number = ToolSet.clamp01((this._value - this._min) / (this._max - this._min));
-            var delta: number;
-            if (this._barObjectH)
-                delta = pt.x / this._barMaxWidth;
-            if (this._barObjectV)
-                delta = pt.y / this._barMaxHeight;
-            if (this._reverse)
-                percent -= delta;
-            else
-                percent += delta;
-            this.updateWithPercent(percent, evt);
+            // var pt: Laya.Point = this._gripObject.globalToLocal(evt.stageX, evt.stageY, s_vec2);
+            // var percent: number = ToolSet.clamp01((this._value - this._min) / (this._max - this._min));
+            // var delta: number;
+            // if (this._barObjectH)
+            //     delta = pt.x / this._barMaxWidth;
+            // if (this._barObjectV)
+            //     delta = pt.y / this._barMaxHeight;
+            // if (this._reverse)
+            //     percent -= delta;
+            // else
+            //     percent += delta;
+            // this.updateWithPercent(percent, evt);
         }
     }
 

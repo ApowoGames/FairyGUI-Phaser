@@ -369,9 +369,9 @@ namespace fgui {
             var str: string = buffer.readS();
             if (str)
                 this._sound = str;
-            this._soundVolumeScale = buffer.getFloat32();
+            this._soundVolumeScale = buffer.readFloat();
             this._downEffect = buffer.readByte();
-            this._downEffectValue = buffer.getFloat32();
+            this._downEffectValue = buffer.readFloat();
             if (this._downEffect == 2)
                 this.setPivot(0.5, 0.5, this.pivotAsAnchor);
 
@@ -418,10 +418,10 @@ namespace fgui {
                 this.selectedIcon = str;
             if (buffer.readBool())
                 this.titleColor = buffer.readColorS();
-            iv = buffer.getInt32();
+            iv = buffer.readInt();
             if (iv != 0)
                 this.titleFontSize = iv;
-            iv = buffer.getInt16();
+            iv = buffer.readShort();
             if (iv >= 0)
                 this._relatedController = this.parent.getControllerAt(iv);
             this._relatedPageId = buffer.readS();
@@ -430,7 +430,7 @@ namespace fgui {
             if (str != null)
                 this._sound = str;
             if (buffer.readBool())
-                this._soundVolumeScale = buffer.getFloat32();
+                this._soundVolumeScale = buffer.readFloat();
 
             this.selected = buffer.readBool();
         }

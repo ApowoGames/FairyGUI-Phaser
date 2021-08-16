@@ -68,15 +68,47 @@ namespace fgui {
             const buffer: ByteBuffer = new ByteBuffer(descData);
             const pkg = new UIPackage();
             pkg._resKey = resKey;
-            // PackageItemType.loadPackage();
+            pkg.loadPackage(buffer);
             UIPackage._instById[pkg.id] = pkg;
             UIPackage._instByName[pkg.name] = pkg;
             UIPackage._instById[resKey] = pkg;
             return pkg;
         }
 
-        public static loadPackage(resKey: string | string[], completeHandler: Function) {
+        public static loadPackage(resKey: string, onProgress?: (event: ProgressEvent) => void): Promise<UIPackage> {
+            return new Promise((resolve) => {
+                let pkg = this._instById[resKey];
+                if (pkg) {
+                    resolve(pkg);
+                }
+                let url = resKey;
+                const extension = `.${UIConfig.packageFileExtension}`;
+                if (!resKey.endsWith(extension)) {
+                    url += extension;
+                }
+                const scene = GRoot.inst.scene;
+                scene.load.binary(resKey, url);
+                scene.load.once(`filecomplete-spritesheet-${resKey}`, () => {
+                    pkg = new UIPackage();
+                    pkg._resKey = resKey;
+                    pkg.loadPackage(new ByteBuffer(<ArrayBuffer>scene.cache.binary.get(resKey)));
+                    const promises = [];
+                    for (const item of pkg._items) {
+                        if (item.type === PackageItemType.Atlas) {
+                            // TODO loadTexture
+                            promises.push()
+                        } else if (item.type === PackageItemType.Sound) {
+                            // TODO loadSound
+                            promises.push()
+                        }
+                    }
 
+                    Promise.all(promises).then(() => {
+                        // this._instById
+                        resolve(pkg);
+                    });
+                })
+            });
         }
 
         public static removePackage(packageIdOrName: string) {

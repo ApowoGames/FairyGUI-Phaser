@@ -32,10 +32,10 @@ namespace fgui {
             else
                 this._storage[pageId] = gv = {};
 
-            gv.width = buffer.getInt32();
-            gv.height = buffer.getInt32();
-            gv.scaleX = buffer.getFloat32();
-            gv.scaleY = buffer.getFloat32();
+            gv.width = buffer.readInt();
+            gv.height = buffer.readInt();
+            gv.scaleX = buffer.readFloat();
+            gv.scaleY = buffer.readFloat();
         }
 
         public apply(): void {

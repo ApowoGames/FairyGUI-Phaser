@@ -1,19 +1,20 @@
 namespace fgui {
     export class GTextInput extends GTextField {
-        private _input: Laya.Input;
+        private _input: any;
         private _prompt: string;
 
         constructor() {
             super();
         }
 
-        protected createDisplayObject(): void {
-            this._displayObject = this._input = new Laya.Input();
-            this._displayObject.mouseEnabled = true;
-            this._displayObject["$owner"] = this;
+        public createDisplayObject(): void {
+            throw new Error("TODO");
+            // this._displayObject = this._input = new Laya.Input();
+            // this._displayObject.mouseEnabled = true;
+            // this._displayObject["$owner"] = this;
         }
 
-        public get nativeInput(): Laya.Input {
+        public get nativeInput(): any {
             return this._input;
         }
 
@@ -199,15 +200,17 @@ namespace fgui {
             if (str != null)
                 this._input.restrict = str;
 
-            var iv: number = buffer.getInt32();
+            var iv: number = buffer.readInt();
             if (iv != 0)
                 this._input.maxChars = iv;
-            iv = buffer.getInt32();
+            iv = buffer.readInt();
             if (iv != 0) {
-                if (iv == 4)
-                    this.keyboardType = Laya.Input.TYPE_NUMBER;
-                else if (iv == 3)
-                    this.keyboardType = Laya.Input.TYPE_URL;
+                // TODO keyboardType
+                throw new Error("TODO");
+                // if (iv == 4)
+                //     this.keyboardType = Laya.Input.TYPE_NUMBER;
+                // else if (iv == 3)
+                //     this.keyboardType = Laya.Input.TYPE_URL;
             }
             if (buffer.readBool())
                 this.password = true;

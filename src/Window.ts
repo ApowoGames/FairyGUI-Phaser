@@ -23,9 +23,9 @@ namespace fgui {
             this._uiSources = [];
             this.bringToFontOnClick = UIConfig.bringWindowToFrontOnClick;
 
-            this.displayObject.on(Phaser.GameObjects.Events.ADDED_TO_SCENE, this, this.__onShown);
-            this.displayObject.on(Phaser.GameObjects.Events.REMOVED_FROM_SCENE, this, this.__onHidden);
-            this.displayObject.on(Laya.Event.MOUSE_DOWN, this, this.__mouseDown);
+            // this.displayObject.on(Phaser.GameObjects.Events.ADDED_TO_SCENE, this, this.__onShown);
+            // this.displayObject.on(Phaser.GameObjects.Events.REMOVED_FROM_SCENE, this, this.__onHidden);
+            // this.displayObject.on(Laya.Event.MOUSE_DOWN, this, this.__mouseDown);
         }
 
         public addUISource(source: IUISource): void {
@@ -38,7 +38,7 @@ namespace fgui {
                     this.removeChild(this._contentPane);
                 this._contentPane = val;
                 if (this._contentPane) {
-                    this.addChild(this._contentPane);
+                    // this.addChild(this._contentPane);
                     this.setSize(this._contentPane.width, this._contentPane.height);
                     this._contentPane.addRelation(this, RelationType.Size);
                     this._frame = <GComponent>(this._contentPane.getChild("frame"));
@@ -87,7 +87,7 @@ namespace fgui {
                     if (this._dragArea instanceof GGraph)
                         this._dragArea.asGraph.drawRect(0, null, null);
                     this._dragArea.draggable = true;
-                    this._dragArea.on(Events.DRAG_START, this, this.__dragStart);
+                    // this._dragArea.on(Events.DRAG_START, this, this.__dragStart);
                 }
             }
         }
@@ -101,11 +101,11 @@ namespace fgui {
         }
 
         public show(): void {
-            GRoot.inst.showWindow(this);
+            // GRoot.inst.showWindow(this);
         }
 
         public showOn(root: GRoot): void {
-            root.showWindow(this);
+            // root.showWindow(this);
         }
 
         public hide(): void {
@@ -117,7 +117,7 @@ namespace fgui {
             var r: GRoot = (this.parent instanceof GRoot) ? this.parent : null;
             if (!r)
                 r = GRoot.inst;
-            r.hideWindowImmediately(this);
+            // r.hideWindowImmediately(this);
         }
 
         public centerOn(r: GRoot, restraint?: boolean): void {
@@ -152,7 +152,7 @@ namespace fgui {
         }
 
         public bringToFront(): void {
-            this.root.bringToFront(this);
+            // this.root.bringToFront(this);
         }
 
         public showModalWait(requestingCmd?: number): void {
@@ -165,13 +165,13 @@ namespace fgui {
 
                 this.layoutModalWaitPane();
 
-                this.addChild(this._modalWaitPane);
+                // this.addChild(this._modalWaitPane);
             }
         }
 
         protected layoutModalWaitPane(): void {
             if (this._contentArea) {
-                var pt: Laya.Point = this._frame.localToGlobal();
+                var pt: Phaser.Geom.Point = this._frame.localToGlobal();
                 pt = this.globalToLocal(pt.x, pt.y, pt);
                 this._modalWaitPane.setXY(pt.x + this._contentArea.x, pt.y + this._contentArea.y);
                 this._modalWaitPane.setSize(this._contentArea.width, this._contentArea.height);
@@ -285,7 +285,10 @@ namespace fgui {
                 this.bringToFront();
         }
 
-        private __dragStart(evt: Laya.Event): void {
+        // private __dragStart(evt: Laya.Event): void {
+        private __dragStart(evt: any): void {
+            // TODO
+            throw new Error("TODO");
             GObject.cast(evt.currentTarget).stopDrag();
 
             this.startDrag();

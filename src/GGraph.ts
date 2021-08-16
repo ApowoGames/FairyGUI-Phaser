@@ -5,7 +5,7 @@ namespace fgui {
         private _lineColor: string;
         private _fillColor: string;
         private _cornerRadius?: number[];
-        private _hitArea?: Laya.HitArea;
+        private _hitArea?: any;
         private _sides?: number;
         private _startAngle?: number;
         private _polygonPoints?: number[];
@@ -79,133 +79,141 @@ namespace fgui {
         }
 
         private updateGraph(): void {
-            this._displayObject.mouseEnabled = this.touchable;
-            var gr: Laya.Graphics = this._displayObject.graphics;
-            gr.clear();
+            // TODO
+            throw new Error("TODO");
+            // this._displayObject.mouseEnabled = this.touchable;
+            // var gr: Laya.Graphics = this._displayObject.graphics;
+            // gr.clear();
 
-            var w: number = this.width;
-            var h: number = this.height;
-            if (w == 0 || h == 0)
-                return;
+            // var w: number = this.width;
+            // var h: number = this.height;
+            // if (w == 0 || h == 0)
+            //     return;
 
-            var fillColor: string = this._fillColor;
-            var lineColor: string = this._lineColor;
-            if (/*Render.isWebGL &&*/ ToolSet.startsWith(fillColor, "rgba")) {
-                //webgl下laya未支持rgba格式
-                var arr: any[] = fillColor.substring(5, fillColor.lastIndexOf(")")).split(",");
-                var a: number = parseFloat(arr[3]);
-                if (a == 0)
-                    fillColor = null;
-                else {
-                    fillColor = Laya.Utils.toHexColor((parseInt(arr[0]) << 16) + (parseInt(arr[1]) << 8) + parseInt(arr[2]));
-                    this.alpha = a;
-                }
-            }
-            if (this._type == 1) {
-                if (this._cornerRadius) {
-                    var paths: any[] = [
-                        ["moveTo", this._cornerRadius[0], 0],
-                        ["lineTo", w - this._cornerRadius[1], 0],
-                        ["arcTo", w, 0, w, this._cornerRadius[1], this._cornerRadius[1]],
-                        ["lineTo", w, h - this._cornerRadius[3]],
-                        ["arcTo", w, h, w - this._cornerRadius[3], h, this._cornerRadius[3]],
-                        ["lineTo", this._cornerRadius[2], h],
-                        ["arcTo", 0, h, 0, h - this._cornerRadius[2], this._cornerRadius[2]],
-                        ["lineTo", 0, this._cornerRadius[0]],
-                        ["arcTo", 0, 0, this._cornerRadius[0], 0, this._cornerRadius[0]],
-                        ["closePath"]
-                    ];
-                    gr.drawPath(0, 0, paths, fillColor ? { fillStyle: fillColor } : null, this._lineSize > 0 ? { strokeStyle: lineColor, lineWidth: this._lineSize } : null);
-                }
-                else
-                    gr.drawRect(0, 0, w, h, fillColor, this._lineSize > 0 ? lineColor : null, this._lineSize);
-            } else if (this._type == 2) {
-                gr.drawCircle(w / 2, h / 2, w / 2, fillColor, this._lineSize > 0 ? lineColor : null, this._lineSize);
-            }
-            else if (this._type == 3) {
-                gr.drawPoly(0, 0, this._polygonPoints, fillColor, this._lineSize > 0 ? lineColor : null, this._lineSize);
-            }
-            else if (this._type == 4) {
-                if (!this._polygonPoints)
-                    this._polygonPoints = [];
-                var radius: number = Math.min(this._width, this._height) / 2;
-                this._polygonPoints.length = 0;
-                var angle: number = Laya.Utils.toRadian(this._startAngle);
-                var deltaAngle: number = 2 * Math.PI / this._sides;
-                var dist: number;
-                for (var i: number = 0; i < this._sides; i++) {
-                    if (this._distances) {
-                        dist = this._distances[i];
-                        if (isNaN(dist))
-                            dist = 1;
-                    }
-                    else
-                        dist = 1;
+            // var fillColor: string = this._fillColor;
+            // var lineColor: string = this._lineColor;
+            // if (/*Render.isWebGL &&*/ ToolSet.startsWith(fillColor, "rgba")) {
+            //     //webgl下laya未支持rgba格式
+            //     var arr: any[] = fillColor.substring(5, fillColor.lastIndexOf(")")).split(",");
+            //     var a: number = parseFloat(arr[3]);
+            //     if (a == 0)
+            //         fillColor = null;
+            //     else {
+            //         fillColor = Laya.Utils.toHexColor((parseInt(arr[0]) << 16) + (parseInt(arr[1]) << 8) + parseInt(arr[2]));
+            //         this.alpha = a;
+            //     }
+            // }
+            // if (this._type == 1) {
+            //     if (this._cornerRadius) {
+            //         var paths: any[] = [
+            //             ["moveTo", this._cornerRadius[0], 0],
+            //             ["lineTo", w - this._cornerRadius[1], 0],
+            //             ["arcTo", w, 0, w, this._cornerRadius[1], this._cornerRadius[1]],
+            //             ["lineTo", w, h - this._cornerRadius[3]],
+            //             ["arcTo", w, h, w - this._cornerRadius[3], h, this._cornerRadius[3]],
+            //             ["lineTo", this._cornerRadius[2], h],
+            //             ["arcTo", 0, h, 0, h - this._cornerRadius[2], this._cornerRadius[2]],
+            //             ["lineTo", 0, this._cornerRadius[0]],
+            //             ["arcTo", 0, 0, this._cornerRadius[0], 0, this._cornerRadius[0]],
+            //             ["closePath"]
+            //         ];
+            //         gr.drawPath(0, 0, paths, fillColor ? { fillStyle: fillColor } : null, this._lineSize > 0 ? { strokeStyle: lineColor, lineWidth: this._lineSize } : null);
+            //     }
+            //     else
+            //         gr.drawRect(0, 0, w, h, fillColor, this._lineSize > 0 ? lineColor : null, this._lineSize);
+            // } else if (this._type == 2) {
+            //     gr.drawCircle(w / 2, h / 2, w / 2, fillColor, this._lineSize > 0 ? lineColor : null, this._lineSize);
+            // }
+            // else if (this._type == 3) {
+            //     gr.drawPoly(0, 0, this._polygonPoints, fillColor, this._lineSize > 0 ? lineColor : null, this._lineSize);
+            // }
+            // else if (this._type == 4) {
+            //     if (!this._polygonPoints)
+            //         this._polygonPoints = [];
+            //     var radius: number = Math.min(this._width, this._height) / 2;
+            //     this._polygonPoints.length = 0;
+            //     var angle: number = Laya.Utils.toRadian(this._startAngle);
+            //     var deltaAngle: number = 2 * Math.PI / this._sides;
+            //     var dist: number;
+            //     for (var i: number = 0; i < this._sides; i++) {
+            //         if (this._distances) {
+            //             dist = this._distances[i];
+            //             if (isNaN(dist))
+            //                 dist = 1;
+            //         }
+            //         else
+            //             dist = 1;
 
-                    var xv: number = radius + radius * dist * Math.cos(angle);
-                    var yv: number = radius + radius * dist * Math.sin(angle);
-                    this._polygonPoints.push(xv, yv);
+            //         var xv: number = radius + radius * dist * Math.cos(angle);
+            //         var yv: number = radius + radius * dist * Math.sin(angle);
+            //         this._polygonPoints.push(xv, yv);
 
-                    angle += deltaAngle;
-                }
+            //         angle += deltaAngle;
+            //     }
 
-                gr.drawPoly(0, 0, this._polygonPoints, fillColor, this._lineSize > 0 ? lineColor : null, this._lineSize);
-            }
+            //     gr.drawPoly(0, 0, this._polygonPoints, fillColor, this._lineSize > 0 ? lineColor : null, this._lineSize);
+            // }
 
-            this._displayObject.repaint();
+            // this._displayObject.repaint();
         }
 
         public replaceMe(target: GObject): void {
-            if (!this._parent)
-                throw "parent not set";
+            throw new Error("TODO");
+            // if (!this._parent)
+            //     throw "parent not set";
 
-            target.name = this.name;
-            target.alpha = this.alpha;
-            target.rotation = this.rotation;
-            target.visible = this.visible;
-            target.touchable = this.touchable;
-            target.grayed = this.grayed;
-            target.setXY(this.x, this.y);
-            target.setSize(this.width, this.height);
+            // target.name = this.name;
+            // target.alpha = this.alpha;
+            // target.rotation = this.rotation;
+            // target.visible = this.visible;
+            // target.touchable = this.touchable;
+            // target.grayed = this.grayed;
+            // target.setXY(this.x, this.y);
+            // target.setSize(this.width, this.height);
 
-            var index: number = this._parent.getChildIndex(this);
-            this._parent.addChildAt(target, index);
-            target.relations.copyFrom(this.relations);
+            // var index: number = this._parent.getChildIndex(this);
+            // this._parent.addChildAt(target, index);
+            // target.relations.copyFrom(this.relations);
 
-            this._parent.removeChild(this, true);
+            // this._parent.removeChild(this, true);
         }
 
         public addBeforeMe(target: GObject): void {
+            throw new Error("TODO");
+
             if (!this._parent)
                 throw "parent not set";
 
-            var index: number = this._parent.getChildIndex(this);
-            this._parent.addChildAt(target, index);
+            // var index: number = this._parent.getChildIndex(this);
+            // this._parent.addChildAt(target, index);
         }
 
         public addAfterMe(target: GObject): void {
+            throw new Error("TODO");
             if (!this._parent)
                 throw "parent not set";
 
-            var index: number = this._parent.getChildIndex(this);
-            index++;
-            this._parent.addChildAt(target, index);
+            // var index: number = this._parent.getChildIndex(this);
+            // index++;
+            // this._parent.addChildAt(target, index);
         }
 
-        public setNativeObject(obj: Laya.Sprite): void {
+        public setNativeObject(obj: any): void {
             this._type = 0;
-            this._displayObject.mouseEnabled = this.touchable;
-            this._displayObject.graphics.clear();
-            this._displayObject.addChild(obj);
+            throw new Error("TODO");
+            // this._displayObject.mouseEnabled = this.touchable;
+            // this._displayObject.graphics.clear();
+            // this._displayObject.addChild(obj);
         }
 
-        protected createDisplayObject(): void {
+        public createDisplayObject(): void {
+            throw new Error("TODO");
             super.createDisplayObject();
-            this._displayObject.mouseEnabled = false;
+            // this._displayObject.mouseEnabled = false;
 
-            this._hitArea = new Laya.HitArea();
-            this._hitArea.hit = this._displayObject.graphics;
-            this._displayObject.hitArea = this._hitArea;
+            // this._hitArea = new Laya.HitArea();
+            // this._hitArea.hit = this._displayObject.graphics;
+            // this._displayObject.hitArea = this._hitArea;
         }
 
         public getProp(index: number): any {
@@ -239,30 +247,30 @@ namespace fgui {
                 var i: number;
                 var cnt: number;
 
-                this._lineSize = buffer.getInt32();
+                this._lineSize = buffer.readInt();
                 this._lineColor = buffer.readColorS(true);
                 this._fillColor = buffer.readColorS(true);
                 if (buffer.readBool()) {
                     this._cornerRadius = [];
                     for (i = 0; i < 4; i++)
-                        this._cornerRadius[i] = buffer.getFloat32();
+                        this._cornerRadius[i] = buffer.readFloat();
                 }
 
                 if (this._type == 3) {
-                    cnt = buffer.getInt16();
+                    cnt = buffer.readShort();
                     this._polygonPoints = [];
                     this._polygonPoints.length = cnt;
                     for (i = 0; i < cnt; i++)
-                        this._polygonPoints[i] = buffer.getFloat32();
+                        this._polygonPoints[i] = buffer.readFloat();
                 }
                 else if (this._type == 4) {
-                    this._sides = buffer.getInt16();
-                    this._startAngle = buffer.getFloat32();
-                    cnt = buffer.getInt16();
+                    this._sides = buffer.readShort();
+                    this._startAngle = buffer.readFloat();
+                    cnt = buffer.readShort();
                     if (cnt > 0) {
                         this._distances = [];
                         for (i = 0; i < cnt; i++)
-                            this._distances[i] = buffer.getFloat32();
+                            this._distances[i] = buffer.readFloat();
                     }
                 }
 

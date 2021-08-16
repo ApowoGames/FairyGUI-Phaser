@@ -21,7 +21,7 @@ namespace fgui {
         private _times: number = 0;
         private _endAt: number = 0;
         private _status: number = 0; //0-none, 1-next loop, 2-ending, 3-ended
-        private _endHandler?: Laya.Handler;
+        private _endHandler?: () => void;
 
         private _frameElapsed: number = 0; //当前帧延迟
         private _reversed: boolean;
@@ -29,13 +29,14 @@ namespace fgui {
 
         constructor() {
             super();
+            throw new Error("TODO");
 
-            this.mouseEnabled = false;
+            // this.mouseEnabled = false;
 
-            this.setPlaySettings();
+            // this.setPlaySettings();
 
-            this.on(Laya.Event.DISPLAY, this, this.__addToStage);
-            this.on(Laya.Event.UNDISPLAY, this, this.__removeFromStage);
+            // this.on(Laya.Event.DISPLAY, this, this.__addToStage);
+            // this.on(Laya.Event.UNDISPLAY, this, this.__removeFromStage);
         }
 
         public get frames(): Frame[] {
@@ -250,9 +251,9 @@ namespace fgui {
 
                 //play end
                 if (this._endHandler) {
-                    var handler: Laya.Handler = this._endHandler;
+                    var handler = this._endHandler;
                     this._endHandler = null;
-                    handler.run();
+                    handler();
                 }
             }
             else {
@@ -284,19 +285,22 @@ namespace fgui {
         }
 
         private checkTimer(): void {
-            if (this._playing && this._frameCount > 0 && this.stage != null)
-                Laya.timer.frameLoop(1, this, this.update);
-            else
-                Laya.timer.clear(this, this.update);
+            throw new Error("TODO");
+            // if (this._playing && this._frameCount > 0 && this.stage != null)
+            //     Laya.timer.frameLoop(1, this, this.update);
+            // else
+            //     Laya.timer.clear(this, this.update);
         }
 
         private __addToStage(): void {
-            if (this._playing && this._frameCount > 0)
-                Laya.timer.frameLoop(1, this, this.update);
+            throw new Error("TODO");
+            // if (this._playing && this._frameCount > 0)
+            //     Laya.timer.frameLoop(1, this, this.update);
         }
 
         private __removeFromStage(): void {
-            Laya.timer.clear(this, this.update);
+            throw new Error("TODO");
+            // Laya.timer.clear(this, this.update);
         }
     }
 }

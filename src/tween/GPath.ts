@@ -1,12 +1,12 @@
 namespace fgui {
     export class GPath {
         private _segments: Array<Segment>;
-        private _points: Array<Laya.Point>;
+        private _points: Array<Phaser.Geom.Point>;
         private _fullLength: number;
 
         constructor() {
             this._segments = new Array<Segment>();
-            this._points = new Array<Laya.Point>();
+            this._points = new Array<Phaser.Geom.Point>();
         }
 
         public get length(): number {
@@ -35,12 +35,12 @@ namespace fgui {
             if (cnt == 0)
                 return;
 
-            var splinePoints: Array<Laya.Point> = s_points;
+            var splinePoints: Array<Phaser.Geom.Point> = s_points;
             splinePoints.length = 0;
 
             var prev: GPathPoint = points[0];
             if (prev.curveType == CurveType.CRSpline)
-                splinePoints.push(new Laya.Point(prev.x, prev.y));
+                splinePoints.push(new Phaser.Geom.Point(prev.x, prev.y));
 
             for (var i: number = 1; i < cnt; i++) {
                 var current: GPathPoint = points[i];
@@ -51,21 +51,21 @@ namespace fgui {
                     seg.ptStart = this._points.length;
                     if (prev.curveType == CurveType.Straight) {
                         seg.ptCount = 2;
-                        this._points.push(new Laya.Point(prev.x, prev.y));
-                        this._points.push(new Laya.Point(current.x, current.y));
+                        this._points.push(new Phaser.Geom.Point(prev.x, prev.y));
+                        this._points.push(new Phaser.Geom.Point(current.x, current.y));
                     }
                     else if (prev.curveType == CurveType.Bezier) {
                         seg.ptCount = 3;
-                        this._points.push(new Laya.Point(prev.x, prev.y));
-                        this._points.push(new Laya.Point(current.x, current.y));
-                        this._points.push(new Laya.Point(prev.control1_x, prev.control1_y));
+                        this._points.push(new Phaser.Geom.Point(prev.x, prev.y));
+                        this._points.push(new Phaser.Geom.Point(current.x, current.y));
+                        this._points.push(new Phaser.Geom.Point(prev.control1_x, prev.control1_y));
                     }
                     else if (prev.curveType == CurveType.CubicBezier) {
                         seg.ptCount = 4;
-                        this._points.push(new Laya.Point(prev.x, prev.y));
-                        this._points.push(new Laya.Point(current.x, current.y));
-                        this._points.push(new Laya.Point(prev.control1_x, prev.control1_y));
-                        this._points.push(new Laya.Point(prev.control2_x, prev.control2_y));
+                        this._points.push(new Phaser.Geom.Point(prev.x, prev.y));
+                        this._points.push(new Phaser.Geom.Point(current.x, current.y));
+                        this._points.push(new Phaser.Geom.Point(prev.control1_x, prev.control1_y));
+                        this._points.push(new Phaser.Geom.Point(prev.control2_x, prev.control2_y));
                     }
                     seg.length = ToolSet.distance(prev.x, prev.y, current.x, current.y);
                     this._fullLength += seg.length;
@@ -74,12 +74,12 @@ namespace fgui {
 
                 if (current.curveType != CurveType.CRSpline) {
                     if (splinePoints.length > 0) {
-                        splinePoints.push(new Laya.Point(current.x, current.y));
+                        splinePoints.push(new Phaser.Geom.Point(current.x, current.y));
                         this.createSplineSegment();
                     }
                 }
                 else
-                    splinePoints.push(new Laya.Point(current.x, current.y));
+                    splinePoints.push(new Phaser.Geom.Point(current.x, current.y));
 
                 prev = current;
             }
@@ -89,7 +89,7 @@ namespace fgui {
         }
 
         private createSplineSegment(): void {
-            var splinePoints: Array<Laya.Point> = s_points;
+            var splinePoints: Array<Phaser.Geom.Point> = s_points;
             var cnt: number = splinePoints.length;
             splinePoints.splice(0, 0, splinePoints[0]);
             splinePoints.push(splinePoints[cnt]);
@@ -118,9 +118,9 @@ namespace fgui {
             this._points.length = 0;
         }
 
-        public getPointAt(t: number, result?: Laya.Point): Laya.Point {
+        public getPointAt(t: number, result?: Phaser.Geom.Point): Phaser.Geom.Point {
             if (!result)
-                result = new Laya.Point();
+                result = new Phaser.Geom.Point();
             else
                 result.x = result.y = 0;
 
@@ -174,20 +174,20 @@ namespace fgui {
             return this._segments.length;
         }
 
-        public getAnchorsInSegment(segmentIndex: number, points?: Array<Laya.Point>): Array<Laya.Point> {
+        public getAnchorsInSegment(segmentIndex: number, points?: Array<Phaser.Geom.Point>): Array<Phaser.Geom.Point> {
             if (points == null)
-                points = new Array<Laya.Point>();
+                points = new Array<Phaser.Geom.Point>();
 
             var seg: Segment = this._segments[segmentIndex];
             for (var i: number = 0; i < seg.ptCount; i++)
-                points.push(new Laya.Point(this._points[seg.ptStart + i].x, this._points[seg.ptStart + i].y));
+                points.push(new Phaser.Geom.Point(this._points[seg.ptStart + i].x, this._points[seg.ptStart + i].y));
 
             return points;
         }
 
-        public getPointsInSegment(segmentIndex: number, t0: number, t1: number, points?: Array<Laya.Point>, ts?: Array<number>, pointDensity?: number): Array<Laya.Point> {
+        public getPointsInSegment(segmentIndex: number, t0: number, t1: number, points?: Array<Phaser.Geom.Point>, ts?: Array<number>, pointDensity?: number): Array<Phaser.Geom.Point> {
             if (points == null)
-                points = new Array<Laya.Point>();
+                points = new Array<Phaser.Geom.Point>();
             if (!pointDensity || isNaN(pointDensity))
                 pointDensity = 0.1;
 
@@ -195,9 +195,9 @@ namespace fgui {
                 ts.push(t0);
             var seg: Segment = this._segments[segmentIndex];
             if (seg.type == CurveType.Straight) {
-                points.push(new Laya.Point(ToolSet.lerp(this._points[seg.ptStart].x, this._points[seg.ptStart + 1].x, t0),
+                points.push(new Phaser.Geom.Point(ToolSet.lerp(this._points[seg.ptStart].x, this._points[seg.ptStart + 1].x, t0),
                     ToolSet.lerp(this._points[seg.ptStart].y, this._points[seg.ptStart + 1].y, t0)));
-                points.push(new Laya.Point(ToolSet.lerp(this._points[seg.ptStart].x, this._points[seg.ptStart + 1].x, t1),
+                points.push(new Phaser.Geom.Point(ToolSet.lerp(this._points[seg.ptStart].x, this._points[seg.ptStart + 1].x, t1),
                     ToolSet.lerp(this._points[seg.ptStart].y, this._points[seg.ptStart + 1].y, t1)));
             }
             else {
@@ -207,17 +207,17 @@ namespace fgui {
                 else
                     func = this.onCRSplineCurve;
 
-                points.push(func.call(this, seg.ptStart, seg.ptCount, t0, new Laya.Point()));
+                points.push(func.call(this, seg.ptStart, seg.ptCount, t0, new Phaser.Geom.Point()));
                 var SmoothAmount: number = Math.min(seg.length * pointDensity, 50);
                 for (var j: number = 0; j <= SmoothAmount; j++) {
                     var t: number = j / SmoothAmount;
                     if (t > t0 && t < t1) {
-                        points.push(func.call(this, seg.ptStart, seg.ptCount, t, new Laya.Point()));
+                        points.push(func.call(this, seg.ptStart, seg.ptCount, t, new Phaser.Geom.Point()));
                         if (ts)
                             ts.push(t);
                     }
                 }
-                points.push(func.call(this, seg.ptStart, seg.ptCount, t1, new Laya.Point()));
+                points.push(func.call(this, seg.ptStart, seg.ptCount, t1, new Phaser.Geom.Point()));
             }
 
             if (ts)
@@ -226,9 +226,9 @@ namespace fgui {
             return points;
         }
 
-        public getAllPoints(points?: Array<Laya.Point>, ts?: Array<number>, pointDensity?: number): Array<Laya.Point> {
+        public getAllPoints(points?: Array<Phaser.Geom.Point>, ts?: Array<number>, pointDensity?: number): Array<Phaser.Geom.Point> {
             if (points == null)
-                points = new Array<Laya.Point>();
+                points = new Array<Phaser.Geom.Point>();
             if (!pointDensity || isNaN(pointDensity))
                 pointDensity = 0.1;
 
@@ -239,7 +239,7 @@ namespace fgui {
             return points;
         }
 
-        private onCRSplineCurve(ptStart: number, ptCount: number, t: number, result: Laya.Point): Laya.Point {
+        private onCRSplineCurve(ptStart: number, ptCount: number, t: number, result: Phaser.Geom.Point): Phaser.Geom.Point {
             var adjustedIndex: number = Math.floor(t * (ptCount - 4)) + ptStart; //Since the equation works with 4 points, we adjust the starting point depending on t to return a point on the specific segment
 
             var p0x: number = this._points[adjustedIndex].x;
@@ -264,7 +264,7 @@ namespace fgui {
             return result;
         }
 
-        private onBezierCurve(ptStart: number, ptCount: number, t: number, result: Laya.Point): Laya.Point {
+        private onBezierCurve(ptStart: number, ptCount: number, t: number, result: Phaser.Geom.Point): Phaser.Geom.Point {
             var t2: number = 1 - t;
             var p0x: number = this._points[ptStart].x;
             var p0y: number = this._points[ptStart].y;
@@ -288,7 +288,7 @@ namespace fgui {
         }
     }
 
-    var s_points: Array<Laya.Point> = new Array<Laya.Point>();
+    var s_points: Array<Phaser.Geom.Point> = new Array<Phaser.Geom.Point>();
 
     interface Segment {
         type?: number;

@@ -10,21 +10,22 @@ namespace fgui {
                 if (!resourceURL)
                     throw "UIConfig.popupMenu not defined";
             }
-            this._contentPane = UIPackage.createObjectFromURL(resourceURL).asCom;
-            this._contentPane.on(Laya.Event.DISPLAY, this, this.__addedToStage);
-            this._list = <GList>(this._contentPane.getChild("list"));
-            this._list.removeChildrenToPool();
-            this._list.addRelation(this._contentPane, RelationType.Width);
-            this._list.removeRelation(this._contentPane, RelationType.Height);
-            this._contentPane.addRelation(this._list, RelationType.Height);
-            this._list.on(Events.CLICK_ITEM, this, this.__clickItem);
+            throw "TODO";
+            // this._contentPane = UIPackage.createObjectFromURL(resourceURL).asCom;
+            // this._contentPane.on(Laya.Event.DISPLAY, this, this.__addedToStage);
+            // this._list = <GList>(this._contentPane.getChild("list"));
+            // this._list.removeChildrenToPool();
+            // this._list.addRelation(this._contentPane, RelationType.Width);
+            // this._list.removeRelation(this._contentPane, RelationType.Height);
+            // this._contentPane.addRelation(this._list, RelationType.Height);
+            // this._list.on(Events.CLICK_ITEM, this, this.__clickItem);
         }
 
         public dispose(): void {
             this._contentPane.dispose();
         }
 
-        public addItem(caption: string, handler?: Laya.Handler): GButton {
+        public addItem(caption: string, handler?: (item?: fgui.GObject, evt?: fgui.Event) => void): GButton {
             var item: GButton = this._list.addItemFromPool().asButton;
             item.title = caption;
             item.data = handler;
@@ -35,7 +36,7 @@ namespace fgui {
             return item;
         }
 
-        public addItemAt(caption: string, index: number, handler?: Laya.Handler): GButton {
+        public addItemAt(caption: string, index: number, handler?: (item?: fgui.GObject, evt?: fgui.Event) => void): GButton {
             var item: GButton = this._list.getFromPool().asButton;
             this._list.addChildAt(item, index);
             item.title = caption;
@@ -133,33 +134,36 @@ namespace fgui {
         }
 
         public show(target: GObject = null, dir?: PopupDirection | boolean) {
-            var r: GRoot = target != null ? target.root : GRoot.inst;
-            r.showPopup(this.contentPane, (target instanceof GRoot) ? null : target, dir);
+            throw "TODO";
+            // var r: GRoot = target != null ? target.root : GRoot.inst;
+            // r.showPopup(this.contentPane, (target instanceof GRoot) ? null : target, dir);
         }
 
         private __clickItem(itemObject: GObject): void {
-            Laya.timer.once(100, this, this.__clickItem2, [itemObject]);
+            throw "TODO";
+            // Laya.timer.once(100, this, this.__clickItem2, [itemObject]);
         }
 
         private __clickItem2(itemObject: GObject): void {
-            if (!(itemObject instanceof GButton))
-                return;
-            if (itemObject.grayed) {
-                this._list.selectedIndex = -1;
-                return;
-            }
-            var c: Controller = itemObject.asCom.getController("checked");
-            if (c && c.selectedIndex != 0) {
-                if (c.selectedIndex == 1)
-                    c.selectedIndex = 2;
-                else
-                    c.selectedIndex = 1;
-            }
-            var r: GRoot = <GRoot>(this._contentPane.parent);
-            r.hidePopup(this.contentPane);
-            if (itemObject.data != null) {
-                (<Laya.Handler>itemObject.data).run();
-            }
+            throw "TODO";
+            // if (!(itemObject instanceof GButton))
+            //     return;
+            // if (itemObject.grayed) {
+            //     this._list.selectedIndex = -1;
+            //     return;
+            // }
+            // var c: Controller = itemObject.asCom.getController("checked");
+            // if (c && c.selectedIndex != 0) {
+            //     if (c.selectedIndex == 1)
+            //         c.selectedIndex = 2;
+            //     else
+            //         c.selectedIndex = 1;
+            // }
+            // var r: GRoot = <GRoot>(this._contentPane.parent);
+            // r.hidePopup(this.contentPane);
+            // if (itemObject.data != null) {
+            //     itemObject.data();
+            // }
         }
 
         private __addedToStage(): void {

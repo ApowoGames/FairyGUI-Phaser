@@ -429,12 +429,12 @@ namespace fgui {
             buffer.seek(beginPos, 5);
 
             this._layout = buffer.readByte();
-            this._lineGap = buffer.getInt32();
-            this._columnGap = buffer.getInt32();
+            this._lineGap = buffer.readInt();
+            this._columnGap = buffer.readInt();
             if (buffer.version >= 2) {
                 this._excludeInvisibles = buffer.readBool();
                 this._autoSizeDisabled = buffer.readBool();
-                this._mainGridIndex = buffer.getInt16();
+                this._mainGridIndex = buffer.readShort();
             }
         }
 
