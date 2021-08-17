@@ -1,40 +1,39 @@
+import { ByteBuffer } from './../utils/ByteBuffer';
+import { GObject } from './../GObject';
+import { GearBase } from './GearBase';
+export class GearText extends GearBase {
+    private _storage: { [index: string]: string };
+    private _default: string;
 
-namespace fgui {
+    public constructor(owner: GObject) {
+        super(owner);
+    }
 
-    export class GearText extends GearBase {
-        private _storage: { [index: string]: string };
-        private _default: string;
+    protected init(): void {
+        this._default = this._owner.text;
+        this._storage = {};
+    }
 
-        public constructor(owner: GObject) {
-            super(owner);
-        }
+    protected addStatus(pageId: string, buffer: ByteBuffer): void {
+        if (pageId == null)
+            this._default = buffer.readS();
+        else
+            this._storage[pageId] = buffer.readS();
+    }
 
-        protected init(): void {
-            this._default = this._owner.text;
-            this._storage = {};
-        }
+    public apply(): void {
+        this._owner._gearLocked = true;
 
-        protected addStatus(pageId: string, buffer: ByteBuffer): void {
-            if (pageId == null)
-                this._default = buffer.readS();
-            else
-                this._storage[pageId] = buffer.readS();
-        }
+        var data: any = this._storage[this._controller.selectedPageId];
+        if (data !== undefined)
+            this._owner.text = data;
+        else
+            this._owner.text = this._default;
 
-        public apply(): void {
-            this._owner._gearLocked = true;
+        this._owner._gearLocked = false;
+    }
 
-            var data: any = this._storage[this._controller.selectedPageId];
-            if (data !== undefined)
-                this._owner.text = data;
-            else
-                this._owner.text = this._default;
-
-            this._owner._gearLocked = false;
-        }
-
-        public updateState(): void {
-            this._storage[this._controller.selectedPageId] = this._owner.text;
-        }
+    public updateState(): void {
+        this._storage[this._controller.selectedPageId] = this._owner.text;
     }
 }

@@ -1,56 +1,58 @@
+import { ByteBuffer } from './../utils/ByteBuffer';
+import { ObjectPropID } from './../FieldTypes';
+import { GObject } from './../GObject';
+import { GearBase } from './GearBase';
 
-namespace fgui {
-    interface Value {
-        color?: string;
-        strokeColor?: string;
+interface Value {
+    color?: string;
+    strokeColor?: string;
+}
+
+export class GearColor extends GearBase {
+    private _storage: { [index: string]: Value };
+    private _default: Value;
+
+    public constructor(owner: GObject) {
+        super(owner);
     }
 
-    export class GearColor extends GearBase {
-        private _storage: { [index: string]: Value };
-        private _default: Value;
+    protected init(): void {
+        this._default = {
+            color: this._owner.getProp(ObjectPropID.Color),
+            strokeColor: this._owner.getProp(ObjectPropID.OutlineColor)
+        };
+        this._storage = {};
+    }
 
-        public constructor(owner: GObject) {
-            super(owner);
-        }
+    protected addStatus(pageId: string, buffer: ByteBuffer): void {
+        var gv: Value;
+        if (pageId == null)
+            gv = this._default;
+        else
+            this._storage[pageId] = gv = {};
+        gv.color = buffer.readColorS();
+        gv.strokeColor = buffer.readColorS();
+    }
 
-        protected init(): void {
-            this._default = {
-                color: this._owner.getProp(ObjectPropID.Color),
-                strokeColor: this._owner.getProp(ObjectPropID.OutlineColor)
-            };
-            this._storage = {};
-        }
+    public apply(): void {
+        this._owner._gearLocked = true;
 
-        protected addStatus(pageId: string, buffer: ByteBuffer): void {
-            var gv: Value;
-            if (pageId == null)
-                gv = this._default;
-            else
-                this._storage[pageId] = gv = {};
-            gv.color = buffer.readColorS();
-            gv.strokeColor = buffer.readColorS();
-        }
+        var gv: Value = this._storage[this._controller.selectedPageId];
+        if (!gv)
+            gv = this._default;
 
-        public apply(): void {
-            this._owner._gearLocked = true;
+        this._owner.setProp(ObjectPropID.Color, gv.color);
+        this._owner.setProp(ObjectPropID.OutlineColor, gv.strokeColor);
 
-            var gv: Value = this._storage[this._controller.selectedPageId];
-            if (!gv)
-                gv = this._default;
+        this._owner._gearLocked = false;
+    }
 
-            this._owner.setProp(ObjectPropID.Color, gv.color);
-            this._owner.setProp(ObjectPropID.OutlineColor, gv.strokeColor);
+    public updateState(): void {
+        var gv: Value = this._storage[this._controller.selectedPageId];
+        if (!gv)
+            this._storage[this._controller.selectedPageId] = gv = {};
 
-            this._owner._gearLocked = false;
-        }
-
-        public updateState(): void {
-            var gv: Value = this._storage[this._controller.selectedPageId];
-            if (!gv)
-                this._storage[this._controller.selectedPageId] = gv = {};
-
-            gv.color = this._owner.getProp(ObjectPropID.Color);
-            gv.strokeColor = this._owner.getProp(ObjectPropID.OutlineColor);
-        }
+        gv.color = this._owner.getProp(ObjectPropID.Color);
+        gv.strokeColor = this._owner.getProp(ObjectPropID.OutlineColor);
     }
 }

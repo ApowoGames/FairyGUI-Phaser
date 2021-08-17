@@ -1,480 +1,489 @@
-namespace fgui {
-    export class GComboBox extends GComponent {
-        public dropdown: GComponent;
+import { ByteBuffer } from './utils/ByteBuffer';
+import { GButton } from './GButton';
+import { GLabel } from './GLabel';
+import { GTextField } from './GTextField';
+import { UIConfig } from './UIConfig';
+import { Controller } from './Controller';
+import { PopupDirection, ObjectPropID } from './FieldTypes';
+import { GList } from './GList';
+import { GObject } from './GObject';
+import { GComponent } from "./GComponent";
 
-        protected _titleObject: GObject;
-        protected _iconObject: GObject;
-        protected _list: GList;
+export class GComboBox extends GComponent {
+    public dropdown: GComponent;
 
-        protected _items: string[];
-        protected _icons?: string[];
-        protected _values: string[];
-        protected _popupDirection: PopupDirection;
+    protected _titleObject: GObject;
+    protected _iconObject: GObject;
+    protected _list: GList;
 
-        private _visibleItemCount: number;
-        private _itemsUpdated: boolean;
-        private _selectedIndex: number;
-        private _buttonController: Controller;
-        private _selectionController?: Controller;
+    protected _items: string[];
+    protected _icons?: string[];
+    protected _values: string[];
+    protected _popupDirection: PopupDirection;
 
-        private _down: boolean;
-        private _over: boolean;
+    private _visibleItemCount: number;
+    private _itemsUpdated: boolean;
+    private _selectedIndex: number;
+    private _buttonController: Controller;
+    private _selectionController?: Controller;
 
-        constructor() {
-            super();
-            this._visibleItemCount = UIConfig.defaultComboBoxVisibleItemCount;
-            this._itemsUpdated = true;
-            this._selectedIndex = -1;
-            this._popupDirection = 0;
-            this._items = [];
-            this._values = [];
-        }
+    private _down: boolean;
+    private _over: boolean;
 
-        public get text(): string {
-            if (this._titleObject)
-                return this._titleObject.text;
-            else
-                return null;
-        }
+    constructor() {
+        super();
+        this._visibleItemCount = UIConfig.defaultComboBoxVisibleItemCount;
+        this._itemsUpdated = true;
+        this._selectedIndex = -1;
+        this._popupDirection = 0;
+        this._items = [];
+        this._values = [];
+    }
 
-        public set text(value: string) {
-            if (this._titleObject)
-                this._titleObject.text = value;
-            this.updateGear(6);
-        }
+    public get text(): string {
+        if (this._titleObject)
+            return this._titleObject.text;
+        else
+            return null;
+    }
 
-        public get titleColor(): string {
-            var tf: GTextField = this.getTextField();
-            if (tf)
-                return tf.color;
-            else
-                return "#000000";
-        }
+    public set text(value: string) {
+        if (this._titleObject)
+            this._titleObject.text = value;
+        this.updateGear(6);
+    }
 
-        public set titleColor(value: string) {
-            var tf: GTextField = this.getTextField();
-            if (tf)
-                tf.color = value;
-            this.updateGear(4);
-        }
+    public get titleColor(): string {
+        var tf: GTextField = this.getTextField();
+        if (tf)
+            return tf.color;
+        else
+            return "#000000";
+    }
 
-        public get titleFontSize(): number {
-            var tf: GTextField = this.getTextField();
-            if (tf)
-                return tf.fontSize;
-            else
-                return 0;
-        }
+    public set titleColor(value: string) {
+        var tf: GTextField = this.getTextField();
+        if (tf)
+            tf.color = value;
+        this.updateGear(4);
+    }
 
-        public set titleFontSize(value: number) {
-            var tf: GTextField = this.getTextField();
-            if (tf)
-                tf.fontSize = value;
-        }
+    public get titleFontSize(): number {
+        var tf: GTextField = this.getTextField();
+        if (tf)
+            return tf.fontSize;
+        else
+            return 0;
+    }
 
-        public get icon(): string {
-            if (this._iconObject)
-                return this._iconObject.icon;
-            else
-                return null;
-        }
+    public set titleFontSize(value: number) {
+        var tf: GTextField = this.getTextField();
+        if (tf)
+            tf.fontSize = value;
+    }
 
-        public set icon(value: string) {
-            if (this._iconObject)
-                this._iconObject.icon = value;
-            this.updateGear(7);
-        }
+    public get icon(): string {
+        if (this._iconObject)
+            return this._iconObject.icon;
+        else
+            return null;
+    }
 
-        public get visibleItemCount(): number {
-            return this._visibleItemCount;
-        }
+    public set icon(value: string) {
+        if (this._iconObject)
+            this._iconObject.icon = value;
+        this.updateGear(7);
+    }
 
-        public set visibleItemCount(value: number) {
-            this._visibleItemCount = value;
-        }
+    public get visibleItemCount(): number {
+        return this._visibleItemCount;
+    }
 
-        public get popupDirection(): number {
-            return this._popupDirection;
-        }
+    public set visibleItemCount(value: number) {
+        this._visibleItemCount = value;
+    }
 
-        public set popupDirection(value: number) {
-            this._popupDirection = value;
-        }
+    public get popupDirection(): number {
+        return this._popupDirection;
+    }
 
-        public get items(): string[] {
-            return this._items;
-        }
+    public set popupDirection(value: number) {
+        this._popupDirection = value;
+    }
 
-        public set items(value: string[]) {
-            if (!value)
-                this._items.length = 0;
-            else
-                this._items = value.concat();
-            if (this._items.length > 0) {
-                if (this._selectedIndex >= this._items.length)
-                    this._selectedIndex = this._items.length - 1;
-                else if (this._selectedIndex == -1)
-                    this._selectedIndex = 0;
+    public get items(): string[] {
+        return this._items;
+    }
 
-                this.text = this._items[this._selectedIndex];
-                if (this._icons && this._selectedIndex < this._icons.length)
-                    this.icon = this._icons[this._selectedIndex];
-            }
-            else {
-                this.text = "";
-                if (this._icons)
-                    this.icon = null;
-                this._selectedIndex = -1;
-            }
-            this._itemsUpdated = true;
-        }
+    public set items(value: string[]) {
+        if (!value)
+            this._items.length = 0;
+        else
+            this._items = value.concat();
+        if (this._items.length > 0) {
+            if (this._selectedIndex >= this._items.length)
+                this._selectedIndex = this._items.length - 1;
+            else if (this._selectedIndex == -1)
+                this._selectedIndex = 0;
 
-        public get icons(): string[] {
-            return this._icons;
-        }
-
-        public set icons(value: string[]) {
-            this._icons = value;
-            if (this._icons && this._selectedIndex != -1 && this._selectedIndex < this._icons.length)
+            this.text = this._items[this._selectedIndex];
+            if (this._icons && this._selectedIndex < this._icons.length)
                 this.icon = this._icons[this._selectedIndex];
         }
+        else {
+            this.text = "";
+            if (this._icons)
+                this.icon = null;
+            this._selectedIndex = -1;
+        }
+        this._itemsUpdated = true;
+    }
 
-        public get values(): string[] {
-            return this._values;
+    public get icons(): string[] {
+        return this._icons;
+    }
+
+    public set icons(value: string[]) {
+        this._icons = value;
+        if (this._icons && this._selectedIndex != -1 && this._selectedIndex < this._icons.length)
+            this.icon = this._icons[this._selectedIndex];
+    }
+
+    public get values(): string[] {
+        return this._values;
+    }
+
+    public set values(value: string[]) {
+        if (!value)
+            this._values.length = 0;
+        else
+            this._values = value.concat();
+    }
+
+    public get selectedIndex(): number {
+        return this._selectedIndex;
+    }
+
+    public set selectedIndex(val: number) {
+        if (this._selectedIndex == val)
+            return;
+
+        this._selectedIndex = val;
+        if (this._selectedIndex >= 0 && this._selectedIndex < this._items.length) {
+            this.text = this._items[this._selectedIndex];
+            if (this._icons && this._selectedIndex < this._icons.length)
+                this.icon = this._icons[this._selectedIndex];
+        }
+        else {
+            this.text = "";
+            if (this._icons)
+                this.icon = null;
         }
 
-        public set values(value: string[]) {
-            if (!value)
-                this._values.length = 0;
-            else
-                this._values = value.concat();
-        }
+        this.updateSelectionController();
+    }
 
-        public get selectedIndex(): number {
-            return this._selectedIndex;
-        }
+    public get value(): string {
+        return this._values[this._selectedIndex];
+    }
 
-        public set selectedIndex(val: number) {
-            if (this._selectedIndex == val)
-                return;
+    public set value(val: string) {
+        var index: number = this._values.indexOf(val);
+        if (index == -1 && val == null)
+            index = this._values.indexOf("");
+        this.selectedIndex = index;
+    }
 
-            this._selectedIndex = val;
-            if (this._selectedIndex >= 0 && this._selectedIndex < this._items.length) {
-                this.text = this._items[this._selectedIndex];
-                if (this._icons && this._selectedIndex < this._icons.length)
-                    this.icon = this._icons[this._selectedIndex];
-            }
-            else {
-                this.text = "";
-                if (this._icons)
-                    this.icon = null;
-            }
+    public getTextField(): GTextField {
+        if (this._titleObject instanceof GTextField)
+            return this._titleObject;
+        else if ((this._titleObject instanceof GLabel) || (this._titleObject instanceof GButton))
+            return this._titleObject.getTextField();
+        else
+            return null;
+    }
 
-            this.updateSelectionController();
-        }
+    protected setState(val: string): void {
+        if (this._buttonController)
+            this._buttonController.selectedPage = val;
+    }
 
-        public get value(): string {
-            return this._values[this._selectedIndex];
-        }
+    public get selectionController(): Controller {
+        return this._selectionController;
+    }
 
-        public set value(val: string) {
-            var index: number = this._values.indexOf(val);
-            if (index == -1 && val == null)
-                index = this._values.indexOf("");
-            this.selectedIndex = index;
-        }
+    public set selectionController(value: Controller) {
+        this._selectionController = value;
+    }
 
-        public getTextField(): GTextField {
-            if (this._titleObject instanceof GTextField)
-                return this._titleObject;
-            else if ((this._titleObject instanceof GLabel) || (this._titleObject instanceof GButton))
-                return this._titleObject.getTextField();
-            else
-                return null;
-        }
+    public handleControllerChanged(c: Controller): void {
+        super.handleControllerChanged(c);
 
-        protected setState(val: string): void {
-            if (this._buttonController)
-                this._buttonController.selectedPage = val;
-        }
+        if (this._selectionController == c)
+            this.selectedIndex = c.selectedIndex;
+    }
 
-        public get selectionController(): Controller {
-            return this._selectionController;
-        }
-
-        public set selectionController(value: Controller) {
-            this._selectionController = value;
-        }
-
-        public handleControllerChanged(c: Controller): void {
-            super.handleControllerChanged(c);
-
-            if (this._selectionController == c)
-                this.selectedIndex = c.selectedIndex;
-        }
-
-        private updateSelectionController(): void {
-            if (this._selectionController && !this._selectionController.changing
-                && this._selectedIndex < this._selectionController.pageCount) {
-                var c: Controller = this._selectionController;
-                this._selectionController = null;
-                c.selectedIndex = this._selectedIndex;
-                this._selectionController = c;
-            }
-        }
-
-        public dispose(): void {
-            if (this.dropdown) {
-                this.dropdown.dispose();
-                this.dropdown = null;
-            }
-
+    private updateSelectionController(): void {
+        if (this._selectionController && !this._selectionController.changing
+            && this._selectedIndex < this._selectionController.pageCount) {
+            var c: Controller = this._selectionController;
             this._selectionController = null;
+            c.selectedIndex = this._selectedIndex;
+            this._selectionController = c;
+        }
+    }
 
-            super.dispose();
+    public dispose(): void {
+        if (this.dropdown) {
+            this.dropdown.dispose();
+            this.dropdown = null;
         }
 
-        public getProp(index: number): any {
-            switch (index) {
-                case ObjectPropID.Color:
-                    return this.titleColor;
-                case ObjectPropID.OutlineColor:
-                    {
-                        var tf: GTextField = this.getTextField();
-                        if (tf)
-                            return tf.strokeColor;
-                        else
-                            return 0;
-                    }
-                case ObjectPropID.FontSize:
-                    {
-                        tf = this.getTextField();
-                        if (tf)
-                            return tf.fontSize;
-                        else
-                            return 0;
-                    }
-                default:
-                    return super.getProp(index);
-            }
-        }
+        this._selectionController = null;
 
-        public setProp(index: number, value: any): void {
-            switch (index) {
-                case ObjectPropID.Color:
-                    this.titleColor = value;
-                    break;
-                case ObjectPropID.OutlineColor:
-                    {
-                        var tf: GTextField = this.getTextField();
-                        if (tf)
-                            tf.strokeColor = value;
-                    }
-                    break;
-                case ObjectPropID.FontSize:
-                    {
-                        tf = this.getTextField();
-                        if (tf)
-                            tf.fontSize = value;
-                    }
-                    break;
-                default:
-                    super.setProp(index, value);
-                    break;
-            }
-        }
+        super.dispose();
+    }
 
-        protected constructExtension(buffer: ByteBuffer): void {
-            throw new Error("TODO");
-
-            // var str: string;
-
-            // this._buttonController = this.getController("button");
-            // this._titleObject = this.getChild("title");
-            // this._iconObject = this.getChild("icon");
-
-            // str = buffer.readS();
-            // if (str) {
-            //     this.dropdown = <GComponent>(UIPackage.createObjectFromURL(str));
-            //     if (!this.dropdown) {
-            //         Laya.Log.print("下拉框必须为元件");
-            //         return;
-            //     }
-            //     this.dropdown.name = "this._dropdownObject";
-            //     this._list = <GList>this.dropdown.getChild("list");
-            //     if (!this._list) {
-            //         Laya.Log.print(this.resourceURL + ": 下拉框的弹出元件里必须包含名为list的列表");
-            //         return;
-            //     }
-            //     this._list.on(Events.CLICK_ITEM, this, this.__clickItem);
-
-            //     this._list.addRelation(this.dropdown, RelationType.Width);
-            //     this._list.removeRelation(this.dropdown, RelationType.Height);
-
-            //     this.dropdown.addRelation(this._list, RelationType.Height);
-            //     this.dropdown.removeRelation(this._list, RelationType.Width);
-
-            //     this.dropdown.displayObject.on(Laya.Event.UNDISPLAY, this, this.__popupWinClosed);
-            // }
-
-            // this.on(Laya.Event.ROLL_OVER, this, this.__rollover);
-            // this.on(Laya.Event.ROLL_OUT, this, this.__rollout);
-            // this.on(Laya.Event.MOUSE_DOWN, this, this.__mousedown);
-        }
-
-        public setup_afterAdd(buffer: ByteBuffer, beginPos: number): void {
-            super.setup_afterAdd(buffer, beginPos);
-
-            if (!buffer.seek(beginPos, 6))
-                return;
-
-            if (buffer.readByte() != this.packageItem.objectType)
-                return;
-
-            var i: number;
-            var iv: number;
-            var nextPos: number;
-            var str: string;
-            var itemCount: number = buffer.readShort();
-            for (i = 0; i < itemCount; i++) {
-                nextPos = buffer.readShort();
-                nextPos += buffer.position;
-
-                this._items[i] = buffer.readS();
-                this._values[i] = buffer.readS();
-                str = buffer.readS();
-                if (str != null) {
-                    if (!this._icons)
-                        this._icons = [];
-                    this._icons[i] = str;
+    public getProp(index: number): any {
+        switch (index) {
+            case ObjectPropID.Color:
+                return this.titleColor;
+            case ObjectPropID.OutlineColor:
+                {
+                    var tf: GTextField = this.getTextField();
+                    if (tf)
+                        return tf.strokeColor;
+                    else
+                        return 0;
                 }
+            case ObjectPropID.FontSize:
+                {
+                    tf = this.getTextField();
+                    if (tf)
+                        return tf.fontSize;
+                    else
+                        return 0;
+                }
+            default:
+                return super.getProp(index);
+        }
+    }
 
-                buffer.position = nextPos;
-            }
+    public setProp(index: number, value: any): void {
+        switch (index) {
+            case ObjectPropID.Color:
+                this.titleColor = value;
+                break;
+            case ObjectPropID.OutlineColor:
+                {
+                    var tf: GTextField = this.getTextField();
+                    if (tf)
+                        tf.strokeColor = value;
+                }
+                break;
+            case ObjectPropID.FontSize:
+                {
+                    tf = this.getTextField();
+                    if (tf)
+                        tf.fontSize = value;
+                }
+                break;
+            default:
+                super.setProp(index, value);
+                break;
+        }
+    }
 
+    protected constructExtension(buffer: ByteBuffer): void {
+        throw new Error("TODO");
+
+        // var str: string;
+
+        // this._buttonController = this.getController("button");
+        // this._titleObject = this.getChild("title");
+        // this._iconObject = this.getChild("icon");
+
+        // str = buffer.readS();
+        // if (str) {
+        //     this.dropdown = <GComponent>(UIPackage.createObjectFromURL(str));
+        //     if (!this.dropdown) {
+        //         Laya.Log.print("下拉框必须为元件");
+        //         return;
+        //     }
+        //     this.dropdown.name = "this._dropdownObject";
+        //     this._list = <GList>this.dropdown.getChild("list");
+        //     if (!this._list) {
+        //         Laya.Log.print(this.resourceURL + ": 下拉框的弹出元件里必须包含名为list的列表");
+        //         return;
+        //     }
+        //     this._list.on(Events.CLICK_ITEM, this, this.__clickItem);
+
+        //     this._list.addRelation(this.dropdown, RelationType.Width);
+        //     this._list.removeRelation(this.dropdown, RelationType.Height);
+
+        //     this.dropdown.addRelation(this._list, RelationType.Height);
+        //     this.dropdown.removeRelation(this._list, RelationType.Width);
+
+        //     this.dropdown.displayObject.on(Laya.Event.UNDISPLAY, this, this.__popupWinClosed);
+        // }
+
+        // this.on(Laya.Event.ROLL_OVER, this, this.__rollover);
+        // this.on(Laya.Event.ROLL_OUT, this, this.__rollout);
+        // this.on(Laya.Event.MOUSE_DOWN, this, this.__mousedown);
+    }
+
+    public setup_afterAdd(buffer: ByteBuffer, beginPos: number): void {
+        super.setup_afterAdd(buffer, beginPos);
+
+        if (!buffer.seek(beginPos, 6))
+            return;
+
+        if (buffer.readByte() != this.packageItem.objectType)
+            return;
+
+        var i: number;
+        var iv: number;
+        var nextPos: number;
+        var str: string;
+        var itemCount: number = buffer.readShort();
+        for (i = 0; i < itemCount; i++) {
+            nextPos = buffer.readShort();
+            nextPos += buffer.position;
+
+            this._items[i] = buffer.readS();
+            this._values[i] = buffer.readS();
             str = buffer.readS();
             if (str != null) {
-                this.text = str;
-                this._selectedIndex = this._items.indexOf(str);
+                if (!this._icons)
+                    this._icons = [];
+                this._icons[i] = str;
             }
-            else if (this._items.length > 0) {
-                this._selectedIndex = 0;
-                this.text = this._items[0];
-            }
-            else
-                this._selectedIndex = -1;
 
-            str = buffer.readS();
-            if (str != null)
-                this.icon = str;
-
-            if (buffer.readBool())
-                this.titleColor = buffer.readColorS();
-            iv = buffer.readInt();
-            if (iv > 0)
-                this._visibleItemCount = iv;
-            this._popupDirection = buffer.readByte();
-
-            iv = buffer.readShort();
-            if (iv >= 0)
-                this._selectionController = this.parent.getControllerAt(iv);
+            buffer.position = nextPos;
         }
 
-        protected showDropdown(): void {
-            throw new Error("TODO");
-            // if (this._itemsUpdated) {
-            //     this._itemsUpdated = false;
-
-            //     this._list.removeChildrenToPool();
-            //     var cnt: number = this._items.length;
-            //     for (var i: number = 0; i < cnt; i++) {
-            //         var item: GObject = this._list.addItemFromPool();
-            //         item.name = i < this._values.length ? this._values[i] : "";
-            //         item.text = this._items[i];
-            //         item.icon = (this._icons && i < this._icons.length) ? this._icons[i] : null;
-            //     }
-            //     this._list.resizeToFit(this._visibleItemCount);
-            // }
-            // this._list.selectedIndex = -1;
-            // this.dropdown.width = this.width;
-            // this._list.ensureBoundsCorrect();
-
-            // var downward: any = null;
-            // if (this._popupDirection == PopupDirection.Down)
-            //     downward = true;
-            // else if (this._popupDirection == PopupDirection.Up)
-            //     downward = false;
-
-            // this.root.togglePopup(this.dropdown, this, downward);
-            // if (this.dropdown.parent)
-            //     this.setState(GButton.DOWN);
+        str = buffer.readS();
+        if (str != null) {
+            this.text = str;
+            this._selectedIndex = this._items.indexOf(str);
         }
-
-        private __popupWinClosed(): void {
-            if (this._over)
-                this.setState(GButton.OVER);
-            else
-                this.setState(GButton.UP);
+        else if (this._items.length > 0) {
+            this._selectedIndex = 0;
+            this.text = this._items[0];
         }
+        else
+            this._selectedIndex = -1;
 
-        private __clickItem(itemObject: GObject, evt: any): void {
-            // Laya.timer.callLater(this, this.__clickItem2, [this._list.getChildIndex(itemObject), evt])
-        }
+        str = buffer.readS();
+        if (str != null)
+            this.icon = str;
 
-        private __clickItem2(index: number, evt: any): void {
-            throw new Error("TODO");
-            // if (this.dropdown.parent instanceof GRoot)
-            //     this.dropdown.parent.hidePopup();
+        if (buffer.readBool())
+            this.titleColor = buffer.readColorS();
+        iv = buffer.readInt();
+        if (iv > 0)
+            this._visibleItemCount = iv;
+        this._popupDirection = buffer.readByte();
 
-            // this._selectedIndex = -1;
-            // this.selectedIndex = index;
-            // Events.dispatch(Events.STATE_CHANGED, this.displayObject, evt);
-        }
+        iv = buffer.readShort();
+        if (iv >= 0)
+            this._selectionController = this.parent.getControllerAt(iv);
+    }
 
-        private __rollover(): void {
-            this._over = true;
-            if (this._down || this.dropdown && this.dropdown.parent)
-                return;
+    protected showDropdown(): void {
+        throw new Error("TODO");
+        // if (this._itemsUpdated) {
+        //     this._itemsUpdated = false;
 
+        //     this._list.removeChildrenToPool();
+        //     var cnt: number = this._items.length;
+        //     for (var i: number = 0; i < cnt; i++) {
+        //         var item: GObject = this._list.addItemFromPool();
+        //         item.name = i < this._values.length ? this._values[i] : "";
+        //         item.text = this._items[i];
+        //         item.icon = (this._icons && i < this._icons.length) ? this._icons[i] : null;
+        //     }
+        //     this._list.resizeToFit(this._visibleItemCount);
+        // }
+        // this._list.selectedIndex = -1;
+        // this.dropdown.width = this.width;
+        // this._list.ensureBoundsCorrect();
+
+        // var downward: any = null;
+        // if (this._popupDirection == PopupDirection.Down)
+        //     downward = true;
+        // else if (this._popupDirection == PopupDirection.Up)
+        //     downward = false;
+
+        // this.root.togglePopup(this.dropdown, this, downward);
+        // if (this.dropdown.parent)
+        //     this.setState(GButton.DOWN);
+    }
+
+    private __popupWinClosed(): void {
+        if (this._over)
             this.setState(GButton.OVER);
-        }
-
-        private __rollout(): void {
-            this._over = false;
-            if (this._down || this.dropdown && this.dropdown.parent)
-                return;
-
+        else
             this.setState(GButton.UP);
-        }
+    }
 
-        private __mousedown(evt: any): void {
-            throw new Error("TODO");
+    private __clickItem(itemObject: GObject, evt: any): void {
+        // Laya.timer.callLater(this, this.__clickItem2, [this._list.getChildIndex(itemObject), evt])
+    }
 
-            // if (evt.target instanceof Laya.Input)
-            //     return;
+    private __clickItem2(index: number, evt: any): void {
+        throw new Error("TODO");
+        // if (this.dropdown.parent instanceof GRoot)
+        //     this.dropdown.parent.hidePopup();
 
-            // this._down = true;
-            // GRoot.inst.checkPopups(evt.target);
+        // this._selectedIndex = -1;
+        // this.selectedIndex = index;
+        // Events.dispatch(Events.STATE_CHANGED, this.displayObject, evt);
+    }
 
-            // Laya.stage.on(Laya.Event.MOUSE_UP, this, this.__mouseup);
+    private __rollover(): void {
+        this._over = true;
+        if (this._down || this.dropdown && this.dropdown.parent)
+            return;
 
-            // if (this.dropdown)
-            //     this.showDropdown();
-        }
+        this.setState(GButton.OVER);
+    }
 
-        private __mouseup(): void {
-            throw new Error("TODO");
-            // if (this._down) {
-            //     this._down = false;
-            //     Laya.stage.off(Laya.Event.MOUSE_UP, this, this.__mouseup);
+    private __rollout(): void {
+        this._over = false;
+        if (this._down || this.dropdown && this.dropdown.parent)
+            return;
 
-            //     if (this.dropdown && !this.dropdown.parent) {
-            //         if (this._over)
-            //             this.setState(GButton.OVER);
-            //         else
-            //             this.setState(GButton.UP);
-            //     }
-            // }
-        }
+        this.setState(GButton.UP);
+    }
+
+    private __mousedown(evt: any): void {
+        throw new Error("TODO");
+
+        // if (evt.target instanceof Laya.Input)
+        //     return;
+
+        // this._down = true;
+        // GRoot.inst.checkPopups(evt.target);
+
+        // Laya.stage.on(Laya.Event.MOUSE_UP, this, this.__mouseup);
+
+        // if (this.dropdown)
+        //     this.showDropdown();
+    }
+
+    private __mouseup(): void {
+        throw new Error("TODO");
+        // if (this._down) {
+        //     this._down = false;
+        //     Laya.stage.off(Laya.Event.MOUSE_UP, this, this.__mouseup);
+
+        //     if (this.dropdown && !this.dropdown.parent) {
+        //         if (this._over)
+        //             this.setState(GButton.OVER);
+        //         else
+        //             this.setState(GButton.UP);
+        //     }
+        // }
     }
 }

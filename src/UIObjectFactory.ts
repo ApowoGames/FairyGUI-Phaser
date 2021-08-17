@@ -1,113 +1,128 @@
-module fgui {
-    export class UIObjectFactory {
-        public static extensions: { [index: string]: new () => GComponent } = {};
-        public static loaderType: new () => GLoader;
+import { GList } from './GList';
+import { GGroup } from './GGroup';
+import { GComboBox } from './GComboBox';
+import { GScrollBar } from './GScrollBar';
+import { GSlider } from './GSlider';
+import { GProgressBar } from './GProgressBar';
+import { GLabel } from './GLabel';
+import { GButton } from './GButton';
+import { GImage } from './GImage';
+import { ObjectType, PackageItemType } from './FieldTypes';
+import { GObject } from './GObject';
+import { PackageItem } from './PackageItem';
+import { UIPackage } from './UIPackage';
+import { GLoader } from './GLoader';
+import { GComponent } from "./GComponent";
+import { GTree } from './GTree';
 
-        public constructor() {
-        }
+export class UIObjectFactory {
+    public static extensions: { [index: string]: new () => GComponent } = {};
+    public static loaderType: new () => GLoader;
 
-        public static setExtension(url: string, type: new () => GComponent): void {
-            if (url == null)
-                throw "Invaild url: " + url;
+    public constructor() {
+    }
 
-            var pi: PackageItem = UIPackage.getItemByURL(url);
-            if (pi)
-                pi.extensionType = type;
+    public static setExtension(url: string, type: new () => GComponent): void {
+        if (url == null)
+            throw "Invaild url: " + url;
 
-            UIObjectFactory.extensions[url] = type;
-        }
+        var pi: PackageItem = UIPackage.getItemByURL(url);
+        if (pi)
+            pi.extensionType = type;
 
-        public static setPackageItemExtension(url: string, type: new () => GComponent): void {
-            UIObjectFactory.setExtension(url, type);
-        }
+        UIObjectFactory.extensions[url] = type;
+    }
 
-        public static setLoaderExtension(type: new () => GLoader): void {
-            UIObjectFactory.loaderType = type;
-        }
+    public static setPackageItemExtension(url: string, type: new () => GComponent): void {
+        UIObjectFactory.setExtension(url, type);
+    }
 
-        public static resolvePackageItemExtension(pi: PackageItem): void {
-            var extensionType = UIObjectFactory.extensions["ui://" + pi.owner.id + pi.id];
-            if (!extensionType)
-                extensionType = UIObjectFactory.extensions["ui://" + pi.owner.name + "/" + pi.name];
-            if (extensionType)
-                pi.extensionType = extensionType;
-        }
+    public static setLoaderExtension(type: new () => GLoader): void {
+        UIObjectFactory.loaderType = type;
+    }
 
-        public static newObject(type: number | PackageItem, userClass?: new () => GObject): GObject {
-            var obj: GObject;
+    public static resolvePackageItemExtension(pi: PackageItem): void {
+        var extensionType = UIObjectFactory.extensions["ui://" + pi.owner.id + pi.id];
+        if (!extensionType)
+            extensionType = UIObjectFactory.extensions["ui://" + pi.owner.name + "/" + pi.name];
+        if (extensionType)
+            pi.extensionType = extensionType;
+    }
 
-            if (typeof type === 'number') {
-                switch (type) {
-                    case ObjectType.Image:
-                        return new GImage();
+    public static newObject(type: number | PackageItem, userClass?: new () => GObject): GObject {
+        var obj: GObject;
 
-                    case ObjectType.MovieClip:
-                        // return new GMovieClip();
+        if (typeof type === 'number') {
+            switch (type) {
+                case ObjectType.Image:
+                    return new GImage();
 
-                    case ObjectType.Component:
-                        return new GComponent();
+                case ObjectType.MovieClip:
+                // return new GMovieClip();
 
-                    case ObjectType.Text:
-                        // return new GBasicTextField();
+                case ObjectType.Component:
+                    return new GComponent();
 
-                    case ObjectType.RichText:
-                        // return new GRichTextField();
+                case ObjectType.Text:
+                // return new GBasicTextField();
 
-                    case ObjectType.InputText:
-                        // return new GTextInput();
+                case ObjectType.RichText:
+                // return new GRichTextField();
 
-                    case ObjectType.Group:
-                        return new GGroup();
+                case ObjectType.InputText:
+                // return new GTextInput();
 
-                    case ObjectType.List:
-                        return new GList();
+                case ObjectType.Group:
+                    return new GGroup();
 
-                    case ObjectType.Graph:
-                        // return new GGraph();
+                case ObjectType.List:
+                    return new GList();
 
-                    case ObjectType.Loader:
-                        // if (UIObjectFactory.loaderType)
-                            // return new UIObjectFactory.loaderType();
-                        // else
-                            // return new GLoader();
-                            return;
+                case ObjectType.Graph:
+                // return new GGraph();
 
-                    case ObjectType.Button:
-                        return new GButton();
-                    case ObjectType.Label:
-                        return new GLabel();
-                    case ObjectType.ProgressBar:
-                        return new GProgressBar();
-                    case ObjectType.Slider:
-                        return new GSlider();
-                    case ObjectType.ScrollBar:
-                        return new GScrollBar();
-                    case ObjectType.ComboBox:
-                        return new GComboBox();
-                    case ObjectType.Tree:
-                        return new GTree();
+                case ObjectType.Loader:
+                    // if (UIObjectFactory.loaderType)
+                    // return new UIObjectFactory.loaderType();
+                    // else
+                    // return new GLoader();
+                    return;
 
-                    default:
-                        return null;
-                }
+                case ObjectType.Button:
+                    return new GButton();
+                case ObjectType.Label:
+                    return new GLabel();
+                case ObjectType.ProgressBar:
+                    return new GProgressBar();
+                case ObjectType.Slider:
+                    return new GSlider();
+                case ObjectType.ScrollBar:
+                    return new GScrollBar();
+                case ObjectType.ComboBox:
+                    return new GComboBox();
+                case ObjectType.Tree:
+                    return new GTree();
+
+                default:
+                    return null;
             }
-            else {
-                if (type.type == PackageItemType.Component) {
-                    if (userClass)
-                        obj = new userClass();
-                    else if (type.extensionType)
-                        obj = new type.extensionType();
-                    else
-                        obj = UIObjectFactory.newObject(type.objectType);
-                }
+        }
+        else {
+            if (type.type == PackageItemType.Component) {
+                if (userClass)
+                    obj = new userClass();
+                else if (type.extensionType)
+                    obj = new type.extensionType();
                 else
                     obj = UIObjectFactory.newObject(type.objectType);
-
-                if (obj)
-                    obj.packageItem = type;
             }
+            else
+                obj = UIObjectFactory.newObject(type.objectType);
 
-            return obj;
+            if (obj)
+                obj.packageItem = type;
         }
+
+        return obj;
     }
 }

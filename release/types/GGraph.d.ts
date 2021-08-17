@@ -1,0 +1,33 @@
+import { ByteBuffer } from './utils/ByteBuffer';
+import { GObject } from './GObject';
+export declare class GGraph extends GObject {
+    private _type;
+    private _lineSize;
+    private _lineColor;
+    private _fillColor;
+    private _cornerRadius?;
+    private _hitArea?;
+    private _sides?;
+    private _startAngle?;
+    private _polygonPoints?;
+    private _distances?;
+    constructor();
+    drawRect(lineSize: number, lineColor: string, fillColor: string, cornerRadius?: number[]): void;
+    drawEllipse(lineSize: number, lineColor: string, fillColor: string): void;
+    drawRegularPolygon(lineSize: number, lineColor: string, fillColor: string, sides: number, startAngle?: number, distances?: number[]): void;
+    drawPolygon(lineSize: number, lineColor: string, fillColor: string, points: number[]): void;
+    get distances(): number[];
+    set distances(value: number[]);
+    get color(): string;
+    set color(value: string);
+    private updateGraph;
+    replaceMe(target: GObject): void;
+    addBeforeMe(target: GObject): void;
+    addAfterMe(target: GObject): void;
+    setNativeObject(obj: any): void;
+    createDisplayObject(): void;
+    getProp(index: number): any;
+    setProp(index: number, value: any): void;
+    protected handleSizeChanged(): void;
+    setup_beforeAdd(buffer: ByteBuffer, beginPos: number): void;
+}
