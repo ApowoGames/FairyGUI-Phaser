@@ -14,6 +14,8 @@ namespace fgui {
     }
     export class AssetProxy {
         private _resMap: Map<string, string>;
+        private _completeCallBack: Function;
+        private _errorCallBack: Function;
         constructor() {
             this._resMap = new Map();
         }
@@ -30,8 +32,15 @@ namespace fgui {
             return this._resMap.get(key);
         }
 
-        public load(key: string, url: any, type: string, completeCallBack: Function): void {
+        public load(key: string, url: any, type: string, completeCallBack: Function, _errorCallBack?: Function): void {
             this._resMap.set(key, url);
+            this._completeCallBack = completeCallBack;
+            this._errorCallBack = _errorCallBack;
+            if (GRoot.inst.scene.cache.obj.has(key)) {
+                if (this._completeCallBack) {
+                    return this._completeCallBack();
+                }
+            }
             switch (type) {
                 case LoaderType.IMAGE:
                     GRoot.inst.scene.load.image(key, url);
@@ -64,6 +73,20 @@ namespace fgui {
                     GRoot.inst.scene.load.image(key, url);
                     break;
             }
+        }
+
+        public startLoad() {
+            GRoot.inst.scene.load.on(Phaser.Loader.Events.FILE_COMPLETE, this.onLoadComplete, this);
+            GRoot.inst.scene.load.on(Phaser.Loader.Events.FILE_LOAD_ERROR, this.onLoadError, this);
+            GRoot.inst.scene.load.start();
+        }
+
+        private onLoadComplete() {
+            if (this._completeCallBack) this._completeCallBack();
+        }
+
+        private onLoadError() {
+            if (this._errorCallBack) this._errorCallBack();
         }
     }
 }

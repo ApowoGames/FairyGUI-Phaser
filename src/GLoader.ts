@@ -273,6 +273,7 @@ namespace fgui {
 
         protected loadExternal(): void {
             AssetProxy.inst.load(this._url, this._url, LoaderType.IMAGE, this.__getResCompleted);
+            AssetProxy.inst.startLoad();
             // AssetProxy.inst.load(this._url, Laya.Handler.create(this, this.__getResCompleted), null, Laya.Loader.IMAGE);
         }
 
