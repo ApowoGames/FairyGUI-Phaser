@@ -216,64 +216,64 @@ namespace fgui {
         }
 
         protected loadFromPackage(itemURL: string): void {
-            throw new Error("TODO");
-            // this._contentItem = UIPackage.getItemByURL(itemURL);
-            // if (this._contentItem) {
-            //     this._contentItem = this._contentItem.getBranch();
-            //     this.sourceWidth = this._contentItem.width;
-            //     this.sourceHeight = this._contentItem.height;
-            //     this._contentItem = this._contentItem.getHighResolution();
-            //     this._contentItem.load();
+            this._contentItem = UIPackage.getItemByURL(itemURL);
+            if (this._contentItem) {
+                this._contentItem = this._contentItem.getBranch();
+                this.sourceWidth = this._contentItem.width;
+                this.sourceHeight = this._contentItem.height;
+                this._contentItem = this._contentItem.getHighResolution();
+                this._contentItem.load();
 
-            //     if (this._autoSize)
-            //         this.setSize(this.sourceWidth, this.sourceHeight);
+                if (this._autoSize)
+                    this.setSize(this.sourceWidth, this.sourceHeight);
 
-            //     if (this._contentItem.type == PackageItemType.Image) {
-            //         if (!this._contentItem.texture) {
-            //             this.setErrorState();
-            //         }
-            //         else {
-            //             this._content.texture = this._contentItem.texture;
-            //             this._content.scale9Grid = this._contentItem.scale9Grid;
-            //             this._content.scaleByTile = this._contentItem.scaleByTile;
-            //             this._content.tileGridIndice = this._contentItem.tileGridIndice;
-            //             this.sourceWidth = this._contentItem.width;
-            //             this.sourceHeight = this._contentItem.height;
-            //             this.updateLayout();
-            //         }
-            //     }
-            //     else if (this._contentItem.type == PackageItemType.MovieClip) {
-            //         this.sourceWidth = this._contentItem.width;
-            //         this.sourceHeight = this._contentItem.height;
-            //         this._content.interval = this._contentItem.interval;
-            //         this._content.swing = this._contentItem.swing;
-            //         this._content.repeatDelay = this._contentItem.repeatDelay;
-            //         this._content.frames = this._contentItem.frames;
-            //         this.updateLayout();
-            //     }
-            //     else if (this._contentItem.type == PackageItemType.Component) {
-            //         var obj: GObject = UIPackage.createObjectFromURL(itemURL);
-            //         if (!obj)
-            //             this.setErrorState();
-            //         else if (!(obj instanceof GComponent)) {
-            //             obj.dispose();
-            //             this.setErrorState();
-            //         }
-            //         else {
-            //             this._content2 = obj.asCom;
-            //             this._displayObject.addChild(this._content2.displayObject);
-            //             this.updateLayout();
-            //         }
-            //     }
-            //     else
-            //         this.setErrorState();
-            // }
-            // else
-            //     this.setErrorState();
+                if (this._contentItem.type == PackageItemType.Image) {
+                    if (!this._contentItem.texture) {
+                        this.setErrorState();
+                    }
+                    else {
+                        this._content.texture = this._contentItem.texture;
+                        this._content.scale9Grid = this._contentItem.scale9Grid;
+                        this._content.scaleByTile = this._contentItem.scaleByTile;
+                        this._content.tileGridIndice = this._contentItem.tileGridIndice;
+                        this.sourceWidth = this._contentItem.width;
+                        this.sourceHeight = this._contentItem.height;
+                        this.updateLayout();
+                    }
+                }
+                else if (this._contentItem.type == PackageItemType.MovieClip) {
+                    this.sourceWidth = this._contentItem.width;
+                    this.sourceHeight = this._contentItem.height;
+                    this._content.interval = this._contentItem.interval;
+                    this._content.swing = this._contentItem.swing;
+                    this._content.repeatDelay = this._contentItem.repeatDelay;
+                    this._content.frames = this._contentItem.frames;
+                    this.updateLayout();
+                }
+                else if (this._contentItem.type == PackageItemType.Component) {
+                    var obj: GObject = UIPackage.createObjectFromURL(itemURL);
+                    if (!obj)
+                        this.setErrorState();
+                    else if (!(obj instanceof GComponent)) {
+                        obj.dispose();
+                        this.setErrorState();
+                    }
+                    else {
+                        this._content2 = obj.asCom;
+                        this._displayObject.add(this._content2.displayObject);
+                        this.updateLayout();
+                    }
+                }
+                else
+                    this.setErrorState();
+            }
+            else
+                this.setErrorState();
         }
 
         protected loadExternal(): void {
-            throw new Error("TODO");
+            AssetProxy.inst.load(this._url, this._url, LoaderType.IMAGE, this.__getResCompleted);
+            AssetProxy.inst.startLoad();
             // AssetProxy.inst.load(this._url, Laya.Handler.create(this, this.__getResCompleted), null, Laya.Loader.IMAGE);
         }
 
