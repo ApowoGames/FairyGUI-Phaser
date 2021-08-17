@@ -21,7 +21,7 @@ module.exports = {
         extensions: [".ts", ".js"],
     },
     externals: {
-        "webworker-rpc": 'webworker-rpc',
+        "phaser": 'phaser',
     },
     optimization: {
         minimize: false,
