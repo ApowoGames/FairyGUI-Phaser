@@ -1286,7 +1286,7 @@ namespace fgui {
             var filter: number = buffer.readByte();
             if (filter == 1) {
                 ToolSet.setColorFilter(this._displayObject,
-                    [buffer.getFloat32(), buffer.getFloat32(), buffer.getFloat32(), buffer.getFloat32()]);
+                    [buffer.readFloat(), buffer.readFloat(), buffer.readFloat(), buffer.readFloat()]);
             }
 
             var str: string = buffer.readS();
@@ -1301,21 +1301,21 @@ namespace fgui {
             if (str != null)
                 this.tooltips = str;
 
-            var groupId: number = buffer.getInt16();
+            var groupId: number = buffer.readShort();
             if (groupId >= 0)
                 this.group = <GGroup>this.parent.getChildAt(groupId);
 
             buffer.seek(beginPos, 2);
 
-            var cnt: number = buffer.getInt16();
+            var cnt: number = buffer.readShort();
             for (var i: number = 0; i < cnt; i++) {
-                var nextPos: number = buffer.getInt16();
-                nextPos += buffer.pos;
+                var nextPos: number = buffer.readShort();
+                nextPos += buffer.position;
 
                 var gear: GearBase = this.getGear(buffer.readByte());
                 gear.setup(buffer);
 
-                buffer.pos = nextPos;
+                buffer.position = nextPos;
             }
         }
 

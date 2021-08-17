@@ -5,7 +5,7 @@ window.fairygui = window.fgui;
 (function (fgui) {
     class AssetProxy {
         constructor() {
-            this._asset = Laya.loader;
+            // this._asset = Laya.loader;
         }
         static get inst() {
             if (!AssetProxy._inst)

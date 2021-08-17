@@ -45,12 +45,12 @@ namespace fgui {
         }
 
         public setup(buffer: ByteBuffer): void {
-            this._controller = this._owner.parent.getControllerAt(buffer.getInt16());
+            this._controller = this._owner.parent.getControllerAt(buffer.readShort());
             this.init();
 
             var i: number;
             var page: string;
-            var cnt: number = buffer.getInt16();
+            var cnt: number = buffer.readShort();
 
             if (this instanceof GearDisplay) {
                 this.pages = buffer.readSArray(cnt);
@@ -74,8 +74,8 @@ namespace fgui {
             if (buffer.readBool()) {
                 this._tweenConfig = new GearTweenConfig();
                 this._tweenConfig.easeType = buffer.readByte();
-                this._tweenConfig.duration = buffer.getFloat32();
-                this._tweenConfig.delay = buffer.getFloat32();
+                this._tweenConfig.duration = buffer.readFloat();
+                this._tweenConfig.delay = buffer.readFloat();
             }
 
             if (buffer.version >= 2) {

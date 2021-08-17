@@ -20,6 +20,6 @@ namespace fgui {
         advance?: number;
         lineHeight?: number;
         channel?: number;
-        texture?: Laya.Texture;
+        texture?: Phaser.Textures.Texture;
     }
 }

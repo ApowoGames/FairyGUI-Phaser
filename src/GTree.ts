@@ -46,25 +46,28 @@ namespace fgui {
         }
 
         public getSelectedNode(): GTreeNode {
-            if (this.selectedIndex != -1)
-                return this.getChildAt(this.selectedIndex)._treeNode;
-            else
-                return null;
+            throw new Error("TODO");
+            // if (this.selectedIndex != -1)
+            //     return this.getChildAt(this.selectedIndex)._treeNode;
+            // else
+            //     return null;
         }
 
         public getSelectedNodes(result?: Array<GTreeNode>): Array<GTreeNode> {
-            if (!result)
-                result = new Array<GTreeNode>();
+            throw new Error("TODO");
 
-            s_list.length = 0;
-            super.getSelection(s_list);
-            var cnt: number = s_list.length;
-            var ret: Array<GTreeNode> = new Array<GTreeNode>();
-            for (var i: number = 0; i < cnt; i++) {
-                var node: GTreeNode = this.getChildAt(s_list[i])._treeNode;
-                ret.push(node);
-            }
-            return ret;
+            // if (!result)
+            //     result = new Array<GTreeNode>();
+
+            // s_list.length = 0;
+            // super.getSelection(s_list);
+            // var cnt: number = s_list.length;
+            // var ret: Array<GTreeNode> = new Array<GTreeNode>();
+            // for (var i: number = 0; i < cnt; i++) {
+            //     var node: GTreeNode = this.getChildAt(s_list[i])._treeNode;
+            //     ret.push(node);
+            // }
+            // return ret;
         }
 
         public selectNode(node: GTreeNode, scrollItToView?: boolean): void {

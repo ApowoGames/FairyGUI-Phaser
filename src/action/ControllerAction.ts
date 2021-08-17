@@ -37,12 +37,12 @@ namespace fgui {
             var cnt: number;
             var i: number;
 
-            cnt = buffer.getInt16();
+            cnt = buffer.readShort();
             this.fromPage = [];
             for (i = 0; i < cnt; i++)
                 this.fromPage[i] = buffer.readS();
 
-            cnt = buffer.getInt16();
+            cnt = buffer.readShort();
             this.toPage = [];
             for (i = 0; i < cnt; i++)
                 this.toPage[i] = buffer.readS();

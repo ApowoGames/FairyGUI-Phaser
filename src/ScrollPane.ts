@@ -1377,7 +1377,8 @@ namespace fgui {
         }
 
         private getLoopPartSize(division: number, axis: string): number {
-            return (this._contentSize[axis] + (axis == "x" ? (<GList>(this._owner)).columnGap : (<GList>(this._owner)).lineGap)) / division;
+            // return (this._contentSize[axis] + (axis == "x" ? (<GList>(this._owner)).columnGap : (<GList>(this._owner)).lineGap)) / division;
+            return 0;
         }
 
         private loopCheckingCurrent(): boolean {
@@ -1731,7 +1732,7 @@ namespace fgui {
         private runTween(axis: string): number {
             var newValue: number;
             if (this._tweenChange[axis] != 0) {
-                throw new Event("TODO")
+                throw new Error("TODO")
                 // this._tweenTime[axis] += Laya.timer.delta / 1000;
                 if (this._tweenTime[axis] >= this._tweenDuration[axis]) {
                     newValue = this._tweenStart[axis] + this._tweenChange[axis];

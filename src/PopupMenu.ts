@@ -26,32 +26,35 @@ namespace fgui {
         }
 
         public addItem(caption: string, handler?: (item?: fgui.GObject, evt?: fgui.Event) => void): GButton {
-            var item: GButton = this._list.addItemFromPool().asButton;
-            item.title = caption;
-            item.data = handler;
-            item.grayed = false;
-            var c: Controller = item.getController("checked");
-            if (c)
-                c.selectedIndex = 0;
-            return item;
+            throw new Error("TODO");
+            // var item: GButton = this._list.addItemFromPool().asButton;
+            // item.title = caption;
+            // item.data = handler;
+            // item.grayed = false;
+            // var c: Controller = item.getController("checked");
+            // if (c)
+            //     c.selectedIndex = 0;
+            // return item;
         }
 
         public addItemAt(caption: string, index: number, handler?: (item?: fgui.GObject, evt?: fgui.Event) => void): GButton {
-            var item: GButton = this._list.getFromPool().asButton;
-            this._list.addChildAt(item, index);
-            item.title = caption;
-            item.data = handler;
-            item.grayed = false;
-            var c: Controller = item.getController("checked");
-            if (c)
-                c.selectedIndex = 0;
-            return item;
+            throw new Error("TODO");
+            // var item: GButton = this._list.getFromPool().asButton;
+            // this._list.addChildAt(item, index);
+            // item.title = caption;
+            // item.data = handler;
+            // item.grayed = false;
+            // var c: Controller = item.getController("checked");
+            // if (c)
+            //     c.selectedIndex = 0;
+            // return item;
         }
 
         public addSeperator(): void {
-            if (UIConfig.popupMenu_seperator == null)
-                throw "UIConfig.popupMenu_seperator not defined";
-            this.list.addItemFromPool(UIConfig.popupMenu_seperator);
+            throw new Error("TODO");
+            // if (UIConfig.popupMenu_seperator == null)
+            //     throw "UIConfig.popupMenu_seperator not defined";
+            // this.list.addItemFromPool(UIConfig.popupMenu_seperator);
         }
 
         public getItemName(index: number): string {
@@ -107,18 +110,20 @@ namespace fgui {
         }
 
         public removeItem(name: string): boolean {
-            var item: GObject = this._list.getChild(name);
-            if (item) {
-                var index: number = this._list.getChildIndex(item);
-                this._list.removeChildToPoolAt(index);
-                return true;
-            }
-            else
-                return false;
+            throw new Error("TODO");
+            // var item: GObject = this._list.getChild(name);
+            // if (item) {
+            //     var index: number = this._list.getChildIndex(item);
+            //     this._list.removeChildToPoolAt(index);
+            //     return true;
+            // }
+            // else
+            //     return false;
         }
 
         public clearItems(): void {
-            this._list.removeChildrenToPool();
+            throw new Error("TODO");
+            // this._list.removeChildrenToPool();
         }
 
         public get itemCount(): number {
@@ -167,8 +172,9 @@ namespace fgui {
         }
 
         private __addedToStage(): void {
-            this._list.selectedIndex = -1;
-            this._list.resizeToFit(100000, 10);
+            throw new Error("TODO");
+            // this._list.selectedIndex = -1;
+            // this._list.resizeToFit(100000, 10);
         }
 
     }

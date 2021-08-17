@@ -269,5 +269,5 @@ namespace fgui {
         }
     }
 
-    var s_vec2: Laya.Point = new Laya.Point();
+    var s_vec2: Phaser.Geom.Point = new Phaser.Geom.Point();
 }

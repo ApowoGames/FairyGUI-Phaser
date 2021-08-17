@@ -23,7 +23,8 @@ namespace fgui {
         }
 
         public dispose(): void {
-            this.offAll();
+            throw new Error("TODO");
+            // this.offAll();
         }
 
         public get selectedIndex(): number {

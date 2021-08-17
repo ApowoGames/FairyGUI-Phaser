@@ -32,8 +32,8 @@ namespace fgui {
                 gv = this._default;
             else
                 this._storage[pageId] = gv = {};
-            gv.alpha = buffer.getFloat32();
-            gv.rotation = buffer.getFloat32();
+            gv.alpha = buffer.readFloat();
+            gv.rotation = buffer.readFloat();
             gv.grayed = buffer.readBool();
             gv.touchable = buffer.readBool();
         }

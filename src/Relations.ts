@@ -129,7 +129,7 @@ namespace fgui {
             var cnt: number = buffer.readByte();
             var target: GObject;
             for (var i: number = 0; i < cnt; i++) {
-                var targetIndex: number = buffer.getInt16();
+                var targetIndex: number = buffer.readShort();
                 if (targetIndex == -1)
                     target = this._owner.parent;
                 else if (parentToChild)

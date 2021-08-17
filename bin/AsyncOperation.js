@@ -27,24 +27,25 @@ window.fairygui = window.fgui;
                 throw new Error("resource not found: " + url);
         }
         cancel() {
-            Laya.timer.clear(this, this.run);
-            this._itemList.length = 0;
-            if (this._objectPool.length > 0) {
-                var cnt = this._objectPool.length;
-                for (var i = 0; i < cnt; i++) {
-                    this._objectPool[i].dispose();
-                }
-                this._objectPool.length = 0;
-            }
+            // Laya.timer.clear(this, this.run);
+            // this._itemList.length = 0;
+            // if (this._objectPool.length > 0) {
+            //     var cnt: number = this._objectPool.length;
+            //     for (var i: number = 0; i < cnt; i++) {
+            //         this._objectPool[i].dispose();
+            //     }
+            //     this._objectPool.length = 0;
+            // }
         }
         internalCreateObject(item) {
-            this._itemList.length = 0;
-            this._objectPool.length = 0;
-            var di = { pi: item, type: item.objectType };
-            di.childCount = this.collectComponentChildren(item);
-            this._itemList.push(di);
-            this._index = 0;
-            Laya.timer.frameLoop(1, this, this.run);
+            throw new Error("TODO");
+            // this._itemList.length = 0;
+            // this._objectPool.length = 0;
+            // var di: DisplayListItem = { pi: item, type: item.objectType };
+            // di.childCount = this.collectComponentChildren(item);
+            // this._itemList.push(di);
+            // this._index = 0;
+            // Laya.timer.frameLoop(1, this, this.run);
         }
         collectComponentChildren(item) {
             var buffer = item.rawData;
@@ -55,15 +56,15 @@ window.fairygui = window.fgui;
             var dataLen;
             var curPos;
             var pkg;
-            var dcnt = buffer.getInt16();
+            var dcnt = buffer.readShort();
             for (i = 0; i < dcnt; i++) {
-                dataLen = buffer.getInt16();
-                curPos = buffer.pos;
+                dataLen = buffer.readShort();
+                curPos = buffer.position;
                 buffer.seek(curPos, 0);
                 var type = buffer.readByte();
                 var src = buffer.readS();
                 var pkgId = buffer.readS();
-                buffer.pos = curPos;
+                buffer.position = curPos;
                 if (src != null) {
                     if (pkgId != null)
                         pkg = fgui.UIPackage.getById(pkgId);
@@ -80,12 +81,12 @@ window.fairygui = window.fgui;
                         di.listItemCount = this.collectListChildren(buffer);
                 }
                 this._itemList.push(di);
-                buffer.pos = curPos + dataLen;
+                buffer.position = curPos + dataLen;
             }
             return dcnt;
         }
         collectListChildren(buffer) {
-            buffer.seek(buffer.pos, 8);
+            buffer.seek(buffer.position, 8);
             var listItemCount = 0;
             var i;
             var nextPos;
@@ -93,10 +94,10 @@ window.fairygui = window.fgui;
             var pi;
             var di;
             var defaultItem = buffer.readS();
-            var itemCount = buffer.getInt16();
+            var itemCount = buffer.readShort();
             for (i = 0; i < itemCount; i++) {
-                nextPos = buffer.getInt16();
-                nextPos += buffer.pos;
+                nextPos = buffer.readShort();
+                nextPos += buffer.position;
                 url = buffer.readS();
                 if (url == null)
                     url = defaultItem;
@@ -110,54 +111,55 @@ window.fairygui = window.fgui;
                         listItemCount++;
                     }
                 }
-                buffer.pos = nextPos;
+                buffer.position = nextPos;
             }
             return listItemCount;
         }
         run() {
-            var obj;
-            var di;
-            var poolStart;
-            var k;
-            var t = Laya.Browser.now();
-            var frameTime = fgui.UIConfig.frameTimeForAsyncUIConstruction;
-            var totalItems = this._itemList.length;
-            while (this._index < totalItems) {
-                di = this._itemList[this._index];
-                if (di.pi) {
-                    obj = fgui.UIObjectFactory.newObject(di.pi);
-                    this._objectPool.push(obj);
-                    fgui.UIPackage._constructing++;
-                    if (di.pi.type == fgui.PackageItemType.Component) {
-                        poolStart = this._objectPool.length - di.childCount - 1;
-                        obj.constructFromResource2(this._objectPool, poolStart);
-                        this._objectPool.splice(poolStart, di.childCount);
-                    }
-                    else {
-                        obj.constructFromResource();
-                    }
-                    fgui.UIPackage._constructing--;
-                }
-                else {
-                    obj = fgui.UIObjectFactory.newObject(di.type);
-                    this._objectPool.push(obj);
-                    if (di.type == fgui.ObjectType.List && di.listItemCount > 0) {
-                        poolStart = this._objectPool.length - di.listItemCount - 1;
-                        for (k = 0; k < di.listItemCount; k++) //把他们都放到pool里，这样GList在创建时就不需要创建对象了
-                            obj.itemPool.returnObject(this._objectPool[k + poolStart]);
-                        this._objectPool.splice(poolStart, di.listItemCount);
-                    }
-                }
-                this._index++;
-                if ((this._index % 5 == 0) && Laya.Browser.now() - t >= frameTime)
-                    return;
-            }
-            Laya.timer.clear(this, this.run);
-            var result = this._objectPool[0];
-            this._itemList.length = 0;
-            this._objectPool.length = 0;
-            if (this.callback != null)
-                this.callback.runWith(result);
+            throw new Error("TODO");
+            // var obj: GObject;
+            // var di: DisplayListItem;
+            // var poolStart: number;
+            // var k: number;
+            // var t: number = Laya.Browser.now();
+            // var frameTime: number = UIConfig.frameTimeForAsyncUIConstruction;
+            // var totalItems: number = this._itemList.length;
+            // while (this._index < totalItems) {
+            //     di = this._itemList[this._index];
+            //     if (di.pi) {
+            //         obj = UIObjectFactory.newObject(di.pi);
+            //         this._objectPool.push(obj);
+            //         UIPackage._constructing++;
+            //         if (di.pi.type == PackageItemType.Component) {
+            //             poolStart = this._objectPool.length - di.childCount - 1;
+            //             (<GComponent>obj).constructFromResource2(this._objectPool, poolStart);
+            //             this._objectPool.splice(poolStart, di.childCount);
+            //         }
+            //         else {
+            //             obj.constructFromResource();
+            //         }
+            //         UIPackage._constructing--;
+            //     }
+            //     else {
+            //         obj = UIObjectFactory.newObject(di.type);
+            //         this._objectPool.push(obj);
+            //         if (di.type == ObjectType.List && di.listItemCount > 0) {
+            //             poolStart = this._objectPool.length - di.listItemCount - 1;
+            //             for (k = 0; k < di.listItemCount; k++) //把他们都放到pool里，这样GList在创建时就不需要创建对象了
+            //                 (<GList>obj).itemPool.returnObject(this._objectPool[k + poolStart]);
+            //             this._objectPool.splice(poolStart, di.listItemCount);
+            //         }
+            //     }
+            //     this._index++;
+            //     if ((this._index % 5 == 0) && Laya.Browser.now() - t >= frameTime)
+            //         return;
+            // }
+            // Laya.timer.clear(this, this.run);
+            // var result: GObject = this._objectPool[0];
+            // this._itemList.length = 0;
+            // this._objectPool.length = 0;
+            // if (this.callback != null)
+            //     this.callback(result);
         }
     }
     fgui.AsyncOperation = AsyncOperation;

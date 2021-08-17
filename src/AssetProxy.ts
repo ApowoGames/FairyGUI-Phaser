@@ -4,7 +4,7 @@ namespace fgui {
         private _asset: any;
 
         constructor() {
-            this._asset = Laya.loader;
+            // this._asset = Laya.loader;
         }
 
         private static _inst: AssetProxy;
@@ -19,7 +19,7 @@ namespace fgui {
             return this._asset.getRes(url);
         }
 
-        public load(url: any, complete?: Laya.Handler, progress?: Laya.Handler, type?: string, priority?: number, cache?: boolean): void {
+        public load(url: any, complete?: () => void, progress?: () => void, type?: string, priority?: number, cache?: boolean): void {
             this._asset.load(url, complete, progress, type, priority, cache);
         }
 

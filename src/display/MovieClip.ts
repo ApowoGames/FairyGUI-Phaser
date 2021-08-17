@@ -3,7 +3,7 @@
 namespace fgui {
     export interface Frame {
         addDelay: number;
-        texture?: Laya.Texture;
+        texture?: Phaser.Textures.Texture;
     }
 
     export class MovieClip extends Image {
@@ -28,7 +28,7 @@ namespace fgui {
         private _repeatedCount: number = 0;
 
         constructor() {
-            super();
+            super(undefined);
             throw new Error("TODO");
 
             // this.mouseEnabled = false;
@@ -171,7 +171,7 @@ namespace fgui {
         }
 
         //从start帧开始，播放到end帧（-1表示结尾），重复times次（0表示无限循环），循环结束后，停止在endAt帧（-1表示参数end）
-        public setPlaySettings(start?: number, end?: number, times?: number, endAt?: number, endHandler?: Laya.Handler): void {
+        public setPlaySettings(start?: number, end?: number, times?: number, endAt?: number, endHandler?: () => void): void {
             if (start == undefined) start = 0;
             if (end == undefined) end = -1;
             if (times == undefined) times = 0;
@@ -190,88 +190,89 @@ namespace fgui {
             this.frame = start;
         }
 
-        private update(): void {
-            if (!this._playing || this._frameCount == 0 || this._status == 3)
-                return;
+        public update(): void {
+            throw new Error("TODO");
+            // if (!this._playing || this._frameCount == 0 || this._status == 3)
+            //     return;
 
-            var dt: number = Laya.timer.delta;
-            if (dt > 100)
-                dt = 100;
-            if (this.timeScale != 1)
-                dt *= this.timeScale;
+            // var dt: number = Laya.timer.delta;
+            // if (dt > 100)
+            //     dt = 100;
+            // if (this.timeScale != 1)
+            //     dt *= this.timeScale;
 
-            this._frameElapsed += dt;
-            var tt: number = this.interval + this._frames[this._frame].addDelay;
-            if (this._frame == 0 && this._repeatedCount > 0)
-                tt += this.repeatDelay;
-            if (this._frameElapsed < tt)
-                return;
+            // this._frameElapsed += dt;
+            // var tt: number = this.interval + this._frames[this._frame].addDelay;
+            // if (this._frame == 0 && this._repeatedCount > 0)
+            //     tt += this.repeatDelay;
+            // if (this._frameElapsed < tt)
+            //     return;
 
-            this._frameElapsed -= tt;
-            if (this._frameElapsed > this.interval)
-                this._frameElapsed = this.interval;
+            // this._frameElapsed -= tt;
+            // if (this._frameElapsed > this.interval)
+            //     this._frameElapsed = this.interval;
 
-            if (this.swing) {
-                if (this._reversed) {
-                    this._frame--;
-                    if (this._frame <= 0) {
-                        this._frame = 0;
-                        this._repeatedCount++;
-                        this._reversed = !this._reversed;
-                    }
-                }
-                else {
-                    this._frame++;
-                    if (this._frame > this._frameCount - 1) {
-                        this._frame = Math.max(0, this._frameCount - 2);
-                        this._repeatedCount++;
-                        this._reversed = !this._reversed;
-                    }
-                }
-            }
-            else {
-                this._frame++;
-                if (this._frame > this._frameCount - 1) {
-                    this._frame = 0;
-                    this._repeatedCount++;
-                }
-            }
+            // if (this.swing) {
+            //     if (this._reversed) {
+            //         this._frame--;
+            //         if (this._frame <= 0) {
+            //             this._frame = 0;
+            //             this._repeatedCount++;
+            //             this._reversed = !this._reversed;
+            //         }
+            //     }
+            //     else {
+            //         this._frame++;
+            //         if (this._frame > this._frameCount - 1) {
+            //             this._frame = Math.max(0, this._frameCount - 2);
+            //             this._repeatedCount++;
+            //             this._reversed = !this._reversed;
+            //         }
+            //     }
+            // }
+            // else {
+            //     this._frame++;
+            //     if (this._frame > this._frameCount - 1) {
+            //         this._frame = 0;
+            //         this._repeatedCount++;
+            //     }
+            // }
 
-            if (this._status == 1) //new loop
-            {
-                this._frame = this._start;
-                this._frameElapsed = 0;
-                this._status = 0;
-            }
-            else if (this._status == 2) //ending
-            {
-                this._frame = this._endAt;
-                this._frameElapsed = 0;
-                this._status = 3; //ended
+            // if (this._status == 1) //new loop
+            // {
+            //     this._frame = this._start;
+            //     this._frameElapsed = 0;
+            //     this._status = 0;
+            // }
+            // else if (this._status == 2) //ending
+            // {
+            //     this._frame = this._endAt;
+            //     this._frameElapsed = 0;
+            //     this._status = 3; //ended
 
-                //play end
-                if (this._endHandler) {
-                    var handler = this._endHandler;
-                    this._endHandler = null;
-                    handler();
-                }
-            }
-            else {
-                if (this._frame == this._end) {
-                    if (this._times > 0) {
-                        this._times--;
-                        if (this._times == 0)
-                            this._status = 2;  //ending
-                        else
-                            this._status = 1; //new loop
-                    }
-                    else {
-                        this._status = 1; //new loop
-                    }
-                }
-            }
+            //     //play end
+            //     if (this._endHandler) {
+            //         var handler = this._endHandler;
+            //         this._endHandler = null;
+            //         handler();
+            //     }
+            // }
+            // else {
+            //     if (this._frame == this._end) {
+            //         if (this._times > 0) {
+            //             this._times--;
+            //             if (this._times == 0)
+            //                 this._status = 2;  //ending
+            //             else
+            //                 this._status = 1; //new loop
+            //         }
+            //         else {
+            //             this._status = 1; //new loop
+            //         }
+            //     }
+            // }
 
-            this.drawFrame();
+            // this.drawFrame();
         }
 
         private drawFrame(): void {

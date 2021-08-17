@@ -29,7 +29,7 @@ namespace fgui {
             else
                 this._storage[pageId] = gv = {};
             gv.playing = buffer.readBool();
-            gv.frame = buffer.getInt32();
+            gv.frame = buffer.readInt();
         }
 
         public apply(): void {

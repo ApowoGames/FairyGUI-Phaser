@@ -500,24 +500,26 @@ namespace fgui {
         }
 
         private addRefTarget(): void {
-            if (this._target != this._owner.parent)
-                this._target.on(Events.XY_CHANGED, this, this.__targetXYChanged);
-            this._target.on(Events.SIZE_CHANGED, this, this.__targetSizeChanged);
-            this._target.on(Events.SIZE_DELAY_CHANGE, this, this.__targetSizeWillChange);
+            throw new Error("TODO");
+            // if (this._target != this._owner.parent)
+            //     this._target.on(Events.XY_CHANGED, this, this.__targetXYChanged);
+            // this._target.on(Events.SIZE_CHANGED, this, this.__targetSizeChanged);
+            // this._target.on(Events.SIZE_DELAY_CHANGE, this, this.__targetSizeWillChange);
 
-            this._targetX = this._target.x;
-            this._targetY = this._target.y;
-            this._targetWidth = this._target._width;
-            this._targetHeight = this._target._height;
+            // this._targetX = this._target.x;
+            // this._targetY = this._target.y;
+            // this._targetWidth = this._target._width;
+            // this._targetHeight = this._target._height;
         }
 
         private releaseRefTarget(): void {
-            if (this._target.displayObject == null)
-                return;
+            throw new Error("TODO");
+            // if (this._target.displayObject == null)
+            //     return;
 
-            this._target.off(Events.XY_CHANGED, this, this.__targetXYChanged);
-            this._target.off(Events.SIZE_CHANGED, this, this.__targetSizeChanged);
-            this._target.off(Events.SIZE_DELAY_CHANGE, this, this.__targetSizeWillChange);
+            // this._target.off(Events.XY_CHANGED, this, this.__targetXYChanged);
+            // this._target.off(Events.SIZE_CHANGED, this, this.__targetSizeChanged);
+            // this._target.off(Events.SIZE_DELAY_CHANGE, this, this.__targetSizeWillChange);
         }
 
         private __targetXYChanged(): void {

@@ -33,8 +33,8 @@ namespace fgui {
             super.setup(buffer);
 
             this.transitionName = buffer.readS();
-            this.playTimes = buffer.getInt32();
-            this.delay = buffer.getFloat32();
+            this.playTimes = buffer.readInt();
+            this.delay = buffer.readFloat();
             this.stopOnExit = buffer.readBool();
         }
     }

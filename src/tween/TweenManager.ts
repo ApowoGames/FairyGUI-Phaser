@@ -76,46 +76,46 @@ namespace fgui {
             // var dt: number = Laya.timer.delta / 1000;
             throw new Error("TODO")
 
-            var cnt: number = _totalActiveTweens;
-            var freePosStart: number = -1;
-            for (var i: number = 0; i < cnt; i++) {
-                var tweener: GTweener = _activeTweens[i];
-                if (tweener == null) {
-                    if (freePosStart == -1)
-                        freePosStart = i;
-                }
-                else if (tweener._killed) {
-                    tweener._reset();
-                    _tweenerPool.push(tweener);
-                    _activeTweens[i] = null;
+            // var cnt: number = _totalActiveTweens;
+            // var freePosStart: number = -1;
+            // for (var i: number = 0; i < cnt; i++) {
+            //     var tweener: GTweener = _activeTweens[i];
+            //     if (tweener == null) {
+            //         if (freePosStart == -1)
+            //             freePosStart = i;
+            //     }
+            //     else if (tweener._killed) {
+            //         tweener._reset();
+            //         _tweenerPool.push(tweener);
+            //         _activeTweens[i] = null;
 
-                    if (freePosStart == -1)
-                        freePosStart = i;
-                }
-                else {
-                    if ((tweener._target instanceof GObject) && tweener._target.isDisposed)
-                        tweener._killed = true;
-                    else if (!tweener._paused)
-                        tweener._update(dt);
+            //         if (freePosStart == -1)
+            //             freePosStart = i;
+            //     }
+            //     else {
+            //         if ((tweener._target instanceof GObject) && tweener._target.isDisposed)
+            //             tweener._killed = true;
+            //         else if (!tweener._paused)
+            //             tweener._update(dt);
 
-                    if (freePosStart != -1) {
-                        _activeTweens[freePosStart] = tweener;
-                        _activeTweens[i] = null;
-                        freePosStart++;
-                    }
-                }
-            }
+            //         if (freePosStart != -1) {
+            //             _activeTweens[freePosStart] = tweener;
+            //             _activeTweens[i] = null;
+            //             freePosStart++;
+            //         }
+            //     }
+            // }
 
-            if (freePosStart >= 0) {
-                if (_totalActiveTweens != cnt) //new tweens added
-                {
-                    var j: number = cnt;
-                    cnt = _totalActiveTweens - cnt;
-                    for (i = 0; i < cnt; i++)
-                        _activeTweens[freePosStart++] = _activeTweens[j++];
-                }
-                _totalActiveTweens = freePosStart;
-            }
+            // if (freePosStart >= 0) {
+            //     if (_totalActiveTweens != cnt) //new tweens added
+            //     {
+            //         var j: number = cnt;
+            //         cnt = _totalActiveTweens - cnt;
+            //         for (i = 0; i < cnt; i++)
+            //             _activeTweens[freePosStart++] = _activeTweens[j++];
+            //     }
+            //     _totalActiveTweens = freePosStart;
+            // }
         }
     }
 

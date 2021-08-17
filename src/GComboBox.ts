@@ -285,40 +285,41 @@ namespace fgui {
         }
 
         protected constructExtension(buffer: ByteBuffer): void {
+            throw new Error("TODO");
 
-            var str: string;
+            // var str: string;
 
-            this._buttonController = this.getController("button");
-            this._titleObject = this.getChild("title");
-            this._iconObject = this.getChild("icon");
+            // this._buttonController = this.getController("button");
+            // this._titleObject = this.getChild("title");
+            // this._iconObject = this.getChild("icon");
 
-            str = buffer.readS();
-            if (str) {
-                this.dropdown = <GComponent>(UIPackage.createObjectFromURL(str));
-                if (!this.dropdown) {
-                    Laya.Log.print("下拉框必须为元件");
-                    return;
-                }
-                this.dropdown.name = "this._dropdownObject";
-                this._list = <GList>this.dropdown.getChild("list");
-                if (!this._list) {
-                    Laya.Log.print(this.resourceURL + ": 下拉框的弹出元件里必须包含名为list的列表");
-                    return;
-                }
-                this._list.on(Events.CLICK_ITEM, this, this.__clickItem);
+            // str = buffer.readS();
+            // if (str) {
+            //     this.dropdown = <GComponent>(UIPackage.createObjectFromURL(str));
+            //     if (!this.dropdown) {
+            //         Laya.Log.print("下拉框必须为元件");
+            //         return;
+            //     }
+            //     this.dropdown.name = "this._dropdownObject";
+            //     this._list = <GList>this.dropdown.getChild("list");
+            //     if (!this._list) {
+            //         Laya.Log.print(this.resourceURL + ": 下拉框的弹出元件里必须包含名为list的列表");
+            //         return;
+            //     }
+            //     this._list.on(Events.CLICK_ITEM, this, this.__clickItem);
 
-                this._list.addRelation(this.dropdown, RelationType.Width);
-                this._list.removeRelation(this.dropdown, RelationType.Height);
+            //     this._list.addRelation(this.dropdown, RelationType.Width);
+            //     this._list.removeRelation(this.dropdown, RelationType.Height);
 
-                this.dropdown.addRelation(this._list, RelationType.Height);
-                this.dropdown.removeRelation(this._list, RelationType.Width);
+            //     this.dropdown.addRelation(this._list, RelationType.Height);
+            //     this.dropdown.removeRelation(this._list, RelationType.Width);
 
-                this.dropdown.displayObject.on(Laya.Event.UNDISPLAY, this, this.__popupWinClosed);
-            }
+            //     this.dropdown.displayObject.on(Laya.Event.UNDISPLAY, this, this.__popupWinClosed);
+            // }
 
-            this.on(Laya.Event.ROLL_OVER, this, this.__rollover);
-            this.on(Laya.Event.ROLL_OUT, this, this.__rollout);
-            this.on(Laya.Event.MOUSE_DOWN, this, this.__mousedown);
+            // this.on(Laya.Event.ROLL_OVER, this, this.__rollover);
+            // this.on(Laya.Event.ROLL_OUT, this, this.__rollout);
+            // this.on(Laya.Event.MOUSE_DOWN, this, this.__mousedown);
         }
 
         public setup_afterAdd(buffer: ByteBuffer, beginPos: number): void {
@@ -334,10 +335,10 @@ namespace fgui {
             var iv: number;
             var nextPos: number;
             var str: string;
-            var itemCount: number = buffer.getInt16();
+            var itemCount: number = buffer.readShort();
             for (i = 0; i < itemCount; i++) {
-                nextPos = buffer.getInt16();
-                nextPos += buffer.pos;
+                nextPos = buffer.readShort();
+                nextPos += buffer.position;
 
                 this._items[i] = buffer.readS();
                 this._values[i] = buffer.readS();
@@ -348,7 +349,7 @@ namespace fgui {
                     this._icons[i] = str;
                 }
 
-                buffer.pos = nextPos;
+                buffer.position = nextPos;
             }
 
             str = buffer.readS();
@@ -369,43 +370,44 @@ namespace fgui {
 
             if (buffer.readBool())
                 this.titleColor = buffer.readColorS();
-            iv = buffer.getInt32();
+            iv = buffer.readInt();
             if (iv > 0)
                 this._visibleItemCount = iv;
             this._popupDirection = buffer.readByte();
 
-            iv = buffer.getInt16();
+            iv = buffer.readShort();
             if (iv >= 0)
                 this._selectionController = this.parent.getControllerAt(iv);
         }
 
         protected showDropdown(): void {
-            if (this._itemsUpdated) {
-                this._itemsUpdated = false;
+            throw new Error("TODO");
+            // if (this._itemsUpdated) {
+            //     this._itemsUpdated = false;
 
-                this._list.removeChildrenToPool();
-                var cnt: number = this._items.length;
-                for (var i: number = 0; i < cnt; i++) {
-                    var item: GObject = this._list.addItemFromPool();
-                    item.name = i < this._values.length ? this._values[i] : "";
-                    item.text = this._items[i];
-                    item.icon = (this._icons && i < this._icons.length) ? this._icons[i] : null;
-                }
-                this._list.resizeToFit(this._visibleItemCount);
-            }
-            this._list.selectedIndex = -1;
-            this.dropdown.width = this.width;
-            this._list.ensureBoundsCorrect();
+            //     this._list.removeChildrenToPool();
+            //     var cnt: number = this._items.length;
+            //     for (var i: number = 0; i < cnt; i++) {
+            //         var item: GObject = this._list.addItemFromPool();
+            //         item.name = i < this._values.length ? this._values[i] : "";
+            //         item.text = this._items[i];
+            //         item.icon = (this._icons && i < this._icons.length) ? this._icons[i] : null;
+            //     }
+            //     this._list.resizeToFit(this._visibleItemCount);
+            // }
+            // this._list.selectedIndex = -1;
+            // this.dropdown.width = this.width;
+            // this._list.ensureBoundsCorrect();
 
-            var downward: any = null;
-            if (this._popupDirection == PopupDirection.Down)
-                downward = true;
-            else if (this._popupDirection == PopupDirection.Up)
-                downward = false;
+            // var downward: any = null;
+            // if (this._popupDirection == PopupDirection.Down)
+            //     downward = true;
+            // else if (this._popupDirection == PopupDirection.Up)
+            //     downward = false;
 
-            this.root.togglePopup(this.dropdown, this, downward);
-            if (this.dropdown.parent)
-                this.setState(GButton.DOWN);
+            // this.root.togglePopup(this.dropdown, this, downward);
+            // if (this.dropdown.parent)
+            //     this.setState(GButton.DOWN);
         }
 
         private __popupWinClosed(): void {
@@ -415,17 +417,18 @@ namespace fgui {
                 this.setState(GButton.UP);
         }
 
-        private __clickItem(itemObject: GObject, evt: Laya.Event): void {
-            Laya.timer.callLater(this, this.__clickItem2, [this._list.getChildIndex(itemObject), evt])
+        private __clickItem(itemObject: GObject, evt: any): void {
+            // Laya.timer.callLater(this, this.__clickItem2, [this._list.getChildIndex(itemObject), evt])
         }
 
-        private __clickItem2(index: number, evt: Laya.Event): void {
-            if (this.dropdown.parent instanceof GRoot)
-                this.dropdown.parent.hidePopup();
+        private __clickItem2(index: number, evt: any): void {
+            throw new Error("TODO");
+            // if (this.dropdown.parent instanceof GRoot)
+            //     this.dropdown.parent.hidePopup();
 
-            this._selectedIndex = -1;
-            this.selectedIndex = index;
-            Events.dispatch(Events.STATE_CHANGED, this.displayObject, evt);
+            // this._selectedIndex = -1;
+            // this.selectedIndex = index;
+            // Events.dispatch(Events.STATE_CHANGED, this.displayObject, evt);
         }
 
         private __rollover(): void {
@@ -444,31 +447,34 @@ namespace fgui {
             this.setState(GButton.UP);
         }
 
-        private __mousedown(evt: Laya.Event): void {
-            if (evt.target instanceof Laya.Input)
-                return;
+        private __mousedown(evt: any): void {
+            throw new Error("TODO");
 
-            this._down = true;
-            GRoot.inst.checkPopups(evt.target);
+            // if (evt.target instanceof Laya.Input)
+            //     return;
 
-            Laya.stage.on(Laya.Event.MOUSE_UP, this, this.__mouseup);
+            // this._down = true;
+            // GRoot.inst.checkPopups(evt.target);
 
-            if (this.dropdown)
-                this.showDropdown();
+            // Laya.stage.on(Laya.Event.MOUSE_UP, this, this.__mouseup);
+
+            // if (this.dropdown)
+            //     this.showDropdown();
         }
 
         private __mouseup(): void {
-            if (this._down) {
-                this._down = false;
-                Laya.stage.off(Laya.Event.MOUSE_UP, this, this.__mouseup);
+            throw new Error("TODO");
+            // if (this._down) {
+            //     this._down = false;
+            //     Laya.stage.off(Laya.Event.MOUSE_UP, this, this.__mouseup);
 
-                if (this.dropdown && !this.dropdown.parent) {
-                    if (this._over)
-                        this.setState(GButton.OVER);
-                    else
-                        this.setState(GButton.UP);
-                }
-            }
+            //     if (this.dropdown && !this.dropdown.parent) {
+            //         if (this._over)
+            //             this.setState(GButton.OVER);
+            //         else
+            //             this.setState(GButton.UP);
+            //     }
+            // }
         }
     }
 }

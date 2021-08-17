@@ -14,9 +14,9 @@ namespace fgui {
 
         protected addStatus(pageId: string, buffer: ByteBuffer): void {
             if (pageId == null)
-                this._default = buffer.getInt32();
+                this._default = buffer.readInt();
             else
-                this._storage[pageId] = buffer.getInt32();
+                this._storage[pageId] = buffer.readInt();
         }
 
         public apply(): void {

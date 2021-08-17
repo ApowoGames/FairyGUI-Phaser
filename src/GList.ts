@@ -3,11 +3,11 @@ namespace fgui {
         /**
          * this.itemRenderer(number index, GObject item);
          */
-        public itemRenderer: (index: number, item: GObject) => void;;
+        public itemRenderer: (index: number, item: GObject) => void;
         /**
          * this.itemProvider(index:number):string;
          */
-        public itemProvider: (index: number) => string;;
+        public itemProvider: (index: number) => string;
 
         public scrollItemToViewOnClick: boolean;
         public foldInvisibleItems: boolean;
@@ -1222,171 +1222,174 @@ namespace fgui {
         }
 
         private getIndexOnPos1(forceUpdate: boolean): number {
-            if (this._realNumItems < this._curLineItemCount) {
-                s_n = 0;
-                return 0;
-            }
+            throw new Error("TODO");
+            // if (this._realNumItems < this._curLineItemCount) {
+            //     s_n = 0;
+            //     return 0;
+            // }
 
-            var i: number;
-            var pos2: number;
-            var pos3: number;
+            // var i: number;
+            // var pos2: number;
+            // var pos3: number;
 
-            if (this.numChildren > 0 && !forceUpdate) {
-                pos2 = this.getChildAt(0).y;
-                if (pos2 > s_n) {
-                    for (i = this._firstIndex - this._curLineItemCount; i >= 0; i -= this._curLineItemCount) {
-                        pos2 -= (this._virtualItems[i].height + this._lineGap);
-                        if (pos2 <= s_n) {
-                            s_n = pos2;
-                            return i;
-                        }
-                    }
+            // if (this.numChildren > 0 && !forceUpdate) {
+            //     pos2 = this.getChildAt(0).y;
+            //     if (pos2 > s_n) {
+            //         for (i = this._firstIndex - this._curLineItemCount; i >= 0; i -= this._curLineItemCount) {
+            //             pos2 -= (this._virtualItems[i].height + this._lineGap);
+            //             if (pos2 <= s_n) {
+            //                 s_n = pos2;
+            //                 return i;
+            //             }
+            //         }
 
-                    s_n = 0;
-                    return 0;
-                }
-                else {
-                    for (i = this._firstIndex; i < this._realNumItems; i += this._curLineItemCount) {
-                        pos3 = pos2 + this._virtualItems[i].height + this._lineGap;
-                        if (pos3 > s_n) {
-                            s_n = pos2;
-                            return i;
-                        }
-                        pos2 = pos3;
-                    }
+            //         s_n = 0;
+            //         return 0;
+            //     }
+            //     else {
+            //         for (i = this._firstIndex; i < this._realNumItems; i += this._curLineItemCount) {
+            //             pos3 = pos2 + this._virtualItems[i].height + this._lineGap;
+            //             if (pos3 > s_n) {
+            //                 s_n = pos2;
+            //                 return i;
+            //             }
+            //             pos2 = pos3;
+            //         }
 
-                    s_n = pos2;
-                    return this._realNumItems - this._curLineItemCount;
-                }
-            }
-            else {
-                pos2 = 0;
-                for (i = 0; i < this._realNumItems; i += this._curLineItemCount) {
-                    pos3 = pos2 + this._virtualItems[i].height + this._lineGap;
-                    if (pos3 > s_n) {
-                        s_n = pos2;
-                        return i;
-                    }
-                    pos2 = pos3;
-                }
+            //         s_n = pos2;
+            //         return this._realNumItems - this._curLineItemCount;
+            //     }
+            // }
+            // else {
+            //     pos2 = 0;
+            //     for (i = 0; i < this._realNumItems; i += this._curLineItemCount) {
+            //         pos3 = pos2 + this._virtualItems[i].height + this._lineGap;
+            //         if (pos3 > s_n) {
+            //             s_n = pos2;
+            //             return i;
+            //         }
+            //         pos2 = pos3;
+            //     }
 
-                s_n = pos2;
-                return this._realNumItems - this._curLineItemCount;
-            }
+            //     s_n = pos2;
+            //     return this._realNumItems - this._curLineItemCount;
+            // }
         }
 
         private getIndexOnPos2(forceUpdate: boolean): number {
-            if (this._realNumItems < this._curLineItemCount) {
-                s_n = 0;
-                return 0;
-            }
+            throw new Error("TODO");
+            // if (this._realNumItems < this._curLineItemCount) {
+            //     s_n = 0;
+            //     return 0;
+            // }
 
-            var i: number;
-            var pos2: number;
-            var pos3: number;
+            // var i: number;
+            // var pos2: number;
+            // var pos3: number;
 
-            if (this.numChildren > 0 && !forceUpdate) {
-                pos2 = this.getChildAt(0).x;
-                if (pos2 > s_n) {
-                    for (i = this._firstIndex - this._curLineItemCount; i >= 0; i -= this._curLineItemCount) {
-                        pos2 -= (this._virtualItems[i].width + this._columnGap);
-                        if (pos2 <= s_n) {
-                            s_n = pos2;
-                            return i;
-                        }
-                    }
+            // if (this.numChildren > 0 && !forceUpdate) {
+            //     pos2 = this.getChildAt(0).x;
+            //     if (pos2 > s_n) {
+            //         for (i = this._firstIndex - this._curLineItemCount; i >= 0; i -= this._curLineItemCount) {
+            //             pos2 -= (this._virtualItems[i].width + this._columnGap);
+            //             if (pos2 <= s_n) {
+            //                 s_n = pos2;
+            //                 return i;
+            //             }
+            //         }
 
-                    s_n = 0;
-                    return 0;
-                }
-                else {
-                    for (i = this._firstIndex; i < this._realNumItems; i += this._curLineItemCount) {
-                        pos3 = pos2 + this._virtualItems[i].width + this._columnGap;
-                        if (pos3 > s_n) {
-                            s_n = pos2;
-                            return i;
-                        }
-                        pos2 = pos3;
-                    }
+            //         s_n = 0;
+            //         return 0;
+            //     }
+            //     else {
+            //         for (i = this._firstIndex; i < this._realNumItems; i += this._curLineItemCount) {
+            //             pos3 = pos2 + this._virtualItems[i].width + this._columnGap;
+            //             if (pos3 > s_n) {
+            //                 s_n = pos2;
+            //                 return i;
+            //             }
+            //             pos2 = pos3;
+            //         }
 
-                    s_n = pos2;
-                    return this._realNumItems - this._curLineItemCount;
-                }
-            }
-            else {
-                pos2 = 0;
-                for (i = 0; i < this._realNumItems; i += this._curLineItemCount) {
-                    pos3 = pos2 + this._virtualItems[i].width + this._columnGap;
-                    if (pos3 > s_n) {
-                        s_n = pos2;
-                        return i;
-                    }
-                    pos2 = pos3;
-                }
+            //         s_n = pos2;
+            //         return this._realNumItems - this._curLineItemCount;
+            //     }
+            // }
+            // else {
+            //     pos2 = 0;
+            //     for (i = 0; i < this._realNumItems; i += this._curLineItemCount) {
+            //         pos3 = pos2 + this._virtualItems[i].width + this._columnGap;
+            //         if (pos3 > s_n) {
+            //             s_n = pos2;
+            //             return i;
+            //         }
+            //         pos2 = pos3;
+            //     }
 
-                s_n = pos2;
-                return this._realNumItems - this._curLineItemCount;
-            }
+            //     s_n = pos2;
+            //     return this._realNumItems - this._curLineItemCount;
+            // }
         }
 
         private getIndexOnPos3(forceUpdate: boolean): number {
-            if (this._realNumItems < this._curLineItemCount) {
-                s_n = 0;
-                return 0;
-            }
+            throw new Error("TODO");
+            // if (this._realNumItems < this._curLineItemCount) {
+            //     s_n = 0;
+            //     return 0;
+            // }
 
-            var viewWidth: number = this.viewWidth;
-            var page: number = Math.floor(s_n / viewWidth);
-            var startIndex: number = page * (this._curLineItemCount * this._curLineItemCount2);
-            var pos2: number = page * viewWidth;
-            var i: number;
-            var pos3: number;
-            for (i = 0; i < this._curLineItemCount; i++) {
-                pos3 = pos2 + this._virtualItems[startIndex + i].width + this._columnGap;
-                if (pos3 > s_n) {
-                    s_n = pos2;
-                    return startIndex + i;
-                }
-                pos2 = pos3;
-            }
+            // var viewWidth: number = this.viewWidth;
+            // var page: number = Math.floor(s_n / viewWidth);
+            // var startIndex: number = page * (this._curLineItemCount * this._curLineItemCount2);
+            // var pos2: number = page * viewWidth;
+            // var i: number;
+            // var pos3: number;
+            // for (i = 0; i < this._curLineItemCount; i++) {
+            //     pos3 = pos2 + this._virtualItems[startIndex + i].width + this._columnGap;
+            //     if (pos3 > s_n) {
+            //         s_n = pos2;
+            //         return startIndex + i;
+            //     }
+            //     pos2 = pos3;
+            // }
 
-            s_n = pos2;
-            return startIndex + this._curLineItemCount - 1;
+            // s_n = pos2;
+            // return startIndex + this._curLineItemCount - 1;
         }
 
         private handleScroll(forceUpdate: boolean): void {
-            if (this._eventLocked)
-                return;
+            // if (this._eventLocked)
+            //     return;
 
-            if (this._layout == ListLayoutType.SingleColumn || this._layout == ListLayoutType.FlowHorizontal) {
-                var enterCounter: number = 0;
-                while (this.handleScroll1(forceUpdate)) {
-                    enterCounter++;
-                    forceUpdate = false;
-                    if (enterCounter > 20) {
-                        console.log("FairyGUI: list will never be <the> filled item renderer function always returns a different size.");
-                        break;
-                    }
-                }
-                this.handleArchOrder1();
-            }
-            else if (this._layout == ListLayoutType.SingleRow || this._layout == ListLayoutType.FlowVertical) {
-                enterCounter = 0;
-                while (this.handleScroll2(forceUpdate)) {
-                    enterCounter++;
-                    forceUpdate = false;
-                    if (enterCounter > 20) {
-                        console.log("FairyGUI: list will never be <the> filled item renderer function always returns a different size.");
-                        break;
-                    }
-                }
-                this.handleArchOrder2();
-            }
-            else {
-                this.handleScroll3(forceUpdate);
-            }
+            // if (this._layout == ListLayoutType.SingleColumn || this._layout == ListLayoutType.FlowHorizontal) {
+            //     var enterCounter: number = 0;
+            //     while (this.handleScroll1(forceUpdate)) {
+            //         enterCounter++;
+            //         forceUpdate = false;
+            //         if (enterCounter > 20) {
+            //             console.log("FairyGUI: list will never be <the> filled item renderer function always returns a different size.");
+            //             break;
+            //         }
+            //     }
+            //     this.handleArchOrder1();
+            // }
+            // else if (this._layout == ListLayoutType.SingleRow || this._layout == ListLayoutType.FlowVertical) {
+            //     enterCounter = 0;
+            //     while (this.handleScroll2(forceUpdate)) {
+            //         enterCounter++;
+            //         forceUpdate = false;
+            //         if (enterCounter > 20) {
+            //             console.log("FairyGUI: list will never be <the> filled item renderer function always returns a different size.");
+            //             break;
+            //         }
+            //     }
+            //     this.handleArchOrder2();
+            // }
+            // else {
+            //     this.handleScroll3(forceUpdate);
+            // }
 
-            this._boundsChanged = false;
+            // this._boundsChanged = false;
         }
 
         private handleScroll1(forceUpdate: boolean): boolean {
@@ -1699,7 +1702,7 @@ namespace fgui {
         }
 
         private handleScroll3(forceUpdate: boolean): void {
-            throw new Error("TODO");
+            throw new Error("TODO")
             // var pos: number = this._scrollPane.scrollingPosX;
 
             // //寻找当前位置的第一条项目
