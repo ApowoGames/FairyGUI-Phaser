@@ -107,7 +107,7 @@ export class DOMEventManager extends Phaser.Events.EventEmitter {
 
     private retEvent: any = {};
     private lowestDelta: number;
-    private nullLowestDeltaTimeout: number = NaN;
+    private nullLowestDeltaTimeout: any = null;
 
     private nullLowestDelta(): void {
         this.lowestDelta = null;

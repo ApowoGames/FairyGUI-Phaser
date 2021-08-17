@@ -1,0 +1,5 @@
+{
+    "name": "fairygui-phaser/fgui",
+    "main": "types/index.d.ts",
+    "out": "../release/types/index.d.ts"
+}

@@ -6,11 +6,13 @@
   "scripts": {
     "build": "rimraf release && node --max-old-space-size=4096 node_modules/webpack/bin/webpack.js --mode=development --output-path=./release --progress",
     "ver": "genversion version.js",
-    "patch": "yarn version --patch && yarn ver"
+    "patch": "yarn version --patch && yarn ver",
+    "dts": "dts-bundle --configJson dts-bundle.json && rm -rf types"
   },
   "dependencies": {},
   "devDependencies": {
     "circular-dependency-plugin": "^5.2.2",
+    "dts-bundle": "^0.7.3",
     "file-loader": "^6.2.0",
     "genversion": "^2.2.0",
     "phaser": "^3.55.2",
