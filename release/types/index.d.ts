@@ -458,7 +458,7 @@ declare module 'fairygui-phaser/Window' {
     import { GRoot } from 'fairygui-phaser/GRoot';
     import { IUISource } from 'fairygui-phaser/IUISource';
     import { GObject } from 'fairygui-phaser/GObject';
-    import "phaser";
+    import "tooqingphaser";
     import { GComponent } from "fairygui-phaser/GComponent";
     export class Window extends GComponent {
         protected _requestingCmd: number;
