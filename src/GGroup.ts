@@ -414,8 +414,7 @@ export class GGroup extends GObject {
     }
 
     public handleVisibleChanged(): void {
-        if (!this._parent)
-            return;
+        if (!this._parent) 
 
         var cnt: number = this._parent.numChildren;
         for (var i: number = 0; i < cnt; i++) {
