@@ -1,7 +1,7 @@
 {
   "name": "fairygui-phaser",
   "version": "0.0.2",
-  "main": "release/fairgui-phaser.js",
+  "main": "release/fairygui-phaser.js",
   "types": "release/types/index.d.ts",
   "license": "MIT",
   "scripts": {
