@@ -21,7 +21,7 @@ module.exports = {
         extensions: [".ts", ".js"],
     },
     externals: {
-        "phaser": 'phaser',
+        "tooqingphaser": 'tooqingphaser',
     },
     optimization: {
         minimize: false,
