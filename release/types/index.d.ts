@@ -2041,14 +2041,13 @@ declare module 'fairygui-phaser/gears/GearBase' {
     import { GTweener } from 'fairygui-phaser/tween/GTweener';
     import { ByteBuffer } from 'fairygui-phaser/utils/ByteBuffer';
     import { Controller } from 'fairygui-phaser/Controller';
-    import { GObject } from 'fairygui-phaser/GObject';
     export class GearBase {
         static disableAllTweenEffect: boolean;
-        protected _owner: GObject;
+        protected _owner: any;
         protected _controller: Controller;
         protected _tweenConfig?: GearTweenConfig;
-        static create(owner: GObject, index: number): GearBase;
-        constructor(owner: GObject);
+        static create(owner: any, index: number): GearBase;
+        constructor(owner: any);
         dispose(): void;
         get controller(): Controller;
         set controller(val: Controller);

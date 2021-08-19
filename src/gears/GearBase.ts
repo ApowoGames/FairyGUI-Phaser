@@ -11,16 +11,15 @@ import { GearSize } from './GearSize';
 import { GearXY } from './GearXY';
 import { GearDisplay } from './GearDisplay';
 import { Controller } from './../Controller';
-import { GObject } from './../GObject';
 import { GearFontSize } from './GearFontSize';
 export class GearBase {
     public static disableAllTweenEffect: boolean;
 
-    protected _owner: GObject;
+    protected _owner: any; //GObject 由于gobject是所有ui的基类，定义类型会导致循环引用
     protected _controller: Controller;
     protected _tweenConfig?: GearTweenConfig;
 
-    public static create(owner: GObject, index: number): GearBase {
+    public static create(owner: any, index: number): GearBase {
         if (!Classes)
             Classes = [
                 GearDisplay, GearXY, GearSize, GearLook, GearColor,
@@ -29,7 +28,7 @@ export class GearBase {
         return new (Classes[index])(owner);
     }
 
-    constructor(owner: GObject) {
+    constructor(owner: any) {
         this._owner = owner;
     }
 
