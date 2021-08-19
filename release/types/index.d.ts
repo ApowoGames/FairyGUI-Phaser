@@ -95,22 +95,9 @@ declare module 'fairygui-phaser/GRoot' {
 }
 
 declare module 'fairygui-phaser/GObject' {
-    import { ByteBuffer } from 'fairygui-phaser/utils/ByteBuffer';
-    import { GLoader } from 'fairygui-phaser/GLoader';
-    import { GComboBox } from 'fairygui-phaser/GComboBox';
-    import { GGraph } from 'fairygui-phaser/GGraph';
-    import { GSlider } from 'fairygui-phaser/GSlider';
-    import { GLabel } from 'fairygui-phaser/GLabel';
-    import { GButton } from 'fairygui-phaser/GButton';
-    import { GProgressBar } from 'fairygui-phaser/GProgressBar';
     import { Controller } from 'fairygui-phaser/Controller';
-    import { GRichTextField } from 'fairygui-phaser/GRichTextField';
-    import { GTextInput } from 'fairygui-phaser/GTextInput';
-    import { GTextField } from 'fairygui-phaser/GTextField';
-    import { GMovieClip } from 'fairygui-phaser/GMovieClip';
-    import { GImage } from 'fairygui-phaser/GImage';
+    import { ByteBuffer } from 'fairygui-phaser/utils/ByteBuffer';
     import { GRoot } from 'fairygui-phaser/GRoot';
-    import { GList } from 'fairygui-phaser/GList';
     import { GTreeNode } from 'fairygui-phaser/GTreeNode';
     import { GearBase } from 'fairygui-phaser/gears/GearBase';
     import { GGroup } from 'fairygui-phaser/GGroup';
@@ -265,21 +252,8 @@ declare module 'fairygui-phaser/GObject' {
             removeFromParent(): void;
             get root(): GRoot;
             get asCom(): GComponent;
-            get asButton(): GButton;
-            get asLabel(): GLabel;
-            get asProgress(): GProgressBar;
-            get asTextField(): GTextField;
-            get asRichTextField(): GRichTextField;
-            get asTextInput(): GTextInput;
-            get asLoader(): GLoader;
-            get asList(): GList;
             get asTree(): GTree;
-            get asGraph(): GGraph;
             get asGroup(): GGroup;
-            get asSlider(): GSlider;
-            get asComboBox(): GComboBox;
-            get asImage(): GImage;
-            get asMovieClip(): GMovieClip;
             get text(): string;
             set text(value: string);
             get icon(): string;

@@ -86,13 +86,13 @@ export class GLabel extends GComponent {
     }
 
     public set editable(val: boolean) {
-        if (this._titleObject)
-            this._titleObject.asTextInput.editable = val;
+        if (this._titleObject instanceof GTextInput)
+            this._titleObject.editable = val;
     }
 
     public get editable(): boolean {
         if (this._titleObject instanceof GTextInput)
-            return this._titleObject.asTextInput.editable;
+            return this._titleObject.editable;
         else
             return false;
     }

@@ -5,6 +5,7 @@
   "types": "release/types/index.d.ts",
   "license": "MIT",
   "scripts": {
+    "watch": "webpack --watch --config webpack.config.js",
     "build": "rimraf release && node --max-old-space-size=4096 node_modules/webpack/bin/webpack.js --mode=development --output-path=./release --progress",
     "ver": "genversion version.js",
     "patch": "yarn version --patch && yarn ver",

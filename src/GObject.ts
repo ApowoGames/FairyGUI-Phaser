@@ -1,25 +1,12 @@
-import { UIConfig } from './UIConfig';
-import { ByteBuffer } from './utils/ByteBuffer';
-import { ToolSet } from './utils/ToolSet';
-import { GLoader } from './GLoader';
-import { GComboBox } from './GComboBox';
-import { GGraph } from './GGraph';
-import { GSlider } from './GSlider';
-import { GLabel } from './GLabel';
-import { GButton } from './GButton';
-import { GProgressBar } from './GProgressBar';
 import { GearDisplay2 } from './gears/GearDisplay2';
 import { GearDisplay } from './gears/GearDisplay';
 import { Controller } from './Controller';
-import { GRichTextField } from './GRichTextField';
-import { GTextInput } from './GTextInput';
-import { GTextField } from './GTextField';
-import { GMovieClip } from './GMovieClip';
-import { GImage } from './GImage';
+import { UIConfig } from './UIConfig';
+import { ByteBuffer } from './utils/ByteBuffer';
+import { ToolSet } from './utils/ToolSet';
 import { GRoot } from './GRoot';
 import { RelationType, ObjectPropID } from './FieldTypes';
 import { Events } from './Events';
-import { GList } from './GList';
 import { GTreeNode } from './GTreeNode';
 import { GearBase } from './gears/GearBase';
 import { GGroup } from './GGroup';
@@ -195,7 +182,8 @@ export class GObject {
 
             this.updateGear(1);
 
-            if (this._parent && !(this._parent instanceof GList)) {
+            // if (this._parent && !(this._parent instanceof GList)) {
+            if (this._parent) {
                 this._parent.setBoundsChangedFlag();
                 if (this._group)
                     this._group.setBoundsChangedFlag(true);
@@ -493,10 +481,10 @@ export class GObject {
             this._touchable = value;
             this.updateGear(3);
 
-            if ((this instanceof GImage) || (this instanceof GMovieClip)
-                || (this instanceof GTextField) && !(this instanceof GTextInput) && !(this instanceof GRichTextField))
-                //Touch is not supported by GImage/GMovieClip/GTextField
-                return;
+            // if ((this instanceof GImage) || (this instanceof GMovieClip)
+            //     || (this instanceof GTextField) && !(this instanceof GTextInput) && !(this instanceof GRichTextField))
+            //     //Touch is not supported by GImage/GMovieClip/GTextField
+            //     return;
 
             if (this._displayObject)
                 if (this._touchable) {
@@ -804,65 +792,65 @@ export class GObject {
         return <GComponent><any>this;
     }
 
-    public get asButton(): GButton {
-        return <GButton><any>this;
-    }
+    // public get asButton(): GButton {
+    //     return <GButton><any>this;
+    // }
 
-    public get asLabel(): GLabel {
-        return <GLabel><any>this;
-    }
+    // public get asLabel(): GLabel {
+    //     return <GLabel><any>this;
+    // }
 
-    public get asProgress(): GProgressBar {
-        return <GProgressBar><any>this;
-    }
+    // public get asProgress(): GProgressBar {
+    //     return <GProgressBar><any>this;
+    // }
 
-    public get asTextField(): GTextField {
-        return <GTextField><any>this;
-    }
+    // public get asTextField(): GTextField {
+    //     return <GTextField><any>this;
+    // }
 
-    public get asRichTextField(): GRichTextField {
-        return <GRichTextField><any>this;
-    }
+    // public get asRichTextField(): GRichTextField {
+    //     return <GRichTextField><any>this;
+    // }
 
-    public get asTextInput(): GTextInput {
-        return <GTextInput><any>this;
-    }
+    // public get asTextInput(): GTextInput {
+    //     return <GTextInput><any>this;
+    // }
 
-    public get asLoader(): GLoader {
-        return <GLoader><any>this;
-    }
+    // public get asLoader(): GLoader {
+    //     return <GLoader><any>this;
+    // }
 
-    public get asList(): GList {
-        return <GList><any>this;
-    }
+    // public get asList(): GList {
+    //     return <GList><any>this;
+    // }
 
     public get asTree(): GTree {
         return <GTree><any>this;
     }
 
-    public get asGraph(): GGraph {
-        return <GGraph><any>this;
-    }
+    // public get asGraph(): GGraph {
+    //     return <GGraph><any>this;
+    // }
 
     public get asGroup(): GGroup {
         return <GGroup><any>this;
     }
 
-    public get asSlider(): GSlider {
-        return <GSlider><any>this;
-    }
+    // public get asSlider(): GSlider {
+    //     return <GSlider><any>this;
+    // }
 
-    public get asComboBox(): GComboBox {
-        return <GComboBox><any>this;
-    }
+    // public get asComboBox(): GComboBox {
+    //     return <GComboBox><any>this;
+    // }
 
-    public get asImage(): GImage {
-        return <GImage><any>this;
-    }
+    // public get asImage(): GImage {
+    //     return <GImage><any>this;
+    // }
 
-    public get asMovieClip(): GMovieClip {
-        return <GMovieClip><any>this;
-    }
+    // public get asMovieClip(): GMovieClip {
+    //     return <GMovieClip><any>this;
+    // }
 
     public get text(): string {
         return null;

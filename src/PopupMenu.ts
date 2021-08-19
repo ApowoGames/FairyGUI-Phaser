@@ -70,12 +70,12 @@ export class PopupMenu {
     }
 
     public setItemText(name: string, caption: string): void {
-        var item: GButton = this._list.getChild(name).asButton;
+        var item: GButton = <GButton>this._list.getChild(name);
         item.title = caption;
     }
 
     public setItemVisible(name: string, visible: boolean): void {
-        var item: GButton = this._list.getChild(name).asButton;
+        var item: GButton = <GButton>this._list.getChild(name);
         if (item.visible != visible) {
             item.visible = visible;
             this._list.setBoundsChangedFlag();
@@ -83,12 +83,12 @@ export class PopupMenu {
     }
 
     public setItemGrayed(name: string, grayed: boolean): void {
-        var item: GButton = this._list.getChild(name).asButton;
+        var item: GButton = <GButton>this._list.getChild(name);
         item.grayed = grayed;
     }
 
     public setItemCheckable(name: string, checkable: boolean): void {
-        var item: GButton = this._list.getChild(name).asButton;
+        var item: GButton = <GButton>this._list.getChild(name);
         var c: Controller = item.getController("checked");
         if (c) {
             if (checkable) {
@@ -101,14 +101,14 @@ export class PopupMenu {
     }
 
     public setItemChecked(name: string, checked: boolean): void {
-        var item: GButton = this._list.getChild(name).asButton;
+        var item: GButton = <GButton>this._list.getChild(name);
         var c: Controller = item.getController("checked");
         if (c)
             c.selectedIndex = checked ? 2 : 1;
     }
 
     public isItemChecked(name: string): boolean {
-        var item: GButton = this._list.getChild(name).asButton;
+        var item: GButton = <GButton>this._list.getChild(name);
         var c: Controller = item.getController("checked");
         if (c)
             return c.selectedIndex == 2;
