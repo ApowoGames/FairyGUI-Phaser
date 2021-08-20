@@ -1,3 +1,4 @@
+import { GearBase } from './gears/GearBase';
 import { GearDisplay2 } from './gears/GearDisplay2';
 import { GearDisplay } from './gears/GearDisplay';
 import { Controller } from './Controller';
@@ -8,13 +9,13 @@ import { GRoot } from './GRoot';
 import { RelationType, ObjectPropID } from './FieldTypes';
 import { Events } from './Events';
 import { GTreeNode } from './GTreeNode';
-import { GearBase } from './gears/GearBase';
 import { GGroup } from './GGroup';
 import { Relations } from './Relations';
 import { PackageItem } from './PackageItem';
 import { GComponent } from './GComponent';
 import { InteractiveEvent } from './event/DisplayObjectEvent';
 import { GTree } from './GTree';
+import { GearAnimation, GearColor, GearFontSize, GearIcon, GearLook, GearSize, GearText, GearXY } from './gears';
 export class DisplayStyle {
     static EMPTY: DisplayStyle = new DisplayStyle();
     /**水平缩放 */
@@ -686,7 +687,7 @@ export class GObject {
     public getGear(index: number): GearBase {
         var gear: GearBase = this._gears[index];
         if (!gear)
-            this._gears[index] = gear = GearBase.create(this, index);
+            this._gears[index] = gear = createGear(this, index);
         return gear;
     }
 
@@ -1457,6 +1458,17 @@ export class GObject {
     public static cast(sprite: Phaser.GameObjects.Container): GObject {
         return <GObject>(sprite["$owner"]);
     }
+}
+
+let GearClasses: Array<typeof GearBase> = [
+    GearDisplay, GearXY, GearSize, GearLook, GearColor,
+    GearAnimation, GearText, GearIcon, GearDisplay2, GearFontSize
+];
+
+function createGear(owner: GObject, index: number): GearBase {
+    let ret = new (GearClasses[index])();
+    ret._owner = owner;
+    return ret;
 }
 
 export const BlendMode = {

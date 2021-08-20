@@ -1,13 +1,8 @@
 import { ByteBuffer } from './../utils/ByteBuffer';
-import { GObject } from './../GObject';
 import { GearBase } from './GearBase';
 export class GearText extends GearBase {
     private _storage: { [index: string]: string };
     private _default: string;
-
-    public constructor(owner: GObject) {
-        super(owner);
-    }
 
     protected init(): void {
         this._default = this._owner.text;

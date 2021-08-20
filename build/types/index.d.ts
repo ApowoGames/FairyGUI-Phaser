@@ -1,0 +1,1 @@
+export { GObject } from "./GObject";

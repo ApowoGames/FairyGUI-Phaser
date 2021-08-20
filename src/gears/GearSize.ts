@@ -1,6 +1,5 @@
 import { GTweener } from './../tween/GTweener';
 import { UIPackage } from './../UIPackage';
-import { GObject } from './../GObject';
 import { ByteBuffer } from './../utils/ByteBuffer';
 import { GearBase } from './GearBase';
 import { GTween } from '../tween/GTween';
@@ -14,10 +13,6 @@ interface Value {
 export class GearSize extends GearBase {
     private _storage: { [index: string]: Value };
     private _default: Value;
-
-    public constructor(owner: GObject) {
-        super(owner);
-    }
 
     protected init(): void {
         this._default = {

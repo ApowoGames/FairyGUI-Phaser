@@ -1,36 +1,13 @@
-import { EaseType } from './../tween/EaseType';
-import { GTweener } from './../tween/GTweener';
-import { ByteBuffer } from './../utils/ByteBuffer';
-import { GearDisplay2 } from './GearDisplay2';
-import { GearIcon } from './GearIcon';
-import { GearText } from './GearText';
-import { GearAnimation } from './GearAnimation';
-import { GearColor } from './GearColor';
-import { GearLook } from './GearLook';
-import { GearSize } from './GearSize';
-import { GearXY } from './GearXY';
-import { GearDisplay } from './GearDisplay';
-import { Controller } from './../Controller';
-import { GearFontSize } from './GearFontSize';
+import { Controller } from "../Controller";
+import { EaseType, GTweener } from "../tween";
+import { ByteBuffer } from "../utils";
+
 export class GearBase {
     public static disableAllTweenEffect: boolean;
 
-    protected _owner: any; //GObject 由于gobject是所有ui的基类，定义类型会导致循环引用
+    public _owner: any; //GObject 由于gobject是所有ui的基类，定义类型会导致循环引用
     protected _controller: Controller;
     protected _tweenConfig?: GearTweenConfig;
-
-    public static create(owner: any, index: number): GearBase {
-        if (!Classes)
-            Classes = [
-                GearDisplay, GearXY, GearSize, GearLook, GearColor,
-                GearAnimation, GearText, GearIcon, GearDisplay2, GearFontSize
-            ];
-        return new (Classes[index])(owner);
-    }
-
-    constructor(owner: any) {
-        this._owner = owner;
-    }
 
     public dispose(): void {
         if (this._tweenConfig && this._tweenConfig._tweener) {
@@ -65,11 +42,8 @@ export class GearBase {
         var page: string;
         var cnt: number = buffer.readShort();
 
-        if (this instanceof GearDisplay) {
-            this.pages = buffer.readSArray(cnt);
-        }
-        else if (this instanceof GearDisplay2) {
-            this.pages = buffer.readSArray(cnt);
+        if ("pages" in this) {
+            (<any>this).pages = buffer.readSArray(cnt);
         }
         else {
             for (i = 0; i < cnt; i++) {
@@ -92,23 +66,23 @@ export class GearBase {
         }
 
         if (buffer.version >= 2) {
-            if (this instanceof GearXY) {
+            if ("positionsInPercent" in this) {
                 if (buffer.readBool()) {
-                    this.positionsInPercent = true;
+                    (<any>this).positionsInPercent = true;
                     for (i = 0; i < cnt; i++) {
                         page = buffer.readS();
                         if (page == null)
                             continue;
 
-                        this.addExtStatus(page, buffer);
+                        (<any>this).addExtStatus(page, buffer);
                     }
 
                     if (buffer.readBool())
-                        this.addExtStatus(null, buffer);
+                        (<any>this).addExtStatus(null, buffer);
                 }
             }
-            else if (this instanceof GearDisplay2)
-                this.condition = buffer.readByte();
+            else if ("condition" in this)
+                (<any>this).condition = buffer.readByte();
         }
     }
 

@@ -1,5 +1,4 @@
 import { ByteBuffer } from './utils/ByteBuffer';
-import { UBBParser } from './utils/UBBParser';
 import { UIConfig } from './UIConfig';
 import { GTextField } from './GTextField';
 export class GTextInput extends GTextField {
@@ -157,11 +156,12 @@ export class GTextInput extends GTextField {
     }
 
     public set promptText(value: string) {
-        this._prompt = value;
-        var str: string = UBBParser.inst.parse(value, true);
-        this._input.prompt = str;
-        if (UBBParser.inst.lastColor)
-            this._input.promptColor = UBBParser.inst.lastColor;
+        throw "TODO";
+        // this._prompt = value;
+        // var str: string = UBBParser.inst.parse(value, true);
+        // this._input.prompt = str;
+        // if (UBBParser.inst.lastColor)
+        //     this._input.promptColor = UBBParser.inst.lastColor;
     }
 
     public get promptText(): string {

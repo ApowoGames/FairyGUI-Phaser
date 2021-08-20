@@ -1,6 +1,5 @@
 import { ByteBuffer } from './../utils/ByteBuffer';
 import { ObjectPropID } from './../FieldTypes';
-import { GObject } from './../GObject';
 import { GearBase } from './GearBase';
 interface Value {
     playing?: boolean;
@@ -10,10 +9,6 @@ interface Value {
 export class GearAnimation extends GearBase {
     private _storage: { [index: string]: Value };
     private _default: Value;
-
-    constructor(owner: GObject) {
-        super(owner);
-    }
 
     protected init(): void {
         this._default = {

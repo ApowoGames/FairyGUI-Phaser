@@ -1,14 +1,9 @@
-import { GObject } from './../GObject';
 import { GearBase } from './GearBase';
 export class GearDisplay2 extends GearBase {
     public pages: string[];
     public condition: number;
 
     private _visible: number = 0;
-
-    constructor(owner: GObject) {
-        super(owner);
-    }
 
     protected init(): void {
         this.pages = null;

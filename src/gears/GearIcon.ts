@@ -1,13 +1,8 @@
-import { GObject } from './../GObject';
 import { GearBase } from './GearBase';
 import { ByteBuffer } from './../utils/ByteBuffer';
 export class GearIcon extends GearBase {
     private _storage: { [index: string]: string };
     private _default: string;
-
-    public constructor(owner: GObject) {
-        super(owner);
-    }
 
     protected init(): void {
         this._default = this._owner.icon;
