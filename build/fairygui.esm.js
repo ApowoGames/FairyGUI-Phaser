@@ -10742,7 +10742,7 @@ class GRoot extends GComponent {
     }
     static get inst() {
         if (GRoot._inst == null)
-            new GRoot();
+            GRoot._inst = new GRoot();
         return GRoot._inst;
     }
     /**

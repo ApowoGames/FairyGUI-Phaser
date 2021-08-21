@@ -46,7 +46,7 @@ export class GRoot extends GComponent {
 
     public static get inst(): GRoot {
         if (GRoot._inst == null)
-            new GRoot();
+            GRoot._inst = new GRoot();
         return GRoot._inst;
     }
 
