@@ -273,7 +273,7 @@ export class Controller extends Phaser.Events.EventEmitter {
                 nextPos = buffer.readShort();
                 nextPos += buffer.position;
 
-                var action: ControllerAction = ControllerAction.createAction(buffer.readByte());
+                var action: ControllerAction = createAction(buffer.readByte());
                 action.setup(buffer);
                 this._actions.push(action);
 
@@ -286,4 +286,18 @@ export class Controller extends Phaser.Events.EventEmitter {
         else
             this._selectedIndex = -1;
     }
+}
+
+import { PlayTransitionAction } from "./action/PlayTransitionAction"
+import { ChangePageAction } from "./action/ChangePageAction"
+
+function createAction(type: number): ControllerAction {
+    switch (type) {
+        case 0:
+            return new PlayTransitionAction();
+
+        case 1:
+            return new ChangePageAction();
+    }
+    return null;
 }

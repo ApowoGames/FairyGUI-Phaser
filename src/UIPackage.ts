@@ -1,4 +1,3 @@
-import { UIObjectFactory } from './UIObjectFactory';
 import { TranslationHelper } from './TranslationHelper';
 import { PackageItemType, ObjectType } from './FieldTypes';
 import { GObject } from './GObject';
@@ -344,7 +343,8 @@ export class UIPackage {
                             pi.objectType = ObjectType.Component;
                         pi.rawData = buffer.readBuffer();
 
-                        UIObjectFactory.resolvePackageItemExtension(pi);
+                        // Decls.UIObjectFactory.resolvePackageItemExtension(pi);
+                        Decls.UIObjectFactory.resolveExtension(pi);
                         break;
                     }
 
@@ -496,7 +496,7 @@ export class UIPackage {
     }
 
     public internalCreateObject(item: PackageItem, userClass?: new () => GObject): GObject {
-        const g = UIObjectFactory.newObject(item, userClass);
+        const g = Decls.UIObjectFactory.newObject(item, userClass);
         if (g == null) {
             return null;
         }
@@ -627,3 +627,10 @@ interface AtlasSprite {
     originalSize: Phaser.Geom.Point;
     rotated?: boolean;
 }
+
+export interface IObjectFactoryType {
+    resolveExtension(pi: PackageItem): void;
+    newObject(type: number | PackageItem, userClass?: new () => GObject): GObject;
+}
+
+export var Decls: { UIObjectFactory?: IObjectFactoryType } = {};

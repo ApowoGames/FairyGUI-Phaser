@@ -1,7 +1,7 @@
+import { GComponent } from "./GComponent";
 import { GObject } from './GObject';
 import { PackageItem } from './PackageItem';
 import { GLoader } from './GLoader';
-import { GComponent } from "./GComponent";
 export declare class UIObjectFactory {
     static extensions: {
         [index: string]: new () => GComponent;

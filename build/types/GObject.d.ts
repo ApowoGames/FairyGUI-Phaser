@@ -1,7 +1,6 @@
 import { GearBase } from './gears/GearBase';
 import { Controller } from './Controller';
 import { ByteBuffer } from './utils/ByteBuffer';
-import { GRoot } from './GRoot';
 import { GTreeNode } from './GTreeNode';
 import { GGroup } from './GGroup';
 import { Relations } from './Relations';
@@ -190,7 +189,7 @@ export declare class GObject {
     get parent(): GComponent;
     set parent(val: GComponent);
     removeFromParent(): void;
-    get root(): GRoot;
+    get root(): any;
     get asCom(): GComponent;
     get asTree(): GTree;
     get asGroup(): GGroup;

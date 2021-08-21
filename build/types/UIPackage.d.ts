@@ -54,3 +54,10 @@ export declare class UIPackage {
     private loadSpine;
     private loadDragonBones;
 }
+export interface IObjectFactoryType {
+    resolveExtension(pi: PackageItem): void;
+    newObject(type: number | PackageItem, userClass?: new () => GObject): GObject;
+}
+export declare var Decls: {
+    UIObjectFactory?: IObjectFactoryType;
+};

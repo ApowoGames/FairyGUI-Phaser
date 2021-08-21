@@ -1,21 +1,8 @@
 import { ByteBuffer } from './../utils/ByteBuffer';
-import { ChangePageAction } from './ChangePageAction';
-import { PlayTransitionAction } from './PlayTransitionAction';
 import { Controller } from './../Controller';
 export class ControllerAction {
     public fromPage: string[];
     public toPage: string[];
-
-    public static createAction(type: number): ControllerAction {
-        switch (type) {
-            case 0:
-                return new PlayTransitionAction();
-
-            case 1:
-                return new ChangePageAction();
-        }
-        return null;
-    }
 
     constructor() {
     }

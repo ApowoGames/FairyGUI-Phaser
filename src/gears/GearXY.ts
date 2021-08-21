@@ -1,5 +1,4 @@
 import { GTweener } from './../tween/GTweener';
-import { UIPackage } from './../UIPackage';
 import { ByteBuffer } from './../utils/ByteBuffer';
 import { GearBase } from './GearBase';
 import { GTween } from '../tween/GTween';
@@ -63,7 +62,7 @@ export class GearXY extends GearBase {
             ey = gv.y;
         }
 
-        if (this._tweenConfig && this._tweenConfig.tween && !UIPackage._constructing && !GearBase.disableAllTweenEffect) {
+        if (this._tweenConfig && this._tweenConfig.tween && !GearBase.disableAllTweenEffect) {
             if (this._tweenConfig._tweener) {
                 if (this._tweenConfig._tweener.endValue.x != ex || this._tweenConfig._tweener.endValue.y != ey) {
                     this._tweenConfig._tweener.kill(true);

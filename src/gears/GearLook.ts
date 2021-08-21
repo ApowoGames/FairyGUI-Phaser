@@ -1,5 +1,4 @@
 import { GTweener } from './../tween/GTweener';
-import { UIPackage } from './../UIPackage';
 import { ByteBuffer } from './../utils/ByteBuffer';
 import { GearBase } from './GearBase';
 import { GTween } from '../tween/GTween';
@@ -41,7 +40,7 @@ export class GearLook extends GearBase {
         if (!gv)
             gv = this._default;
 
-        if (this._tweenConfig && this._tweenConfig.tween && !UIPackage._constructing && !GearBase.disableAllTweenEffect) {
+        if (this._tweenConfig && this._tweenConfig.tween && !GearBase.disableAllTweenEffect) {
             this._owner._gearLocked = true;
             this._owner.grayed = gv.grayed;
             this._owner.touchable = gv.touchable;

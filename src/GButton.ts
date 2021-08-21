@@ -2,7 +2,6 @@ import { GRoot } from './GRoot';
 import { PackageItem } from './PackageItem';
 import { UIPackage } from './UIPackage';
 import { ByteBuffer } from './utils/ByteBuffer';
-import { GLabel } from './GLabel';
 import { GTextField } from './GTextField';
 import { UIConfig } from './UIConfig';
 import { ButtonMode, ObjectPropID } from './FieldTypes';
@@ -246,8 +245,8 @@ export class GButton extends GComponent {
     public getTextField(): GTextField {
         if (this._titleObject instanceof GTextField)
             return this._titleObject;
-        else if ((this._titleObject instanceof GLabel) || (this._titleObject instanceof GButton))
-            return this._titleObject.getTextField();
+        else if ('getTextField' in this._titleObject)
+            return (<any>this._titleObject).getTextField();
         else
             return null;
     }

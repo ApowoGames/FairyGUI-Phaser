@@ -1,12 +1,11 @@
 import { HitArea } from './utils/HitArea';
-import { UIObjectFactory } from './UIObjectFactory';
-import { UIPackage } from './UIPackage';
+// import { UIObjectFactory } from './UIObjectFactory';
+// import { UIPackage } from './UIPackage';
 import { TranslationHelper } from './TranslationHelper';
 import { PackageItem } from './PackageItem';
 import { PixelHitTest } from './utils/PixelHitTest';
 import { ByteBuffer } from './utils/ByteBuffer';
 import { ChildHitArea } from './utils/ChildHitArea';
-import { GButton } from './GButton';
 import { ToolSet } from './utils/ToolSet';
 import { ChildrenRenderOrder, OverflowType, ObjectType } from './FieldTypes';
 import { GGroup } from './GGroup';
@@ -561,8 +560,7 @@ export class GComponent extends GObject {
             if (child == obj) {
                 myIndex = i;
             }
-            else if ((child instanceof GButton)
-                && (<GButton>(child)).relatedController == c) {
+            else if (("relatedController" in child)/*is button*/ && (<any>child).relatedController == c) {
                 if (i > maxIndex)
                     maxIndex = i;
             }
@@ -1109,21 +1107,22 @@ export class GComponent extends GObject {
 
                 var pi: PackageItem = null;
                 if (src != null) {
-                    var pkg: UIPackage;
-                    if (pkgId != null)
-                        pkg = UIPackage.getById(pkgId);
-                    else
-                        pkg = contentItem.owner;
+                    // var pkg: UIPackage;
+                    // if (pkgId != null)
+                    //     pkg = UIPackage.getById(pkgId);
+                    // else
+                    //     pkg = contentItem.owner;
 
-                    pi = pkg ? pkg.getItemById(src) : null;
+                    // pi = pkg ? pkg.getItemById(src) : null;
                 }
+                throw "error";
 
-                if (pi) {
-                    child = UIObjectFactory.newObject(pi);
-                    child.constructFromResource();
-                }
-                else
-                    child = UIObjectFactory.newObject(type);
+                // if (pi) {
+                //     child = UIObjectFactory.newObject(pi);
+                //     child.constructFromResource();
+                // }
+                // else
+                //     child = UIObjectFactory.newObject(type);
             }
 
             child._underConstruct = true;
@@ -1184,7 +1183,7 @@ export class GComponent extends GObject {
                 hitArea = new PixelHitTest(pi.pixelHitTestData, i1, i2);
         }
         else if (i1 != 0 && i2 != -1) {
-            hitArea = new ChildHitArea(this.getChildAt(i2));
+            // hitArea = new ChildHitArea(this.getChildAt(i2));
         }
 
         if (hitArea) {

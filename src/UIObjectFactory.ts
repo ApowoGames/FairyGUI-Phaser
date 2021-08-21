@@ -1,3 +1,4 @@
+import { GComponent } from "./GComponent";
 import { GList } from './GList';
 import { GGroup } from './GGroup';
 import { GComboBox } from './GComboBox';
@@ -12,7 +13,6 @@ import { GObject } from './GObject';
 import { PackageItem } from './PackageItem';
 import { UIPackage } from './UIPackage';
 import { GLoader } from './GLoader';
-import { GComponent } from "./GComponent";
 import { GTree } from './GTree';
 
 export class UIObjectFactory {

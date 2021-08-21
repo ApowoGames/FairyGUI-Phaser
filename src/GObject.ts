@@ -5,7 +5,7 @@ import { Controller } from './Controller';
 import { UIConfig } from './UIConfig';
 import { ByteBuffer } from './utils/ByteBuffer';
 import { ToolSet } from './utils/ToolSet';
-import { GRoot } from './GRoot';
+// import { GRoot } from './GRoot';
 import { RelationType, ObjectPropID } from './FieldTypes';
 import { Events } from './Events';
 import { GTreeNode } from './GTreeNode';
@@ -313,7 +313,7 @@ export class GObject {
     }
 
     public makeFullScreen(): void {
-        this.setSize(GRoot.inst.width, GRoot.inst.height);
+        // this.setSize(GRoot.inst.width, GRoot.inst.height);
     }
 
     public get actualWidth(): number {
@@ -622,7 +622,7 @@ export class GObject {
     }
 
     private __rollOver(evt: InteractiveEvent): void {
-        this._timeEvent = GRoot.inst.addTimeEvent(new Phaser.Time.TimerEvent({ delay: 100, callback: this.__doShowTooltips }));
+        // this._timeEvent = GRoot.inst.addTimeEvent(new Phaser.Time.TimerEvent({ delay: 100, callback: this.__doShowTooltips }));
         // Laya.timer.once(100, this, this.__doShowTooltips);
     }
 
@@ -633,7 +633,7 @@ export class GObject {
     }
 
     private __rollOut(evt: InteractiveEvent): void {
-        if (this._timeEvent) GRoot.inst.removeTimeEvent(this._timeEvent);
+        // if (this._timeEvent) GRoot.inst.removeTimeEvent(this._timeEvent);
         // Laya.timer.clear(this, this.__doShowTooltips);
         // this.root.hideTooltips();
     }
@@ -776,17 +776,18 @@ export class GObject {
             this._parent.removeChild(this);
     }
 
-    public get root(): GRoot {
-        if (this instanceof GRoot)
-            return this;
+    public get root() {
+        // if (this instanceof GRoot)
+        //     return this;
 
-        let p: GObject = this._parent;
-        while (p) {
-            if (p instanceof GRoot)
-                return p;
-            p = p.parent;
-        }
-        return GRoot.inst;
+        // let p: GObject = this._parent;
+        // while (p) {
+        //     if (p instanceof GRoot)
+        //         return p;
+        //     p = p.parent;
+        // }
+        // return GRoot.inst;
+        return null;
     }
 
     public get asCom(): GComponent {
@@ -1413,8 +1414,7 @@ export class GObject {
             var yy: number = this.scene.input.activePointer.y - sGlobalDragStart.y + sGlobalRect.y;
 
             if (this._dragBounds) {
-                var rect: Phaser.Geom.Rectangle = GRoot.inst.localToGlobalRect(this._dragBounds.x, this._dragBounds.y,
-                    this._dragBounds.width, this._dragBounds.height, sDragHelperRect);
+                var rect: Phaser.Geom.Rectangle;
                 if (xx < rect.x)
                     xx = rect.x;
                 else if (xx + sGlobalRect.width > rect.right) {
