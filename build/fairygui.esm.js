@@ -4173,14 +4173,8 @@ class GGroup extends GObject {
         this._boundsChanged = false;
         super.dispose();
     }
-}
-
-class ScrollPane {
-    constructor(owner) {
-        this._owner = owner;
-        throw new Error("TODO");
-        // this._owner.on(Laya.Event.MOUSE_DOWN, this, this.__mouseDown);
-        // this._owner.on(Laya.Event.MOUSE_WHEEL, this, this.__mouseWheel);
+    get layout() {
+        return this._layout;
     }
     set layout(value) {
         if (this._layout != value) {
@@ -4188,8 +4182,8 @@ class ScrollPane {
             this.setBoundsChangedFlag();
         }
     }
-    get vtScrollBar() {
-        return this._vtScrollBar;
+    get lineGap() {
+        return this._lineGap;
     }
     set lineGap(value) {
         if (this._lineGap != value) {
@@ -4197,8 +4191,8 @@ class ScrollPane {
             this.setBoundsChangedFlag(true);
         }
     }
-    get footer() {
-        return this._footer;
+    get columnGap() {
+        return this._columnGap;
     }
     set columnGap(value) {
         if (this._columnGap != value) {
@@ -5216,10 +5210,6 @@ class Image extends Phaser.GameObjects.Container {
             if (this._fillMethod != 0)
                 this.markChanged(2);
         }
-        if (delay == 0)
-            this.onDelayedPlay();
-        else
-            GTween.delayedCall(delay).setTarget(this).onComplete(this.onDelayedPlay, this);
     }
     get color() {
         return this._color;
@@ -6674,7 +6664,6 @@ class ScrollPane {
             else
                 this.setCurrentPageY(c.selectedIndex, true);
         }
-        return null;
     }
     updatePageController() {
         if (this._pageController != null && !this._pageController.changing) {
@@ -7799,9 +7788,6 @@ class ByteBuffer {
             this._pos = tmp;
             return false;
         }
-        this._uiStage = new UIStage(scene);
-        this._uiStage.addChild(this._container, UISceneDisplay.LAYER_ROOT);
-        this.addListen();
     }
 }
 
@@ -9776,8 +9762,6 @@ class GComponent extends GObject {
         else {
             throw "Invalid child index";
         }
-        // todo drawPoly
-        // g.drawPoly(0, 0, points, "#FFFFFF");
     }
     getInsertPosForSortingChild(target) {
         var cnt = this._children.length;
@@ -10016,8 +10000,6 @@ class GComponent extends GObject {
             var child = this._children[i];
             child.handleControllerChanged(c);
         }
-        else
-            return "</span>";
     }
     get controllers() {
         return this._controllers;
@@ -10820,6 +10802,44 @@ class GRoot extends GComponent {
             return;
         this.scene.sound.play(url);
     }
+    showTooltips(msg) {
+        if (this._defaultTooltipWin == null) {
+            var resourceURL = UIConfig.tooltipsWin;
+            if (!resourceURL) {
+                console.warn("UIConfig.tooltipsWin not defined");
+                return;
+            }
+            this._defaultTooltipWin = UIPackage.createObjectFromURL(resourceURL);
+        }
+        this._defaultTooltipWin.text = msg;
+        this.showTooltipsWin(this._defaultTooltipWin);
+    }
+    showTooltipsWin(tooltipWin, xx, yy) {
+        // this.hideTooltips();
+        // this._tooltipWin = tooltipWin;
+        // if (xx == null || yy == null) {
+        //     xx = Stage.touchPos.x + 10;
+        //     yy = Stage.touchPos.y + 20;
+        // }
+        // var pt: Vector2 = this.globalToLocal(xx, yy);
+        // xx = pt.x;
+        // yy = pt.y;
+        // if (xx + this._tooltipWin.width > this.width) {
+        //     xx = xx - this._tooltipWin.width - 1;
+        //     if (xx < 0)
+        //         xx = 10;
+        // }
+        // if (yy + this._tooltipWin.height > this.height) {
+        //     yy = yy - this._tooltipWin.height - 1;
+        //     if (xx - this._tooltipWin.width - 1 > 0)
+        //         xx = xx - this._tooltipWin.width - 1;
+        //     if (yy < 0)
+        //         yy = 10;
+        // }
+        // this._tooltipWin.x = xx;
+        // this._tooltipWin.y = yy;
+        // this.addChild(this._tooltipWin);
+    }
     createDisplayObject() {
         this._container = this._scene.add.container(0, 0);
     }
@@ -11004,11 +11024,6 @@ class GTextField extends GObject {
             default:
                 return super.getProp(index);
         }
-        this._value = buffer.readInt();
-        this._max = buffer.readInt();
-        if (buffer.version >= 2)
-            this._min = buffer.readInt();
-        this.update();
     }
     setProp(index, value) {
         switch (index) {
@@ -11778,7 +11793,6 @@ class GLoader extends GObject {
             this._content.frame = value;
             this.updateGear(5);
         }
-        return max;
     }
     get color() {
         return this._content.color;
@@ -11919,7 +11933,6 @@ class GLoader extends GObject {
             if (UIConfig.loaderErrorSign != null) {
                 this._errorSign = GLoader._errorSignPool.getObject(UIConfig.loaderErrorSign);
             }
-            return index;
         }
         if (this._errorSign) {
             this._errorSign.setSize(this.width, this.height);
@@ -12388,9 +12401,6 @@ class GButton extends GComponent {
                 super.setProp(index, value);
                 break;
         }
-        buffer.seek(beginPos, 8);
-        this._defaultItem = buffer.readS();
-        this.readItems(buffer);
     }
     constructExtension(buffer) {
         buffer.seek(0, 6);
@@ -15650,9 +15660,6 @@ class GList extends GComponent {
                 }
             }
         }
-        if (!node._cell)
-            return;
-        this.addSelection(this.getChildIndex(node._cell), scrollItToView);
     }
     setup_afterAdd(buffer, beginPos) {
         super.setup_afterAdd(buffer, beginPos);

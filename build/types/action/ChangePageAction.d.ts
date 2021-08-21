@@ -1,6 +1,6 @@
+import { Controller } from './../Controller';
 import { ByteBuffer } from './../utils/ByteBuffer';
 import { ControllerAction } from './ControllerAction';
-import { Controller } from './../Controller';
 export declare class ChangePageAction extends ControllerAction {
     objectId: string;
     controllerName: string;

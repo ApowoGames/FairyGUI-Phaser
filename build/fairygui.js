@@ -5184,7 +5184,6 @@
                     this.mask = null;
                 }
             }
-            this.applyValue(item);
         }
         get fillOrigin() {
             return this._fillOrigin;
@@ -6601,7 +6600,6 @@
                     else
                         this.setPosX(rect.x + rect.width - this._viewSize.x, ani);
                 }
-                this._container.setPosition(this._margin.left, this._margin.top);
             }
             if (!ani && this._needRefresh)
                 this.refresh();
@@ -7796,7 +7794,6 @@
             }
         }
     }
-    GRoot._gmStatus = new GRootMouseStatus();
 
     class PackageItem {
         constructor() {
@@ -9408,7 +9405,6 @@
                 this._currentTransition.stop();
                 this._currentTransition = null;
             }
-            this._tweenConfig._tweener = null;
         }
         setup(buffer) {
             super.setup(buffer);
@@ -9444,9 +9440,6 @@
                         cc.selectedPageId = this.targetPage;
                 }
             }
-            this._default.width += dx;
-            this._default.height += dy;
-            this.updateState();
         }
         setup(buffer) {
             super.setup(buffer);
@@ -9627,8 +9620,6 @@
                 for (var i = 0; i < cnt; i++) {
                     this._actions[i].run(this, this.previousPageId, this.selectedPageId);
                 }
-                if (GObject.draggingObject == this && !sUpdateInDragging)
-                    this.localToGlobalRect(0, 0, this.width, this.height, sGlobalRect);
             }
         }
         setup(buffer) {
@@ -10725,8 +10716,6 @@
             for (var i = 0; i < cnt; ++i) {
                 this._transitions[i].onOwnerRemovedFromStage();
             }
-            else
-                return 0;
         }
     }
 
@@ -10816,6 +10805,44 @@
             if (ToolSet.startsWith(url, "ui://"))
                 return;
             this.scene.sound.play(url);
+        }
+        showTooltips(msg) {
+            if (this._defaultTooltipWin == null) {
+                var resourceURL = UIConfig.tooltipsWin;
+                if (!resourceURL) {
+                    console.warn("UIConfig.tooltipsWin not defined");
+                    return;
+                }
+                this._defaultTooltipWin = UIPackage.createObjectFromURL(resourceURL);
+            }
+            this._defaultTooltipWin.text = msg;
+            this.showTooltipsWin(this._defaultTooltipWin);
+        }
+        showTooltipsWin(tooltipWin, xx, yy) {
+            // this.hideTooltips();
+            // this._tooltipWin = tooltipWin;
+            // if (xx == null || yy == null) {
+            //     xx = Stage.touchPos.x + 10;
+            //     yy = Stage.touchPos.y + 20;
+            // }
+            // var pt: Vector2 = this.globalToLocal(xx, yy);
+            // xx = pt.x;
+            // yy = pt.y;
+            // if (xx + this._tooltipWin.width > this.width) {
+            //     xx = xx - this._tooltipWin.width - 1;
+            //     if (xx < 0)
+            //         xx = 10;
+            // }
+            // if (yy + this._tooltipWin.height > this.height) {
+            //     yy = yy - this._tooltipWin.height - 1;
+            //     if (xx - this._tooltipWin.width - 1 > 0)
+            //         xx = xx - this._tooltipWin.width - 1;
+            //     if (yy < 0)
+            //         yy = 10;
+            // }
+            // this._tooltipWin.x = xx;
+            // this._tooltipWin.y = yy;
+            // this.addChild(this._tooltipWin);
         }
         createDisplayObject() {
             this._container = this._scene.add.container(0, 0);
@@ -11317,7 +11344,6 @@
                 this._div.style.bold = value;
                 this.refresh();
             }
-            return point;
         }
         get italic() {
             return this._div.style.italic;
@@ -11653,13 +11679,6 @@
                     GRoot.inst.scene.load.image(key, url);
                     break;
             }
-            sGlobalDragStart.x = this.scene.input.activePointer.x; // Laya.stage.mouseX;
-            sGlobalDragStart.y = this.scene.input.activePointer.y; // Laya.stage.mouseY;
-            this.localToGlobalRect(0, 0, this.width, this.height, sGlobalRect);
-            this._dragTesting = true;
-            GObject.draggingObject = this;
-            this._displayObject.on(InteractiveEvent.GAMEOBJECT_MOVE, this.__moving);
-            this._displayObject.on(InteractiveEvent.GAMEOBJECT_UP, this.__end);
         }
         startLoad() {
             GRoot.inst.scene.load.on(Phaser.Loader.Events.FILE_COMPLETE, this.onLoadComplete, this);
@@ -13707,7 +13726,6 @@
                 if (this._virtual)
                     this.setVirtualListChangedFlag(true);
             }
-            this._contentItem = null;
         }
         get selectionMode() {
             return this._selectionMode;
@@ -15206,9 +15224,6 @@
                 }
                 this.apexIndex = apexIndex;
             }
-            buffer.seek(beginPos, 8);
-            this._defaultItem = buffer.readS();
-            this.readItems(buffer);
         }
         handleArchOrder2() {
             throw new Error("TODO");
