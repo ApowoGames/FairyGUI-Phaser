@@ -138,9 +138,9 @@ export class UIStage extends Phaser.Events.EventEmitter {
 
     addChild(child: Phaser.GameObjects.GameObject, type: UISceneDisplay, index: number = -1) {
         if (index < 0) {
-            this.scene.sys.displayList[type].addChild(child);
+            (<any>this.scene).layerManager.addToLayer(type, child);
         } else {
-            this.scene.sys.displayList[type].addChildAt(child, index);
+            (<any>this.scene).layerManager.addToLayer(type, child,index);
         }
     }
 

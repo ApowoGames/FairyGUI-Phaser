@@ -5726,10 +5726,10 @@
         }
         addChild(child, type, index = -1) {
             if (index < 0) {
-                this.scene.sys.displayList[type].addChild(child);
+                this.scene.layerManager.addToLayer(type, child);
             }
             else {
-                this.scene.sys.displayList[type].addChildAt(child, index);
+                this.scene.layerManager.addToLayer(type, child, index);
             }
         }
         removeChild(child, type) {
