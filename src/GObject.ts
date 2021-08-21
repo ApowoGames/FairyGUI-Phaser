@@ -5,7 +5,7 @@ import { Controller } from './Controller';
 import { UIConfig } from './UIConfig';
 import { ByteBuffer } from './utils/ByteBuffer';
 import { ToolSet } from './utils/ToolSet';
-// import { GRoot } from './GRoot';
+import { GRoot } from './GRoot';
 import { RelationType, ObjectPropID } from './FieldTypes';
 import { Events } from './Events';
 import { GTreeNode } from './GTreeNode';
@@ -313,7 +313,7 @@ export class GObject {
     }
 
     public makeFullScreen(): void {
-        // this.setSize(GRoot.inst.width, GRoot.inst.height);
+        this.setSize(GRoot.inst.width, GRoot.inst.height);
     }
 
     public get actualWidth(): number {
@@ -622,20 +622,20 @@ export class GObject {
     }
 
     private __rollOver(evt: InteractiveEvent): void {
-        // this._timeEvent = GRoot.inst.addTimeEvent(new Phaser.Time.TimerEvent({ delay: 100, callback: this.__doShowTooltips }));
+        this._timeEvent = GRoot.inst.addTimeEvent(new Phaser.Time.TimerEvent({ delay: 100, callback: this.__doShowTooltips }));
         // Laya.timer.once(100, this, this.__doShowTooltips);
     }
 
     private __doShowTooltips(): void {
-        // var r: GRoot = this.root;
-        // if (r)
-        // this.root.showTooltips(this._tooltips);
+        var r: GRoot = this.root;
+        if (r)
+        this.root.showTooltips(this._tooltips);
     }
 
     private __rollOut(evt: InteractiveEvent): void {
-        // if (this._timeEvent) GRoot.inst.removeTimeEvent(this._timeEvent);
+        if (this._timeEvent) GRoot.inst.removeTimeEvent(this._timeEvent);
         // Laya.timer.clear(this, this.__doShowTooltips);
-        // this.root.hideTooltips();
+        this.root.hideTooltips();
     }
 
     public get blendMode(): Phaser.BlendModes | string {
@@ -777,17 +777,16 @@ export class GObject {
     }
 
     public get root() {
-        // if (this instanceof GRoot)
-        //     return this;
+        if (this instanceof GRoot)
+            return this;
 
-        // let p: GObject = this._parent;
-        // while (p) {
-        //     if (p instanceof GRoot)
-        //         return p;
-        //     p = p.parent;
-        // }
-        // return GRoot.inst;
-        return null;
+        let p: GObject = this._parent;
+        while (p) {
+            if (p instanceof GRoot)
+                return p;
+            p = p.parent;
+        }
+        return GRoot.inst;
     }
 
     public get asCom(): GComponent {
