@@ -1,3 +1,209 @@
+import 'tooqingphaser';
+
+var ButtonMode;
+(function (ButtonMode) {
+    ButtonMode[ButtonMode["Common"] = 0] = "Common";
+    ButtonMode[ButtonMode["Check"] = 1] = "Check";
+    ButtonMode[ButtonMode["Radio"] = 2] = "Radio";
+})(ButtonMode || (ButtonMode = {}));
+var AutoSizeType;
+(function (AutoSizeType) {
+    AutoSizeType[AutoSizeType["None"] = 0] = "None";
+    AutoSizeType[AutoSizeType["Both"] = 1] = "Both";
+    AutoSizeType[AutoSizeType["Height"] = 2] = "Height";
+})(AutoSizeType || (AutoSizeType = {}));
+var AlignType;
+(function (AlignType) {
+    AlignType[AlignType["Left"] = 0] = "Left";
+    AlignType[AlignType["Center"] = 1] = "Center";
+    AlignType[AlignType["Right"] = 2] = "Right";
+})(AlignType || (AlignType = {}));
+var VertAlignType;
+(function (VertAlignType) {
+    VertAlignType[VertAlignType["Top"] = 0] = "Top";
+    VertAlignType[VertAlignType["Middle"] = 1] = "Middle";
+    VertAlignType[VertAlignType["Bottom"] = 2] = "Bottom";
+})(VertAlignType || (VertAlignType = {}));
+var LoaderFillType;
+(function (LoaderFillType) {
+    LoaderFillType[LoaderFillType["None"] = 0] = "None";
+    LoaderFillType[LoaderFillType["Scale"] = 1] = "Scale";
+    LoaderFillType[LoaderFillType["ScaleMatchHeight"] = 2] = "ScaleMatchHeight";
+    LoaderFillType[LoaderFillType["ScaleMatchWidth"] = 3] = "ScaleMatchWidth";
+    LoaderFillType[LoaderFillType["ScaleFree"] = 4] = "ScaleFree";
+    LoaderFillType[LoaderFillType["ScaleNoBorder"] = 5] = "ScaleNoBorder";
+})(LoaderFillType || (LoaderFillType = {}));
+var ListLayoutType;
+(function (ListLayoutType) {
+    ListLayoutType[ListLayoutType["SingleColumn"] = 0] = "SingleColumn";
+    ListLayoutType[ListLayoutType["SingleRow"] = 1] = "SingleRow";
+    ListLayoutType[ListLayoutType["FlowHorizontal"] = 2] = "FlowHorizontal";
+    ListLayoutType[ListLayoutType["FlowVertical"] = 3] = "FlowVertical";
+    ListLayoutType[ListLayoutType["Pagination"] = 4] = "Pagination";
+})(ListLayoutType || (ListLayoutType = {}));
+var ListSelectionMode;
+(function (ListSelectionMode) {
+    ListSelectionMode[ListSelectionMode["Single"] = 0] = "Single";
+    ListSelectionMode[ListSelectionMode["Multiple"] = 1] = "Multiple";
+    ListSelectionMode[ListSelectionMode["Multiple_SingleClick"] = 2] = "Multiple_SingleClick";
+    ListSelectionMode[ListSelectionMode["None"] = 3] = "None";
+})(ListSelectionMode || (ListSelectionMode = {}));
+var OverflowType;
+(function (OverflowType) {
+    OverflowType[OverflowType["Visible"] = 0] = "Visible";
+    OverflowType[OverflowType["Hidden"] = 1] = "Hidden";
+    OverflowType[OverflowType["Scroll"] = 2] = "Scroll";
+})(OverflowType || (OverflowType = {}));
+var PackageItemType;
+(function (PackageItemType) {
+    PackageItemType[PackageItemType["Image"] = 0] = "Image";
+    PackageItemType[PackageItemType["MovieClip"] = 1] = "MovieClip";
+    PackageItemType[PackageItemType["Sound"] = 2] = "Sound";
+    PackageItemType[PackageItemType["Component"] = 3] = "Component";
+    PackageItemType[PackageItemType["Atlas"] = 4] = "Atlas";
+    PackageItemType[PackageItemType["Font"] = 5] = "Font";
+    PackageItemType[PackageItemType["Swf"] = 6] = "Swf";
+    PackageItemType[PackageItemType["Misc"] = 7] = "Misc";
+    PackageItemType[PackageItemType["Unknown"] = 8] = "Unknown";
+    PackageItemType[PackageItemType["Spine"] = 9] = "Spine";
+    PackageItemType[PackageItemType["DragonBones"] = 10] = "DragonBones";
+})(PackageItemType || (PackageItemType = {}));
+var ObjectType;
+(function (ObjectType) {
+    ObjectType[ObjectType["Image"] = 0] = "Image";
+    ObjectType[ObjectType["MovieClip"] = 1] = "MovieClip";
+    ObjectType[ObjectType["Swf"] = 2] = "Swf";
+    ObjectType[ObjectType["Graph"] = 3] = "Graph";
+    ObjectType[ObjectType["Loader"] = 4] = "Loader";
+    ObjectType[ObjectType["Group"] = 5] = "Group";
+    ObjectType[ObjectType["Text"] = 6] = "Text";
+    ObjectType[ObjectType["RichText"] = 7] = "RichText";
+    ObjectType[ObjectType["InputText"] = 8] = "InputText";
+    ObjectType[ObjectType["Component"] = 9] = "Component";
+    ObjectType[ObjectType["List"] = 10] = "List";
+    ObjectType[ObjectType["Label"] = 11] = "Label";
+    ObjectType[ObjectType["Button"] = 12] = "Button";
+    ObjectType[ObjectType["ComboBox"] = 13] = "ComboBox";
+    ObjectType[ObjectType["ProgressBar"] = 14] = "ProgressBar";
+    ObjectType[ObjectType["Slider"] = 15] = "Slider";
+    ObjectType[ObjectType["ScrollBar"] = 16] = "ScrollBar";
+    ObjectType[ObjectType["Tree"] = 17] = "Tree";
+    ObjectType[ObjectType["Loader3D"] = 18] = "Loader3D";
+})(ObjectType || (ObjectType = {}));
+var ProgressTitleType;
+(function (ProgressTitleType) {
+    ProgressTitleType[ProgressTitleType["Percent"] = 0] = "Percent";
+    ProgressTitleType[ProgressTitleType["ValueAndMax"] = 1] = "ValueAndMax";
+    ProgressTitleType[ProgressTitleType["Value"] = 2] = "Value";
+    ProgressTitleType[ProgressTitleType["Max"] = 3] = "Max";
+})(ProgressTitleType || (ProgressTitleType = {}));
+var ScrollBarDisplayType;
+(function (ScrollBarDisplayType) {
+    ScrollBarDisplayType[ScrollBarDisplayType["Default"] = 0] = "Default";
+    ScrollBarDisplayType[ScrollBarDisplayType["Visible"] = 1] = "Visible";
+    ScrollBarDisplayType[ScrollBarDisplayType["Auto"] = 2] = "Auto";
+    ScrollBarDisplayType[ScrollBarDisplayType["Hidden"] = 3] = "Hidden";
+})(ScrollBarDisplayType || (ScrollBarDisplayType = {}));
+var ScrollType;
+(function (ScrollType) {
+    ScrollType[ScrollType["Horizontal"] = 0] = "Horizontal";
+    ScrollType[ScrollType["Vertical"] = 1] = "Vertical";
+    ScrollType[ScrollType["Both"] = 2] = "Both";
+})(ScrollType || (ScrollType = {}));
+var FlipType;
+(function (FlipType) {
+    FlipType[FlipType["None"] = 0] = "None";
+    FlipType[FlipType["Horizontal"] = 1] = "Horizontal";
+    FlipType[FlipType["Vertical"] = 2] = "Vertical";
+    FlipType[FlipType["Both"] = 3] = "Both";
+})(FlipType || (FlipType = {}));
+var ChildrenRenderOrder;
+(function (ChildrenRenderOrder) {
+    ChildrenRenderOrder[ChildrenRenderOrder["Ascent"] = 0] = "Ascent";
+    ChildrenRenderOrder[ChildrenRenderOrder["Descent"] = 1] = "Descent";
+    ChildrenRenderOrder[ChildrenRenderOrder["Arch"] = 2] = "Arch";
+})(ChildrenRenderOrder || (ChildrenRenderOrder = {}));
+var GroupLayoutType;
+(function (GroupLayoutType) {
+    GroupLayoutType[GroupLayoutType["None"] = 0] = "None";
+    GroupLayoutType[GroupLayoutType["Horizontal"] = 1] = "Horizontal";
+    GroupLayoutType[GroupLayoutType["Vertical"] = 2] = "Vertical";
+})(GroupLayoutType || (GroupLayoutType = {}));
+var PopupDirection;
+(function (PopupDirection) {
+    PopupDirection[PopupDirection["Auto"] = 0] = "Auto";
+    PopupDirection[PopupDirection["Up"] = 1] = "Up";
+    PopupDirection[PopupDirection["Down"] = 2] = "Down";
+})(PopupDirection || (PopupDirection = {}));
+var RelationType;
+(function (RelationType) {
+    RelationType[RelationType["Left_Left"] = 0] = "Left_Left";
+    RelationType[RelationType["Left_Center"] = 1] = "Left_Center";
+    RelationType[RelationType["Left_Right"] = 2] = "Left_Right";
+    RelationType[RelationType["Center_Center"] = 3] = "Center_Center";
+    RelationType[RelationType["Right_Left"] = 4] = "Right_Left";
+    RelationType[RelationType["Right_Center"] = 5] = "Right_Center";
+    RelationType[RelationType["Right_Right"] = 6] = "Right_Right";
+    RelationType[RelationType["Top_Top"] = 7] = "Top_Top";
+    RelationType[RelationType["Top_Middle"] = 8] = "Top_Middle";
+    RelationType[RelationType["Top_Bottom"] = 9] = "Top_Bottom";
+    RelationType[RelationType["Middle_Middle"] = 10] = "Middle_Middle";
+    RelationType[RelationType["Bottom_Top"] = 11] = "Bottom_Top";
+    RelationType[RelationType["Bottom_Middle"] = 12] = "Bottom_Middle";
+    RelationType[RelationType["Bottom_Bottom"] = 13] = "Bottom_Bottom";
+    RelationType[RelationType["Width"] = 14] = "Width";
+    RelationType[RelationType["Height"] = 15] = "Height";
+    RelationType[RelationType["LeftExt_Left"] = 16] = "LeftExt_Left";
+    RelationType[RelationType["LeftExt_Right"] = 17] = "LeftExt_Right";
+    RelationType[RelationType["RightExt_Left"] = 18] = "RightExt_Left";
+    RelationType[RelationType["RightExt_Right"] = 19] = "RightExt_Right";
+    RelationType[RelationType["TopExt_Top"] = 20] = "TopExt_Top";
+    RelationType[RelationType["TopExt_Bottom"] = 21] = "TopExt_Bottom";
+    RelationType[RelationType["BottomExt_Top"] = 22] = "BottomExt_Top";
+    RelationType[RelationType["BottomExt_Bottom"] = 23] = "BottomExt_Bottom";
+    RelationType[RelationType["Size"] = 24] = "Size";
+})(RelationType || (RelationType = {}));
+var FillMethod;
+(function (FillMethod) {
+    FillMethod[FillMethod["None"] = 0] = "None";
+    FillMethod[FillMethod["Horizontal"] = 1] = "Horizontal";
+    FillMethod[FillMethod["Vertical"] = 2] = "Vertical";
+    FillMethod[FillMethod["Radial90"] = 3] = "Radial90";
+    FillMethod[FillMethod["Radial180"] = 4] = "Radial180";
+    FillMethod[FillMethod["Radial360"] = 5] = "Radial360";
+})(FillMethod || (FillMethod = {}));
+var FillOrigin;
+(function (FillOrigin) {
+    FillOrigin[FillOrigin["Top"] = 0] = "Top";
+    FillOrigin[FillOrigin["Bottom"] = 1] = "Bottom";
+    FillOrigin[FillOrigin["Left"] = 2] = "Left";
+    FillOrigin[FillOrigin["Right"] = 3] = "Right";
+    FillOrigin[FillOrigin["TopLeft"] = 0] = "TopLeft";
+    FillOrigin[FillOrigin["TopRight"] = 1] = "TopRight";
+    FillOrigin[FillOrigin["BottomLeft"] = 2] = "BottomLeft";
+    FillOrigin[FillOrigin["BottomRight"] = 3] = "BottomRight";
+})(FillOrigin || (FillOrigin = {}));
+var FillOrigin90;
+(function (FillOrigin90) {
+    FillOrigin90[FillOrigin90["TopLeft"] = 0] = "TopLeft";
+    FillOrigin90[FillOrigin90["TopRight"] = 1] = "TopRight";
+    FillOrigin90[FillOrigin90["BottomLeft"] = 2] = "BottomLeft";
+    FillOrigin90[FillOrigin90["BottomRight"] = 3] = "BottomRight";
+})(FillOrigin90 || (FillOrigin90 = {}));
+var ObjectPropID;
+(function (ObjectPropID) {
+    ObjectPropID[ObjectPropID["Text"] = 0] = "Text";
+    ObjectPropID[ObjectPropID["Icon"] = 1] = "Icon";
+    ObjectPropID[ObjectPropID["Color"] = 2] = "Color";
+    ObjectPropID[ObjectPropID["OutlineColor"] = 3] = "OutlineColor";
+    ObjectPropID[ObjectPropID["Playing"] = 4] = "Playing";
+    ObjectPropID[ObjectPropID["Frame"] = 5] = "Frame";
+    ObjectPropID[ObjectPropID["DeltaTime"] = 6] = "DeltaTime";
+    ObjectPropID[ObjectPropID["TimeScale"] = 7] = "TimeScale";
+    ObjectPropID[ObjectPropID["FontSize"] = 8] = "FontSize";
+    ObjectPropID[ObjectPropID["Selected"] = 9] = "Selected";
+})(ObjectPropID || (ObjectPropID = {}));
+
 class EaseType {
 }
 EaseType.Linear = 0;
@@ -32,6 +238,196 @@ EaseType.BounceIn = 28;
 EaseType.BounceOut = 29;
 EaseType.BounceInOut = 30;
 EaseType.Custom = 31;
+
+// Author: Daniele Giardini - http://www.demigiant.com
+// Created: 2014/07/19 14:11
+// 
+// License Copyright (c) Daniele Giardini.
+// This work is subject to the terms at http://dotween.demigiant.com/license.php
+// 
+// =============================================================
+// Contains Daniele Giardini's C# port of the easing equations created by Robert Penner
+// (all easing equations except for Flash, InFlash, OutFlash, InOutFlash,
+// which use some parts of Robert Penner's equations but were created by Daniele Giardini)
+// http://robertpenner.com/easing, see license below:
+// =============================================================
+//
+// TERMS OF USE - EASING EQUATIONS
+//
+// Open source under the BSD License.
+//
+// Copyright ? 2001 Robert Penner
+// All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without modification,
+// are permitted provided that the following conditions are met:
+//
+// - Redistributions of source code must retain the above copyright notice,
+// this list of conditions and the following disclaimer.
+// - Redistributions in binary form must reproduce the above copyright notice,
+// this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+// - Neither the name of the author nor the names of contributors may be used to endorse
+// or promote products derived from this software without specific prior written permission.
+// - THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+// IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+// STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+// EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+const _PiOver2 = Math.PI * 0.5;
+const _TwoPi = Math.PI * 2;
+function evaluateEase(easeType, time, duration, overshootOrAmplitude, period) {
+    switch (easeType) {
+        case EaseType.Linear:
+            return time / duration;
+        case EaseType.SineIn:
+            return -Math.cos(time / duration * _PiOver2) + 1;
+        case EaseType.SineOut:
+            return Math.sin(time / duration * _PiOver2);
+        case EaseType.SineInOut:
+            return -0.5 * (Math.cos(Math.PI * time / duration) - 1);
+        case EaseType.QuadIn:
+            return (time /= duration) * time;
+        case EaseType.QuadOut:
+            return -(time /= duration) * (time - 2);
+        case EaseType.QuadInOut:
+            if ((time /= duration * 0.5) < 1)
+                return 0.5 * time * time;
+            return -0.5 * ((--time) * (time - 2) - 1);
+        case EaseType.CubicIn:
+            return (time /= duration) * time * time;
+        case EaseType.CubicOut:
+            return ((time = time / duration - 1) * time * time + 1);
+        case EaseType.CubicInOut:
+            if ((time /= duration * 0.5) < 1)
+                return 0.5 * time * time * time;
+            return 0.5 * ((time -= 2) * time * time + 2);
+        case EaseType.QuartIn:
+            return (time /= duration) * time * time * time;
+        case EaseType.QuartOut:
+            return -((time = time / duration - 1) * time * time * time - 1);
+        case EaseType.QuartInOut:
+            if ((time /= duration * 0.5) < 1)
+                return 0.5 * time * time * time * time;
+            return -0.5 * ((time -= 2) * time * time * time - 2);
+        case EaseType.QuintIn:
+            return (time /= duration) * time * time * time * time;
+        case EaseType.QuintOut:
+            return ((time = time / duration - 1) * time * time * time * time + 1);
+        case EaseType.QuintInOut:
+            if ((time /= duration * 0.5) < 1)
+                return 0.5 * time * time * time * time * time;
+            return 0.5 * ((time -= 2) * time * time * time * time + 2);
+        case EaseType.ExpoIn:
+            return (time == 0) ? 0 : Math.pow(2, 10 * (time / duration - 1));
+        case EaseType.ExpoOut:
+            if (time == duration)
+                return 1;
+            return (-Math.pow(2, -10 * time / duration) + 1);
+        case EaseType.ExpoInOut:
+            if (time == 0)
+                return 0;
+            if (time == duration)
+                return 1;
+            if ((time /= duration * 0.5) < 1)
+                return 0.5 * Math.pow(2, 10 * (time - 1));
+            return 0.5 * (-Math.pow(2, -10 * --time) + 2);
+        case EaseType.CircIn:
+            return -(Math.sqrt(1 - (time /= duration) * time) - 1);
+        case EaseType.CircOut:
+            return Math.sqrt(1 - (time = time / duration - 1) * time);
+        case EaseType.CircInOut:
+            if ((time /= duration * 0.5) < 1)
+                return -0.5 * (Math.sqrt(1 - time * time) - 1);
+            return 0.5 * (Math.sqrt(1 - (time -= 2) * time) + 1);
+        case EaseType.ElasticIn:
+            var s0;
+            if (time == 0)
+                return 0;
+            if ((time /= duration) == 1)
+                return 1;
+            if (period == 0)
+                period = duration * 0.3;
+            if (overshootOrAmplitude < 1) {
+                overshootOrAmplitude = 1;
+                s0 = period / 4;
+            }
+            else
+                s0 = period / _TwoPi * Math.asin(1 / overshootOrAmplitude);
+            return -(overshootOrAmplitude * Math.pow(2, 10 * (time -= 1)) * Math.sin((time * duration - s0) * _TwoPi / period));
+        case EaseType.ElasticOut:
+            var s1;
+            if (time == 0)
+                return 0;
+            if ((time /= duration) == 1)
+                return 1;
+            if (period == 0)
+                period = duration * 0.3;
+            if (overshootOrAmplitude < 1) {
+                overshootOrAmplitude = 1;
+                s1 = period / 4;
+            }
+            else
+                s1 = period / _TwoPi * Math.asin(1 / overshootOrAmplitude);
+            return (overshootOrAmplitude * Math.pow(2, -10 * time) * Math.sin((time * duration - s1) * _TwoPi / period) + 1);
+        case EaseType.ElasticInOut:
+            var s;
+            if (time == 0)
+                return 0;
+            if ((time /= duration * 0.5) == 2)
+                return 1;
+            if (period == 0)
+                period = duration * (0.3 * 1.5);
+            if (overshootOrAmplitude < 1) {
+                overshootOrAmplitude = 1;
+                s = period / 4;
+            }
+            else
+                s = period / _TwoPi * Math.asin(1 / overshootOrAmplitude);
+            if (time < 1)
+                return -0.5 * (overshootOrAmplitude * Math.pow(2, 10 * (time -= 1)) * Math.sin((time * duration - s) * _TwoPi / period));
+            return overshootOrAmplitude * Math.pow(2, -10 * (time -= 1)) * Math.sin((time * duration - s) * _TwoPi / period) * 0.5 + 1;
+        case EaseType.BackIn:
+            return (time /= duration) * time * ((overshootOrAmplitude + 1) * time - overshootOrAmplitude);
+        case EaseType.BackOut:
+            return ((time = time / duration - 1) * time * ((overshootOrAmplitude + 1) * time + overshootOrAmplitude) + 1);
+        case EaseType.BackInOut:
+            if ((time /= duration * 0.5) < 1)
+                return 0.5 * (time * time * (((overshootOrAmplitude *= (1.525)) + 1) * time - overshootOrAmplitude));
+            return 0.5 * ((time -= 2) * time * (((overshootOrAmplitude *= (1.525)) + 1) * time + overshootOrAmplitude) + 2);
+        case EaseType.BounceIn:
+            return bounce_easeIn(time, duration);
+        case EaseType.BounceOut:
+            return bounce_easeOut(time, duration);
+        case EaseType.BounceInOut:
+            return bounce_easeInOut(time, duration);
+        default:
+            return -(time /= duration) * (time - 2);
+    }
+}
+function bounce_easeIn(time, duration) {
+    return 1 - bounce_easeOut(duration - time, duration);
+}
+function bounce_easeOut(time, duration) {
+    if ((time /= duration) < (1 / 2.75)) {
+        return (7.5625 * time * time);
+    }
+    if (time < (2 / 2.75)) {
+        return (7.5625 * (time -= (1.5 / 2.75)) * time + 0.75);
+    }
+    if (time < (2.5 / 2.75)) {
+        return (7.5625 * (time -= (2.25 / 2.75)) * time + 0.9375);
+    }
+    return (7.5625 * (time -= (2.625 / 2.75)) * time + 0.984375);
+}
+function bounce_easeInOut(time, duration) {
+    if (time < duration * 0.5) {
+        return bounce_easeIn(time * 2, duration) * 0.5;
+    }
+    return bounce_easeOut(time * 2 - duration, duration) * 0.5 + 0.5;
+}
 
 class ColorMatrix {
     constructor(p_brightness, p_contrast, p_saturation, p_hue) {
@@ -627,7 +1023,457 @@ class GPath {
 }
 var s_points = new Array();
 
-new Phaser.Geom.Point();
+class TweenValue {
+    constructor() {
+        this.x = this.y = this.z = this.w = 0;
+    }
+    get color() {
+        return (this.w << 24) + (this.x << 16) + (this.y << 8) + this.z;
+    }
+    set color(value) {
+        this.x = (value & 0xFF0000) >> 16;
+        this.y = (value & 0x00FF00) >> 8;
+        this.z = (value & 0x0000FF);
+        this.w = (value & 0xFF000000) >> 24;
+    }
+    getField(index) {
+        switch (index) {
+            case 0:
+                return this.x;
+            case 1:
+                return this.y;
+            case 2:
+                return this.z;
+            case 3:
+                return this.w;
+            default:
+                throw new Error("Index out of bounds: " + index);
+        }
+    }
+    setField(index, value) {
+        switch (index) {
+            case 0:
+                this.x = value;
+                break;
+            case 1:
+                this.y = value;
+                break;
+            case 2:
+                this.z = value;
+                break;
+            case 3:
+                this.w = value;
+                break;
+            default:
+                throw new Error("Index out of bounds: " + index);
+        }
+    }
+    setZero() {
+        this.x = this.y = this.z = this.w = 0;
+    }
+}
+
+class GTweener {
+    constructor() {
+        this._startValue = new TweenValue();
+        this._endValue = new TweenValue();
+        this._value = new TweenValue();
+        this._deltaValue = new TweenValue();
+        this._reset();
+    }
+    setDelay(value) {
+        this._delay = value;
+        return this;
+    }
+    get delay() {
+        return this._delay;
+    }
+    setDuration(value) {
+        this._duration = value;
+        return this;
+    }
+    get duration() {
+        return this._duration;
+    }
+    setBreakpoint(value) {
+        this._breakpoint = value;
+        return this;
+    }
+    setEase(value) {
+        this._easeType = value;
+        return this;
+    }
+    setEasePeriod(value) {
+        this._easePeriod = value;
+        return this;
+    }
+    setEaseOvershootOrAmplitude(value) {
+        this._easeOvershootOrAmplitude = value;
+        return this;
+    }
+    setRepeat(repeat, yoyo = false) {
+        this._repeat = repeat;
+        this._yoyo = yoyo;
+        return this;
+    }
+    get repeat() {
+        return this._repeat;
+    }
+    setTimeScale(value) {
+        this._timeScale = value;
+        return this;
+    }
+    setSnapping(value) {
+        this._snapping = value;
+        return this;
+    }
+    setTarget(value, propType) {
+        this._target = value;
+        this._propType = propType;
+        return this;
+    }
+    get target() {
+        return this._target;
+    }
+    setPath(value) {
+        this._path = value;
+        return this;
+    }
+    setUserData(value) {
+        this._userData = value;
+        return this;
+    }
+    get userData() {
+        return this._userData;
+    }
+    onUpdate(callback, caller) {
+        this._onUpdate = callback;
+        this._onUpdateCaller = caller;
+        return this;
+    }
+    onStart(callback, caller) {
+        this._onStart = callback;
+        this._onStartCaller = caller;
+        return this;
+    }
+    onComplete(callback, caller) {
+        this._onComplete = callback;
+        this._onCompleteCaller = caller;
+        return this;
+    }
+    get startValue() {
+        return this._startValue;
+    }
+    get endValue() {
+        return this._endValue;
+    }
+    get value() {
+        return this._value;
+    }
+    get deltaValue() {
+        return this._deltaValue;
+    }
+    get normalizedTime() {
+        return this._normalizedTime;
+    }
+    get completed() {
+        return this._ended != 0;
+    }
+    get allCompleted() {
+        return this._ended == 1;
+    }
+    setPaused(paused) {
+        this._paused = paused;
+        return this;
+    }
+    /**
+     * seek position of the tween, in seconds.
+     */
+    seek(time) {
+        if (this._killed)
+            return;
+        this._elapsedTime = time;
+        if (this._elapsedTime < this._delay) {
+            if (this._started)
+                this._elapsedTime = this._delay;
+            else
+                return;
+        }
+        this.update();
+    }
+    kill(complete) {
+        if (this._killed)
+            return;
+        if (complete) {
+            if (this._ended == 0) {
+                if (this._breakpoint >= 0)
+                    this._elapsedTime = this._delay + this._breakpoint;
+                else if (this._repeat >= 0)
+                    this._elapsedTime = this._delay + this._duration * (this._repeat + 1);
+                else
+                    this._elapsedTime = this._delay + this._duration * 2;
+                this.update();
+            }
+            this.callCompleteCallback();
+        }
+        this._killed = true;
+    }
+    _to(start, end, duration) {
+        this._valueSize = 1;
+        this._startValue.x = start;
+        this._endValue.x = end;
+        this._value.x = start;
+        this._duration = duration;
+        return this;
+    }
+    _to2(start, start2, end, end2, duration) {
+        this._valueSize = 2;
+        this._startValue.x = start;
+        this._endValue.x = end;
+        this._startValue.y = start2;
+        this._endValue.y = end2;
+        this._value.x = start;
+        this._value.y = start2;
+        this._duration = duration;
+        return this;
+    }
+    _to3(start, start2, start3, end, end2, end3, duration) {
+        this._valueSize = 3;
+        this._startValue.x = start;
+        this._endValue.x = end;
+        this._startValue.y = start2;
+        this._endValue.y = end2;
+        this._startValue.z = start3;
+        this._endValue.z = end3;
+        this._value.x = start;
+        this._value.y = start2;
+        this._value.z = start3;
+        this._duration = duration;
+        return this;
+    }
+    _to4(start, start2, start3, start4, end, end2, end3, end4, duration) {
+        this._valueSize = 4;
+        this._startValue.x = start;
+        this._endValue.x = end;
+        this._startValue.y = start2;
+        this._endValue.y = end2;
+        this._startValue.z = start3;
+        this._endValue.z = end3;
+        this._startValue.w = start4;
+        this._endValue.w = end4;
+        this._value.x = start;
+        this._value.y = start2;
+        this._value.z = start3;
+        this._value.w = start4;
+        this._duration = duration;
+        return this;
+    }
+    _toColor(start, end, duration) {
+        this._valueSize = 5;
+        this._startValue.color = start;
+        this._endValue.color = end;
+        this._value.color = start;
+        this._duration = duration;
+        return this;
+    }
+    _shake(startX, startY, amplitude, duration) {
+        this._valueSize = 6;
+        this._startValue.x = startX;
+        this._startValue.y = startY;
+        this._startValue.w = amplitude;
+        this._duration = duration;
+        return this;
+    }
+    _init() {
+        this._delay = 0;
+        this._duration = 0;
+        this._breakpoint = -1;
+        this._easeType = EaseType.QuadOut;
+        this._timeScale = 1;
+        this._easePeriod = 0;
+        this._easeOvershootOrAmplitude = 1.70158;
+        this._snapping = false;
+        this._repeat = 0;
+        this._yoyo = false;
+        this._valueSize = 0;
+        this._started = false;
+        this._paused = false;
+        this._killed = false;
+        this._elapsedTime = 0;
+        this._normalizedTime = 0;
+        this._ended = 0;
+    }
+    _reset() {
+        this._target = null;
+        this._propType = null;
+        this._userData = null;
+        this._path = null;
+        this._onStart = this._onUpdate = this._onComplete = null;
+        this._onStartCaller = this._onUpdateCaller = this._onCompleteCaller = null;
+    }
+    _update(dt) {
+        if (this._timeScale != 1)
+            dt *= this._timeScale;
+        if (dt == 0)
+            return;
+        if (this._ended != 0) //Maybe completed by seek
+         {
+            this.callCompleteCallback();
+            this._killed = true;
+            return;
+        }
+        this._elapsedTime += dt;
+        this.update();
+        if (this._ended != 0) {
+            if (!this._killed) {
+                this.callCompleteCallback();
+                this._killed = true;
+            }
+        }
+    }
+    update() {
+        this._ended = 0;
+        if (this._valueSize == 0) //DelayedCall
+         {
+            if (this._elapsedTime >= this._delay + this._duration)
+                this._ended = 1;
+            return;
+        }
+        if (!this._started) {
+            if (this._elapsedTime < this._delay)
+                return;
+            this._started = true;
+            this.callStartCallback();
+            if (this._killed)
+                return;
+        }
+        var reversed = false;
+        var tt = this._elapsedTime - this._delay;
+        if (this._breakpoint >= 0 && tt >= this._breakpoint) {
+            tt = this._breakpoint;
+            this._ended = 2;
+        }
+        if (this._repeat != 0) {
+            var round = Math.floor(tt / this._duration);
+            tt -= this._duration * round;
+            if (this._yoyo)
+                reversed = round % 2 == 1;
+            if (this._repeat > 0 && this._repeat - round < 0) {
+                if (this._yoyo)
+                    reversed = this._repeat % 2 == 1;
+                tt = this._duration;
+                this._ended = 1;
+            }
+        }
+        else if (tt >= this._duration) {
+            tt = this._duration;
+            this._ended = 1;
+        }
+        this._normalizedTime = evaluateEase(this._easeType, reversed ? (this._duration - tt) : tt, this._duration, this._easeOvershootOrAmplitude, this._easePeriod);
+        this._value.setZero();
+        this._deltaValue.setZero();
+        if (this._valueSize == 6) {
+            if (this._ended == 0) {
+                var r = this._startValue.w * (1 - this._normalizedTime);
+                var rx = r * (Math.random() > 0.5 ? 1 : -1);
+                var ry = r * (Math.random() > 0.5 ? 1 : -1);
+                this._deltaValue.x = rx;
+                this._deltaValue.y = ry;
+                this._value.x = this._startValue.x + rx;
+                this._value.y = this._startValue.y + ry;
+            }
+            else {
+                this._value.x = this._startValue.x;
+                this._value.y = this._startValue.y;
+            }
+        }
+        else if (this._path) {
+            var pt = s_vec2$1;
+            this._path.getPointAt(this._normalizedTime, pt);
+            if (this._snapping) {
+                pt.x = Math.round(pt.x);
+                pt.y = Math.round(pt.y);
+            }
+            this._deltaValue.x = pt.x - this._value.x;
+            this._deltaValue.y = pt.y - this._value.y;
+            this._value.x = pt.x;
+            this._value.y = pt.y;
+        }
+        else {
+            for (var i = 0; i < this._valueSize; i++) {
+                var n1 = this._startValue.getField(i);
+                var n2 = this._endValue.getField(i);
+                var f = n1 + (n2 - n1) * this._normalizedTime;
+                if (this._snapping)
+                    f = Math.round(f);
+                this._deltaValue.setField(i, f - this._value.getField(i));
+                this._value.setField(i, f);
+            }
+        }
+        if (this._target && this._propType) {
+            if (this._propType instanceof Function) {
+                switch (this._valueSize) {
+                    case 1:
+                        this._propType.call(this._target, this._value.x);
+                        break;
+                    case 2:
+                        this._propType.call(this._target, this._value.x, this._value.y);
+                        break;
+                    case 3:
+                        this._propType.call(this._target, this._value.x, this._value.y, this._value.z);
+                        break;
+                    case 4:
+                        this._propType.call(this._target, this._value.x, this._value.y, this._value.z, this._value.w);
+                        break;
+                    case 5:
+                        this._propType.call(this._target, this._value.color);
+                        break;
+                    case 6:
+                        this._propType.call(this._target, this._value.x, this._value.y);
+                        break;
+                }
+            }
+            else {
+                if (this._valueSize == 5)
+                    this._target[this._propType] = this._value.color;
+                else
+                    this._target[this._propType] = this._value.x;
+            }
+        }
+        this.callUpdateCallback();
+    }
+    callStartCallback() {
+        if (this._onStart != null) {
+            try {
+                this._onStart.call(this._onStartCaller, this);
+            }
+            catch (err) {
+                console.log("FairyGUI: error in start callback > " + err);
+            }
+        }
+    }
+    callUpdateCallback() {
+        if (this._onUpdate != null) {
+            try {
+                this._onUpdate.call(this._onUpdateCaller, this);
+            }
+            catch (err) {
+                console.log("FairyGUI: error in update callback > " + err);
+            }
+        }
+    }
+    callCompleteCallback() {
+        if (this._onComplete != null) {
+            try {
+                this._onComplete.call(this._onCompleteCaller, this);
+            }
+            catch (err) {
+                console.log("FairyGUI: error in complete callback > " + err);
+            }
+        }
+    }
+}
+var s_vec2$1 = new Phaser.Geom.Point();
 
 class TweenManager {
     static createTween() {
@@ -894,210 +1740,6 @@ class GearDisplay extends GearBase {
         return this._controller == null || this._visible > 0;
     }
 }
-
-var ButtonMode;
-(function (ButtonMode) {
-    ButtonMode[ButtonMode["Common"] = 0] = "Common";
-    ButtonMode[ButtonMode["Check"] = 1] = "Check";
-    ButtonMode[ButtonMode["Radio"] = 2] = "Radio";
-})(ButtonMode || (ButtonMode = {}));
-var AutoSizeType;
-(function (AutoSizeType) {
-    AutoSizeType[AutoSizeType["None"] = 0] = "None";
-    AutoSizeType[AutoSizeType["Both"] = 1] = "Both";
-    AutoSizeType[AutoSizeType["Height"] = 2] = "Height";
-})(AutoSizeType || (AutoSizeType = {}));
-var AlignType;
-(function (AlignType) {
-    AlignType[AlignType["Left"] = 0] = "Left";
-    AlignType[AlignType["Center"] = 1] = "Center";
-    AlignType[AlignType["Right"] = 2] = "Right";
-})(AlignType || (AlignType = {}));
-var VertAlignType;
-(function (VertAlignType) {
-    VertAlignType[VertAlignType["Top"] = 0] = "Top";
-    VertAlignType[VertAlignType["Middle"] = 1] = "Middle";
-    VertAlignType[VertAlignType["Bottom"] = 2] = "Bottom";
-})(VertAlignType || (VertAlignType = {}));
-var LoaderFillType;
-(function (LoaderFillType) {
-    LoaderFillType[LoaderFillType["None"] = 0] = "None";
-    LoaderFillType[LoaderFillType["Scale"] = 1] = "Scale";
-    LoaderFillType[LoaderFillType["ScaleMatchHeight"] = 2] = "ScaleMatchHeight";
-    LoaderFillType[LoaderFillType["ScaleMatchWidth"] = 3] = "ScaleMatchWidth";
-    LoaderFillType[LoaderFillType["ScaleFree"] = 4] = "ScaleFree";
-    LoaderFillType[LoaderFillType["ScaleNoBorder"] = 5] = "ScaleNoBorder";
-})(LoaderFillType || (LoaderFillType = {}));
-var ListLayoutType;
-(function (ListLayoutType) {
-    ListLayoutType[ListLayoutType["SingleColumn"] = 0] = "SingleColumn";
-    ListLayoutType[ListLayoutType["SingleRow"] = 1] = "SingleRow";
-    ListLayoutType[ListLayoutType["FlowHorizontal"] = 2] = "FlowHorizontal";
-    ListLayoutType[ListLayoutType["FlowVertical"] = 3] = "FlowVertical";
-    ListLayoutType[ListLayoutType["Pagination"] = 4] = "Pagination";
-})(ListLayoutType || (ListLayoutType = {}));
-var ListSelectionMode;
-(function (ListSelectionMode) {
-    ListSelectionMode[ListSelectionMode["Single"] = 0] = "Single";
-    ListSelectionMode[ListSelectionMode["Multiple"] = 1] = "Multiple";
-    ListSelectionMode[ListSelectionMode["Multiple_SingleClick"] = 2] = "Multiple_SingleClick";
-    ListSelectionMode[ListSelectionMode["None"] = 3] = "None";
-})(ListSelectionMode || (ListSelectionMode = {}));
-var OverflowType;
-(function (OverflowType) {
-    OverflowType[OverflowType["Visible"] = 0] = "Visible";
-    OverflowType[OverflowType["Hidden"] = 1] = "Hidden";
-    OverflowType[OverflowType["Scroll"] = 2] = "Scroll";
-})(OverflowType || (OverflowType = {}));
-var PackageItemType;
-(function (PackageItemType) {
-    PackageItemType[PackageItemType["Image"] = 0] = "Image";
-    PackageItemType[PackageItemType["MovieClip"] = 1] = "MovieClip";
-    PackageItemType[PackageItemType["Sound"] = 2] = "Sound";
-    PackageItemType[PackageItemType["Component"] = 3] = "Component";
-    PackageItemType[PackageItemType["Atlas"] = 4] = "Atlas";
-    PackageItemType[PackageItemType["Font"] = 5] = "Font";
-    PackageItemType[PackageItemType["Swf"] = 6] = "Swf";
-    PackageItemType[PackageItemType["Misc"] = 7] = "Misc";
-    PackageItemType[PackageItemType["Unknown"] = 8] = "Unknown";
-    PackageItemType[PackageItemType["Spine"] = 9] = "Spine";
-    PackageItemType[PackageItemType["DragonBones"] = 10] = "DragonBones";
-})(PackageItemType || (PackageItemType = {}));
-var ObjectType;
-(function (ObjectType) {
-    ObjectType[ObjectType["Image"] = 0] = "Image";
-    ObjectType[ObjectType["MovieClip"] = 1] = "MovieClip";
-    ObjectType[ObjectType["Swf"] = 2] = "Swf";
-    ObjectType[ObjectType["Graph"] = 3] = "Graph";
-    ObjectType[ObjectType["Loader"] = 4] = "Loader";
-    ObjectType[ObjectType["Group"] = 5] = "Group";
-    ObjectType[ObjectType["Text"] = 6] = "Text";
-    ObjectType[ObjectType["RichText"] = 7] = "RichText";
-    ObjectType[ObjectType["InputText"] = 8] = "InputText";
-    ObjectType[ObjectType["Component"] = 9] = "Component";
-    ObjectType[ObjectType["List"] = 10] = "List";
-    ObjectType[ObjectType["Label"] = 11] = "Label";
-    ObjectType[ObjectType["Button"] = 12] = "Button";
-    ObjectType[ObjectType["ComboBox"] = 13] = "ComboBox";
-    ObjectType[ObjectType["ProgressBar"] = 14] = "ProgressBar";
-    ObjectType[ObjectType["Slider"] = 15] = "Slider";
-    ObjectType[ObjectType["ScrollBar"] = 16] = "ScrollBar";
-    ObjectType[ObjectType["Tree"] = 17] = "Tree";
-    ObjectType[ObjectType["Loader3D"] = 18] = "Loader3D";
-})(ObjectType || (ObjectType = {}));
-var ProgressTitleType;
-(function (ProgressTitleType) {
-    ProgressTitleType[ProgressTitleType["Percent"] = 0] = "Percent";
-    ProgressTitleType[ProgressTitleType["ValueAndMax"] = 1] = "ValueAndMax";
-    ProgressTitleType[ProgressTitleType["Value"] = 2] = "Value";
-    ProgressTitleType[ProgressTitleType["Max"] = 3] = "Max";
-})(ProgressTitleType || (ProgressTitleType = {}));
-var ScrollBarDisplayType;
-(function (ScrollBarDisplayType) {
-    ScrollBarDisplayType[ScrollBarDisplayType["Default"] = 0] = "Default";
-    ScrollBarDisplayType[ScrollBarDisplayType["Visible"] = 1] = "Visible";
-    ScrollBarDisplayType[ScrollBarDisplayType["Auto"] = 2] = "Auto";
-    ScrollBarDisplayType[ScrollBarDisplayType["Hidden"] = 3] = "Hidden";
-})(ScrollBarDisplayType || (ScrollBarDisplayType = {}));
-var ScrollType;
-(function (ScrollType) {
-    ScrollType[ScrollType["Horizontal"] = 0] = "Horizontal";
-    ScrollType[ScrollType["Vertical"] = 1] = "Vertical";
-    ScrollType[ScrollType["Both"] = 2] = "Both";
-})(ScrollType || (ScrollType = {}));
-var FlipType;
-(function (FlipType) {
-    FlipType[FlipType["None"] = 0] = "None";
-    FlipType[FlipType["Horizontal"] = 1] = "Horizontal";
-    FlipType[FlipType["Vertical"] = 2] = "Vertical";
-    FlipType[FlipType["Both"] = 3] = "Both";
-})(FlipType || (FlipType = {}));
-var ChildrenRenderOrder;
-(function (ChildrenRenderOrder) {
-    ChildrenRenderOrder[ChildrenRenderOrder["Ascent"] = 0] = "Ascent";
-    ChildrenRenderOrder[ChildrenRenderOrder["Descent"] = 1] = "Descent";
-    ChildrenRenderOrder[ChildrenRenderOrder["Arch"] = 2] = "Arch";
-})(ChildrenRenderOrder || (ChildrenRenderOrder = {}));
-var GroupLayoutType;
-(function (GroupLayoutType) {
-    GroupLayoutType[GroupLayoutType["None"] = 0] = "None";
-    GroupLayoutType[GroupLayoutType["Horizontal"] = 1] = "Horizontal";
-    GroupLayoutType[GroupLayoutType["Vertical"] = 2] = "Vertical";
-})(GroupLayoutType || (GroupLayoutType = {}));
-var PopupDirection;
-(function (PopupDirection) {
-    PopupDirection[PopupDirection["Auto"] = 0] = "Auto";
-    PopupDirection[PopupDirection["Up"] = 1] = "Up";
-    PopupDirection[PopupDirection["Down"] = 2] = "Down";
-})(PopupDirection || (PopupDirection = {}));
-var RelationType;
-(function (RelationType) {
-    RelationType[RelationType["Left_Left"] = 0] = "Left_Left";
-    RelationType[RelationType["Left_Center"] = 1] = "Left_Center";
-    RelationType[RelationType["Left_Right"] = 2] = "Left_Right";
-    RelationType[RelationType["Center_Center"] = 3] = "Center_Center";
-    RelationType[RelationType["Right_Left"] = 4] = "Right_Left";
-    RelationType[RelationType["Right_Center"] = 5] = "Right_Center";
-    RelationType[RelationType["Right_Right"] = 6] = "Right_Right";
-    RelationType[RelationType["Top_Top"] = 7] = "Top_Top";
-    RelationType[RelationType["Top_Middle"] = 8] = "Top_Middle";
-    RelationType[RelationType["Top_Bottom"] = 9] = "Top_Bottom";
-    RelationType[RelationType["Middle_Middle"] = 10] = "Middle_Middle";
-    RelationType[RelationType["Bottom_Top"] = 11] = "Bottom_Top";
-    RelationType[RelationType["Bottom_Middle"] = 12] = "Bottom_Middle";
-    RelationType[RelationType["Bottom_Bottom"] = 13] = "Bottom_Bottom";
-    RelationType[RelationType["Width"] = 14] = "Width";
-    RelationType[RelationType["Height"] = 15] = "Height";
-    RelationType[RelationType["LeftExt_Left"] = 16] = "LeftExt_Left";
-    RelationType[RelationType["LeftExt_Right"] = 17] = "LeftExt_Right";
-    RelationType[RelationType["RightExt_Left"] = 18] = "RightExt_Left";
-    RelationType[RelationType["RightExt_Right"] = 19] = "RightExt_Right";
-    RelationType[RelationType["TopExt_Top"] = 20] = "TopExt_Top";
-    RelationType[RelationType["TopExt_Bottom"] = 21] = "TopExt_Bottom";
-    RelationType[RelationType["BottomExt_Top"] = 22] = "BottomExt_Top";
-    RelationType[RelationType["BottomExt_Bottom"] = 23] = "BottomExt_Bottom";
-    RelationType[RelationType["Size"] = 24] = "Size";
-})(RelationType || (RelationType = {}));
-var FillMethod;
-(function (FillMethod) {
-    FillMethod[FillMethod["None"] = 0] = "None";
-    FillMethod[FillMethod["Horizontal"] = 1] = "Horizontal";
-    FillMethod[FillMethod["Vertical"] = 2] = "Vertical";
-    FillMethod[FillMethod["Radial90"] = 3] = "Radial90";
-    FillMethod[FillMethod["Radial180"] = 4] = "Radial180";
-    FillMethod[FillMethod["Radial360"] = 5] = "Radial360";
-})(FillMethod || (FillMethod = {}));
-var FillOrigin;
-(function (FillOrigin) {
-    FillOrigin[FillOrigin["Top"] = 0] = "Top";
-    FillOrigin[FillOrigin["Bottom"] = 1] = "Bottom";
-    FillOrigin[FillOrigin["Left"] = 2] = "Left";
-    FillOrigin[FillOrigin["Right"] = 3] = "Right";
-    FillOrigin[FillOrigin["TopLeft"] = 0] = "TopLeft";
-    FillOrigin[FillOrigin["TopRight"] = 1] = "TopRight";
-    FillOrigin[FillOrigin["BottomLeft"] = 2] = "BottomLeft";
-    FillOrigin[FillOrigin["BottomRight"] = 3] = "BottomRight";
-})(FillOrigin || (FillOrigin = {}));
-var FillOrigin90;
-(function (FillOrigin90) {
-    FillOrigin90[FillOrigin90["TopLeft"] = 0] = "TopLeft";
-    FillOrigin90[FillOrigin90["TopRight"] = 1] = "TopRight";
-    FillOrigin90[FillOrigin90["BottomLeft"] = 2] = "BottomLeft";
-    FillOrigin90[FillOrigin90["BottomRight"] = 3] = "BottomRight";
-})(FillOrigin90 || (FillOrigin90 = {}));
-var ObjectPropID;
-(function (ObjectPropID) {
-    ObjectPropID[ObjectPropID["Text"] = 0] = "Text";
-    ObjectPropID[ObjectPropID["Icon"] = 1] = "Icon";
-    ObjectPropID[ObjectPropID["Color"] = 2] = "Color";
-    ObjectPropID[ObjectPropID["OutlineColor"] = 3] = "OutlineColor";
-    ObjectPropID[ObjectPropID["Playing"] = 4] = "Playing";
-    ObjectPropID[ObjectPropID["Frame"] = 5] = "Frame";
-    ObjectPropID[ObjectPropID["DeltaTime"] = 6] = "DeltaTime";
-    ObjectPropID[ObjectPropID["TimeScale"] = 7] = "TimeScale";
-    ObjectPropID[ObjectPropID["FontSize"] = 8] = "FontSize";
-    ObjectPropID[ObjectPropID["Selected"] = 9] = "Selected";
-})(ObjectPropID || (ObjectPropID = {}));
 
 class UIConfig {
     constructor() {
@@ -1911,6 +2553,7 @@ class PackageItem {
     }
 }
 
+// import { UIObjectFactory } from './UIObjectFactory';
 class UIPackage {
     constructor() {
         this._items = [];
@@ -2170,7 +2813,8 @@ class UIPackage {
                         else
                             pi.objectType = ObjectType.Component;
                         pi.rawData = buffer.readBuffer();
-                        UIObjectFactory.resolvePackageItemExtension(pi);
+                        // todo resolvePackageItemExtension
+                        //UIObjectFactory.resolvePackageItemExtension(pi);
                         break;
                     }
                 case PackageItemType.Atlas:
@@ -2299,14 +2943,16 @@ class UIPackage {
         }
     }
     internalCreateObject(item, userClass) {
-        const g = UIObjectFactory.newObject(item, userClass);
-        if (g == null) {
-            return null;
-        }
-        UIPackage._constructing++;
-        g.constructFromResource();
-        UIPackage._constructing--;
-        return g;
+        // const g = UIObjectFactory.newObject(item, userClass);
+        // if (g == null) {
+        //     return null;
+        // }
+        // UIPackage._constructing++;
+        // g.constructFromResource();
+        // UIPackage._constructing--;
+        // return g;
+        // todoo return objectfactory
+        return null;
     }
     getItemById(itemId) {
         return this._itemsById[itemId];
@@ -2408,6 +3054,238 @@ UIPackage._instById = {};
 UIPackage._instByName = {};
 UIPackage._branch = "";
 UIPackage._vars = {};
+
+var GRAPHICSTYPE;
+(function (GRAPHICSTYPE) {
+    GRAPHICSTYPE["RECTANGLE"] = "rectangle";
+    GRAPHICSTYPE["CIRCLE"] = "circle";
+    GRAPHICSTYPE["POLY"] = "POLY";
+    GRAPHICSTYPE["ELLIPSE"] = "ellipse";
+})(GRAPHICSTYPE || (GRAPHICSTYPE = {}));
+class Graphics extends Phaser.GameObjects.Graphics {
+    constructor(scene) {
+        super(scene);
+        // 默认矩形
+        this._graphicsType = GRAPHICSTYPE.RECTANGLE;
+        this._width = 0;
+        this._height = 0;
+        this._radius = 0;
+        this._points = [];
+    }
+    get width() {
+        return this._width;
+    }
+    get height() {
+        return this._height;
+    }
+    get radius() {
+        return this._radius;
+    }
+    get points() {
+        return this._points;
+    }
+    fillRect(x, y, width, height) {
+        this._graphicsType = GRAPHICSTYPE.RECTANGLE;
+        this._width = width;
+        this._height = height;
+        return super.fillRect(x, y, width, height);
+    }
+    fillCircle(x, y, radius) {
+        this._graphicsType = GRAPHICSTYPE.CIRCLE;
+        this._radius = radius;
+        return super.fillCircle(x, y, radius);
+    }
+    fillTriangle(x0, y0, x1, y1, x2, y2) {
+        // 三角形是多边形
+        // todo 扩展其他正多边形
+        this._graphicsType = GRAPHICSTYPE.POLY;
+        this._points = [new Phaser.Geom.Point(x0, y0), new Phaser.Geom.Point(x1, y1), new Phaser.Geom.Point(x2, y2)];
+        return super.fillTriangle(x0, y0, x1, y1, x2, y2);
+    }
+    fillEllipse(x, y, width, height, smoothness) {
+        this._graphicsType = GRAPHICSTYPE.ELLIPSE;
+        return super.fillEllipse(x, y, width, height, smoothness);
+    }
+    get graphicsType() {
+        return this._graphicsType;
+    }
+    set graphicsType(value) {
+        this._graphicsType = value;
+    }
+    clear() {
+        this._width = 0;
+        this._height = 0;
+        this._radius = 0;
+        this._points = [];
+        return super.clear();
+    }
+}
+
+/**
+ * 鼠标点击区域，可以设置绘制一系列矢量图作为点击区域和非点击区域（目前只支持圆形，矩形，多边形）
+ *
+ */
+class HitArea {
+    /**
+     * 检测对象是否包含指定的点。
+     * @param	x	点的 X 轴坐标值（水平位置）。
+     * @param	y	点的 Y 轴坐标值（垂直位置）。
+     * @return	如果包含指定的点，则值为 true；否则为 false。
+     */
+    contains(x, y) {
+        if (!HitArea._isHitGraphic(x, y, this.hit))
+            return false;
+        return !HitArea._isHitGraphic(x, y, this.unHit);
+    }
+    /**
+     * @internal
+     * 是否击中Graphic
+     */
+    static _isHitGraphic(x, y, graphic) {
+        if (!graphic)
+            return false;
+        if (HitArea._isHitCmd(x, y, graphic))
+            return true;
+        return false;
+    }
+    /**
+     * @internal
+     * 是否击中绘图指令
+     */
+    static _isHitCmd(x, y, g) {
+        let rst = false;
+        const type = g.graphicsType;
+        switch (type) {
+            case GRAPHICSTYPE.CIRCLE:
+                var d;
+                x -= g.x;
+                y -= g.y;
+                d = x * x + y * y;
+                rst = d < g.radius * g.radius;
+                break;
+            case GRAPHICSTYPE.POLY:
+                x -= g.x;
+                y -= g.y;
+                rst = HitArea._ptInPolygon(x, y, g.points);
+                break;
+            case GRAPHICSTYPE.RECTANGLE:
+            default:
+                HitArea._rect.setTo(g.x, g.y, g.width, g.height);
+                rst = HitArea._rect.contains(x, y);
+                break;
+        }
+        return rst;
+    }
+    /**
+     * @internal
+     * 坐标是否在多边形内
+     */
+    static _ptInPolygon(x, y, areaPoints) {
+        var p = HitArea._ptPoint;
+        p.setTo(x, y);
+        // 交点个数
+        var nCross = 0;
+        var p1x, p1y, p2x, p2y;
+        var len;
+        len = areaPoints.length;
+        for (var i = 0; i < len; i += 2) {
+            p1x = areaPoints[i];
+            p1y = areaPoints[i + 1];
+            p2x = areaPoints[(i + 2) % len];
+            p2y = areaPoints[(i + 3) % len];
+            //var p1:Point = areaPoints[i];
+            //var p2:Point = areaPoints[(i + 1) % areaPoints.length]; // 最后一个点与第一个点连线
+            if (p1y == p2y)
+                continue;
+            if (p.y < Math.min(p1y, p2y))
+                continue;
+            if (p.y >= Math.max(p1y, p2y))
+                continue;
+            // 求交点的x坐标
+            var tx = (p.y - p1y) * (p2x - p1x) / (p2y - p1y) + p1x;
+            // 只统计p1p2与p向右射线的交点
+            if (tx > p.x)
+                nCross++;
+        }
+        // 交点为偶数，点在多边形之外
+        return (nCross % 2 == 1);
+    }
+    /**
+     * 可点击区域，可以设置绘制一系列矢量图作为点击区域（目前只支持圆形，矩形，多边形）
+     */
+    get hit() {
+        if (!this._hit)
+            this._hit = new Graphics(GRoot.inst.scene);
+        return this._hit;
+    }
+    set hit(value) {
+        this._hit = value;
+    }
+    /**
+     * 不可点击区域，可以设置绘制一系列矢量图作为非点击区域（目前只支持圆形，矩形，多边形）
+     */
+    get unHit() {
+        if (!this._unHit)
+            this._unHit = new Graphics(GRoot.inst.scene);
+        return this._unHit;
+    }
+    set unHit(value) {
+        this._unHit = value;
+    }
+}
+/**@private */
+HitArea._rect = new Phaser.Geom.Rectangle();
+/**@private */
+HitArea._ptPoint = new Phaser.Geom.Point();
+
+class PixelHitTest extends HitArea {
+    constructor(data, offsetX, offsetY) {
+        super();
+        this._data = data;
+        this.offsetX = offsetX;
+        this.offsetY = offsetY;
+        this.scaleX = 1;
+        this.scaleY = 1;
+    }
+    contains(x, y) {
+        x = Math.floor((x / this.scaleX - this.offsetX) * this._data.scale);
+        y = Math.floor((y / this.scaleY - this.offsetY) * this._data.scale);
+        if (x < 0 || y < 0 || x >= this._data.pixelWidth)
+            return false;
+        var pos = y * this._data.pixelWidth + x;
+        var pos2 = Math.floor(pos / 8);
+        var pos3 = pos % 8;
+        if (pos2 >= 0 && pos2 < this._data.pixels.length)
+            return ((this._data.pixels[pos2] >> pos3) & 0x1) == 1;
+        else
+            return false;
+    }
+}
+
+let _func = HitArea["_isHitGraphic"];
+class ChildHitArea extends HitArea {
+    constructor(child, reversed) {
+        super();
+        this._tPos = new Phaser.Geom.Point();
+        this._child = child;
+        this._reversed = reversed;
+        if (this._reversed)
+            this.unHit = child.hitArea.hit;
+        else
+            this.hit = child.hitArea.hit;
+    }
+    ;
+    contains(x, y) {
+        var tPos;
+        tPos = this._tPos;
+        tPos.setTo(0, 0);
+        tPos = this._child.toParentPoint(tPos);
+        if (this._reversed)
+            return !_func(x - tPos.x, y - tPos.y, this.unHit);
+        else
+            return _func(x - tPos.x, y - tPos.y, this.hit);
+    }
+}
 
 class GTextField extends GObject {
     constructor() {
@@ -3395,5306 +4273,6 @@ GButton.OVER = "over";
 GButton.SELECTED_OVER = "selectedOver";
 GButton.DISABLED = "disabled";
 GButton.SELECTED_DISABLED = "selectedDisabled";
-
-class GList extends GComponent {
-    constructor() {
-        super();
-        this._lineCount = 0;
-        this._columnCount = 0;
-        this._lineGap = 0;
-        this._columnGap = 0;
-        this._lastSelectedIndex = 0;
-        this._numItems = 0;
-        this._firstIndex = 0; //the top left index
-        this._curLineItemCount = 0; //item count in one line
-        this._virtualListChanged = 0; //1-content changed, 2-size changed
-        this.itemInfoVer = 0; //用来标志item是否在本次处理中已经被重用了
-        throw new Error("TODO");
-        // this._trackBounds = true;
-        // this._pool = new GObjectPool();
-        // this._layout = ListLayoutType.SingleColumn;
-        // this._autoResizeItem = true;
-        // this._lastSelectedIndex = -1;
-        // this._selectionMode = ListSelectionMode.Single;
-        // this.opaque = true;
-        // this.scrollItemToViewOnClick = true;
-        // this._align = "left";
-        // this._verticalAlign = "top";
-        // this._container = new Laya.Sprite();
-        // this._displayObject.addChild(this._container);
-    }
-    dispose() {
-        this._pool.clear();
-        super.dispose();
-    }
-    get layout() {
-        return this._layout;
-    }
-    set layout(value) {
-        if (this._layout != value) {
-            this._layout = value;
-            this.setBoundsChangedFlag();
-            if (this._virtual)
-                this.setVirtualListChangedFlag(true);
-        }
-    }
-    get lineCount() {
-        return this._lineCount;
-    }
-    set lineCount(value) {
-        if (this._lineCount != value) {
-            this._lineCount = value;
-            if (this._layout == ListLayoutType.FlowVertical || this._layout == ListLayoutType.Pagination) {
-                this.setBoundsChangedFlag();
-                if (this._virtual)
-                    this.setVirtualListChangedFlag(true);
-            }
-        }
-    }
-    get columnCount() {
-        return this._columnCount;
-    }
-    set columnCount(value) {
-        if (this._columnCount != value) {
-            this._columnCount = value;
-            if (this._layout == ListLayoutType.FlowHorizontal || this._layout == ListLayoutType.Pagination) {
-                this.setBoundsChangedFlag();
-                if (this._virtual)
-                    this.setVirtualListChangedFlag(true);
-            }
-        }
-    }
-    get lineGap() {
-        return this._lineGap;
-    }
-    set lineGap(value) {
-        if (this._lineGap != value) {
-            this._lineGap = value;
-            this.setBoundsChangedFlag();
-            if (this._virtual)
-                this.setVirtualListChangedFlag(true);
-        }
-    }
-    get columnGap() {
-        return this._columnGap;
-    }
-    set columnGap(value) {
-        if (this._columnGap != value) {
-            this._columnGap = value;
-            this.setBoundsChangedFlag();
-            if (this._virtual)
-                this.setVirtualListChangedFlag(true);
-        }
-    }
-    get align() {
-        return this._align;
-    }
-    set align(value) {
-        if (this._align != value) {
-            this._align = value;
-            this.setBoundsChangedFlag();
-            if (this._virtual)
-                this.setVirtualListChangedFlag(true);
-        }
-    }
-    get verticalAlign() {
-        return this._verticalAlign;
-    }
-    set verticalAlign(value) {
-        if (this._verticalAlign != value) {
-            this._verticalAlign = value;
-            this.setBoundsChangedFlag();
-            if (this._virtual)
-                this.setVirtualListChangedFlag(true);
-        }
-    }
-    get virtualItemSize() {
-        return this._itemSize;
-    }
-    set virtualItemSize(value) {
-        if (this._virtual) {
-            if (this._itemSize == null)
-                this._itemSize = new Phaser.Geom.Point();
-            this._itemSize.setTo(value.x, value.y);
-            this.setVirtualListChangedFlag(true);
-        }
-    }
-    get defaultItem() {
-        return this._defaultItem;
-    }
-    set defaultItem(val) {
-        this._defaultItem = UIPackage.normalizeURL(val);
-    }
-    get autoResizeItem() {
-        return this._autoResizeItem;
-    }
-    set autoResizeItem(value) {
-        if (this._autoResizeItem != value) {
-            this._autoResizeItem = value;
-            this.setBoundsChangedFlag();
-            if (this._virtual)
-                this.setVirtualListChangedFlag(true);
-        }
-    }
-    get selectionMode() {
-        return this._selectionMode;
-    }
-    set selectionMode(value) {
-        this._selectionMode = value;
-    }
-    get selectionController() {
-        return this._selectionController;
-    }
-    set selectionController(value) {
-        this._selectionController = value;
-    }
-    get itemPool() {
-        return this._pool;
-    }
-    getFromPool(url) {
-        if (!url)
-            url = this._defaultItem;
-        var obj = this._pool.getObject(url);
-        if (obj)
-            obj.visible = true;
-        return obj;
-    }
-    returnToPool(obj) {
-        throw new Error("TODO");
-        // obj.displayObject.cacheAs = "none";
-        // this._pool.returnObject(obj);
-    }
-    addChildAt(child, index) {
-        super.addChildAt(child, index);
-        throw new Error("TODO");
-        // if (child instanceof GButton) {
-        //     child.selected = false;
-        //     child.changeStateOnClick = false;
-        // }
-        // child.on(Laya.Event.CLICK, this, this.__clickItem);
-        // return child;
-    }
-    addItem(url) {
-        // if (!url)
-        //     url = this._defaultItem;
-        // return this.addChild(UIPackage.createObjectFromURL(url));
-        throw new Error("TODO");
-    }
-    addItemFromPool(url) {
-        throw new Error("TODO");
-        // return this.addChild(this.getFromPool(url));
-    }
-    removeChildAt(index, dispose) {
-        throw new Error("TODO");
-        // var child: GObject = super.removeChildAt(index);
-        // if (dispose)
-        //     child.dispose();
-        // else
-        //     child.off(Laya.Event.CLICK, this, this.__clickItem);
-        // return child;
-    }
-    removeChildToPoolAt(index) {
-        var child = super.removeChildAt(index);
-        this.returnToPool(child);
-    }
-    removeChildToPool(child) {
-        super.removeChild(child);
-        this.returnToPool(child);
-    }
-    removeChildrenToPool(beginIndex, endIndex) {
-        if (beginIndex == undefined)
-            beginIndex = 0;
-        if (endIndex == undefined)
-            endIndex = -1;
-        if (endIndex < 0 || endIndex >= this._children.length)
-            endIndex = this._children.length - 1;
-        for (var i = beginIndex; i <= endIndex; ++i)
-            this.removeChildToPoolAt(beginIndex);
-    }
-    get selectedIndex() {
-        var i;
-        if (this._virtual) {
-            for (i = 0; i < this._realNumItems; i++) {
-                var ii = this._virtualItems[i];
-                if ((ii.obj instanceof GButton) && ii.obj.selected
-                    || ii.obj == null && ii.selected) {
-                    if (this._loop)
-                        return i % this._numItems;
-                    else
-                        return i;
-                }
-            }
-        }
-        else {
-            var cnt = this._children.length;
-            for (i = 0; i < cnt; i++) {
-                var obj = this._children[i];
-                if ((obj instanceof GButton) && obj.selected)
-                    return i;
-            }
-        }
-        return -1;
-    }
-    set selectedIndex(value) {
-        if (value >= 0 && value < this.numItems) {
-            if (this._selectionMode != ListSelectionMode.Single)
-                this.clearSelection();
-            this.addSelection(value);
-        }
-        else
-            this.clearSelection();
-    }
-    getSelection(result) {
-        if (!result)
-            result = new Array();
-        var i;
-        if (this._virtual) {
-            for (i = 0; i < this._realNumItems; i++) {
-                var ii = this._virtualItems[i];
-                if ((ii.obj instanceof GButton) && ii.obj.selected
-                    || ii.obj == null && ii.selected) {
-                    var j = i;
-                    if (this._loop) {
-                        j = i % this._numItems;
-                        if (result.indexOf(j) != -1)
-                            continue;
-                    }
-                    result.push(j);
-                }
-            }
-        }
-        else {
-            var cnt = this._children.length;
-            for (i = 0; i < cnt; i++) {
-                var obj = this._children[i];
-                if ((obj instanceof GButton) && obj.selected)
-                    result.push(i);
-            }
-        }
-        return result;
-    }
-    addSelection(index, scrollItToView) {
-        if (this._selectionMode == ListSelectionMode.None)
-            return;
-        this.checkVirtualList();
-        if (this._selectionMode == ListSelectionMode.Single)
-            this.clearSelection();
-        if (scrollItToView)
-            this.scrollToView(index);
-        this._lastSelectedIndex = index;
-        var obj;
-        if (this._virtual) {
-            var ii = this._virtualItems[index];
-            if (ii.obj)
-                obj = ii.obj;
-            ii.selected = true;
-        }
-        else
-            obj = this.getChildAt(index);
-        if ((obj instanceof GButton) && !obj.selected) {
-            obj.selected = true;
-            this.updateSelectionController(index);
-        }
-    }
-    removeSelection(index) {
-        if (this._selectionMode == ListSelectionMode.None)
-            return;
-        var obj;
-        if (this._virtual) {
-            var ii = this._virtualItems[index];
-            if (ii.obj)
-                obj = ii.obj;
-            ii.selected = false;
-        }
-        else
-            obj = this.getChildAt(index);
-        if (obj instanceof GButton)
-            obj.selected = false;
-    }
-    clearSelection() {
-        var i;
-        if (this._virtual) {
-            for (i = 0; i < this._realNumItems; i++) {
-                var ii = this._virtualItems[i];
-                if (ii.obj instanceof GButton)
-                    ii.obj.selected = false;
-                ii.selected = false;
-            }
-        }
-        else {
-            var cnt = this._children.length;
-            for (i = 0; i < cnt; i++) {
-                var obj = this._children[i];
-                if (obj instanceof GButton)
-                    obj.selected = false;
-            }
-        }
-    }
-    clearSelectionExcept(g) {
-        var i;
-        if (this._virtual) {
-            for (i = 0; i < this._realNumItems; i++) {
-                var ii = this._virtualItems[i];
-                if (ii.obj != g) {
-                    if (ii.obj instanceof GButton)
-                        ii.obj.selected = false;
-                    ii.selected = false;
-                }
-            }
-        }
-        else {
-            var cnt = this._children.length;
-            for (i = 0; i < cnt; i++) {
-                var obj = this._children[i];
-                if ((obj instanceof GButton) && obj != g)
-                    obj.selected = false;
-            }
-        }
-    }
-    selectAll() {
-        this.checkVirtualList();
-        var last = -1;
-        var i;
-        if (this._virtual) {
-            for (i = 0; i < this._realNumItems; i++) {
-                var ii = this._virtualItems[i];
-                if ((ii.obj instanceof GButton) && !ii.obj.selected) {
-                    ii.obj.selected = true;
-                    last = i;
-                }
-                ii.selected = true;
-            }
-        }
-        else {
-            var cnt = this._children.length;
-            for (i = 0; i < cnt; i++) {
-                var obj = this._children[i];
-                if ((obj instanceof GButton) && !obj.selected) {
-                    obj.selected = true;
-                    last = i;
-                }
-            }
-        }
-        if (last != -1)
-            this.updateSelectionController(last);
-    }
-    selectNone() {
-        this.clearSelection();
-    }
-    selectReverse() {
-        this.checkVirtualList();
-        var last = -1;
-        var i;
-        if (this._virtual) {
-            for (i = 0; i < this._realNumItems; i++) {
-                var ii = this._virtualItems[i];
-                if (ii.obj instanceof GButton) {
-                    ii.obj.selected = !ii.obj.selected;
-                    if (ii.obj.selected)
-                        last = i;
-                }
-                ii.selected = !ii.selected;
-            }
-        }
-        else {
-            var cnt = this._children.length;
-            for (i = 0; i < cnt; i++) {
-                var obj = this._children[i];
-                if (obj instanceof GButton) {
-                    obj.selected = !obj.selected;
-                    if (obj.selected)
-                        last = i;
-                }
-            }
-        }
-        if (last != -1)
-            this.updateSelectionController(last);
-    }
-    handleArrowKey(dir) {
-        var index = this.selectedIndex;
-        if (index == -1)
-            return;
-        switch (dir) {
-            case 1: //up
-                if (this._layout == ListLayoutType.SingleColumn || this._layout == ListLayoutType.FlowVertical) {
-                    index--;
-                    if (index >= 0) {
-                        this.clearSelection();
-                        this.addSelection(index, true);
-                    }
-                }
-                else if (this._layout == ListLayoutType.FlowHorizontal || this._layout == ListLayoutType.Pagination) {
-                    var current = this._children[index];
-                    var k = 0;
-                    for (var i = index - 1; i >= 0; i--) {
-                        var obj = this._children[i];
-                        if (obj.y != current.y) {
-                            current = obj;
-                            break;
-                        }
-                        k++;
-                    }
-                    for (; i >= 0; i--) {
-                        obj = this._children[i];
-                        if (obj.y != current.y) {
-                            this.clearSelection();
-                            this.addSelection(i + k + 1, true);
-                            break;
-                        }
-                    }
-                }
-                break;
-            case 3: //right
-                if (this._layout == ListLayoutType.SingleRow || this._layout == ListLayoutType.FlowHorizontal || this._layout == ListLayoutType.Pagination) {
-                    index++;
-                    if (index < this.numItems) {
-                        this.clearSelection();
-                        this.addSelection(index, true);
-                    }
-                }
-                else if (this._layout == ListLayoutType.FlowVertical) {
-                    current = this._children[index];
-                    k = 0;
-                    var cnt = this._children.length;
-                    for (i = index + 1; i < cnt; i++) {
-                        obj = this._children[i];
-                        if (obj.x != current.x) {
-                            current = obj;
-                            break;
-                        }
-                        k++;
-                    }
-                    for (; i < cnt; i++) {
-                        obj = this._children[i];
-                        if (obj.x != current.x) {
-                            this.clearSelection();
-                            this.addSelection(i - k - 1, true);
-                            break;
-                        }
-                    }
-                }
-                break;
-            case 5: //down
-                if (this._layout == ListLayoutType.SingleColumn || this._layout == ListLayoutType.FlowVertical) {
-                    index++;
-                    if (index < this.numItems) {
-                        this.clearSelection();
-                        this.addSelection(index, true);
-                    }
-                }
-                else if (this._layout == ListLayoutType.FlowHorizontal || this._layout == ListLayoutType.Pagination) {
-                    current = this._children[index];
-                    k = 0;
-                    cnt = this._children.length;
-                    for (i = index + 1; i < cnt; i++) {
-                        obj = this._children[i];
-                        if (obj.y != current.y) {
-                            current = obj;
-                            break;
-                        }
-                        k++;
-                    }
-                    for (; i < cnt; i++) {
-                        obj = this._children[i];
-                        if (obj.y != current.y) {
-                            this.clearSelection();
-                            this.addSelection(i - k - 1, true);
-                            break;
-                        }
-                    }
-                }
-                break;
-            case 7: //left
-                if (this._layout == ListLayoutType.SingleRow || this._layout == ListLayoutType.FlowHorizontal || this._layout == ListLayoutType.Pagination) {
-                    index--;
-                    if (index >= 0) {
-                        this.clearSelection();
-                        this.addSelection(index, true);
-                    }
-                }
-                else if (this._layout == ListLayoutType.FlowVertical) {
-                    current = this._children[index];
-                    k = 0;
-                    for (i = index - 1; i >= 0; i--) {
-                        obj = this._children[i];
-                        if (obj.x != current.x) {
-                            current = obj;
-                            break;
-                        }
-                        k++;
-                    }
-                    for (; i >= 0; i--) {
-                        obj = this._children[i];
-                        if (obj.x != current.x) {
-                            this.clearSelection();
-                            this.addSelection(i + k + 1, true);
-                            break;
-                        }
-                    }
-                }
-                break;
-        }
-    }
-    __clickItem(evt) {
-        throw new Error("TODO");
-        // if (this._scrollPane && this._scrollPane.isDragged)
-        //     return;
-        // var item: GObject = GObject.cast(evt.currentTarget);
-        // this.setSelectionOnEvent(item, evt);
-        // if (this._scrollPane && this.scrollItemToViewOnClick)
-        //     this._scrollPane.scrollToView(item, true);
-        // this.dispatchItemEvent(item, Events.createEvent(Events.CLICK_ITEM, this.displayObject, evt));
-    }
-    dispatchItemEvent(item, evt) {
-        throw new Error("TODO");
-        // this.displayObject.event(Events.CLICK_ITEM, [item, evt]);
-    }
-    setSelectionOnEvent(item, evt) {
-        throw new Error("TODO");
-        // if (!(item instanceof GButton) || this._selectionMode == ListSelectionMode.None)
-        //     return;
-        // var dontChangeLastIndex: boolean = false;
-        // var index: number = this.childIndexToItemIndex(this.getChildIndex(item));
-        // if (this._selectionMode == ListSelectionMode.Single) {
-        //     if (!item.selected) {
-        //         this.clearSelectionExcept(item);
-        //         item.selected = true;
-        //     }
-        // }
-        // else {
-        //     if (evt.shiftKey) {
-        //         if (!item.selected) {
-        //             if (this._lastSelectedIndex != -1) {
-        //                 var min: number = Math.min(this._lastSelectedIndex, index);
-        //                 var max: number = Math.max(this._lastSelectedIndex, index);
-        //                 max = Math.min(max, this.numItems - 1);
-        //                 var i: number;
-        //                 if (this._virtual) {
-        //                     for (i = min; i <= max; i++) {
-        //                         var ii: ItemInfo = this._virtualItems[i];
-        //                         if (ii.obj instanceof GButton)
-        //                             ii.obj.selected = true;
-        //                         ii.selected = true;
-        //                     }
-        //                 }
-        //                 else {
-        //                     for (i = min; i <= max; i++) {
-        //                         var obj: GObject = this.getChildAt(i);
-        //                         if (obj instanceof GButton)
-        //                             obj.selected = true;
-        //                     }
-        //                 }
-        //                 dontChangeLastIndex = true;
-        //             }
-        //             else {
-        //                 item.selected = true;
-        //             }
-        //         }
-        //     }
-        //     else if (evt.ctrlKey || this._selectionMode == ListSelectionMode.Multiple_SingleClick) {
-        //         item.selected = !item.selected;
-        //     }
-        //     else {
-        //         if (!item.selected) {
-        //             this.clearSelectionExcept(item);
-        //             item.selected = true;
-        //         }
-        //         else
-        //             this.clearSelectionExcept(item);
-        //     }
-        // }
-        // if (!dontChangeLastIndex)
-        //     this._lastSelectedIndex = index;
-        // if (item.selected)
-        //     this.updateSelectionController(index);
-    }
-    resizeToFit(itemCount, minSize) {
-        if (itemCount == null)
-            itemCount = 100000;
-        minSize = minSize || 0;
-        this.ensureBoundsCorrect();
-        var curCount = this.numItems;
-        if (itemCount > curCount)
-            itemCount = curCount;
-        if (this._virtual) {
-            var lineCount = Math.ceil(itemCount / this._curLineItemCount);
-            if (this._layout == ListLayoutType.SingleColumn || this._layout == ListLayoutType.FlowHorizontal)
-                this.viewHeight = lineCount * this._itemSize.y + Math.max(0, lineCount - 1) * this._lineGap;
-            else
-                this.viewWidth = lineCount * this._itemSize.x + Math.max(0, lineCount - 1) * this._columnGap;
-        }
-        else if (itemCount == 0) {
-            if (this._layout == ListLayoutType.SingleColumn || this._layout == ListLayoutType.FlowHorizontal)
-                this.viewHeight = minSize;
-            else
-                this.viewWidth = minSize;
-        }
-        else {
-            var i = itemCount - 1;
-            var obj = null;
-            while (i >= 0) {
-                obj = this.getChildAt(i);
-                if (!this.foldInvisibleItems || obj.visible)
-                    break;
-                i--;
-            }
-            if (i < 0) {
-                if (this._layout == ListLayoutType.SingleColumn || this._layout == ListLayoutType.FlowHorizontal)
-                    this.viewHeight = minSize;
-                else
-                    this.viewWidth = minSize;
-            }
-            else {
-                var size = 0;
-                if (this._layout == ListLayoutType.SingleColumn || this._layout == ListLayoutType.FlowHorizontal) {
-                    size = obj.y + obj.height;
-                    if (size < minSize)
-                        size = minSize;
-                    this.viewHeight = size;
-                }
-                else {
-                    size = obj.x + obj.width;
-                    if (size < minSize)
-                        size = minSize;
-                    this.viewWidth = size;
-                }
-            }
-        }
-    }
-    getMaxItemWidth() {
-        var cnt = this._children.length;
-        var max = 0;
-        for (var i = 0; i < cnt; i++) {
-            var child = this.getChildAt(i);
-            if (child.width > max)
-                max = child.width;
-        }
-        return max;
-    }
-    handleSizeChanged() {
-        super.handleSizeChanged();
-        this.setBoundsChangedFlag();
-        if (this._virtual)
-            this.setVirtualListChangedFlag(true);
-    }
-    handleControllerChanged(c) {
-        super.handleControllerChanged(c);
-        if (this._selectionController == c)
-            this.selectedIndex = c.selectedIndex;
-    }
-    updateSelectionController(index) {
-        if (this._selectionController && !this._selectionController.changing
-            && index < this._selectionController.pageCount) {
-            var c = this._selectionController;
-            this._selectionController = null;
-            c.selectedIndex = index;
-            this._selectionController = c;
-        }
-    }
-    shouldSnapToNext(dir, delta, size) {
-        return dir < 0 && delta > UIConfig.defaultScrollSnappingThreshold * size
-            || dir > 0 && delta > (1 - UIConfig.defaultScrollSnappingThreshold) * size
-            || dir == 0 && delta > size / 2;
-    }
-    getSnappingPositionWithDir(xValue, yValue, xDir, yDir, result) {
-        if (this._virtual) {
-            if (!result)
-                result = new Phaser.Geom.Point();
-            var saved;
-            var index;
-            var size;
-            if (this._layout == ListLayoutType.SingleColumn || this._layout == ListLayoutType.FlowHorizontal) {
-                saved = yValue;
-                s_n = yValue;
-                index = this.getIndexOnPos1(false);
-                yValue = s_n;
-                if (index < this._virtualItems.length && index < this._realNumItems) {
-                    size = this._virtualItems[index].height;
-                    if (this.shouldSnapToNext(yDir, saved - yValue, size))
-                        yValue += size + this._lineGap;
-                }
-            }
-            else if (this._layout == ListLayoutType.SingleRow || this._layout == ListLayoutType.FlowVertical) {
-                saved = xValue;
-                s_n = xValue;
-                index = this.getIndexOnPos2(false);
-                xValue = s_n;
-                if (index < this._virtualItems.length && index < this._realNumItems) {
-                    size = this._virtualItems[index].width;
-                    if (this.shouldSnapToNext(xDir, saved - xValue, size))
-                        xValue += size + this._columnGap;
-                }
-            }
-            else {
-                saved = xValue;
-                s_n = xValue;
-                index = this.getIndexOnPos3(false);
-                xValue = s_n;
-                if (index < this._virtualItems.length && index < this._realNumItems) {
-                    size = this._virtualItems[index].width;
-                    if (this.shouldSnapToNext(xDir, saved - xValue, size))
-                        xValue += size + this._columnGap;
-                }
-            }
-            result.x = xValue;
-            result.y = yValue;
-            return result;
-        }
-        else
-            return super.getSnappingPositionWithDir(xValue, yValue, xDir, yDir, result);
-    }
-    scrollToView(index, ani, setFirst) {
-        throw new Error("TODO");
-        // if (this._virtual) {
-        //     if (this._numItems == 0)
-        //         return;
-        //     this.checkVirtualList();
-        //     if (index >= this._virtualItems.length)
-        //         throw new Error("Invalid child index: " + index + ">" + this._virtualItems.length);
-        //     if (this._loop)
-        //         index = Math.floor(this._firstIndex / this._numItems) * this._numItems + index;
-        //     var rect: Laya.Rectangle;
-        //     var ii: ItemInfo = this._virtualItems[index];
-        //     var pos: number = 0;
-        //     var i: number;
-        //     if (this._layout == ListLayoutType.SingleColumn || this._layout == ListLayoutType.FlowHorizontal) {
-        //         for (i = this._curLineItemCount - 1; i < index; i += this._curLineItemCount)
-        //             pos += this._virtualItems[i].height + this._lineGap;
-        //         rect = new Laya.Rectangle(0, pos, this._itemSize.x, ii.height);
-        //     }
-        //     else if (this._layout == ListLayoutType.SingleRow || this._layout == ListLayoutType.FlowVertical) {
-        //         for (i = this._curLineItemCount - 1; i < index; i += this._curLineItemCount)
-        //             pos += this._virtualItems[i].width + this._columnGap;
-        //         rect = new Laya.Rectangle(pos, 0, ii.width, this._itemSize.y);
-        //     }
-        //     else {
-        //         var page: number = index / (this._curLineItemCount * this._curLineItemCount2);
-        //         rect = new Laya.Rectangle(page * this.viewWidth + (index % this._curLineItemCount) * (ii.width + this._columnGap),
-        //             (index / this._curLineItemCount) % this._curLineItemCount2 * (ii.height + this._lineGap),
-        //             ii.width, ii.height);
-        //     }
-        //     if (this._scrollPane)
-        //         this._scrollPane.scrollToView(rect, ani, setFirst);
-        // }
-        // else {
-        //     var obj: GObject = this.getChildAt(index);
-        //     if (this._scrollPane)
-        //         this._scrollPane.scrollToView(obj, ani, setFirst);
-        //     else if (this._parent && this._parent.scrollPane)
-        //         this._parent.scrollPane.scrollToView(obj, ani, setFirst);
-        // }
-    }
-    getFirstChildInView() {
-        return this.childIndexToItemIndex(super.getFirstChildInView());
-    }
-    childIndexToItemIndex(index) {
-        if (!this._virtual)
-            return index;
-        if (this._layout == ListLayoutType.Pagination) {
-            for (var i = this._firstIndex; i < this._realNumItems; i++) {
-                if (this._virtualItems[i].obj) {
-                    index--;
-                    if (index < 0)
-                        return i;
-                }
-            }
-            return index;
-        }
-        else {
-            index += this._firstIndex;
-            if (this._loop && this._numItems > 0)
-                index = index % this._numItems;
-            return index;
-        }
-    }
-    itemIndexToChildIndex(index) {
-        if (!this._virtual)
-            return index;
-        if (this._layout == ListLayoutType.Pagination) {
-            return this.getChildIndex(this._virtualItems[index].obj);
-        }
-        else {
-            if (this._loop && this._numItems > 0) {
-                var j = this._firstIndex % this._numItems;
-                if (index >= j)
-                    index = index - j;
-                else
-                    index = this._numItems - j + index;
-            }
-            else
-                index -= this._firstIndex;
-            return index;
-        }
-    }
-    setVirtual() {
-        this._setVirtual(false);
-    }
-    /**
-     * Set the list to be virtual list, and has loop behavior.
-     */
-    setVirtualAndLoop() {
-        this._setVirtual(true);
-    }
-    _setVirtual(loop) {
-        throw new Error("TODO");
-        // if (!this._virtual) {
-        //     if (this._scrollPane == null)
-        //         throw new Error("Virtual list must be scrollable!");
-        //     if (loop) {
-        //         if (this._layout == ListLayoutType.FlowHorizontal || this._layout == ListLayoutType.FlowVertical)
-        //             throw new Error("Loop list instanceof not supported for FlowHorizontal or FlowVertical this.layout!");
-        //         this._scrollPane.bouncebackEffect = false;
-        //     }
-        //     this._virtual = true;
-        //     this._loop = loop;
-        //     this._virtualItems = new Array<ItemInfo>();
-        //     this.removeChildrenToPool();
-        //     if (this._itemSize == null) {
-        //         this._itemSize = new Phaser.Geom.Point();
-        //         var obj: GObject = this.getFromPool(null);
-        //         if (obj == null) {
-        //             throw new Error("Virtual List must have a default list item resource.");
-        //         }
-        //         else {
-        //             this._itemSize.x = obj.width;
-        //             this._itemSize.y = obj.height;
-        //         }
-        //         this.returnToPool(obj);
-        //     }
-        //     if (this._layout == ListLayoutType.SingleColumn || this._layout == ListLayoutType.FlowHorizontal) {
-        //         this._scrollPane.scrollStep = this._itemSize.y;
-        //         if (this._loop)
-        //             this._scrollPane._loop = 2;
-        //     }
-        //     else {
-        //         this._scrollPane.scrollStep = this._itemSize.x;
-        //         if (this._loop)
-        //             this._scrollPane._loop = 1;
-        //     }
-        //     this.on(Events.SCROLL, this, this.__scrolled);
-        //     this.setVirtualListChangedFlag(true);
-        // }
-    }
-    /**
-     * Set the list item count.
-     * If the list instanceof not virtual, specified number of items will be created.
-     * If the list instanceof virtual, only items in view will be created.
-     */
-    get numItems() {
-        if (this._virtual)
-            return this._numItems;
-        else
-            return this._children.length;
-    }
-    set numItems(value) {
-        throw new Error("TODO");
-        // var i: number;
-        // if (this._virtual) {
-        //     if (this.itemRenderer == null)
-        //         throw new Error("set itemRenderer first!");
-        //     this._numItems = value;
-        //     if (this._loop)
-        //         this._realNumItems = this._numItems * 6;//设置6倍数量，用于循环滚动
-        //     else
-        //         this._realNumItems = this._numItems;
-        //     //_virtualItems的设计是只增不减的
-        //     var oldCount: number = this._virtualItems.length;
-        //     if (this._realNumItems > oldCount) {
-        //         for (i = oldCount; i < this._realNumItems; i++) {
-        //             var ii: ItemInfo = {
-        //                 width: this._itemSize.x,
-        //                 height: this._itemSize.y,
-        //                 updateFlag: 0
-        //             };
-        //             this._virtualItems.push(ii);
-        //         }
-        //     }
-        //     else {
-        //         for (i = this._realNumItems; i < oldCount; i++)
-        //             this._virtualItems[i].selected = false;
-        //     }
-        //     if (this._virtualListChanged != 0)
-        //         Laya.timer.clear(this, this._refreshVirtualList);
-        //     //立即刷新
-        //     this._refreshVirtualList();
-        // }
-        // else {
-        //     var cnt: number = this._children.length;
-        //     if (value > cnt) {
-        //         for (i = cnt; i < value; i++) {
-        //             if (this.itemProvider == null)
-        //                 this.addItemFromPool();
-        //             else
-        //                 this.addItemFromPool(this.itemProvider.runWith(i));
-        //         }
-        //     }
-        //     else {
-        //         this.removeChildrenToPool(value, cnt);
-        //     }
-        //     if (this.itemRenderer != null) {
-        //         for (i = 0; i < value; i++)
-        //             this.itemRenderer.runWith([i, this.getChildAt(i)]);
-        //     }
-        // }
-    }
-    refreshVirtualList() {
-        this.setVirtualListChangedFlag(false);
-    }
-    checkVirtualList() {
-        throw new Error("TODO");
-        // if (this._virtualListChanged != 0) {
-        //     this._refreshVirtualList();
-        //     Laya.timer.clear(this, this._refreshVirtualList);
-        // }
-    }
-    setVirtualListChangedFlag(layoutChanged) {
-        throw new Error("TODO");
-        // if (layoutChanged)
-        //     this._virtualListChanged = 2;
-        // else if (this._virtualListChanged == 0)
-        //     this._virtualListChanged = 1;
-        // Laya.timer.callLater(this, this._refreshVirtualList);
-    }
-    _refreshVirtualList() {
-        throw new Error("TODO");
-        // if (!this._displayObject)
-        //     return;
-        // var layoutChanged: boolean = this._virtualListChanged == 2;
-        // this._virtualListChanged = 0;
-        // this._eventLocked = true;
-        // if (layoutChanged) {
-        //     if (this._layout == ListLayoutType.SingleColumn || this._layout == ListLayoutType.SingleRow)
-        //         this._curLineItemCount = 1;
-        //     else if (this._layout == ListLayoutType.FlowHorizontal) {
-        //         if (this._columnCount > 0)
-        //             this._curLineItemCount = this._columnCount;
-        //         else {
-        //             this._curLineItemCount = Math.floor((this._scrollPane.viewWidth + this._columnGap) / (this._itemSize.x + this._columnGap));
-        //             if (this._curLineItemCount <= 0)
-        //                 this._curLineItemCount = 1;
-        //         }
-        //     }
-        //     else if (this._layout == ListLayoutType.FlowVertical) {
-        //         if (this._lineCount > 0)
-        //             this._curLineItemCount = this._lineCount;
-        //         else {
-        //             this._curLineItemCount = Math.floor((this._scrollPane.viewHeight + this._lineGap) / (this._itemSize.y + this._lineGap));
-        //             if (this._curLineItemCount <= 0)
-        //                 this._curLineItemCount = 1;
-        //         }
-        //     }
-        //     else //pagination
-        //     {
-        //         if (this._columnCount > 0)
-        //             this._curLineItemCount = this._columnCount;
-        //         else {
-        //             this._curLineItemCount = Math.floor((this._scrollPane.viewWidth + this._columnGap) / (this._itemSize.x + this._columnGap));
-        //             if (this._curLineItemCount <= 0)
-        //                 this._curLineItemCount = 1;
-        //         }
-        //         if (this._lineCount > 0)
-        //             this._curLineItemCount2 = this._lineCount;
-        //         else {
-        //             this._curLineItemCount2 = Math.floor((this._scrollPane.viewHeight + this._lineGap) / (this._itemSize.y + this._lineGap));
-        //             if (this._curLineItemCount2 <= 0)
-        //                 this._curLineItemCount2 = 1;
-        //         }
-        //     }
-        // }
-        // var ch: number = 0, cw: number = 0;
-        // if (this._realNumItems > 0) {
-        //     var i: number;
-        //     var len: number = Math.ceil(this._realNumItems / this._curLineItemCount) * this._curLineItemCount;
-        //     var len2: number = Math.min(this._curLineItemCount, this._realNumItems);
-        //     if (this._layout == ListLayoutType.SingleColumn || this._layout == ListLayoutType.FlowHorizontal) {
-        //         for (i = 0; i < len; i += this._curLineItemCount)
-        //             ch += this._virtualItems[i].height + this._lineGap;
-        //         if (ch > 0)
-        //             ch -= this._lineGap;
-        //         if (this._autoResizeItem)
-        //             cw = this._scrollPane.viewWidth;
-        //         else {
-        //             for (i = 0; i < len2; i++)
-        //                 cw += this._virtualItems[i].width + this._columnGap;
-        //             if (cw > 0)
-        //                 cw -= this._columnGap;
-        //         }
-        //     }
-        //     else if (this._layout == ListLayoutType.SingleRow || this._layout == ListLayoutType.FlowVertical) {
-        //         for (i = 0; i < len; i += this._curLineItemCount)
-        //             cw += this._virtualItems[i].width + this._columnGap;
-        //         if (cw > 0)
-        //             cw -= this._columnGap;
-        //         if (this._autoResizeItem)
-        //             ch = this._scrollPane.viewHeight;
-        //         else {
-        //             for (i = 0; i < len2; i++)
-        //                 ch += this._virtualItems[i].height + this._lineGap;
-        //             if (ch > 0)
-        //                 ch -= this._lineGap;
-        //         }
-        //     }
-        //     else {
-        //         var pageCount: number = Math.ceil(len / (this._curLineItemCount * this._curLineItemCount2));
-        //         cw = pageCount * this.viewWidth;
-        //         ch = this.viewHeight;
-        //     }
-        // }
-        // this.handleAlign(cw, ch);
-        // this._scrollPane.setContentSize(cw, ch);
-        // this._eventLocked = false;
-        // this.handleScroll(true);
-    }
-    __scrolled(evt) {
-        throw new Error("TODO");
-        // this.handleScroll(false);
-    }
-    getIndexOnPos1(forceUpdate) {
-        throw new Error("TODO");
-        // if (this._realNumItems < this._curLineItemCount) {
-        //     s_n = 0;
-        //     return 0;
-        // }
-        // var i: number;
-        // var pos2: number;
-        // var pos3: number;
-        // if (this.numChildren > 0 && !forceUpdate) {
-        //     pos2 = this.getChildAt(0).y;
-        //     if (pos2 > s_n) {
-        //         for (i = this._firstIndex - this._curLineItemCount; i >= 0; i -= this._curLineItemCount) {
-        //             pos2 -= (this._virtualItems[i].height + this._lineGap);
-        //             if (pos2 <= s_n) {
-        //                 s_n = pos2;
-        //                 return i;
-        //             }
-        //         }
-        //         s_n = 0;
-        //         return 0;
-        //     }
-        //     else {
-        //         for (i = this._firstIndex; i < this._realNumItems; i += this._curLineItemCount) {
-        //             pos3 = pos2 + this._virtualItems[i].height + this._lineGap;
-        //             if (pos3 > s_n) {
-        //                 s_n = pos2;
-        //                 return i;
-        //             }
-        //             pos2 = pos3;
-        //         }
-        //         s_n = pos2;
-        //         return this._realNumItems - this._curLineItemCount;
-        //     }
-        // }
-        // else {
-        //     pos2 = 0;
-        //     for (i = 0; i < this._realNumItems; i += this._curLineItemCount) {
-        //         pos3 = pos2 + this._virtualItems[i].height + this._lineGap;
-        //         if (pos3 > s_n) {
-        //             s_n = pos2;
-        //             return i;
-        //         }
-        //         pos2 = pos3;
-        //     }
-        //     s_n = pos2;
-        //     return this._realNumItems - this._curLineItemCount;
-        // }
-    }
-    getIndexOnPos2(forceUpdate) {
-        throw new Error("TODO");
-        // if (this._realNumItems < this._curLineItemCount) {
-        //     s_n = 0;
-        //     return 0;
-        // }
-        // var i: number;
-        // var pos2: number;
-        // var pos3: number;
-        // if (this.numChildren > 0 && !forceUpdate) {
-        //     pos2 = this.getChildAt(0).x;
-        //     if (pos2 > s_n) {
-        //         for (i = this._firstIndex - this._curLineItemCount; i >= 0; i -= this._curLineItemCount) {
-        //             pos2 -= (this._virtualItems[i].width + this._columnGap);
-        //             if (pos2 <= s_n) {
-        //                 s_n = pos2;
-        //                 return i;
-        //             }
-        //         }
-        //         s_n = 0;
-        //         return 0;
-        //     }
-        //     else {
-        //         for (i = this._firstIndex; i < this._realNumItems; i += this._curLineItemCount) {
-        //             pos3 = pos2 + this._virtualItems[i].width + this._columnGap;
-        //             if (pos3 > s_n) {
-        //                 s_n = pos2;
-        //                 return i;
-        //             }
-        //             pos2 = pos3;
-        //         }
-        //         s_n = pos2;
-        //         return this._realNumItems - this._curLineItemCount;
-        //     }
-        // }
-        // else {
-        //     pos2 = 0;
-        //     for (i = 0; i < this._realNumItems; i += this._curLineItemCount) {
-        //         pos3 = pos2 + this._virtualItems[i].width + this._columnGap;
-        //         if (pos3 > s_n) {
-        //             s_n = pos2;
-        //             return i;
-        //         }
-        //         pos2 = pos3;
-        //     }
-        //     s_n = pos2;
-        //     return this._realNumItems - this._curLineItemCount;
-        // }
-    }
-    getIndexOnPos3(forceUpdate) {
-        throw new Error("TODO");
-        // if (this._realNumItems < this._curLineItemCount) {
-        //     s_n = 0;
-        //     return 0;
-        // }
-        // var viewWidth: number = this.viewWidth;
-        // var page: number = Math.floor(s_n / viewWidth);
-        // var startIndex: number = page * (this._curLineItemCount * this._curLineItemCount2);
-        // var pos2: number = page * viewWidth;
-        // var i: number;
-        // var pos3: number;
-        // for (i = 0; i < this._curLineItemCount; i++) {
-        //     pos3 = pos2 + this._virtualItems[startIndex + i].width + this._columnGap;
-        //     if (pos3 > s_n) {
-        //         s_n = pos2;
-        //         return startIndex + i;
-        //     }
-        //     pos2 = pos3;
-        // }
-        // s_n = pos2;
-        // return startIndex + this._curLineItemCount - 1;
-    }
-    handleScroll(forceUpdate) {
-        // if (this._eventLocked)
-        //     return;
-        // if (this._layout == ListLayoutType.SingleColumn || this._layout == ListLayoutType.FlowHorizontal) {
-        //     var enterCounter: number = 0;
-        //     while (this.handleScroll1(forceUpdate)) {
-        //         enterCounter++;
-        //         forceUpdate = false;
-        //         if (enterCounter > 20) {
-        //             console.log("FairyGUI: list will never be <the> filled item renderer function always returns a different size.");
-        //             break;
-        //         }
-        //     }
-        //     this.handleArchOrder1();
-        // }
-        // else if (this._layout == ListLayoutType.SingleRow || this._layout == ListLayoutType.FlowVertical) {
-        //     enterCounter = 0;
-        //     while (this.handleScroll2(forceUpdate)) {
-        //         enterCounter++;
-        //         forceUpdate = false;
-        //         if (enterCounter > 20) {
-        //             console.log("FairyGUI: list will never be <the> filled item renderer function always returns a different size.");
-        //             break;
-        //         }
-        //     }
-        //     this.handleArchOrder2();
-        // }
-        // else {
-        //     this.handleScroll3(forceUpdate);
-        // }
-        // this._boundsChanged = false;
-    }
-    handleScroll1(forceUpdate) {
-        throw new Error("TODO");
-        // var pos: number = this._scrollPane.scrollingPosY;
-        // var max: number = pos + this._scrollPane.viewHeight;
-        // var end: boolean = max == this._scrollPane.contentHeight;//这个标志表示当前需要滚动到最末，无论内容变化大小
-        // //寻找当前位置的第一条项目
-        // s_n = pos;
-        // var newFirstIndex: number = this.getIndexOnPos1(forceUpdate);
-        // pos = s_n;
-        // if (newFirstIndex == this._firstIndex && !forceUpdate)
-        //     return false;
-        // var oldFirstIndex: number = this._firstIndex;
-        // this._firstIndex = newFirstIndex;
-        // var curIndex: number = newFirstIndex;
-        // var forward: boolean = oldFirstIndex > newFirstIndex;
-        // var childCount: number = this.numChildren;
-        // var lastIndex: number = oldFirstIndex + childCount - 1;
-        // var reuseIndex: number = forward ? lastIndex : oldFirstIndex;
-        // var curX: number = 0, curY: number = pos;
-        // var needRender: boolean;
-        // var deltaSize: number = 0;
-        // var firstItemDeltaSize: number = 0;
-        // var url: string = this._defaultItem;
-        // var ii: ItemInfo, ii2: ItemInfo;
-        // var i: number, j: number;
-        // var partSize: number = (this._scrollPane.viewWidth - this._columnGap * (this._curLineItemCount - 1)) / this._curLineItemCount;
-        // this.itemInfoVer++;
-        // while (curIndex < this._realNumItems && (end || curY < max)) {
-        //     ii = this._virtualItems[curIndex];
-        //     if (ii.obj == null || forceUpdate) {
-        //         if (this.itemProvider != null) {
-        //             url = this.itemProvider.runWith(curIndex % this._numItems);
-        //             if (url == null)
-        //                 url = this._defaultItem;
-        //             url = UIPackage.normalizeURL(url);
-        //         }
-        //         if (ii.obj && ii.obj.resourceURL != url) {
-        //             if (ii.obj instanceof GButton)
-        //                 ii.selected = ii.obj.selected;
-        //             this.removeChildToPool(ii.obj);
-        //             ii.obj = null;
-        //         }
-        //     }
-        //     if (ii.obj == null) {
-        //         //搜索最适合的重用item，保证每次刷新需要新建或者重新render的item最少
-        //         if (forward) {
-        //             for (j = reuseIndex; j >= oldFirstIndex; j--) {
-        //                 ii2 = this._virtualItems[j];
-        //                 if (ii2.obj && ii2.updateFlag != this.itemInfoVer && ii2.obj.resourceURL == url) {
-        //                     if (ii2.obj instanceof GButton)
-        //                         ii2.selected = ii2.obj.selected;
-        //                     ii.obj = ii2.obj;
-        //                     ii2.obj = null;
-        //                     if (j == reuseIndex)
-        //                         reuseIndex--;
-        //                     break;
-        //                 }
-        //             }
-        //         }
-        //         else {
-        //             for (j = reuseIndex; j <= lastIndex; j++) {
-        //                 ii2 = this._virtualItems[j];
-        //                 if (ii2.obj && ii2.updateFlag != this.itemInfoVer && ii2.obj.resourceURL == url) {
-        //                     if (ii2.obj instanceof GButton)
-        //                         ii2.selected = ii2.obj.selected;
-        //                     ii.obj = ii2.obj;
-        //                     ii2.obj = null;
-        //                     if (j == reuseIndex)
-        //                         reuseIndex++;
-        //                     break;
-        //                 }
-        //             }
-        //         }
-        //         if (ii.obj) {
-        //             this.setChildIndex(ii.obj, forward ? curIndex - newFirstIndex : this.numChildren);
-        //         }
-        //         else {
-        //             ii.obj = this._pool.getObject(url);
-        //             if (forward)
-        //                 this.addChildAt(ii.obj, curIndex - newFirstIndex);
-        //             else
-        //                 this.addChild(ii.obj);
-        //         }
-        //         if (ii.obj instanceof GButton)
-        //             ii.obj.selected = ii.selected;
-        //         needRender = true;
-        //     }
-        //     else
-        //         needRender = forceUpdate;
-        //     if (needRender) {
-        //         if (this._autoResizeItem && (this._layout == ListLayoutType.SingleColumn || this._columnCount > 0))
-        //             ii.obj.setSize(partSize, ii.obj.height, true);
-        //         this.itemRenderer.runWith([curIndex % this._numItems, ii.obj]);
-        //         if (curIndex % this._curLineItemCount == 0) {
-        //             deltaSize += Math.ceil(ii.obj.height) - ii.height;
-        //             if (curIndex == newFirstIndex && oldFirstIndex > newFirstIndex) {
-        //                 //当内容向下滚动时，如果新出现的项目大小发生变化，需要做一个位置补偿，才不会导致滚动跳动
-        //                 firstItemDeltaSize = Math.ceil(ii.obj.height) - ii.height;
-        //             }
-        //         }
-        //         ii.width = Math.ceil(ii.obj.width);
-        //         ii.height = Math.ceil(ii.obj.height);
-        //     }
-        //     ii.updateFlag = this.itemInfoVer;
-        //     ii.obj.setXY(curX, curY);
-        //     if (curIndex == newFirstIndex) //要显示多一条才不会穿帮
-        //         max += ii.height;
-        //     curX += ii.width + this._columnGap;
-        //     if (curIndex % this._curLineItemCount == this._curLineItemCount - 1) {
-        //         curX = 0;
-        //         curY += ii.height + this._lineGap;
-        //     }
-        //     curIndex++;
-        // }
-        // for (i = 0; i < childCount; i++) {
-        //     ii = this._virtualItems[oldFirstIndex + i];
-        //     if (ii.updateFlag != this.itemInfoVer && ii.obj) {
-        //         if (ii.obj instanceof GButton)
-        //             ii.selected = ii.obj.selected;
-        //         this.removeChildToPool(ii.obj);
-        //         ii.obj = null;
-        //     }
-        // }
-        // childCount = this._children.length;
-        // for (i = 0; i < childCount; i++) {
-        //     var obj: GObject = this._virtualItems[newFirstIndex + i].obj;
-        //     if (this._children[i] != obj)
-        //         this.setChildIndex(obj, i);
-        // }
-        // if (deltaSize != 0 || firstItemDeltaSize != 0)
-        //     this._scrollPane.changeContentSizeOnScrolling(0, deltaSize, 0, firstItemDeltaSize);
-        // if (curIndex > 0 && this.numChildren > 0 && this._container.y <= 0 && this.getChildAt(0).y > -this._container.y)//最后一页没填满！
-        //     return true;
-        // else
-        //     return false;
-    }
-    handleScroll2(forceUpdate) {
-        throw new Error("TODO");
-        // var pos: number = this._scrollPane.scrollingPosX;
-        // var max: number = pos + this._scrollPane.viewWidth;
-        // var end: boolean = pos == this._scrollPane.contentWidth;//这个标志表示当前需要滚动到最末，无论内容变化大小
-        // //寻找当前位置的第一条项目
-        // s_n = pos;
-        // var newFirstIndex: number = this.getIndexOnPos2(forceUpdate);
-        // pos = s_n;
-        // if (newFirstIndex == this._firstIndex && !forceUpdate)
-        //     return false;
-        // var oldFirstIndex: number = this._firstIndex;
-        // this._firstIndex = newFirstIndex;
-        // var curIndex: number = newFirstIndex;
-        // var forward: boolean = oldFirstIndex > newFirstIndex;
-        // var childCount: number = this.numChildren;
-        // var lastIndex: number = oldFirstIndex + childCount - 1;
-        // var reuseIndex: number = forward ? lastIndex : oldFirstIndex;
-        // var curX: number = pos, curY: number = 0;
-        // var needRender: boolean;
-        // var deltaSize: number = 0;
-        // var firstItemDeltaSize: number = 0;
-        // var url: string = this._defaultItem;
-        // var ii: ItemInfo, ii2: ItemInfo;
-        // var i: number, j: number;
-        // var partSize: number = (this._scrollPane.viewHeight - this._lineGap * (this._curLineItemCount - 1)) / this._curLineItemCount;
-        // this.itemInfoVer++;
-        // while (curIndex < this._realNumItems && (end || curX < max)) {
-        //     ii = this._virtualItems[curIndex];
-        //     if (ii.obj == null || forceUpdate) {
-        //         if (this.itemProvider != null) {
-        //             url = this.itemProvider.runWith(curIndex % this._numItems);
-        //             if (url == null)
-        //                 url = this._defaultItem;
-        //             url = UIPackage.normalizeURL(url);
-        //         }
-        //         if (ii.obj && ii.obj.resourceURL != url) {
-        //             if (ii.obj instanceof GButton)
-        //                 ii.selected = ii.obj.selected;
-        //             this.removeChildToPool(ii.obj);
-        //             ii.obj = null;
-        //         }
-        //     }
-        //     if (ii.obj == null) {
-        //         if (forward) {
-        //             for (j = reuseIndex; j >= oldFirstIndex; j--) {
-        //                 ii2 = this._virtualItems[j];
-        //                 if (ii2.obj && ii2.updateFlag != this.itemInfoVer && ii2.obj.resourceURL == url) {
-        //                     if (ii2.obj instanceof GButton)
-        //                         ii2.selected = ii2.obj.selected;
-        //                     ii.obj = ii2.obj;
-        //                     ii2.obj = null;
-        //                     if (j == reuseIndex)
-        //                         reuseIndex--;
-        //                     break;
-        //                 }
-        //             }
-        //         }
-        //         else {
-        //             for (j = reuseIndex; j <= lastIndex; j++) {
-        //                 ii2 = this._virtualItems[j];
-        //                 if (ii2.obj && ii2.updateFlag != this.itemInfoVer && ii2.obj.resourceURL == url) {
-        //                     if (ii2.obj instanceof GButton)
-        //                         ii2.selected = ii2.obj.selected;
-        //                     ii.obj = ii2.obj;
-        //                     ii2.obj = null;
-        //                     if (j == reuseIndex)
-        //                         reuseIndex++;
-        //                     break;
-        //                 }
-        //             }
-        //         }
-        //         if (ii.obj) {
-        //             this.setChildIndex(ii.obj, forward ? curIndex - newFirstIndex : this.numChildren);
-        //         }
-        //         else {
-        //             ii.obj = this._pool.getObject(url);
-        //             if (forward)
-        //                 this.addChildAt(ii.obj, curIndex - newFirstIndex);
-        //             else
-        //                 this.addChild(ii.obj);
-        //         }
-        //         if (ii.obj instanceof GButton)
-        //             ii.obj.selected = ii.selected;
-        //         needRender = true;
-        //     }
-        //     else
-        //         needRender = forceUpdate;
-        //     if (needRender) {
-        //         if (this._autoResizeItem && (this._layout == ListLayoutType.SingleRow || this._lineCount > 0))
-        //             ii.obj.setSize(ii.obj.width, partSize, true);
-        //         this.itemRenderer.runWith([curIndex % this._numItems, ii.obj]);
-        //         if (curIndex % this._curLineItemCount == 0) {
-        //             deltaSize += Math.ceil(ii.obj.width) - ii.width;
-        //             if (curIndex == newFirstIndex && oldFirstIndex > newFirstIndex) {
-        //                 //当内容向下滚动时，如果新出现的一个项目大小发生变化，需要做一个位置补偿，才不会导致滚动跳动
-        //                 firstItemDeltaSize = Math.ceil(ii.obj.width) - ii.width;
-        //             }
-        //         }
-        //         ii.width = Math.ceil(ii.obj.width);
-        //         ii.height = Math.ceil(ii.obj.height);
-        //     }
-        //     ii.updateFlag = this.itemInfoVer;
-        //     ii.obj.setXY(curX, curY);
-        //     if (curIndex == newFirstIndex) //要显示多一条才不会穿帮
-        //         max += ii.width;
-        //     curY += ii.height + this._lineGap;
-        //     if (curIndex % this._curLineItemCount == this._curLineItemCount - 1) {
-        //         curY = 0;
-        //         curX += ii.width + this._columnGap;
-        //     }
-        //     curIndex++;
-        // }
-        // for (i = 0; i < childCount; i++) {
-        //     ii = this._virtualItems[oldFirstIndex + i];
-        //     if (ii.updateFlag != this.itemInfoVer && ii.obj) {
-        //         if (ii.obj instanceof GButton)
-        //             ii.selected = ii.obj.selected;
-        //         this.removeChildToPool(ii.obj);
-        //         ii.obj = null;
-        //     }
-        // }
-        // childCount = this._children.length;
-        // for (i = 0; i < childCount; i++) {
-        //     var obj: GObject = this._virtualItems[newFirstIndex + i].obj;
-        //     if (this._children[i] != obj)
-        //         this.setChildIndex(obj, i);
-        // }
-        // if (deltaSize != 0 || firstItemDeltaSize != 0)
-        //     this._scrollPane.changeContentSizeOnScrolling(deltaSize, 0, firstItemDeltaSize, 0);
-        // if (curIndex > 0 && this.numChildren > 0 && this._container.x <= 0 && this.getChildAt(0).x > - this._container.x)//最后一页没填满！
-        //     return true;
-        // else
-        //     return false;
-    }
-    handleScroll3(forceUpdate) {
-        throw new Error("TODO");
-        // var pos: number = this._scrollPane.scrollingPosX;
-        // //寻找当前位置的第一条项目
-        // s_n = pos;
-        // var newFirstIndex: number = this.getIndexOnPos3(forceUpdate);
-        // pos = s_n;
-        // if (newFirstIndex == this._firstIndex && !forceUpdate)
-        //     return;
-        // var oldFirstIndex: number = this._firstIndex;
-        // this._firstIndex = newFirstIndex;
-        // //分页模式不支持不等高，所以渲染满一页就好了
-        // var reuseIndex: number = oldFirstIndex;
-        // var virtualItemCount: number = this._virtualItems.length;
-        // var pageSize: number = this._curLineItemCount * this._curLineItemCount2;
-        // var startCol: number = newFirstIndex % this._curLineItemCount;
-        // var viewWidth: number = this.viewWidth;
-        // var page: number = Math.floor(newFirstIndex / pageSize);
-        // var startIndex: number = page * pageSize;
-        // var lastIndex: number = startIndex + pageSize * 2; //测试两页
-        // var needRender: boolean;
-        // var i: number;
-        // var ii: ItemInfo, ii2: ItemInfo;
-        // var col: number;
-        // var url: string = this._defaultItem;
-        // var partWidth: number = (this._scrollPane.viewWidth - this._columnGap * (this._curLineItemCount - 1)) / this._curLineItemCount;
-        // var partHeight: number = (this._scrollPane.viewHeight - this._lineGap * (this._curLineItemCount2 - 1)) / this._curLineItemCount2;
-        // this.itemInfoVer++;
-        // //先标记这次要用到的项目
-        // for (i = startIndex; i < lastIndex; i++) {
-        //     if (i >= this._realNumItems)
-        //         continue;
-        //     col = i % this._curLineItemCount;
-        //     if (i - startIndex < pageSize) {
-        //         if (col < startCol)
-        //             continue;
-        //     }
-        //     else {
-        //         if (col > startCol)
-        //             continue;
-        //     }
-        //     ii = this._virtualItems[i];
-        //     ii.updateFlag = this.itemInfoVer;
-        // }
-        // var lastObj: GObject = null;
-        // var insertIndex: number = 0;
-        // for (i = startIndex; i < lastIndex; i++) {
-        //     if (i >= this._realNumItems)
-        //         continue;
-        //     ii = this._virtualItems[i];
-        //     if (ii.updateFlag != this.itemInfoVer)
-        //         continue;
-        //     if (ii.obj == null) {
-        //         //寻找看有没有可重用的
-        //         while (reuseIndex < virtualItemCount) {
-        //             ii2 = this._virtualItems[reuseIndex];
-        //             if (ii2.obj && ii2.updateFlag != this.itemInfoVer) {
-        //                 if (ii2.obj instanceof GButton)
-        //                     ii2.selected = ii2.obj.selected;
-        //                 ii.obj = ii2.obj;
-        //                 ii2.obj = null;
-        //                 break;
-        //             }
-        //             reuseIndex++;
-        //         }
-        //         if (insertIndex == -1)
-        //             insertIndex = this.getChildIndex(lastObj) + 1;
-        //         if (ii.obj == null) {
-        //             if (this.itemProvider != null) {
-        //                 url = this.itemProvider.runWith(i % this._numItems);
-        //                 if (url == null)
-        //                     url = this._defaultItem;
-        //                 url = UIPackage.normalizeURL(url);
-        //             }
-        //             ii.obj = this._pool.getObject(url);
-        //             this.addChildAt(ii.obj, insertIndex);
-        //         }
-        //         else {
-        //             insertIndex = this.setChildIndexBefore(ii.obj, insertIndex);
-        //         }
-        //         insertIndex++;
-        //         if (ii.obj instanceof GButton)
-        //             ii.obj.selected = ii.selected;
-        //         needRender = true;
-        //     }
-        //     else {
-        //         needRender = forceUpdate;
-        //         insertIndex = -1;
-        //         lastObj = ii.obj;
-        //     }
-        //     if (needRender) {
-        //         if (this._autoResizeItem) {
-        //             if (this._curLineItemCount == this._columnCount && this._curLineItemCount2 == this._lineCount)
-        //                 ii.obj.setSize(partWidth, partHeight, true);
-        //             else if (this._curLineItemCount == this._columnCount)
-        //                 ii.obj.setSize(partWidth, ii.obj.height, true);
-        //             else if (this._curLineItemCount2 == this._lineCount)
-        //                 ii.obj.setSize(ii.obj.width, partHeight, true);
-        //         }
-        //         this.itemRenderer.runWith([i % this._numItems, ii.obj]);
-        //         ii.width = Math.ceil(ii.obj.width);
-        //         ii.height = Math.ceil(ii.obj.height);
-        //     }
-        // }
-        // //排列item
-        // var borderX: number = (startIndex / pageSize) * viewWidth;
-        // var xx: number = borderX;
-        // var yy: number = 0;
-        // var lineHeight: number = 0;
-        // for (i = startIndex; i < lastIndex; i++) {
-        //     if (i >= this._realNumItems)
-        //         continue;
-        //     ii = this._virtualItems[i];
-        //     if (ii.updateFlag == this.itemInfoVer)
-        //         ii.obj.setXY(xx, yy);
-        //     if (ii.height > lineHeight)
-        //         lineHeight = ii.height;
-        //     if (i % this._curLineItemCount == this._curLineItemCount - 1) {
-        //         xx = borderX;
-        //         yy += lineHeight + this._lineGap;
-        //         lineHeight = 0;
-        //         if (i == startIndex + pageSize - 1) {
-        //             borderX += viewWidth;
-        //             xx = borderX;
-        //             yy = 0;
-        //         }
-        //     }
-        //     else
-        //         xx += ii.width + this._columnGap;
-        // }
-        // //释放未使用的
-        // for (i = reuseIndex; i < virtualItemCount; i++) {
-        //     ii = this._virtualItems[i];
-        //     if (ii.updateFlag != this.itemInfoVer && ii.obj) {
-        //         if (ii.obj instanceof GButton)
-        //             ii.selected = ii.obj.selected;
-        //         this.removeChildToPool(ii.obj);
-        //         ii.obj = null;
-        //     }
-        // }
-    }
-    handleArchOrder1() {
-        if (this.childrenRenderOrder == ChildrenRenderOrder.Arch) {
-            var mid = this._scrollPane.posY + this.viewHeight / 2;
-            var minDist = Number.POSITIVE_INFINITY;
-            var dist = 0;
-            var apexIndex = 0;
-            var cnt = this.numChildren;
-            for (var i = 0; i < cnt; i++) {
-                var obj = this.getChildAt(i);
-                if (!this.foldInvisibleItems || obj.visible) {
-                    dist = Math.abs(mid - obj.y - obj.height / 2);
-                    if (dist < minDist) {
-                        minDist = dist;
-                        apexIndex = i;
-                    }
-                }
-            }
-            this.apexIndex = apexIndex;
-        }
-    }
-    handleArchOrder2() {
-        throw new Error("TODO");
-        //     if (this.childrenRenderOrder == ChildrenRenderOrder.Arch) {
-        //         var mid: number = this._scrollPane.posX + this.viewWidth / 2;
-        //         var minDist: number = Number.POSITIVE_INFINITY;
-        //         var dist: number = 0;
-        //         var apexIndex: number = 0;
-        //         var cnt: number = this.numChildren;
-        //         for (var i: number = 0; i < cnt; i++) {
-        //             var obj: GObject = this.getChildAt(i);
-        //             if (!this.foldInvisibleItems || obj.visible) {
-        //                 dist = Math.abs(mid - obj.x - obj.width / 2);
-        //                 if (dist < minDist) {
-        //                     minDist = dist;
-        //                     apexIndex = i;
-        //                 }
-        //             }
-        //         }
-        //         this.apexIndex = apexIndex;
-        //     }
-        // }
-        // private handleAlign(contentWidth: number, contentHeight: number): void {
-        //     var newOffsetX: number = 0;
-        //     var newOffsetY: number = 0;
-        //     if (contentHeight < this.viewHeight) {
-        //         if (this._verticalAlign == "middle")
-        //             newOffsetY = Math.floor((this.viewHeight - contentHeight) / 2);
-        //         else if (this._verticalAlign == "bottom")
-        //             newOffsetY = this.viewHeight - contentHeight;
-        //     }
-        //     if (contentWidth < this.viewWidth) {
-        //         if (this._align == "center")
-        //             newOffsetX = Math.floor((this.viewWidth - contentWidth) / 2);
-        //         else if (this._align == "right")
-        //             newOffsetX = this.viewWidth - contentWidth;
-        //     }
-        //     if (newOffsetX != this._alignOffset.x || newOffsetY != this._alignOffset.y) {
-        //         this._alignOffset.setTo(newOffsetX, newOffsetY);
-        //         if (this._scrollPane)
-        //             this._scrollPane.adjustMaskContainer();
-        //         else
-        //             this._container.pos(this._margin.left + this._alignOffset.x, this._margin.top + this._alignOffset.y);
-        //     }
-    }
-    updateBounds() {
-        // if (this._virtual)
-        //     return;
-        // var i: number;
-        // var child: GObject;
-        // var curX: number = 0;
-        // var curY: number = 0;
-        // var maxWidth: number = 0;
-        // var maxHeight: number = 0;
-        // var cw: number, ch: number;
-        // var j: number = 0;
-        // var page: number = 0;
-        // var k: number = 0;
-        // var cnt: number = this._children.length;
-        // var viewWidth: number = this.viewWidth;
-        // var viewHeight: number = this.viewHeight;
-        // var lineSize: number = 0;
-        // var lineStart: number = 0;
-        // var ratio: number;
-        // if (this._layout == ListLayoutType.SingleColumn) {
-        //     for (i = 0; i < cnt; i++) {
-        //         child = this.getChildAt(i);
-        //         if (this.foldInvisibleItems && !child.visible)
-        //             continue;
-        //         if (curY != 0)
-        //             curY += this._lineGap;
-        //         child.y = curY;
-        //         if (this._autoResizeItem)
-        //             child.setSize(viewWidth, child.height, true);
-        //         curY += Math.ceil(child.height);
-        //         if (child.width > maxWidth)
-        //             maxWidth = child.width;
-        //     }
-        //     ch = curY;
-        //     if (ch <= viewHeight && this._autoResizeItem && this._scrollPane && this._scrollPane._displayInDemand && this._scrollPane.vtScrollBar) {
-        //         viewWidth += this._scrollPane.vtScrollBar.width;
-        //         for (i = 0; i < cnt; i++) {
-        //             child = this.getChildAt(i);
-        //             if (this.foldInvisibleItems && !child.visible)
-        //                 continue;
-        //             child.setSize(viewWidth, child.height, true);
-        //             if (child.width > maxWidth)
-        //                 maxWidth = child.width;
-        //         }
-        //     }
-        //     cw = Math.ceil(maxWidth);
-        // }
-        // else if (this._layout == ListLayoutType.SingleRow) {
-        //     for (i = 0; i < cnt; i++) {
-        //         child = this.getChildAt(i);
-        //         if (this.foldInvisibleItems && !child.visible)
-        //             continue;
-        //         if (curX != 0)
-        //             curX += this._columnGap;
-        //         child.x = curX;
-        //         if (this._autoResizeItem)
-        //             child.setSize(child.width, viewHeight, true);
-        //         curX += Math.ceil(child.width);
-        //         if (child.height > maxHeight)
-        //             maxHeight = child.height;
-        //     }
-        //     cw = curX;
-        //     if (cw <= viewWidth && this._autoResizeItem && this._scrollPane && this._scrollPane._displayInDemand && this._scrollPane.hzScrollBar) {
-        //         viewHeight += this._scrollPane.hzScrollBar.height;
-        //         for (i = 0; i < cnt; i++) {
-        //             child = this.getChildAt(i);
-        //             if (this.foldInvisibleItems && !child.visible)
-        //                 continue;
-        //             child.setSize(child.width, viewHeight, true);
-        //             if (child.height > maxHeight)
-        //                 maxHeight = child.height;
-        //         }
-        //     }
-        //     ch = Math.ceil(maxHeight);
-        // }
-        // else if (this._layout == ListLayoutType.FlowHorizontal) {
-        //     if (this._autoResizeItem && this._columnCount > 0) {
-        //         for (i = 0; i < cnt; i++) {
-        //             child = this.getChildAt(i);
-        //             if (this.foldInvisibleItems && !child.visible)
-        //                 continue;
-        //             lineSize += child.sourceWidth;
-        //             j++;
-        //             if (j == this._columnCount || i == cnt - 1) {
-        //                 ratio = (viewWidth - lineSize - (j - 1) * this._columnGap) / lineSize;
-        //                 curX = 0;
-        //                 for (j = lineStart; j <= i; j++) {
-        //                     child = this.getChildAt(j);
-        //                     if (this.foldInvisibleItems && !child.visible)
-        //                         continue;
-        //                     child.setXY(curX, curY);
-        //                     if (j < i) {
-        //                         child.setSize(child.sourceWidth + Math.round(child.sourceWidth * ratio), child.height, true);
-        //                         curX += Math.ceil(child.width) + this._columnGap;
-        //                     }
-        //                     else {
-        //                         child.setSize(viewWidth - curX, child.height, true);
-        //                     }
-        //                     if (child.height > maxHeight)
-        //                         maxHeight = child.height;
-        //                 }
-        //                 //new line
-        //                 curY += Math.ceil(maxHeight) + this._lineGap;
-        //                 maxHeight = 0;
-        //                 j = 0;
-        //                 lineStart = i + 1;
-        //                 lineSize = 0;
-        //             }
-        //         }
-        //         ch = curY + Math.ceil(maxHeight);
-        //         cw = viewWidth;
-        //     }
-        //     else {
-        //         for (i = 0; i < cnt; i++) {
-        //             child = this.getChildAt(i);
-        //             if (this.foldInvisibleItems && !child.visible)
-        //                 continue;
-        //             if (curX != 0)
-        //                 curX += this._columnGap;
-        //             if (this._columnCount != 0 && j >= this._columnCount
-        //                 || this._columnCount == 0 && curX + child.width > viewWidth && maxHeight != 0) {
-        //                 //new line
-        //                 curX = 0;
-        //                 curY += Math.ceil(maxHeight) + this._lineGap;
-        //                 maxHeight = 0;
-        //                 j = 0;
-        //             }
-        //             child.setXY(curX, curY);
-        //             curX += Math.ceil(child.width);
-        //             if (curX > maxWidth)
-        //                 maxWidth = curX;
-        //             if (child.height > maxHeight)
-        //                 maxHeight = child.height;
-        //             j++;
-        //         }
-        //         ch = curY + Math.ceil(maxHeight);
-        //         cw = Math.ceil(maxWidth);
-        //     }
-        // }
-        // else if (this._layout == ListLayoutType.FlowVertical) {
-        //     if (this._autoResizeItem && this._lineCount > 0) {
-        //         for (i = 0; i < cnt; i++) {
-        //             child = this.getChildAt(i);
-        //             if (this.foldInvisibleItems && !child.visible)
-        //                 continue;
-        //             lineSize += child.sourceHeight;
-        //             j++;
-        //             if (j == this._lineCount || i == cnt - 1) {
-        //                 ratio = (viewHeight - lineSize - (j - 1) * this._lineGap) / lineSize;
-        //                 curY = 0;
-        //                 for (j = lineStart; j <= i; j++) {
-        //                     child = this.getChildAt(j);
-        //                     if (this.foldInvisibleItems && !child.visible)
-        //                         continue;
-        //                     child.setXY(curX, curY);
-        //                     if (j < i) {
-        //                         child.setSize(child.width, child.sourceHeight + Math.round(child.sourceHeight * ratio), true);
-        //                         curY += Math.ceil(child.height) + this._lineGap;
-        //                     }
-        //                     else {
-        //                         child.setSize(child.width, viewHeight - curY, true);
-        //                     }
-        //                     if (child.width > maxWidth)
-        //                         maxWidth = child.width;
-        //                 }
-        //                 //new line
-        //                 curX += Math.ceil(maxWidth) + this._columnGap;
-        //                 maxWidth = 0;
-        //                 j = 0;
-        //                 lineStart = i + 1;
-        //                 lineSize = 0;
-        //             }
-        //         }
-        //         cw = curX + Math.ceil(maxWidth);
-        //         ch = viewHeight;
-        //     }
-        //     else {
-        //         for (i = 0; i < cnt; i++) {
-        //             child = this.getChildAt(i);
-        //             if (this.foldInvisibleItems && !child.visible)
-        //                 continue;
-        //             if (curY != 0)
-        //                 curY += this._lineGap;
-        //             if (this._lineCount != 0 && j >= this._lineCount
-        //                 || this._lineCount == 0 && curY + child.height > viewHeight && maxWidth != 0) {
-        //                 curY = 0;
-        //                 curX += Math.ceil(maxWidth) + this._columnGap;
-        //                 maxWidth = 0;
-        //                 j = 0;
-        //             }
-        //             child.setXY(curX, curY);
-        //             curY += Math.ceil(child.height);
-        //             if (curY > maxHeight)
-        //                 maxHeight = curY;
-        //             if (child.width > maxWidth)
-        //                 maxWidth = child.width;
-        //             j++;
-        //         }
-        //         cw = curX + Math.ceil(maxWidth);
-        //         ch = Math.ceil(maxHeight);
-        //     }
-        // }
-        // else //pagination
-        // {
-        //     var eachHeight: number;
-        //     if (this._autoResizeItem && this._lineCount > 0)
-        //         eachHeight = Math.floor((viewHeight - (this._lineCount - 1) * this._lineGap) / this._lineCount);
-        //     if (this._autoResizeItem && this._columnCount > 0) {
-        //         for (i = 0; i < cnt; i++) {
-        //             child = this.getChildAt(i);
-        //             if (this.foldInvisibleItems && !child.visible)
-        //                 continue;
-        //             if (j == 0 && (this._lineCount != 0 && k >= this._lineCount
-        //                 || this._lineCount == 0 && curY + child.height > viewHeight)) {
-        //                 //new page
-        //                 page++;
-        //                 curY = 0;
-        //                 k = 0;
-        //             }
-        //             lineSize += child.sourceWidth;
-        //             j++;
-        //             if (j == this._columnCount || i == cnt - 1) {
-        //                 ratio = (viewWidth - lineSize - (j - 1) * this._columnGap) / lineSize;
-        //                 curX = 0;
-        //                 for (j = lineStart; j <= i; j++) {
-        //                     child = this.getChildAt(j);
-        //                     if (this.foldInvisibleItems && !child.visible)
-        //                         continue;
-        //                     child.setXY(page * viewWidth + curX, curY);
-        //                     if (j < i) {
-        //                         child.setSize(child.sourceWidth + Math.round(child.sourceWidth * ratio),
-        //                             this._lineCount > 0 ? eachHeight : child.height, true);
-        //                         curX += Math.ceil(child.width) + this._columnGap;
-        //                     }
-        //                     else {
-        //                         child.setSize(viewWidth - curX, this._lineCount > 0 ? eachHeight : child.height, true);
-        //                     }
-        //                     if (child.height > maxHeight)
-        //                         maxHeight = child.height;
-        //                 }
-        //                 //new line
-        //                 curY += Math.ceil(maxHeight) + this._lineGap;
-        //                 maxHeight = 0;
-        //                 j = 0;
-        //                 lineStart = i + 1;
-        //                 lineSize = 0;
-        //                 k++;
-        //             }
-        //         }
-        //     }
-        //     else {
-        //         for (i = 0; i < cnt; i++) {
-        //             child = this.getChildAt(i);
-        //             if (this.foldInvisibleItems && !child.visible)
-        //                 continue;
-        //             if (curX != 0)
-        //                 curX += this._columnGap;
-        //             if (this._autoResizeItem && this._lineCount > 0)
-        //                 child.setSize(child.width, eachHeight, true);
-        //             if (this._columnCount != 0 && j >= this._columnCount
-        //                 || this._columnCount == 0 && curX + child.width > viewWidth && maxHeight != 0) {
-        //                 //new line
-        //                 curX = 0;
-        //                 curY += Math.ceil(maxHeight) + this._lineGap;
-        //                 maxHeight = 0;
-        //                 j = 0;
-        //                 k++;
-        //                 if (this._lineCount != 0 && k >= this._lineCount
-        //                     || this._lineCount == 0 && curY + child.height > viewHeight && maxWidth != 0)//new page
-        //                 {
-        //                     page++;
-        //                     curY = 0;
-        //                     k = 0;
-        //                 }
-        //             }
-        //             child.setXY(page * viewWidth + curX, curY);
-        //             curX += Math.ceil(child.width);
-        //             if (curX > maxWidth)
-        //                 maxWidth = curX;
-        //             if (child.height > maxHeight)
-        //                 maxHeight = child.height;
-        //             j++;
-        //         }
-        //     }
-        //     ch = page > 0 ? viewHeight : curY + Math.ceil(maxHeight);
-        //     cw = (page + 1) * viewWidth;
-        // }
-        // this.handleAlign(cw, ch);
-        // this.setBounds(0, 0, cw, ch);
-    }
-    setup_beforeAdd(buffer, beginPos) {
-        super.setup_beforeAdd(buffer, beginPos);
-        buffer.seek(beginPos, 5);
-        var i1;
-        this._layout = buffer.readByte();
-        this._selectionMode = buffer.readByte();
-        i1 = buffer.readByte();
-        this._align = i1 == 0 ? "left" : (i1 == 1 ? "center" : "right");
-        i1 = buffer.readByte();
-        this._verticalAlign = i1 == 0 ? "top" : (i1 == 1 ? "middle" : "bottom");
-        this._lineGap = buffer.readShort();
-        this._columnGap = buffer.readShort();
-        this._lineCount = buffer.readShort();
-        this._columnCount = buffer.readShort();
-        this._autoResizeItem = buffer.readBool();
-        this._childrenRenderOrder = buffer.readByte();
-        this._apexIndex = buffer.readShort();
-        if (buffer.readBool()) {
-            this._margin.top = buffer.readInt();
-            this._margin.bottom = buffer.readInt();
-            this._margin.left = buffer.readInt();
-            this._margin.right = buffer.readInt();
-        }
-        var overflow = buffer.readByte();
-        if (overflow == OverflowType.Scroll) {
-            var savedPos = buffer.position;
-            buffer.seek(beginPos, 7);
-            this.setupScroll(buffer);
-            buffer.position = savedPos;
-        }
-        else
-            this.setupOverflow(overflow);
-        if (buffer.readBool()) //clipSoftness
-            buffer.skip(8);
-        if (buffer.version >= 2) {
-            this.scrollItemToViewOnClick = buffer.readBool();
-            this.foldInvisibleItems = buffer.readBool();
-        }
-        buffer.seek(beginPos, 8);
-        this._defaultItem = buffer.readS();
-        this.readItems(buffer);
-    }
-    readItems(buffer) {
-        var cnt;
-        var i;
-        var nextPos;
-        var str;
-        cnt = buffer.readShort();
-        for (i = 0; i < cnt; i++) {
-            nextPos = buffer.readShort();
-            nextPos += buffer.position;
-            str = buffer.readS();
-            if (str == null) {
-                str = this._defaultItem;
-                if (!str) {
-                    buffer.position = nextPos;
-                    continue;
-                }
-            }
-            var obj = this.getFromPool(str);
-            if (obj) {
-                throw new Error("TODO");
-            }
-            buffer.position = nextPos;
-        }
-    }
-    setupItem(buffer, obj) {
-        var str;
-        str = buffer.readS();
-        if (str != null)
-            obj.text = str;
-        str = buffer.readS();
-        if (str != null && (obj instanceof GButton))
-            obj.selectedTitle = str;
-        str = buffer.readS();
-        if (str != null)
-            obj.icon = str;
-        str = buffer.readS();
-        if (str != null && (obj instanceof GButton))
-            obj.selectedIcon = str;
-        str = buffer.readS();
-        if (str != null)
-            obj.name = str;
-        var cnt;
-        var i;
-        if (obj instanceof GComponent) {
-            cnt = buffer.readShort();
-            for (i = 0; i < cnt; i++) {
-                var cc = obj.getController(buffer.readS());
-                str = buffer.readS();
-                if (cc)
-                    cc.selectedPageId = str;
-            }
-            if (buffer.version >= 2) {
-                cnt = buffer.readShort();
-                for (i = 0; i < cnt; i++) {
-                    var target = buffer.readS();
-                    var propertyId = buffer.readShort();
-                    var value = buffer.readS();
-                    var obj2 = obj.getChildByPath(target);
-                    if (obj2)
-                        obj2.setProp(propertyId, value);
-                }
-            }
-        }
-    }
-    setup_afterAdd(buffer, beginPos) {
-        super.setup_afterAdd(buffer, beginPos);
-        buffer.seek(beginPos, 6);
-        var i = buffer.readShort();
-        if (i != -1)
-            this._selectionController = this._parent.getControllerAt(i);
-    }
-}
-var s_n = 0;
-
-class GGroup extends GObject {
-    constructor() {
-        super();
-        this._layout = 0;
-        this._lineGap = 0;
-        this._columnGap = 0;
-        this._mainGridIndex = -1;
-        this._mainGridMinSize = 50;
-        this._mainChildIndex = -1;
-        this._totalSize = 0;
-        this._numChildren = 0;
-        this._updating = 0;
-    }
-    dispose() {
-        this._boundsChanged = false;
-        super.dispose();
-    }
-    get layout() {
-        return this._layout;
-    }
-    set layout(value) {
-        if (this._layout != value) {
-            this._layout = value;
-            this.setBoundsChangedFlag();
-        }
-    }
-    get lineGap() {
-        return this._lineGap;
-    }
-    set lineGap(value) {
-        if (this._lineGap != value) {
-            this._lineGap = value;
-            this.setBoundsChangedFlag(true);
-        }
-    }
-    get columnGap() {
-        return this._columnGap;
-    }
-    set columnGap(value) {
-        if (this._columnGap != value) {
-            this._columnGap = value;
-            this.setBoundsChangedFlag(true);
-        }
-    }
-    get excludeInvisibles() {
-        return this._excludeInvisibles;
-    }
-    set excludeInvisibles(value) {
-        if (this._excludeInvisibles != value) {
-            this._excludeInvisibles = value;
-            this.setBoundsChangedFlag();
-        }
-    }
-    get autoSizeDisabled() {
-        return this._autoSizeDisabled;
-    }
-    set autoSizeDisabled(value) {
-        this._autoSizeDisabled = value;
-    }
-    get mainGridMinSize() {
-        return this._mainGridMinSize;
-    }
-    set mainGridMinSize(value) {
-        if (this._mainGridMinSize != value) {
-            this._mainGridMinSize = value;
-            this.setBoundsChangedFlag();
-        }
-    }
-    get mainGridIndex() {
-        return this._mainGridIndex;
-    }
-    set mainGridIndex(value) {
-        if (this._mainGridIndex != value) {
-            this._mainGridIndex = value;
-            this.setBoundsChangedFlag();
-        }
-    }
-    setBoundsChangedFlag(positionChangedOnly) {
-        if (this._updating == 0 && this._parent) {
-            if (!positionChangedOnly)
-                this._percentReady = false;
-            if (!this._boundsChanged) {
-                this._boundsChanged = true;
-                // if (this._layout != GroupLayoutType.None)
-                //     Laya.timer.callLater(this, this.ensureBoundsCorrect);
-            }
-        }
-    }
-    ensureSizeCorrect() {
-        if (!this._parent || !this._boundsChanged || this._layout == 0)
-            return;
-        this._boundsChanged = false;
-        if (this._autoSizeDisabled)
-            this.resizeChildren(0, 0);
-        else {
-            this.handleLayout();
-            this.updateBounds();
-        }
-    }
-    ensureBoundsCorrect() {
-        if (!this._parent || !this._boundsChanged)
-            return;
-        this._boundsChanged = false;
-        if (this._layout == 0)
-            this.updateBounds();
-        else {
-            if (this._autoSizeDisabled)
-                this.resizeChildren(0, 0);
-            else {
-                this.handleLayout();
-                this.updateBounds();
-            }
-        }
-    }
-    updateBounds() {
-        // Laya.timer.clear(this, this.ensureBoundsCorrect);
-        var cnt = this._parent.numChildren;
-        var i;
-        var child;
-        var ax = Number.POSITIVE_INFINITY, ay = Number.POSITIVE_INFINITY;
-        var ar = Number.NEGATIVE_INFINITY, ab = Number.NEGATIVE_INFINITY;
-        var tmp;
-        var empty = true;
-        for (i = 0; i < cnt; i++) {
-            child = this._parent.getChildAt(i);
-            if (child.group != this || this._excludeInvisibles && !child.internalVisible3)
-                continue;
-            tmp = child.xMin;
-            if (tmp < ax)
-                ax = tmp;
-            tmp = child.yMin;
-            if (tmp < ay)
-                ay = tmp;
-            tmp = child.xMin + child.width;
-            if (tmp > ar)
-                ar = tmp;
-            tmp = child.yMin + child.height;
-            if (tmp > ab)
-                ab = tmp;
-            empty = false;
-        }
-        var w = 0, h = 0;
-        if (!empty) {
-            this._updating |= 1;
-            this.setXY(ax, ay);
-            this._updating &= 2;
-            w = ar - ax;
-            h = ab - ay;
-        }
-        if ((this._updating & 2) == 0) {
-            this._updating |= 2;
-            this.setSize(w, h);
-            this._updating &= 1;
-        }
-        else {
-            this._updating &= 1;
-            this.resizeChildren(this._width - w, this._height - h);
-        }
-    }
-    handleLayout() {
-        this._updating |= 1;
-        var child;
-        var i;
-        var cnt;
-        if (this._layout == GroupLayoutType.Horizontal) {
-            var curX = this.x;
-            cnt = this._parent.numChildren;
-            for (i = 0; i < cnt; i++) {
-                child = this._parent.getChildAt(i);
-                if (child.group != this)
-                    continue;
-                if (this._excludeInvisibles && !child.internalVisible3)
-                    continue;
-                child.xMin = curX;
-                if (child.width != 0)
-                    curX += child.width + this._columnGap;
-            }
-        }
-        else if (this._layout == GroupLayoutType.Vertical) {
-            var curY = this.y;
-            cnt = this._parent.numChildren;
-            for (i = 0; i < cnt; i++) {
-                child = this._parent.getChildAt(i);
-                if (child.group != this)
-                    continue;
-                if (this._excludeInvisibles && !child.internalVisible3)
-                    continue;
-                child.yMin = curY;
-                if (child.height != 0)
-                    curY += child.height + this._lineGap;
-            }
-        }
-        this._updating &= 2;
-    }
-    moveChildren(dx, dy) {
-        if ((this._updating & 1) != 0 || !this._parent)
-            return;
-        this._updating |= 1;
-        var cnt = this._parent.numChildren;
-        var i;
-        var child;
-        for (i = 0; i < cnt; i++) {
-            child = this._parent.getChildAt(i);
-            if (child.group == this) {
-                child.setXY(child.x + dx, child.y + dy);
-            }
-        }
-        this._updating &= 2;
-    }
-    resizeChildren(dw, dh) {
-        if (this._layout == GroupLayoutType.None || (this._updating & 2) != 0 || !this._parent)
-            return;
-        this._updating |= 2;
-        if (this._boundsChanged) {
-            this._boundsChanged = false;
-            if (!this._autoSizeDisabled) {
-                this.updateBounds();
-                return;
-            }
-        }
-        var cnt = this._parent.numChildren;
-        var i;
-        var child;
-        if (!this._percentReady) {
-            this._percentReady = true;
-            this._numChildren = 0;
-            this._totalSize = 0;
-            this._mainChildIndex = -1;
-            var j = 0;
-            for (i = 0; i < cnt; i++) {
-                child = this._parent.getChildAt(i);
-                if (child.group != this)
-                    continue;
-                if (!this._excludeInvisibles || child.internalVisible3) {
-                    if (j == this._mainGridIndex)
-                        this._mainChildIndex = i;
-                    this._numChildren++;
-                    if (this._layout == 1)
-                        this._totalSize += child.width;
-                    else
-                        this._totalSize += child.height;
-                }
-                j++;
-            }
-            if (this._mainChildIndex != -1) {
-                if (this._layout == 1) {
-                    child = this._parent.getChildAt(this._mainChildIndex);
-                    this._totalSize += this._mainGridMinSize - child.width;
-                    child._sizePercentInGroup = this._mainGridMinSize / this._totalSize;
-                }
-                else {
-                    child = this._parent.getChildAt(this._mainChildIndex);
-                    this._totalSize += this._mainGridMinSize - child.height;
-                    child._sizePercentInGroup = this._mainGridMinSize / this._totalSize;
-                }
-            }
-            for (i = 0; i < cnt; i++) {
-                child = this._parent.getChildAt(i);
-                if (child.group != this)
-                    continue;
-                if (i == this._mainChildIndex)
-                    continue;
-                if (this._totalSize > 0)
-                    child._sizePercentInGroup = (this._layout == 1 ? child.width : child.height) / this._totalSize;
-                else
-                    child._sizePercentInGroup = 0;
-            }
-        }
-        var remainSize = 0;
-        var remainPercent = 1;
-        var priorHandled = false;
-        if (this._layout == 1) {
-            remainSize = this.width - (this._numChildren - 1) * this._columnGap;
-            if (this._mainChildIndex != -1 && remainSize >= this._totalSize) {
-                child = this._parent.getChildAt(this._mainChildIndex);
-                child.setSize(remainSize - (this._totalSize - this._mainGridMinSize), child._rawHeight + dh, true);
-                remainSize -= child.width;
-                remainPercent -= child._sizePercentInGroup;
-                priorHandled = true;
-            }
-            var curX = this.x;
-            for (i = 0; i < cnt; i++) {
-                child = this._parent.getChildAt(i);
-                if (child.group != this)
-                    continue;
-                if (this._excludeInvisibles && !child.internalVisible3) {
-                    child.setSize(child._rawWidth, child._rawHeight + dh, true);
-                    continue;
-                }
-                if (!priorHandled || i != this._mainChildIndex) {
-                    child.setSize(Math.round(child._sizePercentInGroup / remainPercent * remainSize), child._rawHeight + dh, true);
-                    remainPercent -= child._sizePercentInGroup;
-                    remainSize -= child.width;
-                }
-                child.xMin = curX;
-                if (child.width != 0)
-                    curX += child.width + this._columnGap;
-            }
-        }
-        else {
-            remainSize = this.height - (this._numChildren - 1) * this._lineGap;
-            if (this._mainChildIndex != -1 && remainSize >= this._totalSize) {
-                child = this._parent.getChildAt(this._mainChildIndex);
-                child.setSize(child._rawWidth + dw, remainSize - (this._totalSize - this._mainGridMinSize), true);
-                remainSize -= child.height;
-                remainPercent -= child._sizePercentInGroup;
-                priorHandled = true;
-            }
-            var curY = this.y;
-            for (i = 0; i < cnt; i++) {
-                child = this._parent.getChildAt(i);
-                if (child.group != this)
-                    continue;
-                if (this._excludeInvisibles && !child.internalVisible3) {
-                    child.setSize(child._rawWidth + dw, child._rawHeight, true);
-                    continue;
-                }
-                if (!priorHandled || i != this._mainChildIndex) {
-                    child.setSize(child._rawWidth + dw, Math.round(child._sizePercentInGroup / remainPercent * remainSize), true);
-                    remainPercent -= child._sizePercentInGroup;
-                    remainSize -= child.height;
-                }
-                child.yMin = curY;
-                if (child.height != 0)
-                    curY += child.height + this._lineGap;
-            }
-        }
-        this._updating &= 1;
-    }
-    handleAlphaChanged() {
-        if (this._underConstruct)
-            return;
-        var cnt = this._parent.numChildren;
-        for (var i = 0; i < cnt; i++) {
-            var child = this._parent.getChildAt(i);
-            if (child.group == this)
-                child.alpha = this.alpha;
-        }
-    }
-    handleVisibleChanged() {
-        if (!this._parent)
-            var cnt = this._parent.numChildren;
-        for (var i = 0; i < cnt; i++) {
-            var child = this._parent.getChildAt(i);
-            if (child.group == this)
-                child.handleVisibleChanged();
-        }
-    }
-    setup_beforeAdd(buffer, beginPos) {
-        super.setup_beforeAdd(buffer, beginPos);
-        buffer.seek(beginPos, 5);
-        this._layout = buffer.readByte();
-        this._lineGap = buffer.readInt();
-        this._columnGap = buffer.readInt();
-        if (buffer.version >= 2) {
-            this._excludeInvisibles = buffer.readBool();
-            this._autoSizeDisabled = buffer.readBool();
-            this._mainGridIndex = buffer.readShort();
-        }
-    }
-    setup_afterAdd(buffer, beginPos) {
-        super.setup_afterAdd(buffer, beginPos);
-        if (!this.visible)
-            this.handleVisibleChanged();
-    }
-}
-
-class GComboBox extends GComponent {
-    constructor() {
-        super();
-        this._visibleItemCount = UIConfig.defaultComboBoxVisibleItemCount;
-        this._itemsUpdated = true;
-        this._selectedIndex = -1;
-        this._popupDirection = 0;
-        this._items = [];
-        this._values = [];
-    }
-    get text() {
-        if (this._titleObject)
-            return this._titleObject.text;
-        else
-            return null;
-    }
-    set text(value) {
-        if (this._titleObject)
-            this._titleObject.text = value;
-        this.updateGear(6);
-    }
-    get titleColor() {
-        var tf = this.getTextField();
-        if (tf)
-            return tf.color;
-        else
-            return "#000000";
-    }
-    set titleColor(value) {
-        var tf = this.getTextField();
-        if (tf)
-            tf.color = value;
-        this.updateGear(4);
-    }
-    get titleFontSize() {
-        var tf = this.getTextField();
-        if (tf)
-            return tf.fontSize;
-        else
-            return 0;
-    }
-    set titleFontSize(value) {
-        var tf = this.getTextField();
-        if (tf)
-            tf.fontSize = value;
-    }
-    get icon() {
-        if (this._iconObject)
-            return this._iconObject.icon;
-        else
-            return null;
-    }
-    set icon(value) {
-        if (this._iconObject)
-            this._iconObject.icon = value;
-        this.updateGear(7);
-    }
-    get visibleItemCount() {
-        return this._visibleItemCount;
-    }
-    set visibleItemCount(value) {
-        this._visibleItemCount = value;
-    }
-    get popupDirection() {
-        return this._popupDirection;
-    }
-    set popupDirection(value) {
-        this._popupDirection = value;
-    }
-    get items() {
-        return this._items;
-    }
-    set items(value) {
-        if (!value)
-            this._items.length = 0;
-        else
-            this._items = value.concat();
-        if (this._items.length > 0) {
-            if (this._selectedIndex >= this._items.length)
-                this._selectedIndex = this._items.length - 1;
-            else if (this._selectedIndex == -1)
-                this._selectedIndex = 0;
-            this.text = this._items[this._selectedIndex];
-            if (this._icons && this._selectedIndex < this._icons.length)
-                this.icon = this._icons[this._selectedIndex];
-        }
-        else {
-            this.text = "";
-            if (this._icons)
-                this.icon = null;
-            this._selectedIndex = -1;
-        }
-        this._itemsUpdated = true;
-    }
-    get icons() {
-        return this._icons;
-    }
-    set icons(value) {
-        this._icons = value;
-        if (this._icons && this._selectedIndex != -1 && this._selectedIndex < this._icons.length)
-            this.icon = this._icons[this._selectedIndex];
-    }
-    get values() {
-        return this._values;
-    }
-    set values(value) {
-        if (!value)
-            this._values.length = 0;
-        else
-            this._values = value.concat();
-    }
-    get selectedIndex() {
-        return this._selectedIndex;
-    }
-    set selectedIndex(val) {
-        if (this._selectedIndex == val)
-            return;
-        this._selectedIndex = val;
-        if (this._selectedIndex >= 0 && this._selectedIndex < this._items.length) {
-            this.text = this._items[this._selectedIndex];
-            if (this._icons && this._selectedIndex < this._icons.length)
-                this.icon = this._icons[this._selectedIndex];
-        }
-        else {
-            this.text = "";
-            if (this._icons)
-                this.icon = null;
-        }
-        this.updateSelectionController();
-    }
-    get value() {
-        return this._values[this._selectedIndex];
-    }
-    set value(val) {
-        var index = this._values.indexOf(val);
-        if (index == -1 && val == null)
-            index = this._values.indexOf("");
-        this.selectedIndex = index;
-    }
-    getTextField() {
-        if (this._titleObject instanceof GTextField)
-            return this._titleObject;
-        else if ((this._titleObject instanceof GLabel) || (this._titleObject instanceof GButton))
-            return this._titleObject.getTextField();
-        else
-            return null;
-    }
-    setState(val) {
-        if (this._buttonController)
-            this._buttonController.selectedPage = val;
-    }
-    get selectionController() {
-        return this._selectionController;
-    }
-    set selectionController(value) {
-        this._selectionController = value;
-    }
-    handleControllerChanged(c) {
-        super.handleControllerChanged(c);
-        if (this._selectionController == c)
-            this.selectedIndex = c.selectedIndex;
-    }
-    updateSelectionController() {
-        if (this._selectionController && !this._selectionController.changing
-            && this._selectedIndex < this._selectionController.pageCount) {
-            var c = this._selectionController;
-            this._selectionController = null;
-            c.selectedIndex = this._selectedIndex;
-            this._selectionController = c;
-        }
-    }
-    dispose() {
-        if (this.dropdown) {
-            this.dropdown.dispose();
-            this.dropdown = null;
-        }
-        this._selectionController = null;
-        super.dispose();
-    }
-    getProp(index) {
-        switch (index) {
-            case ObjectPropID.Color:
-                return this.titleColor;
-            case ObjectPropID.OutlineColor:
-                {
-                    var tf = this.getTextField();
-                    if (tf)
-                        return tf.strokeColor;
-                    else
-                        return 0;
-                }
-            case ObjectPropID.FontSize:
-                {
-                    tf = this.getTextField();
-                    if (tf)
-                        return tf.fontSize;
-                    else
-                        return 0;
-                }
-            default:
-                return super.getProp(index);
-        }
-    }
-    setProp(index, value) {
-        switch (index) {
-            case ObjectPropID.Color:
-                this.titleColor = value;
-                break;
-            case ObjectPropID.OutlineColor:
-                {
-                    var tf = this.getTextField();
-                    if (tf)
-                        tf.strokeColor = value;
-                }
-                break;
-            case ObjectPropID.FontSize:
-                {
-                    tf = this.getTextField();
-                    if (tf)
-                        tf.fontSize = value;
-                }
-                break;
-            default:
-                super.setProp(index, value);
-                break;
-        }
-    }
-    constructExtension(buffer) {
-        throw new Error("TODO");
-        // var str: string;
-        // this._buttonController = this.getController("button");
-        // this._titleObject = this.getChild("title");
-        // this._iconObject = this.getChild("icon");
-        // str = buffer.readS();
-        // if (str) {
-        //     this.dropdown = <GComponent>(UIPackage.createObjectFromURL(str));
-        //     if (!this.dropdown) {
-        //         Laya.Log.print("下拉框必须为元件");
-        //         return;
-        //     }
-        //     this.dropdown.name = "this._dropdownObject";
-        //     this._list = <GList>this.dropdown.getChild("list");
-        //     if (!this._list) {
-        //         Laya.Log.print(this.resourceURL + ": 下拉框的弹出元件里必须包含名为list的列表");
-        //         return;
-        //     }
-        //     this._list.on(Events.CLICK_ITEM, this, this.__clickItem);
-        //     this._list.addRelation(this.dropdown, RelationType.Width);
-        //     this._list.removeRelation(this.dropdown, RelationType.Height);
-        //     this.dropdown.addRelation(this._list, RelationType.Height);
-        //     this.dropdown.removeRelation(this._list, RelationType.Width);
-        //     this.dropdown.displayObject.on(Laya.Event.UNDISPLAY, this, this.__popupWinClosed);
-        // }
-        // this.on(Laya.Event.ROLL_OVER, this, this.__rollover);
-        // this.on(Laya.Event.ROLL_OUT, this, this.__rollout);
-        // this.on(Laya.Event.MOUSE_DOWN, this, this.__mousedown);
-    }
-    setup_afterAdd(buffer, beginPos) {
-        super.setup_afterAdd(buffer, beginPos);
-        if (!buffer.seek(beginPos, 6))
-            return;
-        if (buffer.readByte() != this.packageItem.objectType)
-            return;
-        var i;
-        var iv;
-        var nextPos;
-        var str;
-        var itemCount = buffer.readShort();
-        for (i = 0; i < itemCount; i++) {
-            nextPos = buffer.readShort();
-            nextPos += buffer.position;
-            this._items[i] = buffer.readS();
-            this._values[i] = buffer.readS();
-            str = buffer.readS();
-            if (str != null) {
-                if (!this._icons)
-                    this._icons = [];
-                this._icons[i] = str;
-            }
-            buffer.position = nextPos;
-        }
-        str = buffer.readS();
-        if (str != null) {
-            this.text = str;
-            this._selectedIndex = this._items.indexOf(str);
-        }
-        else if (this._items.length > 0) {
-            this._selectedIndex = 0;
-            this.text = this._items[0];
-        }
-        else
-            this._selectedIndex = -1;
-        str = buffer.readS();
-        if (str != null)
-            this.icon = str;
-        if (buffer.readBool())
-            this.titleColor = buffer.readColorS();
-        iv = buffer.readInt();
-        if (iv > 0)
-            this._visibleItemCount = iv;
-        this._popupDirection = buffer.readByte();
-        iv = buffer.readShort();
-        if (iv >= 0)
-            this._selectionController = this.parent.getControllerAt(iv);
-    }
-    showDropdown() {
-        throw new Error("TODO");
-        // if (this._itemsUpdated) {
-        //     this._itemsUpdated = false;
-        //     this._list.removeChildrenToPool();
-        //     var cnt: number = this._items.length;
-        //     for (var i: number = 0; i < cnt; i++) {
-        //         var item: GObject = this._list.addItemFromPool();
-        //         item.name = i < this._values.length ? this._values[i] : "";
-        //         item.text = this._items[i];
-        //         item.icon = (this._icons && i < this._icons.length) ? this._icons[i] : null;
-        //     }
-        //     this._list.resizeToFit(this._visibleItemCount);
-        // }
-        // this._list.selectedIndex = -1;
-        // this.dropdown.width = this.width;
-        // this._list.ensureBoundsCorrect();
-        // var downward: any = null;
-        // if (this._popupDirection == PopupDirection.Down)
-        //     downward = true;
-        // else if (this._popupDirection == PopupDirection.Up)
-        //     downward = false;
-        // this.root.togglePopup(this.dropdown, this, downward);
-        // if (this.dropdown.parent)
-        //     this.setState(GButton.DOWN);
-    }
-    __popupWinClosed() {
-        if (this._over)
-            this.setState(GButton.OVER);
-        else
-            this.setState(GButton.UP);
-    }
-    __clickItem(itemObject, evt) {
-        // Laya.timer.callLater(this, this.__clickItem2, [this._list.getChildIndex(itemObject), evt])
-    }
-    __clickItem2(index, evt) {
-        throw new Error("TODO");
-        // if (this.dropdown.parent instanceof GRoot)
-        //     this.dropdown.parent.hidePopup();
-        // this._selectedIndex = -1;
-        // this.selectedIndex = index;
-        // Events.dispatch(Events.STATE_CHANGED, this.displayObject, evt);
-    }
-    __rollover() {
-        this._over = true;
-        if (this._down || this.dropdown && this.dropdown.parent)
-            return;
-        this.setState(GButton.OVER);
-    }
-    __rollout() {
-        this._over = false;
-        if (this._down || this.dropdown && this.dropdown.parent)
-            return;
-        this.setState(GButton.UP);
-    }
-    __mousedown(evt) {
-        throw new Error("TODO");
-        // if (evt.target instanceof Laya.Input)
-        //     return;
-        // this._down = true;
-        // GRoot.inst.checkPopups(evt.target);
-        // Laya.stage.on(Laya.Event.MOUSE_UP, this, this.__mouseup);
-        // if (this.dropdown)
-        //     this.showDropdown();
-    }
-    __mouseup() {
-        throw new Error("TODO");
-        // if (this._down) {
-        //     this._down = false;
-        //     Laya.stage.off(Laya.Event.MOUSE_UP, this, this.__mouseup);
-        //     if (this.dropdown && !this.dropdown.parent) {
-        //         if (this._over)
-        //             this.setState(GButton.OVER);
-        //         else
-        //             this.setState(GButton.UP);
-        //     }
-        // }
-    }
-}
-
-class GScrollBar extends GComponent {
-    constructor() {
-        super();
-        this._dragOffset = new Phaser.Geom.Point();
-        this._scrollPerc = 0;
-    }
-    setScrollPane(target, vertical) {
-        this._target = target;
-        this._vertical = vertical;
-    }
-    setDisplayPerc(value) {
-        if (this._vertical) {
-            if (!this._fixedGripSize)
-                this._grip.height = Math.floor(value * this._bar.height);
-            this._grip.y = this._bar.y + (this._bar.height - this._grip.height) * this._scrollPerc;
-        }
-        else {
-            if (!this._fixedGripSize)
-                this._grip.width = Math.floor(value * this._bar.width);
-            this._grip.x = this._bar.x + (this._bar.width - this._grip.width) * this._scrollPerc;
-        }
-        this._grip.visible = value != 0 && value != 1;
-    }
-    setScrollPerc(val) {
-        this._scrollPerc = val;
-        if (this._vertical)
-            this._grip.y = this._bar.y + (this._bar.height - this._grip.height) * this._scrollPerc;
-        else
-            this._grip.x = this._bar.x + (this._bar.width - this._grip.width) * this._scrollPerc;
-    }
-    get minSize() {
-        if (this._vertical)
-            return (this._arrowButton1 ? this._arrowButton1.height : 0) + (this._arrowButton2 ? this._arrowButton2.height : 0);
-        else
-            return (this._arrowButton1 ? this._arrowButton1.width : 0) + (this._arrowButton2 ? this._arrowButton2.width : 0);
-    }
-    get gripDragging() {
-        return this._gripDragging;
-    }
-    constructExtension(buffer) {
-        throw new Error("TODO");
-        // buffer.seek(0, 6);
-        // this._fixedGripSize = buffer.readBool();
-        // this._grip = this.getChild("grip");
-        // if (!this._grip) {
-        //     Laya.Log.print("需要定义grip");
-        //     return;
-        // }
-        // this._bar = this.getChild("bar");
-        // if (!this._bar) {
-        //     Laya.Log.print("需要定义bar");
-        //     return;
-        // }
-        // this._arrowButton1 = this.getChild("arrow1");
-        // this._arrowButton2 = this.getChild("arrow2");
-        // this._grip.on(Laya.Event.MOUSE_DOWN, this, this.__gripMouseDown);
-        // if (this._arrowButton1)
-        //     this._arrowButton1.on(Laya.Event.MOUSE_DOWN, this, this.__arrowButton1Click);
-        // if (this._arrowButton2)
-        //     this._arrowButton2.on(Laya.Event.MOUSE_DOWN, this, this.__arrowButton2Click);
-        // this.on(Laya.Event.MOUSE_DOWN, this, this.__barMouseDown);
-    }
-    __gripMouseDown(evt) {
-        throw new Error("TODO");
-        // evt.stopPropagation();
-        // this._gripDragging = true;
-        // this._target.updateScrollBarVisible();
-        // Laya.stage.on(Laya.Event.MOUSE_MOVE, this, this.__gripMouseMove);
-        // Laya.stage.on(Laya.Event.MOUSE_UP, this, this.__gripMouseUp);
-        // this.globalToLocal(Laya.stage.mouseX, Laya.stage.mouseY, this._dragOffset);
-        // this._dragOffset.x -= this._grip.x;
-        // this._dragOffset.y -= this._grip.y;
-    }
-    __gripMouseMove() {
-        throw new Error("TODO");
-        // if (!this.onStage)
-        //     return;
-        // var pt: Laya.Point = this.globalToLocal(Laya.stage.mouseX, Laya.stage.mouseY, s_vec2);
-        // if (this._vertical) {
-        //     var curY: number = pt.y - this._dragOffset.y;
-        //     this._target.setPercY((curY - this._bar.y) / (this._bar.height - this._grip.height), false);
-        // }
-        // else {
-        //     var curX: number = pt.x - this._dragOffset.x;
-        //     this._target.setPercX((curX - this._bar.x) / (this._bar.width - this._grip.width), false);
-        // }
-    }
-    __gripMouseUp(evt) {
-        throw new Error("TODO");
-        // if (!this.onStage)
-        //     return;
-        // Laya.stage.off(Laya.Event.MOUSE_MOVE, this, this.__gripMouseMove);
-        // Laya.stage.off(Laya.Event.MOUSE_UP, this, this.__gripMouseUp);
-        // this._gripDragging = false;
-        // this._target.updateScrollBarVisible();
-    }
-    __arrowButton1Click(evt) {
-        throw new Error("TODO");
-        // evt.stopPropagation();
-        // if (this._vertical)
-        //     this._target.scrollUp();
-        // else
-        //     this._target.scrollLeft();
-    }
-    __arrowButton2Click(evt) {
-        throw new Error("TODO");
-        // evt.stopPropagation();
-        // if (this._vertical)
-        //     this._target.scrollDown();
-        // else
-        //     this._target.scrollRight();
-    }
-    __barMouseDown(evt) {
-        throw new Error("TODO");
-        // var pt: Laya.Point = this._grip.globalToLocal(Laya.stage.mouseX, Laya.stage.mouseY, s_vec2);
-        // if (this._vertical) {
-        //     if (pt.y < 0)
-        //         this._target.scrollUp(4);
-        //     else
-        //         this._target.scrollDown(4);
-        // }
-        // else {
-        //     if (pt.x < 0)
-        //         this._target.scrollLeft(4);
-        //     else
-        //         this._target.scrollRight(4);
-        // }
-    }
-}
-new Phaser.Geom.Point();
-
-class Events {
-    static createEvent(type, target, source) {
-        // this.$event.setTo(type, target, source ? (source.target || target) : target);
-        // this.$event.touchId = source ? (source.touchId || 0) : 0;
-        // this.$event.nativeEvent = source;
-        // this.$event["_stoped"] = false;
-        throw new Error("TODO");
-    }
-    static dispatch(type, target, source) {
-        // target.event(type, this.createEvent(type, target, source));
-        throw new Error("TODO");
-    }
-}
-Events.STATE_CHANGED = "fui_state_changed";
-Events.XY_CHANGED = "fui_xy_changed";
-Events.SIZE_CHANGED = "fui_size_changed";
-Events.SIZE_DELAY_CHANGE = "fui_size_delay_change";
-Events.CLICK_ITEM = "fui_click_item";
-Events.SCROLL = "fui_scroll";
-Events.SCROLL_END = "fui_scroll_end";
-Events.DROP = "fui_drop";
-Events.DRAG_START = "fui_drag_start";
-Events.DRAG_MOVE = "fui_drag_move";
-Events.DRAG_END = "fui_drag_end";
-Events.PULL_DOWN_RELEASE = "fui_pull_down_release";
-Events.PULL_UP_RELEASE = "fui_pull_up_release";
-Events.GEAR_STOP = "fui_gear_stop";
-Events.$event = new InteractiveEvent();
-
-class GSlider extends GComponent {
-    constructor() {
-        super();
-        this._min = 0;
-        this._max = 0;
-        this._value = 0;
-        this._barMaxWidth = 0;
-        this._barMaxHeight = 0;
-        this._barMaxWidthDelta = 0;
-        this._barMaxHeightDelta = 0;
-        this._clickPercent = 0;
-        this._barStartX = 0;
-        this._barStartY = 0;
-        this.changeOnClick = true;
-        /**是否可拖动开关**/
-        this.canDrag = true;
-        this._titleType = ProgressTitleType.Percent;
-        this._value = 50;
-        this._max = 100;
-        this._clickPos = new Phaser.Geom.Point();
-    }
-    get titleType() {
-        return this._titleType;
-    }
-    set titleType(value) {
-        this._titleType = value;
-    }
-    get wholeNumbers() {
-        return this._wholeNumbers;
-    }
-    set wholeNumbers(value) {
-        if (this._wholeNumbers != value) {
-            this._wholeNumbers = value;
-            this.update();
-        }
-    }
-    get min() {
-        return this._min;
-    }
-    set min(value) {
-        if (this._min != value) {
-            this._min = value;
-            this.update();
-        }
-    }
-    get max() {
-        return this._max;
-    }
-    set max(value) {
-        if (this._max != value) {
-            this._max = value;
-            this.update();
-        }
-    }
-    get value() {
-        return this._value;
-    }
-    set value(value) {
-        if (this._value != value) {
-            this._value = value;
-            this.update();
-        }
-    }
-    update() {
-        this.updateWithPercent((this._value - this._min) / (this._max - this._min));
-    }
-    updateWithPercent(percent, evt) {
-        percent = ToolSet.clamp01(percent);
-        if (evt) {
-            throw new Error("TODO");
-        }
-        if (this._titleObject) {
-            switch (this._titleType) {
-                case ProgressTitleType.Percent:
-                    this._titleObject.text = Math.floor(percent * 100) + "%";
-                    break;
-                case ProgressTitleType.ValueAndMax:
-                    this._titleObject.text = this._value + "/" + this._max;
-                    break;
-                case ProgressTitleType.Value:
-                    this._titleObject.text = "" + this._value;
-                    break;
-                case ProgressTitleType.Max:
-                    this._titleObject.text = "" + this._max;
-                    break;
-            }
-        }
-        var fullWidth = this.width - this._barMaxWidthDelta;
-        var fullHeight = this.height - this._barMaxHeightDelta;
-        if (!this._reverse) {
-            if (this._barObjectH)
-                this._barObjectH.width = Math.round(fullWidth * percent);
-            if (this._barObjectV)
-                this._barObjectV.height = Math.round(fullHeight * percent);
-        }
-        else {
-            if (this._barObjectH) {
-                this._barObjectH.width = Math.round(fullWidth * percent);
-                this._barObjectH.x = this._barStartX + (fullWidth - this._barObjectH.width);
-            }
-            if (this._barObjectV) {
-                this._barObjectV.height = Math.round(fullHeight * percent);
-                this._barObjectV.y = this._barStartY + (fullHeight - this._barObjectV.height);
-            }
-        }
-    }
-    constructExtension(buffer) {
-        throw new Error("TODO");
-        // this.displayObject.on(Laya.Event.MOUSE_DOWN, this, this.__barMouseDown);
-    }
-    handleSizeChanged() {
-        super.handleSizeChanged();
-        if (this._barObjectH)
-            this._barMaxWidth = this.width - this._barMaxWidthDelta;
-        if (this._barObjectV)
-            this._barMaxHeight = this.height - this._barMaxHeightDelta;
-        if (!this._underConstruct)
-            this.update();
-    }
-    setup_afterAdd(buffer, beginPos) {
-        super.setup_afterAdd(buffer, beginPos);
-        if (!buffer.seek(beginPos, 6)) {
-            this.update();
-            return;
-        }
-        if (buffer.readByte() != this.packageItem.objectType) {
-            this.update();
-            return;
-        }
-        this._value = buffer.readInt();
-        this._max = buffer.readInt();
-        if (buffer.version >= 2)
-            this._min = buffer.readInt();
-        this.update();
-    }
-    __gripMouseDown(evt) {
-        // this.canDrag = true;
-        // evt.stopPropagation();
-        // this._clickPos = this.globalToLocal(Laya.stage.mouseX, Laya.stage.mouseY);
-        // this._clickPercent = ToolSet.clamp01((this._value - this._min) / (this._max - this._min));
-        // Laya.stage.on(Laya.Event.MOUSE_MOVE, this, this.__gripMouseMove);
-        // Laya.stage.on(Laya.Event.MOUSE_UP, this, this.__gripMouseUp);
-    }
-    __gripMouseMove(evt) {
-        throw new Error("TODO");
-        // if (!this.canDrag) {
-        //     return;
-        // }
-        // var pt: Laya.Point = this.globalToLocal(Laya.stage.mouseX, Laya.stage.mouseY, s_vec2);
-        // var deltaX: number = pt.x - this._clickPos.x;
-        // var deltaY: number = pt.y - this._clickPos.y;
-        // if (this._reverse) {
-        //     deltaX = -deltaX;
-        //     deltaY = -deltaY;
-        // }
-        // var percent: number;
-        // if (this._barObjectH)
-        //     percent = this._clickPercent + deltaX / this._barMaxWidth;
-        // else
-        //     percent = this._clickPercent + deltaY / this._barMaxHeight;
-        // this.updateWithPercent(percent, evt);
-    }
-    __gripMouseUp(evt) {
-        throw new Error("TODO");
-        // Laya.stage.off(Laya.Event.MOUSE_MOVE, this, this.__gripMouseMove);
-        // Laya.stage.off(Laya.Event.MOUSE_UP, this, this.__gripMouseUp);
-    }
-    __barMouseDown(evt) {
-        throw new Error("TODO");
-        // if (!this.changeOnClick)
-        //     return;
-        // var pt: Laya.Point = this._gripObject.globalToLocal(evt.stageX, evt.stageY, s_vec2);
-        // var percent: number = ToolSet.clamp01((this._value - this._min) / (this._max - this._min));
-        // var delta: number;
-        // if (this._barObjectH)
-        //     delta = pt.x / this._barMaxWidth;
-        // if (this._barObjectV)
-        //     delta = pt.y / this._barMaxHeight;
-        // if (this._reverse)
-        //     percent -= delta;
-        // else
-        //     percent += delta;
-        // this.updateWithPercent(percent, evt);
-    }
-}
-new Phaser.Geom.Point();
-
-class GObjectPool {
-    constructor() {
-        this._count = 0;
-        this._pool = {};
-    }
-    clear() {
-        for (var i1 in this._pool) {
-            var arr = this._pool[i1];
-            var cnt = arr.length;
-            for (var i = 0; i < cnt; i++)
-                arr[i].dispose();
-        }
-        this._pool = {};
-        this._count = 0;
-    }
-    get count() {
-        return this._count;
-    }
-    getObject(url) {
-        url = UIPackage.normalizeURL(url);
-        if (url == null)
-            return null;
-        var arr = this._pool[url];
-        if (arr && arr.length > 0) {
-            this._count--;
-            return arr.shift();
-        }
-        var child = UIPackage.createObjectFromURL(url);
-        return child;
-    }
-    returnObject(obj) {
-        var url = obj.resourceURL;
-        if (!url)
-            return;
-        var arr = this._pool[url];
-        if (arr == null) {
-            arr = [];
-            this._pool[url] = arr;
-        }
-        this._count++;
-        arr.push(obj);
-    }
-}
-
-var LoaderType;
-(function (LoaderType) {
-    LoaderType["IMAGE"] = "image";
-    LoaderType["ATLAS"] = "atlas";
-    LoaderType["AUDIO"] = "audio";
-    LoaderType["VIDEO"] = "video";
-    LoaderType["JSON"] = "json";
-    LoaderType["SCRIPT"] = "script";
-    LoaderType["GLSL"] = "glsl";
-    LoaderType["BITMAPFONT"] = "bitmapFont";
-    LoaderType["SPRITESHEET"] = "spritesheet";
-})(LoaderType || (LoaderType = {}));
-class AssetProxy {
-    constructor() {
-        this._resMap = new Map();
-    }
-    static get inst() {
-        if (!AssetProxy._inst)
-            AssetProxy._inst = new AssetProxy();
-        return AssetProxy._inst;
-    }
-    getRes(key) {
-        return this._resMap.get(key);
-    }
-    load(key, url, type, completeCallBack, _errorCallBack) {
-        this._resMap.set(key, url);
-        this._completeCallBack = completeCallBack;
-        this._errorCallBack = _errorCallBack;
-        if (GRoot.inst.scene.cache.obj.has(key)) {
-            if (this._completeCallBack) {
-                return this._completeCallBack();
-            }
-        }
-        switch (type) {
-            case LoaderType.IMAGE:
-                GRoot.inst.scene.load.image(key, url);
-                break;
-            case LoaderType.ATLAS:
-                GRoot.inst.scene.load.atlas(key, url);
-                break;
-            case LoaderType.AUDIO:
-                GRoot.inst.scene.load.audio(key, url);
-                break;
-            case LoaderType.VIDEO:
-                GRoot.inst.scene.load.video(key, url);
-                break;
-            case LoaderType.JSON:
-                GRoot.inst.scene.load.json(key, url);
-                break;
-            case LoaderType.SCRIPT:
-                GRoot.inst.scene.load.script(key, url);
-                break;
-            case LoaderType.GLSL:
-                GRoot.inst.scene.load.glsl(key, url);
-                break;
-            case LoaderType.BITMAPFONT:
-                GRoot.inst.scene.load.bitmapFont(key, url);
-                break;
-            case LoaderType.SPRITESHEET:
-                GRoot.inst.scene.load.spritesheet(key, url);
-                break;
-            default:
-                GRoot.inst.scene.load.image(key, url);
-                break;
-        }
-    }
-    startLoad() {
-        GRoot.inst.scene.load.on(Phaser.Loader.Events.FILE_COMPLETE, this.onLoadComplete, this);
-        GRoot.inst.scene.load.on(Phaser.Loader.Events.FILE_LOAD_ERROR, this.onLoadError, this);
-        GRoot.inst.scene.load.start();
-    }
-    onLoadComplete() {
-        if (this._completeCallBack)
-            this._completeCallBack();
-    }
-    onLoadError() {
-        if (this._errorCallBack)
-            this._errorCallBack();
-    }
-}
-
-class GLoader extends GObject {
-    constructor() {
-        super();
-        this._url = "";
-        this._fill = LoaderFillType.None;
-        this._align = "left";
-        this._valign = "top";
-        this._showErrorSign = true;
-    }
-    createDisplayObject() {
-        super.createDisplayObject();
-        throw new Error("TODO");
-        // this._content = new MovieClip();
-        // this._displayObject.addChild(this._content);
-        // this._displayObject.mouseEnabled = true;
-    }
-    dispose() {
-        if (!this._contentItem && this._content.texture) {
-            this.freeExternal(this._content.texture);
-        }
-        if (this._content2)
-            this._content2.dispose();
-        super.dispose();
-    }
-    get url() {
-        return this._url;
-    }
-    set url(value) {
-        if (this._url == value)
-            return;
-        this._url = value;
-        this.loadContent();
-        this.updateGear(7);
-    }
-    get icon() {
-        return this._url;
-    }
-    set icon(value) {
-        this.url = value;
-    }
-    get align() {
-        return this._align;
-    }
-    set align(value) {
-        if (this._align != value) {
-            this._align = value;
-            this.updateLayout();
-        }
-    }
-    get verticalAlign() {
-        return this._valign;
-    }
-    set verticalAlign(value) {
-        if (this._valign != value) {
-            this._valign = value;
-            this.updateLayout();
-        }
-    }
-    get fill() {
-        return this._fill;
-    }
-    set fill(value) {
-        if (this._fill != value) {
-            this._fill = value;
-            this.updateLayout();
-        }
-    }
-    get shrinkOnly() {
-        return this._shrinkOnly;
-    }
-    set shrinkOnly(value) {
-        if (this._shrinkOnly != value) {
-            this._shrinkOnly = value;
-            this.updateLayout();
-        }
-    }
-    get autoSize() {
-        return this._autoSize;
-    }
-    set autoSize(value) {
-        if (this._autoSize != value) {
-            this._autoSize = value;
-            this.updateLayout();
-        }
-    }
-    get playing() {
-        return this._content.playing;
-    }
-    set playing(value) {
-        if (this._content.playing != value) {
-            this._content.playing = value;
-            this.updateGear(5);
-        }
-    }
-    get frame() {
-        return this._content.frame;
-    }
-    set frame(value) {
-        if (this._content.frame != value) {
-            this._content.frame = value;
-            this.updateGear(5);
-        }
-    }
-    get color() {
-        return this._content.color;
-    }
-    set color(value) {
-        if (this._content.color != value) {
-            this._content.color = value;
-            this.updateGear(4);
-        }
-    }
-    get fillMethod() {
-        return this._content.fillMethod;
-    }
-    set fillMethod(value) {
-        this._content.fillMethod = value;
-    }
-    get fillOrigin() {
-        return this._content.fillOrigin;
-    }
-    set fillOrigin(value) {
-        this._content.fillOrigin = value;
-    }
-    get fillClockwise() {
-        return this._content.fillClockwise;
-    }
-    set fillClockwise(value) {
-        this._content.fillClockwise = value;
-    }
-    get fillAmount() {
-        return this._content.fillAmount;
-    }
-    set fillAmount(value) {
-        this._content.fillAmount = value;
-    }
-    get showErrorSign() {
-        return this._showErrorSign;
-    }
-    set showErrorSign(value) {
-        this._showErrorSign = value;
-    }
-    get content() {
-        return this._content;
-    }
-    get component() {
-        return this._content2;
-    }
-    loadContent() {
-        this.clearContent();
-        if (!this._url)
-            return;
-        if (ToolSet.startsWith(this._url, "ui://"))
-            this.loadFromPackage(this._url);
-        else
-            this.loadExternal();
-    }
-    loadFromPackage(itemURL) {
-        this._contentItem = UIPackage.getItemByURL(itemURL);
-        if (this._contentItem) {
-            this._contentItem = this._contentItem.getBranch();
-            this.sourceWidth = this._contentItem.width;
-            this.sourceHeight = this._contentItem.height;
-            this._contentItem = this._contentItem.getHighResolution();
-            this._contentItem.load();
-            if (this._autoSize)
-                this.setSize(this.sourceWidth, this.sourceHeight);
-            if (this._contentItem.type == PackageItemType.Image) {
-                if (!this._contentItem.texture) {
-                    this.setErrorState();
-                }
-                else {
-                    this._content.texture = this._contentItem.texture;
-                    this._content.scale9Grid = this._contentItem.scale9Grid;
-                    this._content.scaleByTile = this._contentItem.scaleByTile;
-                    this._content.tileGridIndice = this._contentItem.tileGridIndice;
-                    this.sourceWidth = this._contentItem.width;
-                    this.sourceHeight = this._contentItem.height;
-                    this.updateLayout();
-                }
-            }
-            else if (this._contentItem.type == PackageItemType.MovieClip) {
-                this.sourceWidth = this._contentItem.width;
-                this.sourceHeight = this._contentItem.height;
-                this._content.interval = this._contentItem.interval;
-                this._content.swing = this._contentItem.swing;
-                this._content.repeatDelay = this._contentItem.repeatDelay;
-                this._content.frames = this._contentItem.frames;
-                this.updateLayout();
-            }
-            else if (this._contentItem.type == PackageItemType.Component) {
-                var obj = UIPackage.createObjectFromURL(itemURL);
-                if (!obj)
-                    this.setErrorState();
-                else if (!(obj instanceof GComponent)) {
-                    obj.dispose();
-                    this.setErrorState();
-                }
-                else {
-                    this._content2 = obj.asCom;
-                    this._displayObject.add(this._content2.displayObject);
-                    this.updateLayout();
-                }
-            }
-            else
-                this.setErrorState();
-        }
-        else
-            this.setErrorState();
-    }
-    loadExternal() {
-        AssetProxy.inst.load(this._url, this._url, LoaderType.IMAGE, this.__getResCompleted);
-        AssetProxy.inst.startLoad();
-        // AssetProxy.inst.load(this._url, Laya.Handler.create(this, this.__getResCompleted), null, Laya.Loader.IMAGE);
-    }
-    freeExternal(texture) {
-    }
-    onExternalLoadSuccess(texture) {
-        throw new Error("TODO");
-        // this._content.texture = texture;
-        // this._content.scale9Grid = null;
-        // this._content.scaleByTile = false;
-        // this.sourceWidth = texture.width;
-        // this.sourceHeight = texture.height;
-        // this.updateLayout();
-    }
-    onExternalLoadFailed() {
-        this.setErrorState();
-    }
-    __getResCompleted(tex) {
-        if (tex != null)
-            this.onExternalLoadSuccess(tex);
-        else
-            this.onExternalLoadFailed();
-    }
-    setErrorState() {
-        if (!this._showErrorSign)
-            return;
-        if (!this._errorSign) ;
-        if (this._errorSign) {
-            this._errorSign.setSize(this.width, this.height);
-            throw new Error("TODO");
-            // this._displayObject.addChild(this._errorSign.displayObject);
-        }
-    }
-    clearErrorState() {
-        if (this._errorSign) {
-            throw new Error("TODO");
-        }
-    }
-    updateLayout() {
-        throw new Error("TODO");
-        // if (!this._content2 && !this._content.texture && !this._content.frames) {
-        //     if (this._autoSize) {
-        //         this._updatingLayout = true;
-        //         this.setSize(50, 30);
-        //         this._updatingLayout = false;
-        //     }
-        //     return;
-        // }
-        // let cw = this.sourceWidth;
-        // let ch = this.sourceHeight;
-        // if (this._autoSize) {
-        //     this._updatingLayout = true;
-        //     if (cw == 0)
-        //         cw = 50;
-        //     if (ch == 0)
-        //         ch = 30;
-        //     this.setSize(cw, ch);
-        //     this._updatingLayout = false;
-        //     if (cw == this._width && ch == this._height) {
-        //         if (this._content2) {
-        //             this._content2.setXY(0, 0);
-        //             this._content2.setScale(1, 1);
-        //         }
-        //         else {
-        //             this._content.size(cw, ch);
-        //             this._content.pos(0, 0);
-        //         }
-        //         return;
-        //     }
-        // }
-        // var sx: number = 1, sy: number = 1;
-        // if (this._fill != LoaderFillType.None) {
-        //     sx = this.width / this.sourceWidth;
-        //     sy = this.height / this.sourceHeight;
-        //     if (sx != 1 || sy != 1) {
-        //         if (this._fill == LoaderFillType.ScaleMatchHeight)
-        //             sx = sy;
-        //         else if (this._fill == LoaderFillType.ScaleMatchWidth)
-        //             sy = sx;
-        //         else if (this._fill == LoaderFillType.Scale) {
-        //             if (sx > sy)
-        //                 sx = sy;
-        //             else
-        //                 sy = sx;
-        //         }
-        //         else if (this._fill == LoaderFillType.ScaleNoBorder) {
-        //             if (sx > sy)
-        //                 sy = sx;
-        //             else
-        //                 sx = sy;
-        //         }
-        //         if (this._shrinkOnly) {
-        //             if (sx > 1)
-        //                 sx = 1;
-        //             if (sy > 1)
-        //                 sy = 1;
-        //         }
-        //         cw = this.sourceWidth * sx;
-        //         ch = this.sourceHeight * sy;
-        //     }
-        // }
-        // if (this._content2)
-        //     this._content2.setScale(sx, sy);
-        // else
-        //     this._content.size(cw, ch);
-        // var nx: number, ny: number;
-        // if (this._align == "center")
-        //     nx = Math.floor((this.width - cw) / 2);
-        // else if (this._align == "right")
-        //     nx = this.width - cw;
-        // else
-        //     nx = 0;
-        // if (this._valign == "middle")
-        //     ny = Math.floor((this.height - ch) / 2);
-        // else if (this._valign == "bottom")
-        //     ny = this.height - ch;
-        // else
-        //     ny = 0;
-        // if (this._content2)
-        //     this._content2.setXY(nx, ny);
-        // else
-        //     this._content.pos(nx, ny);
-    }
-    clearContent() {
-        this.clearErrorState();
-        if (!this._contentItem && this._content.texture) {
-            this.freeExternal(this._content.texture);
-        }
-        this._content.texture = null;
-        this._content.frames = null;
-        if (this._content2) {
-            this._content2.dispose();
-            this._content2 = null;
-        }
-        this._contentItem = null;
-    }
-    handleSizeChanged() {
-        super.handleSizeChanged();
-        if (!this._updatingLayout)
-            this.updateLayout();
-    }
-    getProp(index) {
-        switch (index) {
-            case ObjectPropID.Color:
-                return this.color;
-            case ObjectPropID.Playing:
-                return this.playing;
-            case ObjectPropID.Frame:
-                return this.frame;
-            case ObjectPropID.TimeScale:
-                return this._content.timeScale;
-            default:
-                return super.getProp(index);
-        }
-    }
-    setProp(index, value) {
-        switch (index) {
-            case ObjectPropID.Color:
-                this.color = value;
-                break;
-            case ObjectPropID.Playing:
-                this.playing = value;
-                break;
-            case ObjectPropID.Frame:
-                this.frame = value;
-                break;
-            case ObjectPropID.TimeScale:
-                this._content.timeScale = value;
-                break;
-            case ObjectPropID.DeltaTime:
-                this._content.advance(value);
-                break;
-            default:
-                super.setProp(index, value);
-                break;
-        }
-    }
-    setup_beforeAdd(buffer, beginPos) {
-        super.setup_beforeAdd(buffer, beginPos);
-        buffer.seek(beginPos, 5);
-        var iv;
-        this._url = buffer.readS();
-        iv = buffer.readByte();
-        this._align = iv == 0 ? "left" : (iv == 1 ? "center" : "right");
-        iv = buffer.readByte();
-        this._valign = iv == 0 ? "top" : (iv == 1 ? "middle" : "bottom");
-        this._fill = buffer.readByte();
-        this._shrinkOnly = buffer.readBool();
-        this._autoSize = buffer.readBool();
-        this._showErrorSign = buffer.readBool();
-        this._content.playing = buffer.readBool();
-        this._content.frame = buffer.readInt();
-        if (buffer.readBool())
-            this.color = buffer.readColorS();
-        this._content.fillMethod = buffer.readByte();
-        if (this._content.fillMethod != 0) {
-            this._content.fillOrigin = buffer.readByte();
-            this._content.fillClockwise = buffer.readBool();
-            this._content.fillAmount = buffer.readFloat();
-        }
-        if (this._url)
-            this.loadContent();
-    }
-}
-GLoader._errorSignPool = new GObjectPool();
-
-function fillImage(w, h, method, origin, clockwise, amount) {
-    if (amount <= 0)
-        return null;
-    else if (amount >= 0.9999)
-        return [0, 0, w, 0, w, h, 0, h];
-    var points;
-    switch (method) {
-        case FillMethod.Horizontal:
-            points = fillHorizontal(w, h, origin, amount);
-            break;
-        case FillMethod.Vertical:
-            points = fillVertical(w, h, origin, amount);
-            break;
-        case FillMethod.Radial90:
-            points = fillRadial90(w, h, origin, clockwise, amount);
-            break;
-        case FillMethod.Radial180:
-            points = fillRadial180(w, h, origin, clockwise, amount);
-            break;
-        case FillMethod.Radial360:
-            points = fillRadial360(w, h, origin, clockwise, amount);
-            break;
-    }
-    return points;
-}
-function fillHorizontal(w, h, origin, amount) {
-    var w2 = w * amount;
-    if (origin == FillOrigin.Left || origin == FillOrigin.Top)
-        return [0, 0, w2, 0, w2, h, 0, h];
-    else
-        return [w, 0, w, h, w - w2, h, w - w2, 0];
-}
-function fillVertical(w, h, origin, amount) {
-    var h2 = h * amount;
-    if (origin == FillOrigin.Left || origin == FillOrigin.Top)
-        return [0, 0, 0, h2, w, h2, w, 0];
-    else
-        return [0, h, w, h, w, h - h2, 0, h - h2];
-}
-function fillRadial90(w, h, origin, clockwise, amount) {
-    if (clockwise && (origin == FillOrigin.TopRight || origin == FillOrigin.BottomLeft)
-        || !clockwise && (origin == FillOrigin.TopLeft || origin == FillOrigin.BottomRight)) {
-        amount = 1 - amount;
-    }
-    var v, v2, h2;
-    v = Math.tan(Math.PI / 2 * amount);
-    h2 = w * v;
-    v2 = (h2 - h) / h2;
-    var points;
-    switch (origin) {
-        case FillOrigin.TopLeft:
-            if (clockwise) {
-                if (h2 <= h)
-                    points = [0, 0, w, h2, w, 0];
-                else
-                    points = [0, 0, w * (1 - v2), h, w, h, w, 0];
-            }
-            else {
-                if (h2 <= h)
-                    points = [0, 0, w, h2, w, h, 0, h];
-                else
-                    points = [0, 0, w * (1 - v2), h, 0, h];
-            }
-            break;
-        case FillOrigin.TopRight:
-            if (clockwise) {
-                if (h2 <= h)
-                    points = [w, 0, 0, h2, 0, h, w, h];
-                else
-                    points = [w, 0, w * v2, h, w, h];
-            }
-            else {
-                if (h2 <= h)
-                    points = [w, 0, 0, h2, 0, 0];
-                else
-                    points = [w, 0, w * v2, h, 0, h, 0, 0];
-            }
-            break;
-        case FillOrigin.BottomLeft:
-            if (clockwise) {
-                if (h2 <= h)
-                    points = [0, h, w, h - h2, w, 0, 0, 0];
-                else
-                    points = [0, h, w * (1 - v2), 0, 0, 0];
-            }
-            else {
-                if (h2 <= h)
-                    points = [0, h, w, h - h2, w, h];
-                else
-                    points = [0, h, w * (1 - v2), 0, w, 0, w, h];
-            }
-            break;
-        case FillOrigin.BottomRight:
-            if (clockwise) {
-                if (h2 <= h)
-                    points = [w, h, 0, h - h2, 0, h];
-                else
-                    points = [w, h, w * v2, 0, 0, 0, 0, h];
-            }
-            else {
-                if (h2 <= h)
-                    points = [w, h, 0, h - h2, 0, 0, w, 0];
-                else
-                    points = [w, h, w * v2, 0, w, 0];
-            }
-            break;
-    }
-    return points;
-}
-function movePoints(points, offsetX, offsetY) {
-    var cnt = points.length;
-    for (var i = 0; i < cnt; i += 2) {
-        points[i] += offsetX;
-        points[i + 1] += offsetY;
-    }
-}
-function fillRadial180(w, h, origin, clockwise, amount) {
-    var points;
-    switch (origin) {
-        case FillOrigin.Top:
-            if (amount <= 0.5) {
-                amount = amount / 0.5;
-                points = fillRadial90(w / 2, h, clockwise ? FillOrigin.TopLeft : FillOrigin.TopRight, clockwise, amount);
-                if (clockwise)
-                    movePoints(points, w / 2, 0);
-            }
-            else {
-                amount = (amount - 0.5) / 0.5;
-                points = fillRadial90(w / 2, h, clockwise ? FillOrigin.TopRight : FillOrigin.TopLeft, clockwise, amount);
-                if (clockwise)
-                    points.push(w, h, w, 0);
-                else {
-                    movePoints(points, w / 2, 0);
-                    points.push(0, h, 0, 0);
-                }
-            }
-            break;
-        case FillOrigin.Bottom:
-            if (amount <= 0.5) {
-                amount = amount / 0.5;
-                points = fillRadial90(w / 2, h, clockwise ? FillOrigin.BottomRight : FillOrigin.BottomLeft, clockwise, amount);
-                if (!clockwise)
-                    movePoints(points, w / 2, 0);
-            }
-            else {
-                amount = (amount - 0.5) / 0.5;
-                points = fillRadial90(w / 2, h, clockwise ? FillOrigin.BottomLeft : FillOrigin.BottomRight, clockwise, amount);
-                if (clockwise) {
-                    movePoints(points, w / 2, 0);
-                    points.push(0, 0, 0, h);
-                }
-                else
-                    points.push(w, 0, w, h);
-            }
-            break;
-        case FillOrigin.Left:
-            if (amount <= 0.5) {
-                amount = amount / 0.5;
-                points = fillRadial90(w, h / 2, clockwise ? FillOrigin.BottomLeft : FillOrigin.TopLeft, clockwise, amount);
-                if (!clockwise)
-                    movePoints(points, 0, h / 2);
-            }
-            else {
-                amount = (amount - 0.5) / 0.5;
-                points = fillRadial90(w, h / 2, clockwise ? FillOrigin.TopLeft : FillOrigin.BottomLeft, clockwise, amount);
-                if (clockwise) {
-                    movePoints(points, 0, h / 2);
-                    points.push(w, 0, 0, 0);
-                }
-                else
-                    points.push(w, h, 0, h);
-            }
-            break;
-        case FillOrigin.Right:
-            if (amount <= 0.5) {
-                amount = amount / 0.5;
-                points = fillRadial90(w, h / 2, clockwise ? FillOrigin.TopRight : FillOrigin.BottomRight, clockwise, amount);
-                if (clockwise)
-                    movePoints(points, 0, h / 2);
-            }
-            else {
-                amount = (amount - 0.5) / 0.5;
-                points = fillRadial90(w, h / 2, clockwise ? FillOrigin.BottomRight : FillOrigin.TopRight, clockwise, amount);
-                if (clockwise)
-                    points.push(0, h, w, h);
-                else {
-                    movePoints(points, 0, h / 2);
-                    points.push(0, 0, w, 0);
-                }
-            }
-            break;
-    }
-    return points;
-}
-function fillRadial360(w, h, origin, clockwise, amount) {
-    var points;
-    switch (origin) {
-        case FillOrigin.Top:
-            if (amount <= 0.5) {
-                amount = amount / 0.5;
-                points = fillRadial180(w / 2, h, clockwise ? FillOrigin.Left : FillOrigin.Right, clockwise, amount);
-                if (clockwise)
-                    movePoints(points, w / 2, 0);
-            }
-            else {
-                amount = (amount - 0.5) / 0.5;
-                points = fillRadial180(w / 2, h, clockwise ? FillOrigin.Right : FillOrigin.Left, clockwise, amount);
-                if (clockwise)
-                    points.push(w, h, w, 0, w / 2, 0);
-                else {
-                    movePoints(points, w / 2, 0);
-                    points.push(0, h, 0, 0, w / 2, 0);
-                }
-            }
-            break;
-        case FillOrigin.Bottom:
-            if (amount <= 0.5) {
-                amount = amount / 0.5;
-                points = fillRadial180(w / 2, h, clockwise ? FillOrigin.Right : FillOrigin.Left, clockwise, amount);
-                if (!clockwise)
-                    movePoints(points, w / 2, 0);
-            }
-            else {
-                amount = (amount - 0.5) / 0.5;
-                points = fillRadial180(w / 2, h, clockwise ? FillOrigin.Left : FillOrigin.Right, clockwise, amount);
-                if (clockwise) {
-                    movePoints(points, w / 2, 0);
-                    points.push(0, 0, 0, h, w / 2, h);
-                }
-                else
-                    points.push(w, 0, w, h, w / 2, h);
-            }
-            break;
-        case FillOrigin.Left:
-            if (amount <= 0.5) {
-                amount = amount / 0.5;
-                points = fillRadial180(w, h / 2, clockwise ? FillOrigin.Bottom : FillOrigin.Top, clockwise, amount);
-                if (!clockwise)
-                    movePoints(points, 0, h / 2);
-            }
-            else {
-                amount = (amount - 0.5) / 0.5;
-                points = fillRadial180(w, h / 2, clockwise ? FillOrigin.Top : FillOrigin.Bottom, clockwise, amount);
-                if (clockwise) {
-                    movePoints(points, 0, h / 2);
-                    points.push(w, 0, 0, 0, 0, h / 2);
-                }
-                else
-                    points.push(w, h, 0, h, 0, h / 2);
-            }
-            break;
-        case FillOrigin.Right:
-            if (amount <= 0.5) {
-                amount = amount / 0.5;
-                points = fillRadial180(w, h / 2, clockwise ? FillOrigin.Top : FillOrigin.Bottom, clockwise, amount);
-                if (clockwise)
-                    movePoints(points, 0, h / 2);
-            }
-            else {
-                amount = (amount - 0.5) / 0.5;
-                points = fillRadial180(w, h / 2, clockwise ? FillOrigin.Bottom : FillOrigin.Top, clockwise, amount);
-                if (clockwise)
-                    points.push(0, h, w, h, w, h / 2);
-                else {
-                    movePoints(points, 0, h / 2);
-                    points.push(0, 0, w, 0, w, h / 2);
-                }
-            }
-            break;
-    }
-    return points;
-}
-
-var GRAPHICSTYPE;
-(function (GRAPHICSTYPE) {
-    GRAPHICSTYPE["RECTANGLE"] = "rectangle";
-    GRAPHICSTYPE["CIRCLE"] = "circle";
-    GRAPHICSTYPE["POLY"] = "POLY";
-    GRAPHICSTYPE["ELLIPSE"] = "ellipse";
-})(GRAPHICSTYPE || (GRAPHICSTYPE = {}));
-class Graphics extends Phaser.GameObjects.Graphics {
-    constructor(scene) {
-        super(scene);
-        // 默认矩形
-        this._graphicsType = GRAPHICSTYPE.RECTANGLE;
-        this._width = 0;
-        this._height = 0;
-        this._radius = 0;
-        this._points = [];
-    }
-    get width() {
-        return this._width;
-    }
-    get height() {
-        return this._height;
-    }
-    get radius() {
-        return this._radius;
-    }
-    get points() {
-        return this._points;
-    }
-    fillRect(x, y, width, height) {
-        this._graphicsType = GRAPHICSTYPE.RECTANGLE;
-        this._width = width;
-        this._height = height;
-        return super.fillRect(x, y, width, height);
-    }
-    fillCircle(x, y, radius) {
-        this._graphicsType = GRAPHICSTYPE.CIRCLE;
-        this._radius = radius;
-        return super.fillCircle(x, y, radius);
-    }
-    fillTriangle(x0, y0, x1, y1, x2, y2) {
-        // 三角形是多边形
-        // todo 扩展其他正多边形
-        this._graphicsType = GRAPHICSTYPE.POLY;
-        this._points = [new Phaser.Geom.Point(x0, y0), new Phaser.Geom.Point(x1, y1), new Phaser.Geom.Point(x2, y2)];
-        return super.fillTriangle(x0, y0, x1, y1, x2, y2);
-    }
-    fillEllipse(x, y, width, height, smoothness) {
-        this._graphicsType = GRAPHICSTYPE.ELLIPSE;
-        return super.fillEllipse(x, y, width, height, smoothness);
-    }
-    get graphicsType() {
-        return this._graphicsType;
-    }
-    set graphicsType(value) {
-        this._graphicsType = value;
-    }
-    clear() {
-        this._width = 0;
-        this._height = 0;
-        this._radius = 0;
-        this._points = [];
-        return super.clear();
-    }
-}
-
-class Image extends Phaser.GameObjects.Container {
-    constructor(scene) {
-        super(scene);
-        this._tileGridIndice = 0;
-        this._needRebuild = 0;
-        this._fillMethod = 0;
-        this._fillOrigin = 0;
-        this._fillAmount = 0;
-        // this.mouseEnabled = false;
-        this._color = "#FFFFFF";
-        this.width;
-    }
-    // public set width(value: number) {
-    //     if (this["_width"] !== value) {
-    //         super.set_width(value);
-    //         this.markChanged(1);
-    //     }
-    // }
-    // public set height(value: number) {
-    //     if (this["_height"] !== value) {
-    //         super.set_height(value);
-    //         this.markChanged(1);
-    //     }
-    // }
-    setSize(width, height) {
-        this.width = width;
-        this.height = height;
-        this.markChanged(1);
-        return this;
-    }
-    get texture() {
-        return this._source;
-    }
-    set texture(value) {
-        if (this._source != value) {
-            this._source = value;
-            if (this["_width"] == 0) {
-                if (this._source)
-                    this.setSize(this._source.source[0].width, this._source.source[0].height);
-                else
-                    this.setSize(0, 0);
-            }
-            // todo 重绘
-            // this.repaint();
-            this.markChanged(1);
-        }
-    }
-    get scale9Grid() {
-        return this._scale9Grid;
-    }
-    set scale9Grid(value) {
-        this._scale9Grid = value;
-        this._sizeGrid = null;
-        this.markChanged(1);
-    }
-    get scaleByTile() {
-        return this._scaleByTile;
-    }
-    set scaleByTile(value) {
-        if (this._scaleByTile != value) {
-            this._scaleByTile = value;
-            this.markChanged(1);
-        }
-    }
-    get tileGridIndice() {
-        return this._tileGridIndice;
-    }
-    set tileGridIndice(value) {
-        if (this._tileGridIndice != value) {
-            this._tileGridIndice = value;
-            this.markChanged(1);
-        }
-    }
-    get fillMethod() {
-        return this._fillMethod;
-    }
-    set fillMethod(value) {
-        if (this._fillMethod != value) {
-            this._fillMethod = value;
-            if (this._fillMethod != 0) {
-                if (!this._mask) {
-                    this._mask = new Graphics(this.scene);
-                    // this._mask.mouseEnabled = false;
-                }
-                this.mask = this._mask.createGeometryMask();
-                this.markChanged(2);
-            }
-            else if (this.mask) {
-                this._mask.clear();
-                this.mask = null;
-            }
-        }
-    }
-    get fillOrigin() {
-        return this._fillOrigin;
-    }
-    set fillOrigin(value) {
-        if (this._fillOrigin != value) {
-            this._fillOrigin = value;
-            if (this._fillMethod != 0)
-                this.markChanged(2);
-        }
-    }
-    get fillClockwise() {
-        return this._fillClockwise;
-    }
-    set fillClockwise(value) {
-        if (this._fillClockwise != value) {
-            this._fillClockwise = value;
-            if (this._fillMethod != 0)
-                this.markChanged(2);
-        }
-    }
-    get fillAmount() {
-        return this._fillAmount;
-    }
-    set fillAmount(value) {
-        if (this._fillAmount != value) {
-            this._fillAmount = value;
-            if (this._fillMethod != 0)
-                this.markChanged(2);
-        }
-    }
-    get color() {
-        return this._color;
-    }
-    set color(value) {
-        if (this._color != value) {
-            this._color = value;
-            ToolSet.setColorFilter(this, value);
-        }
-    }
-    markChanged(flag) {
-        if (!this._needRebuild) {
-            this._needRebuild = flag;
-            // Laya.timer.callLater(this, this.rebuild);
-        }
-        else
-            this._needRebuild |= flag;
-    }
-    rebuild() {
-        if ((this._needRebuild & 1) != 0)
-            this.doDraw();
-        if ((this._needRebuild & 2) != 0 && this._fillMethod != 0)
-            this.doFill();
-        this._needRebuild = 0;
-    }
-    doDraw() {
-        var w = this["_width"];
-        var h = this["_height"];
-        var g = new Graphics(this.scene);
-        var tex = this._source;
-        g.clear();
-        if (tex == null || w == 0 || h == 0) {
-            return;
-        }
-        if (this._scaleByTile) ;
-        else if (this._scale9Grid) {
-            if (!this._sizeGrid) {
-                var tw = tex.source[0].width;
-                var th = tex.source[0].height;
-                var left = this._scale9Grid.x;
-                var right = Math.max(tw - this._scale9Grid.right, 0);
-                var top = this._scale9Grid.y;
-                var bottom = Math.max(th - this._scale9Grid.bottom, 0);
-                this._sizeGrid = [top, right, bottom, left, this._tileGridIndice];
-            }
-            // todo draw9Grid
-            //g.draw9Grid(tex, 0, 0, w, h, this._sizeGrid);
-        }
-        else ;
-    }
-    doFill() {
-        var w = this["_width"];
-        var h = this["_height"];
-        var g = this._mask;
-        g.clear();
-        if (w == 0 || h == 0)
-            return;
-        var points = fillImage(w, h, this._fillMethod, this._fillOrigin, this._fillClockwise, this._fillAmount);
-        if (points == null) {
-            //不知道为什么，不这样操作一下空白的遮罩不能生效
-            this.mask = null;
-            this.mask = this._mask.createGeometryMask();
-            return;
-        }
-        // todo drawPoly
-        // g.drawPoly(0, 0, points, "#FFFFFF");
-    }
-}
-
-class GImage extends GObject {
-    constructor() {
-        super();
-        this._flip = 0;
-    }
-    get image() {
-        return this._image;
-    }
-    get color() {
-        return this.image.color;
-    }
-    set color(value) {
-        if (this.image.color != value) {
-            this.image.color = value;
-            this.updateGear(4);
-        }
-    }
-    get flip() {
-        return this._flip;
-    }
-    set flip(value) {
-        if (this._flip != value) {
-            this._flip = value;
-            var sx = 1, sy = 1;
-            if (this._flip == FlipType.Horizontal || this._flip == FlipType.Both)
-                sx = -1;
-            if (this._flip == FlipType.Vertical || this._flip == FlipType.Both)
-                sy = -1;
-            this.setScale(sx, sy);
-            this.handleXYChanged();
-        }
-    }
-    get fillMethod() {
-        return this.image.fillMethod;
-    }
-    set fillMethod(value) {
-        this.image.fillMethod = value;
-    }
-    get fillOrigin() {
-        return this.image.fillOrigin;
-    }
-    set fillOrigin(value) {
-        this.image.fillOrigin = value;
-    }
-    get fillClockwise() {
-        return this.image.fillClockwise;
-    }
-    set fillClockwise(value) {
-        this.image.fillClockwise = value;
-    }
-    get fillAmount() {
-        return this.image.fillAmount;
-    }
-    set fillAmount(value) {
-        this.image.fillAmount = value;
-    }
-    createDisplayObject() {
-        this._displayObject = this._image = new Image(this.scene);
-        // this.image.mouseEnabled = false;
-        this._displayObject["$owner"] = this;
-    }
-    constructFromResource() {
-        this._contentItem = this.packageItem.getBranch();
-        this.sourceWidth = this._contentItem.width;
-        this.sourceHeight = this._contentItem.height;
-        this.initWidth = this.sourceWidth;
-        this.initHeight = this.sourceHeight;
-        this._contentItem = this._contentItem.getHighResolution();
-        this._contentItem.load();
-        this.image.scale9Grid = this._contentItem.scale9Grid;
-        this.image.scaleByTile = this._contentItem.scaleByTile;
-        this.image.tileGridIndice = this._contentItem.tileGridIndice;
-        this.image.texture = this._contentItem.texture;
-        this.setSize(this.sourceWidth, this.sourceHeight);
-    }
-    handleXYChanged() {
-        super.handleXYChanged();
-        if (this._flip != FlipType.None) {
-            if (this.scaleX == -1)
-                this.image.x += this.width;
-            if (this.scaleY == -1)
-                this.image.y += this.height;
-        }
-    }
-    getProp(index) {
-        if (index == ObjectPropID.Color)
-            return this.color;
-        else
-            return super.getProp(index);
-    }
-    setProp(index, value) {
-        if (index == ObjectPropID.Color)
-            this.color = value;
-        else
-            super.setProp(index, value);
-    }
-    setup_beforeAdd(buffer, beginPos) {
-        super.setup_beforeAdd(buffer, beginPos);
-        buffer.seek(beginPos, 5);
-        if (buffer.readBool())
-            this.color = buffer.readColorS();
-        this.flip = buffer.readByte();
-        this.image.fillMethod = buffer.readByte();
-        if (this.image.fillMethod != 0) {
-            this.image.fillOrigin = buffer.readByte();
-            this.image.fillClockwise = buffer.readBool();
-            this.image.fillAmount = buffer.readFloat();
-        }
-    }
-}
-
-class GProgressBar extends GComponent {
-    constructor() {
-        super();
-        this._min = 0;
-        this._max = 0;
-        this._value = 0;
-        this._barMaxWidth = 0;
-        this._barMaxHeight = 0;
-        this._barMaxWidthDelta = 0;
-        this._barMaxHeightDelta = 0;
-        this._barStartX = 0;
-        this._barStartY = 0;
-        this._titleType = ProgressTitleType.Percent;
-        this._value = 50;
-        this._max = 100;
-    }
-    get titleType() {
-        return this._titleType;
-    }
-    set titleType(value) {
-        if (this._titleType != value) {
-            this._titleType = value;
-            this.update(value);
-        }
-    }
-    get min() {
-        return this._min;
-    }
-    set min(value) {
-        if (this._min != value) {
-            this._min = value;
-            this.update(this._value);
-        }
-    }
-    get max() {
-        return this._max;
-    }
-    set max(value) {
-        if (this._max != value) {
-            this._max = value;
-            this.update(this._value);
-        }
-    }
-    get value() {
-        return this._value;
-    }
-    set value(value) {
-        if (this._value != value) {
-            GTween.kill(this, false, this.update);
-            this._value = value;
-            this.update(value);
-        }
-    }
-    tweenValue(value, duration) {
-        var oldValule;
-        var tweener = GTween.getTween(this, this.update);
-        if (tweener) {
-            oldValule = tweener.value.x;
-            tweener.kill();
-        }
-        else
-            oldValule = this._value;
-        this._value = value;
-        return GTween.to(oldValule, this._value, duration).setTarget(this, this.update).setEase(EaseType.Linear);
-    }
-    update(newValue) {
-        var percent = ToolSet.clamp01((newValue - this._min) / (this._max - this._min));
-        if (this._titleObject) {
-            switch (this._titleType) {
-                case ProgressTitleType.Percent:
-                    this._titleObject.text = Math.floor(percent * 100) + "%";
-                    break;
-                case ProgressTitleType.ValueAndMax:
-                    this._titleObject.text = Math.floor(newValue) + "/" + Math.floor(this._max);
-                    break;
-                case ProgressTitleType.Value:
-                    this._titleObject.text = "" + Math.floor(newValue);
-                    break;
-                case ProgressTitleType.Max:
-                    this._titleObject.text = "" + Math.floor(this._max);
-                    break;
-            }
-        }
-        var fullWidth = this.width - this._barMaxWidthDelta;
-        var fullHeight = this.height - this._barMaxHeightDelta;
-        if (!this._reverse) {
-            if (this._barObjectH) {
-                if (!this.setFillAmount(this._barObjectH, percent))
-                    this._barObjectH.width = Math.round(fullWidth * percent);
-            }
-            if (this._barObjectV) {
-                if (!this.setFillAmount(this._barObjectV, percent))
-                    this._barObjectV.height = Math.round(fullHeight * percent);
-            }
-        }
-        else {
-            if (this._barObjectH) {
-                if (!this.setFillAmount(this._barObjectH, 1 - percent)) {
-                    this._barObjectH.width = Math.round(fullWidth * percent);
-                    this._barObjectH.x = this._barStartX + (fullWidth - this._barObjectH.width);
-                }
-            }
-            if (this._barObjectV) {
-                if (!this.setFillAmount(this._barObjectV, 1 - percent)) {
-                    this._barObjectV.height = Math.round(fullHeight * percent);
-                    this._barObjectV.y = this._barStartY + (fullHeight - this._barObjectV.height);
-                }
-            }
-        }
-        if (this._aniObject)
-            this._aniObject.setProp(ObjectPropID.Frame, Math.floor(percent * 100));
-    }
-    setFillAmount(bar, percent) {
-        if (((bar instanceof GImage) || (bar instanceof GLoader)) && bar.fillMethod != FillMethod.None) {
-            bar.fillAmount = percent;
-            return true;
-        }
-        else
-            return false;
-    }
-    constructExtension(buffer) {
-        buffer.seek(0, 6);
-        this._titleType = buffer.readByte();
-        this._reverse = buffer.readBool();
-        this._titleObject = this.getChild("title");
-        this._barObjectH = this.getChild("bar");
-        this._barObjectV = this.getChild("bar_v");
-        this._aniObject = this.getChild("ani");
-        if (this._barObjectH) {
-            this._barMaxWidth = this._barObjectH.width;
-            this._barMaxWidthDelta = this.width - this._barMaxWidth;
-            this._barStartX = this._barObjectH.x;
-        }
-        if (this._barObjectV) {
-            this._barMaxHeight = this._barObjectV.height;
-            this._barMaxHeightDelta = this.height - this._barMaxHeight;
-            this._barStartY = this._barObjectV.y;
-        }
-    }
-    handleSizeChanged() {
-        super.handleSizeChanged();
-        if (this._barObjectH)
-            this._barMaxWidth = this.width - this._barMaxWidthDelta;
-        if (this._barObjectV)
-            this._barMaxHeight = this.height - this._barMaxHeightDelta;
-        if (!this._underConstruct)
-            this.update(this._value);
-    }
-    setup_afterAdd(buffer, beginPos) {
-        super.setup_afterAdd(buffer, beginPos);
-        if (!buffer.seek(beginPos, 6)) {
-            this.update(this._value);
-            return;
-        }
-        if (buffer.readByte() != this.packageItem.objectType) {
-            this.update(this._value);
-            return;
-        }
-        this._value = buffer.readInt();
-        this._max = buffer.readInt();
-        if (buffer.version >= 2)
-            this._min = buffer.readInt();
-        this.update(this._value);
-    }
-}
-
-class GTreeNode {
-    constructor(hasChild, resURL) {
-        this._level = 0;
-        this._resURL = resURL;
-        if (hasChild)
-            this._children = new Array();
-    }
-    set expanded(value) {
-        if (this._children == null)
-            return;
-        if (this._expanded != value) {
-            this._expanded = value;
-            if (this._tree) {
-                if (this._expanded)
-                    this._tree._afterExpanded(this);
-                else
-                    this._tree._afterCollapsed(this);
-            }
-        }
-    }
-    get expanded() {
-        return this._expanded;
-    }
-    get isFolder() {
-        return this._children != null;
-    }
-    get parent() {
-        return this._parent;
-    }
-    get text() {
-        if (this._cell)
-            return this._cell.text;
-        else
-            return null;
-    }
-    set text(value) {
-        if (this._cell)
-            this._cell.text = value;
-    }
-    get icon() {
-        if (this._cell)
-            return this._cell.icon;
-        else
-            return null;
-    }
-    set icon(value) {
-        if (this._cell)
-            this._cell.icon = value;
-    }
-    get cell() {
-        return this._cell;
-    }
-    get level() {
-        return this._level;
-    }
-    _setLevel(value) {
-        this._level = value;
-    }
-    addChild(child) {
-        this.addChildAt(child, this._children.length);
-        return child;
-    }
-    addChildAt(child, index) {
-        if (!child)
-            throw new Error("child is null");
-        var numChildren = this._children.length;
-        if (index >= 0 && index <= numChildren) {
-            if (child._parent == this) {
-                this.setChildIndex(child, index);
-            }
-            else {
-                if (child._parent)
-                    child._parent.removeChild(child);
-                var cnt = this._children.length;
-                if (index == cnt)
-                    this._children.push(child);
-                else
-                    this._children.splice(index, 0, child);
-                child._parent = this;
-                child._level = this._level + 1;
-                child._setTree(this._tree);
-                if (this._tree && this == this._tree.rootNode || this._cell && this._cell.parent && this._expanded)
-                    throw new Error("TODO");
-                // this._tree._afterInserted(child);
-            }
-            return child;
-        }
-        else {
-            throw new RangeError("Invalid child index");
-        }
-    }
-    removeChild(child) {
-        var childIndex = this._children.indexOf(child);
-        if (childIndex != -1) {
-            this.removeChildAt(childIndex);
-        }
-        return child;
-    }
-    removeChildAt(index) {
-        if (index >= 0 && index < this.numChildren) {
-            var child = this._children[index];
-            this._children.splice(index, 1);
-            child._parent = null;
-            if (this._tree) {
-                child._setTree(null);
-                this._tree._afterRemoved(child);
-            }
-            return child;
-        }
-        else {
-            throw "Invalid child index";
-        }
-    }
-    removeChildren(beginIndex, endIndex) {
-        beginIndex = beginIndex || 0;
-        if (endIndex == null)
-            endIndex = -1;
-        if (endIndex < 0 || endIndex >= this.numChildren)
-            endIndex = this.numChildren - 1;
-        for (var i = beginIndex; i <= endIndex; ++i)
-            this.removeChildAt(beginIndex);
-    }
-    getChildAt(index) {
-        if (index >= 0 && index < this.numChildren)
-            return this._children[index];
-        else
-            throw "Invalid child index";
-    }
-    getChildIndex(child) {
-        return this._children.indexOf(child);
-    }
-    getPrevSibling() {
-        if (this._parent == null)
-            return null;
-        var i = this._parent._children.indexOf(this);
-        if (i <= 0)
-            return null;
-        return this._parent._children[i - 1];
-    }
-    getNextSibling() {
-        if (this._parent == null)
-            return null;
-        var i = this._parent._children.indexOf(this);
-        if (i < 0 || i >= this._parent._children.length - 1)
-            return null;
-        return this._parent._children[i + 1];
-    }
-    setChildIndex(child, index) {
-        var oldIndex = this._children.indexOf(child);
-        if (oldIndex == -1)
-            throw "Not a child of this container";
-        var cnt = this._children.length;
-        if (index < 0)
-            index = 0;
-        else if (index > cnt)
-            index = cnt;
-        if (oldIndex == index)
-            return;
-        this._children.splice(oldIndex, 1);
-        this._children.splice(index, 0, child);
-        if (this._tree && this == this._tree.rootNode || this._cell && this._cell.parent && this._expanded)
-            this._tree._afterMoved(child);
-    }
-    swapChildren(child1, child2) {
-        var index1 = this._children.indexOf(child1);
-        var index2 = this._children.indexOf(child2);
-        if (index1 == -1 || index2 == -1)
-            throw "Not a child of this container";
-        this.swapChildrenAt(index1, index2);
-    }
-    swapChildrenAt(index1, index2) {
-        var child1 = this._children[index1];
-        var child2 = this._children[index2];
-        this.setChildIndex(child1, index2);
-        this.setChildIndex(child2, index1);
-    }
-    get numChildren() {
-        return this._children.length;
-    }
-    expandToRoot() {
-        var p = this;
-        while (p) {
-            p.expanded = true;
-            p = p.parent;
-        }
-    }
-    get tree() {
-        return this._tree;
-    }
-    _setTree(value) {
-        this._tree = value;
-        if (this._tree && this._tree.treeNodeWillExpand && this._expanded)
-            this._tree.treeNodeWillExpand(this, true);
-        if (this._children) {
-            var cnt = this._children.length;
-            for (var i = 0; i < cnt; i++) {
-                var node = this._children[i];
-                node._level = this._level + 1;
-                node._setTree(value);
-            }
-        }
-    }
-}
-
-class GTree extends GList {
-    constructor() {
-        super();
-        this._indent = 15;
-        this._rootNode = new GTreeNode(true);
-        this._rootNode._setTree(this);
-        this._rootNode.expanded = true;
-    }
-    get rootNode() {
-        return this._rootNode;
-    }
-    get indent() {
-        return this._indent;
-    }
-    set indent(value) {
-        this._indent = value;
-    }
-    get clickToExpand() {
-        return this._clickToExpand;
-    }
-    set clickToExpand(value) {
-        this._clickToExpand = value;
-    }
-    getSelectedNode() {
-        throw new Error("TODO");
-        // if (this.selectedIndex != -1)
-        //     return this.getChildAt(this.selectedIndex)._treeNode;
-        // else
-        //     return null;
-    }
-    getSelectedNodes(result) {
-        throw new Error("TODO");
-        // if (!result)
-        //     result = new Array<GTreeNode>();
-        // s_list.length = 0;
-        // super.getSelection(s_list);
-        // var cnt: number = s_list.length;
-        // var ret: Array<GTreeNode> = new Array<GTreeNode>();
-        // for (var i: number = 0; i < cnt; i++) {
-        //     var node: GTreeNode = this.getChildAt(s_list[i])._treeNode;
-        //     ret.push(node);
-        // }
-        // return ret;
-    }
-    selectNode(node, scrollItToView) {
-        var parentNode = node.parent;
-        while (parentNode && parentNode != this._rootNode) {
-            parentNode.expanded = true;
-            parentNode = parentNode.parent;
-        }
-        if (!node._cell)
-            return;
-        this.addSelection(this.getChildIndex(node._cell), scrollItToView);
-    }
-    unselectNode(node) {
-        if (!node._cell)
-            return;
-        this.removeSelection(this.getChildIndex(node._cell));
-    }
-    expandAll(folderNode) {
-        if (!folderNode)
-            folderNode = this._rootNode;
-        folderNode.expanded = true;
-        var cnt = folderNode.numChildren;
-        for (var i = 0; i < cnt; i++) {
-            var node = folderNode.getChildAt(i);
-            if (node.isFolder)
-                this.expandAll(node);
-        }
-    }
-    collapseAll(folderNode) {
-        if (!folderNode)
-            folderNode = this._rootNode;
-        if (folderNode != this._rootNode)
-            folderNode.expanded = false;
-        var cnt = folderNode.numChildren;
-        for (var i = 0; i < cnt; i++) {
-            var node = folderNode.getChildAt(i);
-            if (node.isFolder)
-                this.collapseAll(node);
-        }
-    }
-    createCell(node) {
-        throw new Error("TODO");
-        //     var child: GComponent = <GComponent>this.getFromPool(node._resURL ? node._resURL : this.defaultItem);
-        //     if (!child)
-        //         throw new Error("cannot create tree node object.");
-        //     child._treeNode = node;
-        //     node._cell = child;
-        //     var indentObj: GObject = child.getChild("indent");
-        //     if (indentObj)
-        //         indentObj.width = (node.level - 1) * this._indent;
-        //     var cc: Controller;
-        //     cc = child.getController("expanded");
-        //     if (cc) {
-        //         cc.on(Events.STATE_CHANGED, this, this.__expandedStateChanged);
-        //         cc.selectedIndex = node.expanded ? 1 : 0;
-        //     }
-        //     cc = child.getController("leaf");
-        //     if (cc)
-        //         cc.selectedIndex = node.isFolder ? 0 : 1;
-        //     if (node.isFolder)
-        //         child.on(Laya.Event.MOUSE_DOWN, this, this.__cellMouseDown);
-        //     if (this.treeNodeRender)
-        //         this.treeNodeRender.runWith([node, child]);
-        // }
-        // public _afterInserted(node: GTreeNode): void {
-        //     if (!node._cell)
-        //         this.createCell(node);
-        //     var index: number = this.getInsertIndexForNode(node);
-        //     this.addChildAt(node._cell, index);
-        //     if (this.treeNodeRender)
-        //         this.treeNodeRender.runWith([node, node._cell]);
-        //     if (node.isFolder && node.expanded)
-        //         this.checkChildren(node, index);
-    }
-    getInsertIndexForNode(node) {
-        var prevNode = node.getPrevSibling();
-        if (!prevNode)
-            prevNode = node.parent;
-        var insertIndex = this.getChildIndex(prevNode._cell) + 1;
-        var myLevel = node.level;
-        var cnt = this.numChildren;
-        for (var i = insertIndex; i < cnt; i++) {
-            var testNode = this.getChildAt(i)._treeNode;
-            if (testNode.level <= myLevel)
-                break;
-            insertIndex++;
-        }
-        return insertIndex;
-    }
-    _afterRemoved(node) {
-        this.removeNode(node);
-    }
-    _afterExpanded(node) {
-        if (node == this._rootNode) {
-            this.checkChildren(this._rootNode, 0);
-            return;
-        }
-        if (this.treeNodeWillExpand != null)
-            this.treeNodeWillExpand(node, true);
-        if (!node._cell)
-            return;
-        if (this.treeNodeRender)
-            this.treeNodeRender(node, node._cell);
-        var cc = node._cell.getController("expanded");
-        if (cc)
-            cc.selectedIndex = 1;
-        if (node._cell.parent)
-            this.checkChildren(node, this.getChildIndex(node._cell));
-    }
-    _afterCollapsed(node) {
-        if (node == this._rootNode) {
-            this.checkChildren(this._rootNode, 0);
-            return;
-        }
-        if (this.treeNodeWillExpand)
-            this.treeNodeWillExpand(node, false);
-        if (!node._cell)
-            return;
-        if (this.treeNodeRender)
-            this.treeNodeRender(node, node._cell);
-        var cc = node._cell.getController("expanded");
-        if (cc)
-            cc.selectedIndex = 0;
-        if (node._cell.parent)
-            this.hideFolderNode(node);
-    }
-    _afterMoved(node) {
-        var startIndex = this.getChildIndex(node._cell);
-        var endIndex;
-        if (node.isFolder)
-            endIndex = this.getFolderEndIndex(startIndex, node.level);
-        else
-            endIndex = startIndex + 1;
-        var insertIndex = this.getInsertIndexForNode(node);
-        var i;
-        var cnt = endIndex - startIndex;
-        var obj;
-        if (insertIndex < startIndex) {
-            for (i = 0; i < cnt; i++) {
-                obj = this.getChildAt(startIndex + i);
-                this.setChildIndex(obj, insertIndex + i);
-            }
-        }
-        else {
-            for (i = 0; i < cnt; i++) {
-                obj = this.getChildAt(startIndex);
-                this.setChildIndex(obj, insertIndex);
-            }
-        }
-    }
-    getFolderEndIndex(startIndex, level) {
-        var cnt = this.numChildren;
-        for (var i = startIndex + 1; i < cnt; i++) {
-            var node = this.getChildAt(i)._treeNode;
-            if (node.level <= level)
-                return i;
-        }
-        return cnt;
-    }
-    checkChildren(folderNode, index) {
-        var cnt = folderNode.numChildren;
-        for (var i = 0; i < cnt; i++) {
-            index++;
-            var node = folderNode.getChildAt(i);
-            if (!node._cell)
-                this.createCell(node);
-            if (!node._cell.parent)
-                this.addChildAt(node._cell, index);
-            if (node.isFolder && node.expanded)
-                index = this.checkChildren(node, index);
-        }
-        return index;
-    }
-    hideFolderNode(folderNode) {
-        var cnt = folderNode.numChildren;
-        for (var i = 0; i < cnt; i++) {
-            var node = folderNode.getChildAt(i);
-            if (node._cell)
-                this.removeChild(node._cell);
-            if (node.isFolder && node.expanded)
-                this.hideFolderNode(node);
-        }
-    }
-    removeNode(node) {
-        if (node._cell) {
-            if (node._cell.parent)
-                this.removeChild(node._cell);
-            this.returnToPool(node._cell);
-            node._cell._treeNode = null;
-            node._cell = null;
-        }
-        if (node.isFolder) {
-            var cnt = node.numChildren;
-            for (var i = 0; i < cnt; i++) {
-                var node2 = node.getChildAt(i);
-                this.removeNode(node2);
-            }
-        }
-    }
-    __cellMouseDown(evt) {
-        throw new Error("TODO");
-    }
-    __expandedStateChanged(cc) {
-        var node = cc.parent._treeNode;
-        node.expanded = cc.selectedIndex == 1;
-    }
-    dispatchItemEvent(item, evt) {
-        throw new Error("TODO");
-    }
-    setup_beforeAdd(buffer, beginPos) {
-        super.setup_beforeAdd(buffer, beginPos);
-        buffer.seek(beginPos, 9);
-        this._indent = buffer.readInt();
-        this._clickToExpand = buffer.readByte();
-    }
-    readItems(buffer) {
-        var cnt;
-        var i;
-        var nextPos;
-        var str;
-        var isFolder;
-        var lastNode;
-        var level;
-        var prevLevel = 0;
-        cnt = buffer.readShort();
-        for (i = 0; i < cnt; i++) {
-            nextPos = buffer.readShort();
-            nextPos += buffer.position;
-            str = buffer.readS();
-            if (str == null) {
-                str = this.defaultItem;
-                if (!str) {
-                    buffer.position = nextPos;
-                    continue;
-                }
-            }
-            isFolder = buffer.readBool();
-            level = buffer.readByte();
-            var node = new GTreeNode(isFolder, str);
-            node.expanded = true;
-            if (i == 0)
-                this._rootNode.addChild(node);
-            else {
-                if (level > prevLevel)
-                    lastNode.addChild(node);
-                else if (level < prevLevel) {
-                    for (var j = level; j <= prevLevel; j++)
-                        lastNode = lastNode.parent;
-                    lastNode.addChild(node);
-                }
-                else
-                    lastNode.parent.addChild(node);
-            }
-            lastNode = node;
-            prevLevel = level;
-            this.setupItem(buffer, node.cell);
-            buffer.position = nextPos;
-        }
-    }
-}
-new Array();
-
-class UIObjectFactory {
-    constructor() {
-    }
-    static setExtension(url, type) {
-        if (url == null)
-            throw "Invaild url: " + url;
-        var pi = UIPackage.getItemByURL(url);
-        if (pi)
-            pi.extensionType = type;
-        UIObjectFactory.extensions[url] = type;
-    }
-    static setPackageItemExtension(url, type) {
-        UIObjectFactory.setExtension(url, type);
-    }
-    static setLoaderExtension(type) {
-        UIObjectFactory.loaderType = type;
-    }
-    static resolvePackageItemExtension(pi) {
-        var extensionType = UIObjectFactory.extensions["ui://" + pi.owner.id + pi.id];
-        if (!extensionType)
-            extensionType = UIObjectFactory.extensions["ui://" + pi.owner.name + "/" + pi.name];
-        if (extensionType)
-            pi.extensionType = extensionType;
-    }
-    static newObject(type, userClass) {
-        var obj;
-        if (typeof type === 'number') {
-            switch (type) {
-                case ObjectType.Image:
-                    return new GImage();
-                case ObjectType.MovieClip:
-                // return new GMovieClip();
-                case ObjectType.Component:
-                    return new GComponent();
-                case ObjectType.Text:
-                // return new GBasicTextField();
-                case ObjectType.RichText:
-                // return new GRichTextField();
-                case ObjectType.InputText:
-                // return new GTextInput();
-                case ObjectType.Group:
-                    return new GGroup();
-                case ObjectType.List:
-                    return new GList();
-                case ObjectType.Graph:
-                // return new GGraph();
-                case ObjectType.Loader:
-                    // if (UIObjectFactory.loaderType)
-                    // return new UIObjectFactory.loaderType();
-                    // else
-                    // return new GLoader();
-                    return;
-                case ObjectType.Button:
-                    return new GButton();
-                case ObjectType.Label:
-                    return new GLabel();
-                case ObjectType.ProgressBar:
-                    return new GProgressBar();
-                case ObjectType.Slider:
-                    return new GSlider();
-                case ObjectType.ScrollBar:
-                    return new GScrollBar();
-                case ObjectType.ComboBox:
-                    return new GComboBox();
-                case ObjectType.Tree:
-                    return new GTree();
-                default:
-                    return null;
-            }
-        }
-        else {
-            if (type.type == PackageItemType.Component) {
-                if (userClass)
-                    obj = new userClass();
-                else if (type.extensionType)
-                    obj = new type.extensionType();
-                else
-                    obj = UIObjectFactory.newObject(type.objectType);
-            }
-            else
-                obj = UIObjectFactory.newObject(type.objectType);
-            if (obj)
-                obj.packageItem = type;
-        }
-        return obj;
-    }
-}
-UIObjectFactory.extensions = {};
-
-/**
- * 鼠标点击区域，可以设置绘制一系列矢量图作为点击区域和非点击区域（目前只支持圆形，矩形，多边形）
- *
- */
-class HitArea {
-    /**
-     * 检测对象是否包含指定的点。
-     * @param	x	点的 X 轴坐标值（水平位置）。
-     * @param	y	点的 Y 轴坐标值（垂直位置）。
-     * @return	如果包含指定的点，则值为 true；否则为 false。
-     */
-    contains(x, y) {
-        if (!HitArea._isHitGraphic(x, y, this.hit))
-            return false;
-        return !HitArea._isHitGraphic(x, y, this.unHit);
-    }
-    /**
-     * @internal
-     * 是否击中Graphic
-     */
-    static _isHitGraphic(x, y, graphic) {
-        if (!graphic)
-            return false;
-        if (HitArea._isHitCmd(x, y, graphic))
-            return true;
-        return false;
-    }
-    /**
-     * @internal
-     * 是否击中绘图指令
-     */
-    static _isHitCmd(x, y, g) {
-        let rst = false;
-        const type = g.graphicsType;
-        switch (type) {
-            case GRAPHICSTYPE.CIRCLE:
-                var d;
-                x -= g.x;
-                y -= g.y;
-                d = x * x + y * y;
-                rst = d < g.radius * g.radius;
-                break;
-            case GRAPHICSTYPE.POLY:
-                x -= g.x;
-                y -= g.y;
-                rst = HitArea._ptInPolygon(x, y, g.points);
-                break;
-            case GRAPHICSTYPE.RECTANGLE:
-            default:
-                HitArea._rect.setTo(g.x, g.y, g.width, g.height);
-                rst = HitArea._rect.contains(x, y);
-                break;
-        }
-        return rst;
-    }
-    /**
-     * @internal
-     * 坐标是否在多边形内
-     */
-    static _ptInPolygon(x, y, areaPoints) {
-        var p = HitArea._ptPoint;
-        p.setTo(x, y);
-        // 交点个数
-        var nCross = 0;
-        var p1x, p1y, p2x, p2y;
-        var len;
-        len = areaPoints.length;
-        for (var i = 0; i < len; i += 2) {
-            p1x = areaPoints[i];
-            p1y = areaPoints[i + 1];
-            p2x = areaPoints[(i + 2) % len];
-            p2y = areaPoints[(i + 3) % len];
-            //var p1:Point = areaPoints[i];
-            //var p2:Point = areaPoints[(i + 1) % areaPoints.length]; // 最后一个点与第一个点连线
-            if (p1y == p2y)
-                continue;
-            if (p.y < Math.min(p1y, p2y))
-                continue;
-            if (p.y >= Math.max(p1y, p2y))
-                continue;
-            // 求交点的x坐标
-            var tx = (p.y - p1y) * (p2x - p1x) / (p2y - p1y) + p1x;
-            // 只统计p1p2与p向右射线的交点
-            if (tx > p.x)
-                nCross++;
-        }
-        // 交点为偶数，点在多边形之外
-        return (nCross % 2 == 1);
-    }
-    /**
-     * 可点击区域，可以设置绘制一系列矢量图作为点击区域（目前只支持圆形，矩形，多边形）
-     */
-    get hit() {
-        if (!this._hit)
-            this._hit = new Graphics(GRoot.inst.scene);
-        return this._hit;
-    }
-    set hit(value) {
-        this._hit = value;
-    }
-    /**
-     * 不可点击区域，可以设置绘制一系列矢量图作为非点击区域（目前只支持圆形，矩形，多边形）
-     */
-    get unHit() {
-        if (!this._unHit)
-            this._unHit = new Graphics(GRoot.inst.scene);
-        return this._unHit;
-    }
-    set unHit(value) {
-        this._unHit = value;
-    }
-}
-/**@private */
-HitArea._rect = new Phaser.Geom.Rectangle();
-/**@private */
-HitArea._ptPoint = new Phaser.Geom.Point();
-
-class PixelHitTest extends HitArea {
-    constructor(data, offsetX, offsetY) {
-        super();
-        this._data = data;
-        this.offsetX = offsetX;
-        this.offsetY = offsetY;
-        this.scaleX = 1;
-        this.scaleY = 1;
-    }
-    contains(x, y) {
-        x = Math.floor((x / this.scaleX - this.offsetX) * this._data.scale);
-        y = Math.floor((y / this.scaleY - this.offsetY) * this._data.scale);
-        if (x < 0 || y < 0 || x >= this._data.pixelWidth)
-            return false;
-        var pos = y * this._data.pixelWidth + x;
-        var pos2 = Math.floor(pos / 8);
-        var pos3 = pos % 8;
-        if (pos2 >= 0 && pos2 < this._data.pixels.length)
-            return ((this._data.pixels[pos2] >> pos3) & 0x1) == 1;
-        else
-            return false;
-    }
-}
-
-let _func = HitArea["_isHitGraphic"];
-class ChildHitArea extends HitArea {
-    constructor(child, reversed) {
-        super();
-        this._tPos = new Phaser.Geom.Point();
-        this._child = child;
-        this._reversed = reversed;
-        if (this._reversed)
-            this.unHit = child.hitArea.hit;
-        else
-            this.hit = child.hitArea.hit;
-    }
-    ;
-    contains(x, y) {
-        var tPos;
-        tPos = this._tPos;
-        tPos.setTo(0, 0);
-        tPos = this._child.toParentPoint(tPos);
-        if (this._reversed)
-            return !_func(x - tPos.x, y - tPos.y, this.unHit);
-        else
-            return _func(x - tPos.x, y - tPos.y, this.hit);
-    }
-}
 
 class Margin {
     constructor() {
@@ -11129,6 +6707,35 @@ const OPTION_IGNORE_DISPLAY_CONTROLLER = 1;
 const OPTION_AUTO_STOP_DISABLED = 2;
 const OPTION_AUTO_STOP_AT_END = 4;
 
+class Events {
+    static createEvent(type, target, source) {
+        // this.$event.setTo(type, target, source ? (source.target || target) : target);
+        // this.$event.touchId = source ? (source.touchId || 0) : 0;
+        // this.$event.nativeEvent = source;
+        // this.$event["_stoped"] = false;
+        throw new Error("TODO");
+    }
+    static dispatch(type, target, source) {
+        // target.event(type, this.createEvent(type, target, source));
+        throw new Error("TODO");
+    }
+}
+Events.STATE_CHANGED = "fui_state_changed";
+Events.XY_CHANGED = "fui_xy_changed";
+Events.SIZE_CHANGED = "fui_size_changed";
+Events.SIZE_DELAY_CHANGE = "fui_size_delay_change";
+Events.CLICK_ITEM = "fui_click_item";
+Events.SCROLL = "fui_scroll";
+Events.SCROLL_END = "fui_scroll_end";
+Events.DROP = "fui_drop";
+Events.DRAG_START = "fui_drag_start";
+Events.DRAG_MOVE = "fui_drag_move";
+Events.DRAG_END = "fui_drag_end";
+Events.PULL_DOWN_RELEASE = "fui_pull_down_release";
+Events.PULL_UP_RELEASE = "fui_pull_up_release";
+Events.GEAR_STOP = "fui_gear_stop";
+Events.$event = new InteractiveEvent();
+
 class ChangePageAction extends ControllerAction {
     constructor() {
         super();
@@ -12358,7 +7965,7 @@ class GComponent extends GObject {
                 child = objectPool[poolIndex + i];
             else {
                 buffer.seek(curPos, 0);
-                var type = buffer.readByte();
+                buffer.readByte();
                 var src = buffer.readS();
                 var pkgId = buffer.readS();
                 var pi = null;
@@ -12370,12 +7977,12 @@ class GComponent extends GObject {
                         pkg = contentItem.owner;
                     pi = pkg ? pkg.getItemById(src) : null;
                 }
-                if (pi) {
-                    child = UIObjectFactory.newObject(pi);
-                    child.constructFromResource();
-                }
-                else
-                    child = UIObjectFactory.newObject(type);
+                // if (pi) {
+                //     child = UIObjectFactory.newObject(pi);
+                //     child.constructFromResource();
+                // }
+                // else
+                //     child = UIObjectFactory.newObject(type);
             }
             child._underConstruct = true;
             child.setup_beforeAdd(buffer, curPos);
@@ -12586,6 +8193,44 @@ class GRoot extends GComponent {
         if (ToolSet.startsWith(url, "ui://"))
             return;
         this.scene.sound.play(url);
+    }
+    showTooltips(msg) {
+        if (this._defaultTooltipWin == null) {
+            var resourceURL = UIConfig.tooltipsWin;
+            if (!resourceURL) {
+                console.warn("UIConfig.tooltipsWin not defined");
+                return;
+            }
+            this._defaultTooltipWin = UIPackage.createObjectFromURL(resourceURL);
+        }
+        this._defaultTooltipWin.text = msg;
+        this.showTooltipsWin(this._defaultTooltipWin);
+    }
+    showTooltipsWin(tooltipWin, xx, yy) {
+        // this.hideTooltips();
+        // this._tooltipWin = tooltipWin;
+        // if (xx == null || yy == null) {
+        //     xx = Stage.touchPos.x + 10;
+        //     yy = Stage.touchPos.y + 20;
+        // }
+        // var pt: Vector2 = this.globalToLocal(xx, yy);
+        // xx = pt.x;
+        // yy = pt.y;
+        // if (xx + this._tooltipWin.width > this.width) {
+        //     xx = xx - this._tooltipWin.width - 1;
+        //     if (xx < 0)
+        //         xx = 10;
+        // }
+        // if (yy + this._tooltipWin.height > this.height) {
+        //     yy = yy - this._tooltipWin.height - 1;
+        //     if (xx - this._tooltipWin.width - 1 > 0)
+        //         xx = xx - this._tooltipWin.width - 1;
+        //     if (yy < 0)
+        //         yy = 10;
+        // }
+        // this._tooltipWin.x = xx;
+        // this._tooltipWin.y = yy;
+        // this.addChild(this._tooltipWin);
     }
     createDisplayObject() {
         this._container = this._scene.add.container(0, 0);
@@ -13442,7 +9087,7 @@ class GearLook extends GearBase {
         var gv = this._storage[this._controller.selectedPageId];
         if (!gv)
             gv = this._default;
-        if (this._tweenConfig && this._tweenConfig.tween && !UIPackage._constructing && !GearBase.disableAllTweenEffect) {
+        if (this._tweenConfig && this._tweenConfig.tween && !GearBase.disableAllTweenEffect) {
             this._owner._gearLocked = true;
             this._owner.grayed = gv.grayed;
             this._owner.touchable = gv.touchable;
@@ -13530,7 +9175,7 @@ class GearSize extends GearBase {
         var gv = this._storage[this._controller.selectedPageId];
         if (!gv)
             gv = this._default;
-        if (this._tweenConfig && this._tweenConfig.tween && !UIPackage._constructing && !GearBase.disableAllTweenEffect) {
+        if (this._tweenConfig && this._tweenConfig.tween && !GearBase.disableAllTweenEffect) {
             if (this._tweenConfig._tweener) {
                 if (this._tweenConfig._tweener.endValue.x != gv.width || this._tweenConfig._tweener.endValue.y != gv.height
                     || this._tweenConfig._tweener.endValue.z != gv.scaleX || this._tweenConfig._tweener.endValue.w != gv.scaleY) {
@@ -13667,7 +9312,7 @@ class GearXY extends GearBase {
             ex = gv.x;
             ey = gv.y;
         }
-        if (this._tweenConfig && this._tweenConfig.tween && !UIPackage._constructing && !GearBase.disableAllTweenEffect) {
+        if (this._tweenConfig && this._tweenConfig.tween && !GearBase.disableAllTweenEffect) {
             if (this._tweenConfig._tweener) {
                 if (this._tweenConfig._tweener.endValue.x != ex || this._tweenConfig._tweener.endValue.y != ey) {
                     this._tweenConfig._tweener.kill(true);
@@ -14933,5 +10578,6566 @@ var sDragHelperRect = new Phaser.Geom.Rectangle();
 var sUpdateInDragging;
 var sDraggingQuery;
 
-export { GObject };
+class GGroup extends GObject {
+    constructor() {
+        super();
+        this._layout = 0;
+        this._lineGap = 0;
+        this._columnGap = 0;
+        this._mainGridIndex = -1;
+        this._mainGridMinSize = 50;
+        this._mainChildIndex = -1;
+        this._totalSize = 0;
+        this._numChildren = 0;
+        this._updating = 0;
+    }
+    dispose() {
+        this._boundsChanged = false;
+        super.dispose();
+    }
+    get layout() {
+        return this._layout;
+    }
+    set layout(value) {
+        if (this._layout != value) {
+            this._layout = value;
+            this.setBoundsChangedFlag();
+        }
+    }
+    get lineGap() {
+        return this._lineGap;
+    }
+    set lineGap(value) {
+        if (this._lineGap != value) {
+            this._lineGap = value;
+            this.setBoundsChangedFlag(true);
+        }
+    }
+    get columnGap() {
+        return this._columnGap;
+    }
+    set columnGap(value) {
+        if (this._columnGap != value) {
+            this._columnGap = value;
+            this.setBoundsChangedFlag(true);
+        }
+    }
+    get excludeInvisibles() {
+        return this._excludeInvisibles;
+    }
+    set excludeInvisibles(value) {
+        if (this._excludeInvisibles != value) {
+            this._excludeInvisibles = value;
+            this.setBoundsChangedFlag();
+        }
+    }
+    get autoSizeDisabled() {
+        return this._autoSizeDisabled;
+    }
+    set autoSizeDisabled(value) {
+        this._autoSizeDisabled = value;
+    }
+    get mainGridMinSize() {
+        return this._mainGridMinSize;
+    }
+    set mainGridMinSize(value) {
+        if (this._mainGridMinSize != value) {
+            this._mainGridMinSize = value;
+            this.setBoundsChangedFlag();
+        }
+    }
+    get mainGridIndex() {
+        return this._mainGridIndex;
+    }
+    set mainGridIndex(value) {
+        if (this._mainGridIndex != value) {
+            this._mainGridIndex = value;
+            this.setBoundsChangedFlag();
+        }
+    }
+    setBoundsChangedFlag(positionChangedOnly) {
+        if (this._updating == 0 && this._parent) {
+            if (!positionChangedOnly)
+                this._percentReady = false;
+            if (!this._boundsChanged) {
+                this._boundsChanged = true;
+                // if (this._layout != GroupLayoutType.None)
+                //     Laya.timer.callLater(this, this.ensureBoundsCorrect);
+            }
+        }
+    }
+    ensureSizeCorrect() {
+        if (!this._parent || !this._boundsChanged || this._layout == 0)
+            return;
+        this._boundsChanged = false;
+        if (this._autoSizeDisabled)
+            this.resizeChildren(0, 0);
+        else {
+            this.handleLayout();
+            this.updateBounds();
+        }
+    }
+    ensureBoundsCorrect() {
+        if (!this._parent || !this._boundsChanged)
+            return;
+        this._boundsChanged = false;
+        if (this._layout == 0)
+            this.updateBounds();
+        else {
+            if (this._autoSizeDisabled)
+                this.resizeChildren(0, 0);
+            else {
+                this.handleLayout();
+                this.updateBounds();
+            }
+        }
+    }
+    updateBounds() {
+        // Laya.timer.clear(this, this.ensureBoundsCorrect);
+        var cnt = this._parent.numChildren;
+        var i;
+        var child;
+        var ax = Number.POSITIVE_INFINITY, ay = Number.POSITIVE_INFINITY;
+        var ar = Number.NEGATIVE_INFINITY, ab = Number.NEGATIVE_INFINITY;
+        var tmp;
+        var empty = true;
+        for (i = 0; i < cnt; i++) {
+            child = this._parent.getChildAt(i);
+            if (child.group != this || this._excludeInvisibles && !child.internalVisible3)
+                continue;
+            tmp = child.xMin;
+            if (tmp < ax)
+                ax = tmp;
+            tmp = child.yMin;
+            if (tmp < ay)
+                ay = tmp;
+            tmp = child.xMin + child.width;
+            if (tmp > ar)
+                ar = tmp;
+            tmp = child.yMin + child.height;
+            if (tmp > ab)
+                ab = tmp;
+            empty = false;
+        }
+        var w = 0, h = 0;
+        if (!empty) {
+            this._updating |= 1;
+            this.setXY(ax, ay);
+            this._updating &= 2;
+            w = ar - ax;
+            h = ab - ay;
+        }
+        if ((this._updating & 2) == 0) {
+            this._updating |= 2;
+            this.setSize(w, h);
+            this._updating &= 1;
+        }
+        else {
+            this._updating &= 1;
+            this.resizeChildren(this._width - w, this._height - h);
+        }
+    }
+    handleLayout() {
+        this._updating |= 1;
+        var child;
+        var i;
+        var cnt;
+        if (this._layout == GroupLayoutType.Horizontal) {
+            var curX = this.x;
+            cnt = this._parent.numChildren;
+            for (i = 0; i < cnt; i++) {
+                child = this._parent.getChildAt(i);
+                if (child.group != this)
+                    continue;
+                if (this._excludeInvisibles && !child.internalVisible3)
+                    continue;
+                child.xMin = curX;
+                if (child.width != 0)
+                    curX += child.width + this._columnGap;
+            }
+        }
+        else if (this._layout == GroupLayoutType.Vertical) {
+            var curY = this.y;
+            cnt = this._parent.numChildren;
+            for (i = 0; i < cnt; i++) {
+                child = this._parent.getChildAt(i);
+                if (child.group != this)
+                    continue;
+                if (this._excludeInvisibles && !child.internalVisible3)
+                    continue;
+                child.yMin = curY;
+                if (child.height != 0)
+                    curY += child.height + this._lineGap;
+            }
+        }
+        this._updating &= 2;
+    }
+    moveChildren(dx, dy) {
+        if ((this._updating & 1) != 0 || !this._parent)
+            return;
+        this._updating |= 1;
+        var cnt = this._parent.numChildren;
+        var i;
+        var child;
+        for (i = 0; i < cnt; i++) {
+            child = this._parent.getChildAt(i);
+            if (child.group == this) {
+                child.setXY(child.x + dx, child.y + dy);
+            }
+        }
+        this._updating &= 2;
+    }
+    resizeChildren(dw, dh) {
+        if (this._layout == GroupLayoutType.None || (this._updating & 2) != 0 || !this._parent)
+            return;
+        this._updating |= 2;
+        if (this._boundsChanged) {
+            this._boundsChanged = false;
+            if (!this._autoSizeDisabled) {
+                this.updateBounds();
+                return;
+            }
+        }
+        var cnt = this._parent.numChildren;
+        var i;
+        var child;
+        if (!this._percentReady) {
+            this._percentReady = true;
+            this._numChildren = 0;
+            this._totalSize = 0;
+            this._mainChildIndex = -1;
+            var j = 0;
+            for (i = 0; i < cnt; i++) {
+                child = this._parent.getChildAt(i);
+                if (child.group != this)
+                    continue;
+                if (!this._excludeInvisibles || child.internalVisible3) {
+                    if (j == this._mainGridIndex)
+                        this._mainChildIndex = i;
+                    this._numChildren++;
+                    if (this._layout == 1)
+                        this._totalSize += child.width;
+                    else
+                        this._totalSize += child.height;
+                }
+                j++;
+            }
+            if (this._mainChildIndex != -1) {
+                if (this._layout == 1) {
+                    child = this._parent.getChildAt(this._mainChildIndex);
+                    this._totalSize += this._mainGridMinSize - child.width;
+                    child._sizePercentInGroup = this._mainGridMinSize / this._totalSize;
+                }
+                else {
+                    child = this._parent.getChildAt(this._mainChildIndex);
+                    this._totalSize += this._mainGridMinSize - child.height;
+                    child._sizePercentInGroup = this._mainGridMinSize / this._totalSize;
+                }
+            }
+            for (i = 0; i < cnt; i++) {
+                child = this._parent.getChildAt(i);
+                if (child.group != this)
+                    continue;
+                if (i == this._mainChildIndex)
+                    continue;
+                if (this._totalSize > 0)
+                    child._sizePercentInGroup = (this._layout == 1 ? child.width : child.height) / this._totalSize;
+                else
+                    child._sizePercentInGroup = 0;
+            }
+        }
+        var remainSize = 0;
+        var remainPercent = 1;
+        var priorHandled = false;
+        if (this._layout == 1) {
+            remainSize = this.width - (this._numChildren - 1) * this._columnGap;
+            if (this._mainChildIndex != -1 && remainSize >= this._totalSize) {
+                child = this._parent.getChildAt(this._mainChildIndex);
+                child.setSize(remainSize - (this._totalSize - this._mainGridMinSize), child._rawHeight + dh, true);
+                remainSize -= child.width;
+                remainPercent -= child._sizePercentInGroup;
+                priorHandled = true;
+            }
+            var curX = this.x;
+            for (i = 0; i < cnt; i++) {
+                child = this._parent.getChildAt(i);
+                if (child.group != this)
+                    continue;
+                if (this._excludeInvisibles && !child.internalVisible3) {
+                    child.setSize(child._rawWidth, child._rawHeight + dh, true);
+                    continue;
+                }
+                if (!priorHandled || i != this._mainChildIndex) {
+                    child.setSize(Math.round(child._sizePercentInGroup / remainPercent * remainSize), child._rawHeight + dh, true);
+                    remainPercent -= child._sizePercentInGroup;
+                    remainSize -= child.width;
+                }
+                child.xMin = curX;
+                if (child.width != 0)
+                    curX += child.width + this._columnGap;
+            }
+        }
+        else {
+            remainSize = this.height - (this._numChildren - 1) * this._lineGap;
+            if (this._mainChildIndex != -1 && remainSize >= this._totalSize) {
+                child = this._parent.getChildAt(this._mainChildIndex);
+                child.setSize(child._rawWidth + dw, remainSize - (this._totalSize - this._mainGridMinSize), true);
+                remainSize -= child.height;
+                remainPercent -= child._sizePercentInGroup;
+                priorHandled = true;
+            }
+            var curY = this.y;
+            for (i = 0; i < cnt; i++) {
+                child = this._parent.getChildAt(i);
+                if (child.group != this)
+                    continue;
+                if (this._excludeInvisibles && !child.internalVisible3) {
+                    child.setSize(child._rawWidth + dw, child._rawHeight, true);
+                    continue;
+                }
+                if (!priorHandled || i != this._mainChildIndex) {
+                    child.setSize(child._rawWidth + dw, Math.round(child._sizePercentInGroup / remainPercent * remainSize), true);
+                    remainPercent -= child._sizePercentInGroup;
+                    remainSize -= child.height;
+                }
+                child.yMin = curY;
+                if (child.height != 0)
+                    curY += child.height + this._lineGap;
+            }
+        }
+        this._updating &= 1;
+    }
+    handleAlphaChanged() {
+        if (this._underConstruct)
+            return;
+        var cnt = this._parent.numChildren;
+        for (var i = 0; i < cnt; i++) {
+            var child = this._parent.getChildAt(i);
+            if (child.group == this)
+                child.alpha = this.alpha;
+        }
+    }
+    handleVisibleChanged() {
+        if (!this._parent)
+            var cnt = this._parent.numChildren;
+        for (var i = 0; i < cnt; i++) {
+            var child = this._parent.getChildAt(i);
+            if (child.group == this)
+                child.handleVisibleChanged();
+        }
+    }
+    setup_beforeAdd(buffer, beginPos) {
+        super.setup_beforeAdd(buffer, beginPos);
+        buffer.seek(beginPos, 5);
+        this._layout = buffer.readByte();
+        this._lineGap = buffer.readInt();
+        this._columnGap = buffer.readInt();
+        if (buffer.version >= 2) {
+            this._excludeInvisibles = buffer.readBool();
+            this._autoSizeDisabled = buffer.readBool();
+            this._mainGridIndex = buffer.readShort();
+        }
+    }
+    setup_afterAdd(buffer, beginPos) {
+        super.setup_afterAdd(buffer, beginPos);
+        if (!this.visible)
+            this.handleVisibleChanged();
+    }
+}
+
+class GGraph extends GObject {
+    constructor() {
+        super();
+        this._type = 0;
+        this._lineSize = 1;
+        this._lineColor = "#000000";
+        this._fillColor = "#FFFFFF";
+    }
+    drawRect(lineSize, lineColor, fillColor, cornerRadius) {
+        this._type = 1;
+        this._lineSize = lineSize;
+        this._lineColor = lineColor;
+        this._fillColor = fillColor;
+        this._cornerRadius = cornerRadius;
+        this.updateGraph();
+    }
+    drawEllipse(lineSize, lineColor, fillColor) {
+        this._type = 2;
+        this._lineSize = lineSize;
+        this._lineColor = lineColor;
+        this._fillColor = fillColor;
+        this.updateGraph();
+    }
+    drawRegularPolygon(lineSize, lineColor, fillColor, sides, startAngle, distances) {
+        this._type = 4;
+        this._lineSize = lineSize;
+        this._lineColor = lineColor;
+        this._fillColor = fillColor;
+        this._sides = sides;
+        this._startAngle = startAngle || 0;
+        this._distances = distances;
+        this.updateGraph();
+    }
+    drawPolygon(lineSize, lineColor, fillColor, points) {
+        this._type = 3;
+        this._lineSize = lineSize;
+        this._lineColor = lineColor;
+        this._fillColor = fillColor;
+        this._polygonPoints = points;
+        this.updateGraph();
+    }
+    get distances() {
+        return this._distances;
+    }
+    set distances(value) {
+        this._distances = value;
+        if (this._type == 3)
+            this.updateGraph();
+    }
+    get color() {
+        return this._fillColor;
+    }
+    set color(value) {
+        this._fillColor = value;
+        this.updateGear(4);
+        if (this._type != 0)
+            this.updateGraph();
+    }
+    updateGraph() {
+        // TODO
+        throw new Error("TODO");
+        // this._displayObject.mouseEnabled = this.touchable;
+        // var gr: Laya.Graphics = this._displayObject.graphics;
+        // gr.clear();
+        // var w: number = this.width;
+        // var h: number = this.height;
+        // if (w == 0 || h == 0)
+        //     return;
+        // var fillColor: string = this._fillColor;
+        // var lineColor: string = this._lineColor;
+        // if (/*Render.isWebGL &&*/ ToolSet.startsWith(fillColor, "rgba")) {
+        //     //webgl下laya未支持rgba格式
+        //     var arr: any[] = fillColor.substring(5, fillColor.lastIndexOf(")")).split(",");
+        //     var a: number = parseFloat(arr[3]);
+        //     if (a == 0)
+        //         fillColor = null;
+        //     else {
+        //         fillColor = Laya.Utils.toHexColor((parseInt(arr[0]) << 16) + (parseInt(arr[1]) << 8) + parseInt(arr[2]));
+        //         this.alpha = a;
+        //     }
+        // }
+        // if (this._type == 1) {
+        //     if (this._cornerRadius) {
+        //         var paths: any[] = [
+        //             ["moveTo", this._cornerRadius[0], 0],
+        //             ["lineTo", w - this._cornerRadius[1], 0],
+        //             ["arcTo", w, 0, w, this._cornerRadius[1], this._cornerRadius[1]],
+        //             ["lineTo", w, h - this._cornerRadius[3]],
+        //             ["arcTo", w, h, w - this._cornerRadius[3], h, this._cornerRadius[3]],
+        //             ["lineTo", this._cornerRadius[2], h],
+        //             ["arcTo", 0, h, 0, h - this._cornerRadius[2], this._cornerRadius[2]],
+        //             ["lineTo", 0, this._cornerRadius[0]],
+        //             ["arcTo", 0, 0, this._cornerRadius[0], 0, this._cornerRadius[0]],
+        //             ["closePath"]
+        //         ];
+        //         gr.drawPath(0, 0, paths, fillColor ? { fillStyle: fillColor } : null, this._lineSize > 0 ? { strokeStyle: lineColor, lineWidth: this._lineSize } : null);
+        //     }
+        //     else
+        //         gr.drawRect(0, 0, w, h, fillColor, this._lineSize > 0 ? lineColor : null, this._lineSize);
+        // } else if (this._type == 2) {
+        //     gr.drawCircle(w / 2, h / 2, w / 2, fillColor, this._lineSize > 0 ? lineColor : null, this._lineSize);
+        // }
+        // else if (this._type == 3) {
+        //     gr.drawPoly(0, 0, this._polygonPoints, fillColor, this._lineSize > 0 ? lineColor : null, this._lineSize);
+        // }
+        // else if (this._type == 4) {
+        //     if (!this._polygonPoints)
+        //         this._polygonPoints = [];
+        //     var radius: number = Math.min(this._width, this._height) / 2;
+        //     this._polygonPoints.length = 0;
+        //     var angle: number = Laya.Utils.toRadian(this._startAngle);
+        //     var deltaAngle: number = 2 * Math.PI / this._sides;
+        //     var dist: number;
+        //     for (var i: number = 0; i < this._sides; i++) {
+        //         if (this._distances) {
+        //             dist = this._distances[i];
+        //             if (isNaN(dist))
+        //                 dist = 1;
+        //         }
+        //         else
+        //             dist = 1;
+        //         var xv: number = radius + radius * dist * Math.cos(angle);
+        //         var yv: number = radius + radius * dist * Math.sin(angle);
+        //         this._polygonPoints.push(xv, yv);
+        //         angle += deltaAngle;
+        //     }
+        //     gr.drawPoly(0, 0, this._polygonPoints, fillColor, this._lineSize > 0 ? lineColor : null, this._lineSize);
+        // }
+        // this._displayObject.repaint();
+    }
+    replaceMe(target) {
+        throw new Error("TODO");
+        // if (!this._parent)
+        //     throw "parent not set";
+        // target.name = this.name;
+        // target.alpha = this.alpha;
+        // target.rotation = this.rotation;
+        // target.visible = this.visible;
+        // target.touchable = this.touchable;
+        // target.grayed = this.grayed;
+        // target.setXY(this.x, this.y);
+        // target.setSize(this.width, this.height);
+        // var index: number = this._parent.getChildIndex(this);
+        // this._parent.addChildAt(target, index);
+        // target.relations.copyFrom(this.relations);
+        // this._parent.removeChild(this, true);
+    }
+    addBeforeMe(target) {
+        throw new Error("TODO");
+        // var index: number = this._parent.getChildIndex(this);
+        // this._parent.addChildAt(target, index);
+    }
+    addAfterMe(target) {
+        throw new Error("TODO");
+        // var index: number = this._parent.getChildIndex(this);
+        // index++;
+        // this._parent.addChildAt(target, index);
+    }
+    setNativeObject(obj) {
+        this._type = 0;
+        throw new Error("TODO");
+        // this._displayObject.mouseEnabled = this.touchable;
+        // this._displayObject.graphics.clear();
+        // this._displayObject.addChild(obj);
+    }
+    createDisplayObject() {
+        throw new Error("TODO");
+        // this._displayObject.mouseEnabled = false;
+        // this._hitArea = new Laya.HitArea();
+        // this._hitArea.hit = this._displayObject.graphics;
+        // this._displayObject.hitArea = this._hitArea;
+    }
+    getProp(index) {
+        if (index == ObjectPropID.Color)
+            return this.color;
+        else
+            return super.getProp(index);
+    }
+    setProp(index, value) {
+        if (index == ObjectPropID.Color)
+            this.color = value;
+        else
+            super.setProp(index, value);
+    }
+    handleSizeChanged() {
+        super.handleSizeChanged();
+        if (this._type != 0)
+            this.updateGraph();
+    }
+    setup_beforeAdd(buffer, beginPos) {
+        super.setup_beforeAdd(buffer, beginPos);
+        buffer.seek(beginPos, 5);
+        this._type = buffer.readByte();
+        if (this._type != 0) {
+            var i;
+            var cnt;
+            this._lineSize = buffer.readInt();
+            this._lineColor = buffer.readColorS(true);
+            this._fillColor = buffer.readColorS(true);
+            if (buffer.readBool()) {
+                this._cornerRadius = [];
+                for (i = 0; i < 4; i++)
+                    this._cornerRadius[i] = buffer.readFloat();
+            }
+            if (this._type == 3) {
+                cnt = buffer.readShort();
+                this._polygonPoints = [];
+                this._polygonPoints.length = cnt;
+                for (i = 0; i < cnt; i++)
+                    this._polygonPoints[i] = buffer.readFloat();
+            }
+            else if (this._type == 4) {
+                this._sides = buffer.readShort();
+                this._startAngle = buffer.readFloat();
+                cnt = buffer.readShort();
+                if (cnt > 0) {
+                    this._distances = [];
+                    for (i = 0; i < cnt; i++)
+                        this._distances[i] = buffer.readFloat();
+                }
+            }
+            this.updateGraph();
+        }
+    }
+}
+
+function fillImage(w, h, method, origin, clockwise, amount) {
+    if (amount <= 0)
+        return null;
+    else if (amount >= 0.9999)
+        return [0, 0, w, 0, w, h, 0, h];
+    var points;
+    switch (method) {
+        case FillMethod.Horizontal:
+            points = fillHorizontal(w, h, origin, amount);
+            break;
+        case FillMethod.Vertical:
+            points = fillVertical(w, h, origin, amount);
+            break;
+        case FillMethod.Radial90:
+            points = fillRadial90(w, h, origin, clockwise, amount);
+            break;
+        case FillMethod.Radial180:
+            points = fillRadial180(w, h, origin, clockwise, amount);
+            break;
+        case FillMethod.Radial360:
+            points = fillRadial360(w, h, origin, clockwise, amount);
+            break;
+    }
+    return points;
+}
+function fillHorizontal(w, h, origin, amount) {
+    var w2 = w * amount;
+    if (origin == FillOrigin.Left || origin == FillOrigin.Top)
+        return [0, 0, w2, 0, w2, h, 0, h];
+    else
+        return [w, 0, w, h, w - w2, h, w - w2, 0];
+}
+function fillVertical(w, h, origin, amount) {
+    var h2 = h * amount;
+    if (origin == FillOrigin.Left || origin == FillOrigin.Top)
+        return [0, 0, 0, h2, w, h2, w, 0];
+    else
+        return [0, h, w, h, w, h - h2, 0, h - h2];
+}
+function fillRadial90(w, h, origin, clockwise, amount) {
+    if (clockwise && (origin == FillOrigin.TopRight || origin == FillOrigin.BottomLeft)
+        || !clockwise && (origin == FillOrigin.TopLeft || origin == FillOrigin.BottomRight)) {
+        amount = 1 - amount;
+    }
+    var v, v2, h2;
+    v = Math.tan(Math.PI / 2 * amount);
+    h2 = w * v;
+    v2 = (h2 - h) / h2;
+    var points;
+    switch (origin) {
+        case FillOrigin.TopLeft:
+            if (clockwise) {
+                if (h2 <= h)
+                    points = [0, 0, w, h2, w, 0];
+                else
+                    points = [0, 0, w * (1 - v2), h, w, h, w, 0];
+            }
+            else {
+                if (h2 <= h)
+                    points = [0, 0, w, h2, w, h, 0, h];
+                else
+                    points = [0, 0, w * (1 - v2), h, 0, h];
+            }
+            break;
+        case FillOrigin.TopRight:
+            if (clockwise) {
+                if (h2 <= h)
+                    points = [w, 0, 0, h2, 0, h, w, h];
+                else
+                    points = [w, 0, w * v2, h, w, h];
+            }
+            else {
+                if (h2 <= h)
+                    points = [w, 0, 0, h2, 0, 0];
+                else
+                    points = [w, 0, w * v2, h, 0, h, 0, 0];
+            }
+            break;
+        case FillOrigin.BottomLeft:
+            if (clockwise) {
+                if (h2 <= h)
+                    points = [0, h, w, h - h2, w, 0, 0, 0];
+                else
+                    points = [0, h, w * (1 - v2), 0, 0, 0];
+            }
+            else {
+                if (h2 <= h)
+                    points = [0, h, w, h - h2, w, h];
+                else
+                    points = [0, h, w * (1 - v2), 0, w, 0, w, h];
+            }
+            break;
+        case FillOrigin.BottomRight:
+            if (clockwise) {
+                if (h2 <= h)
+                    points = [w, h, 0, h - h2, 0, h];
+                else
+                    points = [w, h, w * v2, 0, 0, 0, 0, h];
+            }
+            else {
+                if (h2 <= h)
+                    points = [w, h, 0, h - h2, 0, 0, w, 0];
+                else
+                    points = [w, h, w * v2, 0, w, 0];
+            }
+            break;
+    }
+    return points;
+}
+function movePoints(points, offsetX, offsetY) {
+    var cnt = points.length;
+    for (var i = 0; i < cnt; i += 2) {
+        points[i] += offsetX;
+        points[i + 1] += offsetY;
+    }
+}
+function fillRadial180(w, h, origin, clockwise, amount) {
+    var points;
+    switch (origin) {
+        case FillOrigin.Top:
+            if (amount <= 0.5) {
+                amount = amount / 0.5;
+                points = fillRadial90(w / 2, h, clockwise ? FillOrigin.TopLeft : FillOrigin.TopRight, clockwise, amount);
+                if (clockwise)
+                    movePoints(points, w / 2, 0);
+            }
+            else {
+                amount = (amount - 0.5) / 0.5;
+                points = fillRadial90(w / 2, h, clockwise ? FillOrigin.TopRight : FillOrigin.TopLeft, clockwise, amount);
+                if (clockwise)
+                    points.push(w, h, w, 0);
+                else {
+                    movePoints(points, w / 2, 0);
+                    points.push(0, h, 0, 0);
+                }
+            }
+            break;
+        case FillOrigin.Bottom:
+            if (amount <= 0.5) {
+                amount = amount / 0.5;
+                points = fillRadial90(w / 2, h, clockwise ? FillOrigin.BottomRight : FillOrigin.BottomLeft, clockwise, amount);
+                if (!clockwise)
+                    movePoints(points, w / 2, 0);
+            }
+            else {
+                amount = (amount - 0.5) / 0.5;
+                points = fillRadial90(w / 2, h, clockwise ? FillOrigin.BottomLeft : FillOrigin.BottomRight, clockwise, amount);
+                if (clockwise) {
+                    movePoints(points, w / 2, 0);
+                    points.push(0, 0, 0, h);
+                }
+                else
+                    points.push(w, 0, w, h);
+            }
+            break;
+        case FillOrigin.Left:
+            if (amount <= 0.5) {
+                amount = amount / 0.5;
+                points = fillRadial90(w, h / 2, clockwise ? FillOrigin.BottomLeft : FillOrigin.TopLeft, clockwise, amount);
+                if (!clockwise)
+                    movePoints(points, 0, h / 2);
+            }
+            else {
+                amount = (amount - 0.5) / 0.5;
+                points = fillRadial90(w, h / 2, clockwise ? FillOrigin.TopLeft : FillOrigin.BottomLeft, clockwise, amount);
+                if (clockwise) {
+                    movePoints(points, 0, h / 2);
+                    points.push(w, 0, 0, 0);
+                }
+                else
+                    points.push(w, h, 0, h);
+            }
+            break;
+        case FillOrigin.Right:
+            if (amount <= 0.5) {
+                amount = amount / 0.5;
+                points = fillRadial90(w, h / 2, clockwise ? FillOrigin.TopRight : FillOrigin.BottomRight, clockwise, amount);
+                if (clockwise)
+                    movePoints(points, 0, h / 2);
+            }
+            else {
+                amount = (amount - 0.5) / 0.5;
+                points = fillRadial90(w, h / 2, clockwise ? FillOrigin.BottomRight : FillOrigin.TopRight, clockwise, amount);
+                if (clockwise)
+                    points.push(0, h, w, h);
+                else {
+                    movePoints(points, 0, h / 2);
+                    points.push(0, 0, w, 0);
+                }
+            }
+            break;
+    }
+    return points;
+}
+function fillRadial360(w, h, origin, clockwise, amount) {
+    var points;
+    switch (origin) {
+        case FillOrigin.Top:
+            if (amount <= 0.5) {
+                amount = amount / 0.5;
+                points = fillRadial180(w / 2, h, clockwise ? FillOrigin.Left : FillOrigin.Right, clockwise, amount);
+                if (clockwise)
+                    movePoints(points, w / 2, 0);
+            }
+            else {
+                amount = (amount - 0.5) / 0.5;
+                points = fillRadial180(w / 2, h, clockwise ? FillOrigin.Right : FillOrigin.Left, clockwise, amount);
+                if (clockwise)
+                    points.push(w, h, w, 0, w / 2, 0);
+                else {
+                    movePoints(points, w / 2, 0);
+                    points.push(0, h, 0, 0, w / 2, 0);
+                }
+            }
+            break;
+        case FillOrigin.Bottom:
+            if (amount <= 0.5) {
+                amount = amount / 0.5;
+                points = fillRadial180(w / 2, h, clockwise ? FillOrigin.Right : FillOrigin.Left, clockwise, amount);
+                if (!clockwise)
+                    movePoints(points, w / 2, 0);
+            }
+            else {
+                amount = (amount - 0.5) / 0.5;
+                points = fillRadial180(w / 2, h, clockwise ? FillOrigin.Left : FillOrigin.Right, clockwise, amount);
+                if (clockwise) {
+                    movePoints(points, w / 2, 0);
+                    points.push(0, 0, 0, h, w / 2, h);
+                }
+                else
+                    points.push(w, 0, w, h, w / 2, h);
+            }
+            break;
+        case FillOrigin.Left:
+            if (amount <= 0.5) {
+                amount = amount / 0.5;
+                points = fillRadial180(w, h / 2, clockwise ? FillOrigin.Bottom : FillOrigin.Top, clockwise, amount);
+                if (!clockwise)
+                    movePoints(points, 0, h / 2);
+            }
+            else {
+                amount = (amount - 0.5) / 0.5;
+                points = fillRadial180(w, h / 2, clockwise ? FillOrigin.Top : FillOrigin.Bottom, clockwise, amount);
+                if (clockwise) {
+                    movePoints(points, 0, h / 2);
+                    points.push(w, 0, 0, 0, 0, h / 2);
+                }
+                else
+                    points.push(w, h, 0, h, 0, h / 2);
+            }
+            break;
+        case FillOrigin.Right:
+            if (amount <= 0.5) {
+                amount = amount / 0.5;
+                points = fillRadial180(w, h / 2, clockwise ? FillOrigin.Top : FillOrigin.Bottom, clockwise, amount);
+                if (clockwise)
+                    movePoints(points, 0, h / 2);
+            }
+            else {
+                amount = (amount - 0.5) / 0.5;
+                points = fillRadial180(w, h / 2, clockwise ? FillOrigin.Bottom : FillOrigin.Top, clockwise, amount);
+                if (clockwise)
+                    points.push(0, h, w, h, w, h / 2);
+                else {
+                    movePoints(points, 0, h / 2);
+                    points.push(0, 0, w, 0, w, h / 2);
+                }
+            }
+            break;
+    }
+    return points;
+}
+
+class Image extends Phaser.GameObjects.Container {
+    constructor(scene) {
+        super(scene);
+        this._tileGridIndice = 0;
+        this._needRebuild = 0;
+        this._fillMethod = 0;
+        this._fillOrigin = 0;
+        this._fillAmount = 0;
+        // this.mouseEnabled = false;
+        this._color = "#FFFFFF";
+        this.width;
+    }
+    // public set width(value: number) {
+    //     if (this["_width"] !== value) {
+    //         super.set_width(value);
+    //         this.markChanged(1);
+    //     }
+    // }
+    // public set height(value: number) {
+    //     if (this["_height"] !== value) {
+    //         super.set_height(value);
+    //         this.markChanged(1);
+    //     }
+    // }
+    setSize(width, height) {
+        this.width = width;
+        this.height = height;
+        this.markChanged(1);
+        return this;
+    }
+    get texture() {
+        return this._source;
+    }
+    set texture(value) {
+        if (this._source != value) {
+            this._source = value;
+            if (this["_width"] == 0) {
+                if (this._source)
+                    this.setSize(this._source.source[0].width, this._source.source[0].height);
+                else
+                    this.setSize(0, 0);
+            }
+            // todo 重绘
+            // this.repaint();
+            this.markChanged(1);
+        }
+    }
+    get scale9Grid() {
+        return this._scale9Grid;
+    }
+    set scale9Grid(value) {
+        this._scale9Grid = value;
+        this._sizeGrid = null;
+        this.markChanged(1);
+    }
+    get scaleByTile() {
+        return this._scaleByTile;
+    }
+    set scaleByTile(value) {
+        if (this._scaleByTile != value) {
+            this._scaleByTile = value;
+            this.markChanged(1);
+        }
+    }
+    get tileGridIndice() {
+        return this._tileGridIndice;
+    }
+    set tileGridIndice(value) {
+        if (this._tileGridIndice != value) {
+            this._tileGridIndice = value;
+            this.markChanged(1);
+        }
+    }
+    get fillMethod() {
+        return this._fillMethod;
+    }
+    set fillMethod(value) {
+        if (this._fillMethod != value) {
+            this._fillMethod = value;
+            if (this._fillMethod != 0) {
+                if (!this._mask) {
+                    this._mask = new Graphics(this.scene);
+                    // this._mask.mouseEnabled = false;
+                }
+                this.mask = this._mask.createGeometryMask();
+                this.markChanged(2);
+            }
+            else if (this.mask) {
+                this._mask.clear();
+                this.mask = null;
+            }
+        }
+    }
+    get fillOrigin() {
+        return this._fillOrigin;
+    }
+    set fillOrigin(value) {
+        if (this._fillOrigin != value) {
+            this._fillOrigin = value;
+            if (this._fillMethod != 0)
+                this.markChanged(2);
+        }
+    }
+    get fillClockwise() {
+        return this._fillClockwise;
+    }
+    set fillClockwise(value) {
+        if (this._fillClockwise != value) {
+            this._fillClockwise = value;
+            if (this._fillMethod != 0)
+                this.markChanged(2);
+        }
+    }
+    get fillAmount() {
+        return this._fillAmount;
+    }
+    set fillAmount(value) {
+        if (this._fillAmount != value) {
+            this._fillAmount = value;
+            if (this._fillMethod != 0)
+                this.markChanged(2);
+        }
+    }
+    get color() {
+        return this._color;
+    }
+    set color(value) {
+        if (this._color != value) {
+            this._color = value;
+            ToolSet.setColorFilter(this, value);
+        }
+    }
+    markChanged(flag) {
+        if (!this._needRebuild) {
+            this._needRebuild = flag;
+            // Laya.timer.callLater(this, this.rebuild);
+        }
+        else
+            this._needRebuild |= flag;
+    }
+    rebuild() {
+        if ((this._needRebuild & 1) != 0)
+            this.doDraw();
+        if ((this._needRebuild & 2) != 0 && this._fillMethod != 0)
+            this.doFill();
+        this._needRebuild = 0;
+    }
+    doDraw() {
+        var w = this["_width"];
+        var h = this["_height"];
+        var g = new Graphics(this.scene);
+        var tex = this._source;
+        g.clear();
+        if (tex == null || w == 0 || h == 0) {
+            return;
+        }
+        if (this._scaleByTile) ;
+        else if (this._scale9Grid) {
+            if (!this._sizeGrid) {
+                var tw = tex.source[0].width;
+                var th = tex.source[0].height;
+                var left = this._scale9Grid.x;
+                var right = Math.max(tw - this._scale9Grid.right, 0);
+                var top = this._scale9Grid.y;
+                var bottom = Math.max(th - this._scale9Grid.bottom, 0);
+                this._sizeGrid = [top, right, bottom, left, this._tileGridIndice];
+            }
+            // todo draw9Grid
+            //g.draw9Grid(tex, 0, 0, w, h, this._sizeGrid);
+        }
+        else ;
+    }
+    doFill() {
+        var w = this["_width"];
+        var h = this["_height"];
+        var g = this._mask;
+        g.clear();
+        if (w == 0 || h == 0)
+            return;
+        var points = fillImage(w, h, this._fillMethod, this._fillOrigin, this._fillClockwise, this._fillAmount);
+        if (points == null) {
+            //不知道为什么，不这样操作一下空白的遮罩不能生效
+            this.mask = null;
+            this.mask = this._mask.createGeometryMask();
+            return;
+        }
+        // todo drawPoly
+        // g.drawPoly(0, 0, points, "#FFFFFF");
+    }
+}
+
+class GImage extends GObject {
+    constructor() {
+        super();
+        this._flip = 0;
+    }
+    get image() {
+        return this._image;
+    }
+    get color() {
+        return this.image.color;
+    }
+    set color(value) {
+        if (this.image.color != value) {
+            this.image.color = value;
+            this.updateGear(4);
+        }
+    }
+    get flip() {
+        return this._flip;
+    }
+    set flip(value) {
+        if (this._flip != value) {
+            this._flip = value;
+            var sx = 1, sy = 1;
+            if (this._flip == FlipType.Horizontal || this._flip == FlipType.Both)
+                sx = -1;
+            if (this._flip == FlipType.Vertical || this._flip == FlipType.Both)
+                sy = -1;
+            this.setScale(sx, sy);
+            this.handleXYChanged();
+        }
+    }
+    get fillMethod() {
+        return this.image.fillMethod;
+    }
+    set fillMethod(value) {
+        this.image.fillMethod = value;
+    }
+    get fillOrigin() {
+        return this.image.fillOrigin;
+    }
+    set fillOrigin(value) {
+        this.image.fillOrigin = value;
+    }
+    get fillClockwise() {
+        return this.image.fillClockwise;
+    }
+    set fillClockwise(value) {
+        this.image.fillClockwise = value;
+    }
+    get fillAmount() {
+        return this.image.fillAmount;
+    }
+    set fillAmount(value) {
+        this.image.fillAmount = value;
+    }
+    createDisplayObject() {
+        this._displayObject = this._image = new Image(this.scene);
+        // this.image.mouseEnabled = false;
+        this._displayObject["$owner"] = this;
+    }
+    constructFromResource() {
+        this._contentItem = this.packageItem.getBranch();
+        this.sourceWidth = this._contentItem.width;
+        this.sourceHeight = this._contentItem.height;
+        this.initWidth = this.sourceWidth;
+        this.initHeight = this.sourceHeight;
+        this._contentItem = this._contentItem.getHighResolution();
+        this._contentItem.load();
+        this.image.scale9Grid = this._contentItem.scale9Grid;
+        this.image.scaleByTile = this._contentItem.scaleByTile;
+        this.image.tileGridIndice = this._contentItem.tileGridIndice;
+        this.image.texture = this._contentItem.texture;
+        this.setSize(this.sourceWidth, this.sourceHeight);
+    }
+    handleXYChanged() {
+        super.handleXYChanged();
+        if (this._flip != FlipType.None) {
+            if (this.scaleX == -1)
+                this.image.x += this.width;
+            if (this.scaleY == -1)
+                this.image.y += this.height;
+        }
+    }
+    getProp(index) {
+        if (index == ObjectPropID.Color)
+            return this.color;
+        else
+            return super.getProp(index);
+    }
+    setProp(index, value) {
+        if (index == ObjectPropID.Color)
+            this.color = value;
+        else
+            super.setProp(index, value);
+    }
+    setup_beforeAdd(buffer, beginPos) {
+        super.setup_beforeAdd(buffer, beginPos);
+        buffer.seek(beginPos, 5);
+        if (buffer.readBool())
+            this.color = buffer.readColorS();
+        this.flip = buffer.readByte();
+        this.image.fillMethod = buffer.readByte();
+        if (this.image.fillMethod != 0) {
+            this.image.fillOrigin = buffer.readByte();
+            this.image.fillClockwise = buffer.readBool();
+            this.image.fillAmount = buffer.readFloat();
+        }
+    }
+}
+
+class GMovieClip extends GObject {
+    constructor() {
+        super();
+    }
+    get color() {
+        return this._movieClip.color;
+    }
+    set color(value) {
+        this._movieClip.color = value;
+    }
+    createDisplayObject() {
+        throw new Error("TODO");
+        // this._displayObject = this._movieClip = new MovieClip();
+        // this._movieClip.mouseEnabled = false;
+        // this._displayObject["$owner"] = this;
+    }
+    get playing() {
+        return this._movieClip.playing;
+    }
+    set playing(value) {
+        if (this._movieClip.playing != value) {
+            this._movieClip.playing = value;
+            this.updateGear(5);
+        }
+    }
+    get frame() {
+        return this._movieClip.frame;
+    }
+    set frame(value) {
+        if (this._movieClip.frame != value) {
+            this._movieClip.frame = value;
+            this.updateGear(5);
+        }
+    }
+    get timeScale() {
+        return this._movieClip.timeScale;
+    }
+    set timeScale(value) {
+        this._movieClip.timeScale = value;
+    }
+    rewind() {
+        this._movieClip.rewind();
+    }
+    syncStatus(anotherMc) {
+        this._movieClip.syncStatus(anotherMc._movieClip);
+    }
+    advance(timeInMiniseconds) {
+        this._movieClip.advance(timeInMiniseconds);
+    }
+    //从start帧开始，播放到end帧（-1表示结尾），重复times次（0表示无限循环），循环结束后，停止在endAt帧（-1表示参数end）
+    setPlaySettings(start, end, times, endAt, endHandler) {
+        this._movieClip.setPlaySettings(start, end, times, endAt, endHandler);
+    }
+    getProp(index) {
+        switch (index) {
+            case ObjectPropID.Color:
+                return this.color;
+            case ObjectPropID.Playing:
+                return this.playing;
+            case ObjectPropID.Frame:
+                return this.frame;
+            case ObjectPropID.TimeScale:
+                return this.timeScale;
+            default:
+                return super.getProp(index);
+        }
+    }
+    setProp(index, value) {
+        switch (index) {
+            case ObjectPropID.Color:
+                this.color = value;
+                break;
+            case ObjectPropID.Playing:
+                this.playing = value;
+                break;
+            case ObjectPropID.Frame:
+                this.frame = value;
+                break;
+            case ObjectPropID.TimeScale:
+                this.timeScale = value;
+                break;
+            case ObjectPropID.DeltaTime:
+                this.advance(value);
+                break;
+            default:
+                super.setProp(index, value);
+                break;
+        }
+    }
+    constructFromResource() {
+        var displayItem = this.packageItem.getBranch();
+        this.sourceWidth = displayItem.width;
+        this.sourceHeight = displayItem.height;
+        this.initWidth = this.sourceWidth;
+        this.initHeight = this.sourceHeight;
+        this.setSize(this.sourceWidth, this.sourceHeight);
+        displayItem = displayItem.getHighResolution();
+        displayItem.load();
+        this._movieClip.interval = displayItem.interval;
+        this._movieClip.swing = displayItem.swing;
+        this._movieClip.repeatDelay = displayItem.repeatDelay;
+        this._movieClip.frames = displayItem.frames;
+    }
+    setup_beforeAdd(buffer, beginPos) {
+        super.setup_beforeAdd(buffer, beginPos);
+        buffer.seek(beginPos, 5);
+        if (buffer.readBool())
+            this.color = buffer.readColorS();
+        buffer.readByte(); //flip
+        this._movieClip.frame = buffer.readInt();
+        this._movieClip.playing = buffer.readBool();
+    }
+}
+
+class UBBParser {
+    constructor() {
+        this._readPos = 0;
+        this.defaultImgWidth = 0;
+        this.defaultImgHeight = 0;
+        this._handlers = {};
+        this._handlers["url"] = this.onTag_URL;
+        this._handlers["img"] = this.onTag_IMG;
+        this._handlers["b"] = this.onTag_B;
+        this._handlers["i"] = this.onTag_I;
+        this._handlers["u"] = this.onTag_U;
+        this._handlers["sup"] = this.onTag_Simple;
+        this._handlers["sub"] = this.onTag_Simple;
+        this._handlers["color"] = this.onTag_COLOR;
+        this._handlers["font"] = this.onTag_FONT;
+        this._handlers["size"] = this.onTag_SIZE;
+    }
+    onTag_URL(tagName, end, attr) {
+        if (!end) {
+            if (attr != null)
+                return "<a href=\"" + attr + "\" target=\"_blank\">";
+            else {
+                var href = this.getTagText();
+                return "<a href=\"" + href + "\" target=\"_blank\">";
+            }
+        }
+        else
+            return "</a>";
+    }
+    onTag_IMG(tagName, end, attr) {
+        if (!end) {
+            var src = this.getTagText(true);
+            if (!src)
+                return null;
+            if (this.defaultImgWidth)
+                return "<img src=\"" + src + "\" width=\"" + this.defaultImgWidth + "\" height=\"" + this.defaultImgHeight + "\"/>";
+            else
+                return "<img src=\"" + src + "\"/>";
+        }
+        else
+            return null;
+    }
+    onTag_B(tagName, end, attr) {
+        return end ? ("</span>") : ("<span style='font-weight:bold'>");
+    }
+    onTag_I(tagName, end, attr) {
+        return end ? ("</span>") : ("<span style='font-style:italic'>");
+    }
+    onTag_U(tagName, end, attr) {
+        return end ? ("</span>") : ("<span style='text-decoration:underline'>");
+    }
+    onTag_Simple(tagName, end, attr) {
+        return end ? ("</" + tagName + ">") : ("<" + tagName + ">");
+    }
+    onTag_COLOR(tagName, end, attr) {
+        if (!end) {
+            this.lastColor = attr;
+            return "<span style=\"color:" + attr + "\">";
+        }
+        else
+            return "</span>";
+    }
+    onTag_FONT(tagName, end, attr) {
+        if (!end)
+            return "<span style=\"font-family:" + attr + "\">";
+        else
+            return "</span>";
+    }
+    onTag_SIZE(tagName, end, attr) {
+        if (!end) {
+            this.lastSize = attr;
+            return "<span style=\"font-size:" + attr + "\">";
+        }
+        else
+            return "</span>";
+    }
+    getTagText(remove) {
+        var pos1 = this._readPos;
+        var pos2;
+        var result = "";
+        while ((pos2 = this._text.indexOf("[", pos1)) != -1) {
+            if (this._text.charCodeAt(pos2 - 1) == 92) //\
+             {
+                result += this._text.substring(pos1, pos2 - 1);
+                result += "[";
+                pos1 = pos2 + 1;
+            }
+            else {
+                result += this._text.substring(pos1, pos2);
+                break;
+            }
+        }
+        if (pos2 == -1)
+            return null;
+        if (remove)
+            this._readPos = pos2;
+        return result;
+    }
+    parse(text, remove) {
+        this._text = text;
+        this.lastColor = null;
+        this.lastSize = null;
+        var pos1 = 0, pos2, pos3;
+        var end;
+        var tag, attr;
+        var repl;
+        var func;
+        var result = "";
+        while ((pos2 = this._text.indexOf("[", pos1)) != -1) {
+            if (pos2 > 0 && this._text.charCodeAt(pos2 - 1) == 92) //\
+             {
+                result += this._text.substring(pos1, pos2 - 1);
+                result += "[";
+                pos1 = pos2 + 1;
+                continue;
+            }
+            result += this._text.substring(pos1, pos2);
+            pos1 = pos2;
+            pos2 = this._text.indexOf("]", pos1);
+            if (pos2 == -1)
+                break;
+            end = this._text.charAt(pos1 + 1) == '/';
+            tag = this._text.substring(end ? pos1 + 2 : pos1 + 1, pos2);
+            this._readPos = pos2 + 1;
+            attr = null;
+            repl = null;
+            pos3 = tag.indexOf("=");
+            if (pos3 != -1) {
+                attr = tag.substring(pos3 + 1);
+                tag = tag.substring(0, pos3);
+            }
+            tag = tag.toLowerCase();
+            func = this._handlers[tag];
+            if (func != null) {
+                if (!remove) {
+                    repl = func.call(this, tag, end, attr);
+                    if (repl != null)
+                        result += repl;
+                }
+            }
+            else
+                result += this._text.substring(pos1, this._readPos);
+            pos1 = this._readPos;
+        }
+        if (pos1 < this._text.length)
+            result += this._text.substr(pos1);
+        this._text = null;
+        return result;
+    }
+}
+UBBParser.inst = new UBBParser();
+
+class GRichTextField extends GTextField {
+    constructor() {
+        super();
+        this._text = "";
+    }
+    createDisplayObject() {
+        // this._displayObject = this._div = new Laya.HTMLDivElement();
+        // this._displayObject.mouseEnabled = true;
+        // this._displayObject["$owner"] = this;
+        throw new Error("TODO");
+    }
+    get div() {
+        throw new Error("TODO");
+    }
+    set text(value) {
+        this._text = value;
+        var text2 = this._text;
+        if (this._templateVars)
+            text2 = this.parseTemplate(text2);
+        try {
+            this._div.size(this._width, this._height);
+            if (this._ubbEnabled)
+                this._div.innerHTML = UBBParser.inst.parse(text2);
+            else
+                this._div.innerHTML = text2;
+            if (this._widthAutoSize || this._heightAutoSize) {
+                var w, h = 0;
+                if (this._widthAutoSize) {
+                    w = this._div.contextWidth;
+                    if (w > 0)
+                        w += 8;
+                }
+                else
+                    w = this._width;
+                if (this._heightAutoSize)
+                    h = this._div.contextHeight;
+                else
+                    h = this._height;
+                this._updatingSize = true;
+                this.setSize(w, h);
+                this._updatingSize = false;
+            }
+        }
+        catch (err) {
+            console.log("laya reports html error:" + err);
+        }
+    }
+    get text() {
+        return this._text;
+    }
+    get font() {
+        return this._div.style.font;
+    }
+    set font(value) {
+        if (value)
+            this._div.style.font = value;
+        else
+            this._div.style.font = UIConfig.defaultFont;
+    }
+    get fontSize() {
+        return this._div.style.fontSize;
+    }
+    set fontSize(value) {
+        this._div.style.fontSize = value;
+    }
+    get color() {
+        return this._div.style.color;
+    }
+    set color(value) {
+        if (this._div.style.color != value) {
+            this._div.style.color = value;
+            this.refresh();
+            this.updateGear(4);
+        }
+    }
+    get align() {
+        return this._div.style.align;
+    }
+    set align(value) {
+        if (this._div.style.align != value) {
+            this._div.style.align = value;
+            this.refresh();
+        }
+    }
+    get valign() {
+        return this._div.style.valign;
+    }
+    set valign(value) {
+        if (this._div.style.valign != value) {
+            this._div.style.valign = value;
+            this.refresh();
+        }
+    }
+    get leading() {
+        return this._div.style.leading;
+    }
+    set leading(value) {
+        if (this._div.style.leading != value) {
+            this._div.style.leading = value;
+            this.refresh();
+        }
+    }
+    get bold() {
+        return this._div.style.bold;
+    }
+    set bold(value) {
+        if (this._div.style.bold != value) {
+            this._div.style.bold = value;
+            this.refresh();
+        }
+    }
+    get italic() {
+        return this._div.style.italic;
+    }
+    set italic(value) {
+        if (this._div.style.italic != value) {
+            this._div.style.italic = value;
+            this.refresh();
+        }
+    }
+    get stroke() {
+        return this._div.style.stroke;
+    }
+    set stroke(value) {
+        if (this._div.style.stroke != value) {
+            this._div.style.stroke = value;
+            this.refresh();
+        }
+    }
+    get strokeColor() {
+        return this._div.style.strokeColor;
+    }
+    set strokeColor(value) {
+        if (this._div.style.strokeColor != value) {
+            this._div.style.strokeColor = value;
+            this.refresh();
+            this.updateGear(4);
+        }
+    }
+    set ubbEnabled(value) {
+        this._ubbEnabled = value;
+    }
+    get ubbEnabled() {
+        return this._ubbEnabled;
+    }
+    get textWidth() {
+        var w = this._div.contextWidth;
+        if (w > 0)
+            w += 8;
+        return w;
+    }
+    refresh() {
+        if (this._text.length > 0 && this._div._refresh)
+            this._div._refresh();
+    }
+    updateAutoSize() {
+        this._div.style.wordWrap = !this._widthAutoSize;
+    }
+    handleSizeChanged() {
+        if (this._updatingSize)
+            return;
+        this._div.size(this._width, this._height);
+        this._div.style.width = this._width;
+        this._div.style.height = this._height;
+    }
+}
+
+class GObjectPool {
+    constructor() {
+        this._count = 0;
+        this._pool = {};
+    }
+    clear() {
+        for (var i1 in this._pool) {
+            var arr = this._pool[i1];
+            var cnt = arr.length;
+            for (var i = 0; i < cnt; i++)
+                arr[i].dispose();
+        }
+        this._pool = {};
+        this._count = 0;
+    }
+    get count() {
+        return this._count;
+    }
+    getObject(url) {
+        url = UIPackage.normalizeURL(url);
+        if (url == null)
+            return null;
+        var arr = this._pool[url];
+        if (arr && arr.length > 0) {
+            this._count--;
+            return arr.shift();
+        }
+        var child = UIPackage.createObjectFromURL(url);
+        return child;
+    }
+    returnObject(obj) {
+        var url = obj.resourceURL;
+        if (!url)
+            return;
+        var arr = this._pool[url];
+        if (arr == null) {
+            arr = [];
+            this._pool[url] = arr;
+        }
+        this._count++;
+        arr.push(obj);
+    }
+}
+
+var LoaderType;
+(function (LoaderType) {
+    LoaderType["IMAGE"] = "image";
+    LoaderType["ATLAS"] = "atlas";
+    LoaderType["AUDIO"] = "audio";
+    LoaderType["VIDEO"] = "video";
+    LoaderType["JSON"] = "json";
+    LoaderType["SCRIPT"] = "script";
+    LoaderType["GLSL"] = "glsl";
+    LoaderType["BITMAPFONT"] = "bitmapFont";
+    LoaderType["SPRITESHEET"] = "spritesheet";
+})(LoaderType || (LoaderType = {}));
+class AssetProxy {
+    constructor() {
+        this._resMap = new Map();
+    }
+    static get inst() {
+        if (!AssetProxy._inst)
+            AssetProxy._inst = new AssetProxy();
+        return AssetProxy._inst;
+    }
+    getRes(key) {
+        return this._resMap.get(key);
+    }
+    load(key, url, type, completeCallBack, _errorCallBack) {
+        this._resMap.set(key, url);
+        this._completeCallBack = completeCallBack;
+        this._errorCallBack = _errorCallBack;
+        if (GRoot.inst.scene.cache.obj.has(key)) {
+            if (this._completeCallBack) {
+                return this._completeCallBack();
+            }
+        }
+        switch (type) {
+            case LoaderType.IMAGE:
+                GRoot.inst.scene.load.image(key, url);
+                break;
+            case LoaderType.ATLAS:
+                GRoot.inst.scene.load.atlas(key, url);
+                break;
+            case LoaderType.AUDIO:
+                GRoot.inst.scene.load.audio(key, url);
+                break;
+            case LoaderType.VIDEO:
+                GRoot.inst.scene.load.video(key, url);
+                break;
+            case LoaderType.JSON:
+                GRoot.inst.scene.load.json(key, url);
+                break;
+            case LoaderType.SCRIPT:
+                GRoot.inst.scene.load.script(key, url);
+                break;
+            case LoaderType.GLSL:
+                GRoot.inst.scene.load.glsl(key, url);
+                break;
+            case LoaderType.BITMAPFONT:
+                GRoot.inst.scene.load.bitmapFont(key, url);
+                break;
+            case LoaderType.SPRITESHEET:
+                GRoot.inst.scene.load.spritesheet(key, url);
+                break;
+            default:
+                GRoot.inst.scene.load.image(key, url);
+                break;
+        }
+    }
+    startLoad() {
+        GRoot.inst.scene.load.on(Phaser.Loader.Events.FILE_COMPLETE, this.onLoadComplete, this);
+        GRoot.inst.scene.load.on(Phaser.Loader.Events.FILE_LOAD_ERROR, this.onLoadError, this);
+        GRoot.inst.scene.load.start();
+    }
+    onLoadComplete() {
+        if (this._completeCallBack)
+            this._completeCallBack();
+    }
+    onLoadError() {
+        if (this._errorCallBack)
+            this._errorCallBack();
+    }
+}
+
+class GLoader extends GObject {
+    constructor() {
+        super();
+        this._url = "";
+        this._fill = LoaderFillType.None;
+        this._align = "left";
+        this._valign = "top";
+        this._showErrorSign = true;
+    }
+    createDisplayObject() {
+        super.createDisplayObject();
+        throw new Error("TODO");
+        // this._content = new MovieClip();
+        // this._displayObject.addChild(this._content);
+        // this._displayObject.mouseEnabled = true;
+    }
+    dispose() {
+        if (!this._contentItem && this._content.texture) {
+            this.freeExternal(this._content.texture);
+        }
+        if (this._content2)
+            this._content2.dispose();
+        super.dispose();
+    }
+    get url() {
+        return this._url;
+    }
+    set url(value) {
+        if (this._url == value)
+            return;
+        this._url = value;
+        this.loadContent();
+        this.updateGear(7);
+    }
+    get icon() {
+        return this._url;
+    }
+    set icon(value) {
+        this.url = value;
+    }
+    get align() {
+        return this._align;
+    }
+    set align(value) {
+        if (this._align != value) {
+            this._align = value;
+            this.updateLayout();
+        }
+    }
+    get verticalAlign() {
+        return this._valign;
+    }
+    set verticalAlign(value) {
+        if (this._valign != value) {
+            this._valign = value;
+            this.updateLayout();
+        }
+    }
+    get fill() {
+        return this._fill;
+    }
+    set fill(value) {
+        if (this._fill != value) {
+            this._fill = value;
+            this.updateLayout();
+        }
+    }
+    get shrinkOnly() {
+        return this._shrinkOnly;
+    }
+    set shrinkOnly(value) {
+        if (this._shrinkOnly != value) {
+            this._shrinkOnly = value;
+            this.updateLayout();
+        }
+    }
+    get autoSize() {
+        return this._autoSize;
+    }
+    set autoSize(value) {
+        if (this._autoSize != value) {
+            this._autoSize = value;
+            this.updateLayout();
+        }
+    }
+    get playing() {
+        return this._content.playing;
+    }
+    set playing(value) {
+        if (this._content.playing != value) {
+            this._content.playing = value;
+            this.updateGear(5);
+        }
+    }
+    get frame() {
+        return this._content.frame;
+    }
+    set frame(value) {
+        if (this._content.frame != value) {
+            this._content.frame = value;
+            this.updateGear(5);
+        }
+    }
+    get color() {
+        return this._content.color;
+    }
+    set color(value) {
+        if (this._content.color != value) {
+            this._content.color = value;
+            this.updateGear(4);
+        }
+    }
+    get fillMethod() {
+        return this._content.fillMethod;
+    }
+    set fillMethod(value) {
+        this._content.fillMethod = value;
+    }
+    get fillOrigin() {
+        return this._content.fillOrigin;
+    }
+    set fillOrigin(value) {
+        this._content.fillOrigin = value;
+    }
+    get fillClockwise() {
+        return this._content.fillClockwise;
+    }
+    set fillClockwise(value) {
+        this._content.fillClockwise = value;
+    }
+    get fillAmount() {
+        return this._content.fillAmount;
+    }
+    set fillAmount(value) {
+        this._content.fillAmount = value;
+    }
+    get showErrorSign() {
+        return this._showErrorSign;
+    }
+    set showErrorSign(value) {
+        this._showErrorSign = value;
+    }
+    get content() {
+        return this._content;
+    }
+    get component() {
+        return this._content2;
+    }
+    loadContent() {
+        this.clearContent();
+        if (!this._url)
+            return;
+        if (ToolSet.startsWith(this._url, "ui://"))
+            this.loadFromPackage(this._url);
+        else
+            this.loadExternal();
+    }
+    loadFromPackage(itemURL) {
+        this._contentItem = UIPackage.getItemByURL(itemURL);
+        if (this._contentItem) {
+            this._contentItem = this._contentItem.getBranch();
+            this.sourceWidth = this._contentItem.width;
+            this.sourceHeight = this._contentItem.height;
+            this._contentItem = this._contentItem.getHighResolution();
+            this._contentItem.load();
+            if (this._autoSize)
+                this.setSize(this.sourceWidth, this.sourceHeight);
+            if (this._contentItem.type == PackageItemType.Image) {
+                if (!this._contentItem.texture) {
+                    this.setErrorState();
+                }
+                else {
+                    this._content.texture = this._contentItem.texture;
+                    this._content.scale9Grid = this._contentItem.scale9Grid;
+                    this._content.scaleByTile = this._contentItem.scaleByTile;
+                    this._content.tileGridIndice = this._contentItem.tileGridIndice;
+                    this.sourceWidth = this._contentItem.width;
+                    this.sourceHeight = this._contentItem.height;
+                    this.updateLayout();
+                }
+            }
+            else if (this._contentItem.type == PackageItemType.MovieClip) {
+                this.sourceWidth = this._contentItem.width;
+                this.sourceHeight = this._contentItem.height;
+                this._content.interval = this._contentItem.interval;
+                this._content.swing = this._contentItem.swing;
+                this._content.repeatDelay = this._contentItem.repeatDelay;
+                this._content.frames = this._contentItem.frames;
+                this.updateLayout();
+            }
+            else if (this._contentItem.type == PackageItemType.Component) {
+                var obj = UIPackage.createObjectFromURL(itemURL);
+                if (!obj)
+                    this.setErrorState();
+                else if (!(obj instanceof GComponent)) {
+                    obj.dispose();
+                    this.setErrorState();
+                }
+                else {
+                    this._content2 = obj.asCom;
+                    this._displayObject.add(this._content2.displayObject);
+                    this.updateLayout();
+                }
+            }
+            else
+                this.setErrorState();
+        }
+        else
+            this.setErrorState();
+    }
+    loadExternal() {
+        AssetProxy.inst.load(this._url, this._url, LoaderType.IMAGE, this.__getResCompleted);
+        AssetProxy.inst.startLoad();
+        // AssetProxy.inst.load(this._url, Laya.Handler.create(this, this.__getResCompleted), null, Laya.Loader.IMAGE);
+    }
+    freeExternal(texture) {
+    }
+    onExternalLoadSuccess(texture) {
+        throw new Error("TODO");
+        // this._content.texture = texture;
+        // this._content.scale9Grid = null;
+        // this._content.scaleByTile = false;
+        // this.sourceWidth = texture.width;
+        // this.sourceHeight = texture.height;
+        // this.updateLayout();
+    }
+    onExternalLoadFailed() {
+        this.setErrorState();
+    }
+    __getResCompleted(tex) {
+        if (tex != null)
+            this.onExternalLoadSuccess(tex);
+        else
+            this.onExternalLoadFailed();
+    }
+    setErrorState() {
+        if (!this._showErrorSign)
+            return;
+        if (!this._errorSign) {
+            if (UIConfig.loaderErrorSign != null) {
+                this._errorSign = GLoader._errorSignPool.getObject(UIConfig.loaderErrorSign);
+            }
+        }
+        if (this._errorSign) {
+            this._errorSign.setSize(this.width, this.height);
+            throw new Error("TODO");
+            // this._displayObject.addChild(this._errorSign.displayObject);
+        }
+    }
+    clearErrorState() {
+        if (this._errorSign) {
+            throw new Error("TODO");
+        }
+    }
+    updateLayout() {
+        throw new Error("TODO");
+        // if (!this._content2 && !this._content.texture && !this._content.frames) {
+        //     if (this._autoSize) {
+        //         this._updatingLayout = true;
+        //         this.setSize(50, 30);
+        //         this._updatingLayout = false;
+        //     }
+        //     return;
+        // }
+        // let cw = this.sourceWidth;
+        // let ch = this.sourceHeight;
+        // if (this._autoSize) {
+        //     this._updatingLayout = true;
+        //     if (cw == 0)
+        //         cw = 50;
+        //     if (ch == 0)
+        //         ch = 30;
+        //     this.setSize(cw, ch);
+        //     this._updatingLayout = false;
+        //     if (cw == this._width && ch == this._height) {
+        //         if (this._content2) {
+        //             this._content2.setXY(0, 0);
+        //             this._content2.setScale(1, 1);
+        //         }
+        //         else {
+        //             this._content.size(cw, ch);
+        //             this._content.pos(0, 0);
+        //         }
+        //         return;
+        //     }
+        // }
+        // var sx: number = 1, sy: number = 1;
+        // if (this._fill != LoaderFillType.None) {
+        //     sx = this.width / this.sourceWidth;
+        //     sy = this.height / this.sourceHeight;
+        //     if (sx != 1 || sy != 1) {
+        //         if (this._fill == LoaderFillType.ScaleMatchHeight)
+        //             sx = sy;
+        //         else if (this._fill == LoaderFillType.ScaleMatchWidth)
+        //             sy = sx;
+        //         else if (this._fill == LoaderFillType.Scale) {
+        //             if (sx > sy)
+        //                 sx = sy;
+        //             else
+        //                 sy = sx;
+        //         }
+        //         else if (this._fill == LoaderFillType.ScaleNoBorder) {
+        //             if (sx > sy)
+        //                 sy = sx;
+        //             else
+        //                 sx = sy;
+        //         }
+        //         if (this._shrinkOnly) {
+        //             if (sx > 1)
+        //                 sx = 1;
+        //             if (sy > 1)
+        //                 sy = 1;
+        //         }
+        //         cw = this.sourceWidth * sx;
+        //         ch = this.sourceHeight * sy;
+        //     }
+        // }
+        // if (this._content2)
+        //     this._content2.setScale(sx, sy);
+        // else
+        //     this._content.size(cw, ch);
+        // var nx: number, ny: number;
+        // if (this._align == "center")
+        //     nx = Math.floor((this.width - cw) / 2);
+        // else if (this._align == "right")
+        //     nx = this.width - cw;
+        // else
+        //     nx = 0;
+        // if (this._valign == "middle")
+        //     ny = Math.floor((this.height - ch) / 2);
+        // else if (this._valign == "bottom")
+        //     ny = this.height - ch;
+        // else
+        //     ny = 0;
+        // if (this._content2)
+        //     this._content2.setXY(nx, ny);
+        // else
+        //     this._content.pos(nx, ny);
+    }
+    clearContent() {
+        this.clearErrorState();
+        if (!this._contentItem && this._content.texture) {
+            this.freeExternal(this._content.texture);
+        }
+        this._content.texture = null;
+        this._content.frames = null;
+        if (this._content2) {
+            this._content2.dispose();
+            this._content2 = null;
+        }
+        this._contentItem = null;
+    }
+    handleSizeChanged() {
+        super.handleSizeChanged();
+        if (!this._updatingLayout)
+            this.updateLayout();
+    }
+    getProp(index) {
+        switch (index) {
+            case ObjectPropID.Color:
+                return this.color;
+            case ObjectPropID.Playing:
+                return this.playing;
+            case ObjectPropID.Frame:
+                return this.frame;
+            case ObjectPropID.TimeScale:
+                return this._content.timeScale;
+            default:
+                return super.getProp(index);
+        }
+    }
+    setProp(index, value) {
+        switch (index) {
+            case ObjectPropID.Color:
+                this.color = value;
+                break;
+            case ObjectPropID.Playing:
+                this.playing = value;
+                break;
+            case ObjectPropID.Frame:
+                this.frame = value;
+                break;
+            case ObjectPropID.TimeScale:
+                this._content.timeScale = value;
+                break;
+            case ObjectPropID.DeltaTime:
+                this._content.advance(value);
+                break;
+            default:
+                super.setProp(index, value);
+                break;
+        }
+    }
+    setup_beforeAdd(buffer, beginPos) {
+        super.setup_beforeAdd(buffer, beginPos);
+        buffer.seek(beginPos, 5);
+        var iv;
+        this._url = buffer.readS();
+        iv = buffer.readByte();
+        this._align = iv == 0 ? "left" : (iv == 1 ? "center" : "right");
+        iv = buffer.readByte();
+        this._valign = iv == 0 ? "top" : (iv == 1 ? "middle" : "bottom");
+        this._fill = buffer.readByte();
+        this._shrinkOnly = buffer.readBool();
+        this._autoSize = buffer.readBool();
+        this._showErrorSign = buffer.readBool();
+        this._content.playing = buffer.readBool();
+        this._content.frame = buffer.readInt();
+        if (buffer.readBool())
+            this.color = buffer.readColorS();
+        this._content.fillMethod = buffer.readByte();
+        if (this._content.fillMethod != 0) {
+            this._content.fillOrigin = buffer.readByte();
+            this._content.fillClockwise = buffer.readBool();
+            this._content.fillAmount = buffer.readFloat();
+        }
+        if (this._url)
+            this.loadContent();
+    }
+}
+GLoader._errorSignPool = new GObjectPool();
+
+class GComboBox extends GComponent {
+    constructor() {
+        super();
+        this._visibleItemCount = UIConfig.defaultComboBoxVisibleItemCount;
+        this._itemsUpdated = true;
+        this._selectedIndex = -1;
+        this._popupDirection = 0;
+        this._items = [];
+        this._values = [];
+    }
+    get text() {
+        if (this._titleObject)
+            return this._titleObject.text;
+        else
+            return null;
+    }
+    set text(value) {
+        if (this._titleObject)
+            this._titleObject.text = value;
+        this.updateGear(6);
+    }
+    get titleColor() {
+        var tf = this.getTextField();
+        if (tf)
+            return tf.color;
+        else
+            return "#000000";
+    }
+    set titleColor(value) {
+        var tf = this.getTextField();
+        if (tf)
+            tf.color = value;
+        this.updateGear(4);
+    }
+    get titleFontSize() {
+        var tf = this.getTextField();
+        if (tf)
+            return tf.fontSize;
+        else
+            return 0;
+    }
+    set titleFontSize(value) {
+        var tf = this.getTextField();
+        if (tf)
+            tf.fontSize = value;
+    }
+    get icon() {
+        if (this._iconObject)
+            return this._iconObject.icon;
+        else
+            return null;
+    }
+    set icon(value) {
+        if (this._iconObject)
+            this._iconObject.icon = value;
+        this.updateGear(7);
+    }
+    get visibleItemCount() {
+        return this._visibleItemCount;
+    }
+    set visibleItemCount(value) {
+        this._visibleItemCount = value;
+    }
+    get popupDirection() {
+        return this._popupDirection;
+    }
+    set popupDirection(value) {
+        this._popupDirection = value;
+    }
+    get items() {
+        return this._items;
+    }
+    set items(value) {
+        if (!value)
+            this._items.length = 0;
+        else
+            this._items = value.concat();
+        if (this._items.length > 0) {
+            if (this._selectedIndex >= this._items.length)
+                this._selectedIndex = this._items.length - 1;
+            else if (this._selectedIndex == -1)
+                this._selectedIndex = 0;
+            this.text = this._items[this._selectedIndex];
+            if (this._icons && this._selectedIndex < this._icons.length)
+                this.icon = this._icons[this._selectedIndex];
+        }
+        else {
+            this.text = "";
+            if (this._icons)
+                this.icon = null;
+            this._selectedIndex = -1;
+        }
+        this._itemsUpdated = true;
+    }
+    get icons() {
+        return this._icons;
+    }
+    set icons(value) {
+        this._icons = value;
+        if (this._icons && this._selectedIndex != -1 && this._selectedIndex < this._icons.length)
+            this.icon = this._icons[this._selectedIndex];
+    }
+    get values() {
+        return this._values;
+    }
+    set values(value) {
+        if (!value)
+            this._values.length = 0;
+        else
+            this._values = value.concat();
+    }
+    get selectedIndex() {
+        return this._selectedIndex;
+    }
+    set selectedIndex(val) {
+        if (this._selectedIndex == val)
+            return;
+        this._selectedIndex = val;
+        if (this._selectedIndex >= 0 && this._selectedIndex < this._items.length) {
+            this.text = this._items[this._selectedIndex];
+            if (this._icons && this._selectedIndex < this._icons.length)
+                this.icon = this._icons[this._selectedIndex];
+        }
+        else {
+            this.text = "";
+            if (this._icons)
+                this.icon = null;
+        }
+        this.updateSelectionController();
+    }
+    get value() {
+        return this._values[this._selectedIndex];
+    }
+    set value(val) {
+        var index = this._values.indexOf(val);
+        if (index == -1 && val == null)
+            index = this._values.indexOf("");
+        this.selectedIndex = index;
+    }
+    getTextField() {
+        if (this._titleObject instanceof GTextField)
+            return this._titleObject;
+        else if ((this._titleObject instanceof GLabel) || (this._titleObject instanceof GButton))
+            return this._titleObject.getTextField();
+        else
+            return null;
+    }
+    setState(val) {
+        if (this._buttonController)
+            this._buttonController.selectedPage = val;
+    }
+    get selectionController() {
+        return this._selectionController;
+    }
+    set selectionController(value) {
+        this._selectionController = value;
+    }
+    handleControllerChanged(c) {
+        super.handleControllerChanged(c);
+        if (this._selectionController == c)
+            this.selectedIndex = c.selectedIndex;
+    }
+    updateSelectionController() {
+        if (this._selectionController && !this._selectionController.changing
+            && this._selectedIndex < this._selectionController.pageCount) {
+            var c = this._selectionController;
+            this._selectionController = null;
+            c.selectedIndex = this._selectedIndex;
+            this._selectionController = c;
+        }
+    }
+    dispose() {
+        if (this.dropdown) {
+            this.dropdown.dispose();
+            this.dropdown = null;
+        }
+        this._selectionController = null;
+        super.dispose();
+    }
+    getProp(index) {
+        switch (index) {
+            case ObjectPropID.Color:
+                return this.titleColor;
+            case ObjectPropID.OutlineColor:
+                {
+                    var tf = this.getTextField();
+                    if (tf)
+                        return tf.strokeColor;
+                    else
+                        return 0;
+                }
+            case ObjectPropID.FontSize:
+                {
+                    tf = this.getTextField();
+                    if (tf)
+                        return tf.fontSize;
+                    else
+                        return 0;
+                }
+            default:
+                return super.getProp(index);
+        }
+    }
+    setProp(index, value) {
+        switch (index) {
+            case ObjectPropID.Color:
+                this.titleColor = value;
+                break;
+            case ObjectPropID.OutlineColor:
+                {
+                    var tf = this.getTextField();
+                    if (tf)
+                        tf.strokeColor = value;
+                }
+                break;
+            case ObjectPropID.FontSize:
+                {
+                    tf = this.getTextField();
+                    if (tf)
+                        tf.fontSize = value;
+                }
+                break;
+            default:
+                super.setProp(index, value);
+                break;
+        }
+    }
+    constructExtension(buffer) {
+        throw new Error("TODO");
+        // var str: string;
+        // this._buttonController = this.getController("button");
+        // this._titleObject = this.getChild("title");
+        // this._iconObject = this.getChild("icon");
+        // str = buffer.readS();
+        // if (str) {
+        //     this.dropdown = <GComponent>(UIPackage.createObjectFromURL(str));
+        //     if (!this.dropdown) {
+        //         Laya.Log.print("下拉框必须为元件");
+        //         return;
+        //     }
+        //     this.dropdown.name = "this._dropdownObject";
+        //     this._list = <GList>this.dropdown.getChild("list");
+        //     if (!this._list) {
+        //         Laya.Log.print(this.resourceURL + ": 下拉框的弹出元件里必须包含名为list的列表");
+        //         return;
+        //     }
+        //     this._list.on(Events.CLICK_ITEM, this, this.__clickItem);
+        //     this._list.addRelation(this.dropdown, RelationType.Width);
+        //     this._list.removeRelation(this.dropdown, RelationType.Height);
+        //     this.dropdown.addRelation(this._list, RelationType.Height);
+        //     this.dropdown.removeRelation(this._list, RelationType.Width);
+        //     this.dropdown.displayObject.on(Laya.Event.UNDISPLAY, this, this.__popupWinClosed);
+        // }
+        // this.on(Laya.Event.ROLL_OVER, this, this.__rollover);
+        // this.on(Laya.Event.ROLL_OUT, this, this.__rollout);
+        // this.on(Laya.Event.MOUSE_DOWN, this, this.__mousedown);
+    }
+    setup_afterAdd(buffer, beginPos) {
+        super.setup_afterAdd(buffer, beginPos);
+        if (!buffer.seek(beginPos, 6))
+            return;
+        if (buffer.readByte() != this.packageItem.objectType)
+            return;
+        var i;
+        var iv;
+        var nextPos;
+        var str;
+        var itemCount = buffer.readShort();
+        for (i = 0; i < itemCount; i++) {
+            nextPos = buffer.readShort();
+            nextPos += buffer.position;
+            this._items[i] = buffer.readS();
+            this._values[i] = buffer.readS();
+            str = buffer.readS();
+            if (str != null) {
+                if (!this._icons)
+                    this._icons = [];
+                this._icons[i] = str;
+            }
+            buffer.position = nextPos;
+        }
+        str = buffer.readS();
+        if (str != null) {
+            this.text = str;
+            this._selectedIndex = this._items.indexOf(str);
+        }
+        else if (this._items.length > 0) {
+            this._selectedIndex = 0;
+            this.text = this._items[0];
+        }
+        else
+            this._selectedIndex = -1;
+        str = buffer.readS();
+        if (str != null)
+            this.icon = str;
+        if (buffer.readBool())
+            this.titleColor = buffer.readColorS();
+        iv = buffer.readInt();
+        if (iv > 0)
+            this._visibleItemCount = iv;
+        this._popupDirection = buffer.readByte();
+        iv = buffer.readShort();
+        if (iv >= 0)
+            this._selectionController = this.parent.getControllerAt(iv);
+    }
+    showDropdown() {
+        throw new Error("TODO");
+        // if (this._itemsUpdated) {
+        //     this._itemsUpdated = false;
+        //     this._list.removeChildrenToPool();
+        //     var cnt: number = this._items.length;
+        //     for (var i: number = 0; i < cnt; i++) {
+        //         var item: GObject = this._list.addItemFromPool();
+        //         item.name = i < this._values.length ? this._values[i] : "";
+        //         item.text = this._items[i];
+        //         item.icon = (this._icons && i < this._icons.length) ? this._icons[i] : null;
+        //     }
+        //     this._list.resizeToFit(this._visibleItemCount);
+        // }
+        // this._list.selectedIndex = -1;
+        // this.dropdown.width = this.width;
+        // this._list.ensureBoundsCorrect();
+        // var downward: any = null;
+        // if (this._popupDirection == PopupDirection.Down)
+        //     downward = true;
+        // else if (this._popupDirection == PopupDirection.Up)
+        //     downward = false;
+        // this.root.togglePopup(this.dropdown, this, downward);
+        // if (this.dropdown.parent)
+        //     this.setState(GButton.DOWN);
+    }
+    __popupWinClosed() {
+        if (this._over)
+            this.setState(GButton.OVER);
+        else
+            this.setState(GButton.UP);
+    }
+    __clickItem(itemObject, evt) {
+        // Laya.timer.callLater(this, this.__clickItem2, [this._list.getChildIndex(itemObject), evt])
+    }
+    __clickItem2(index, evt) {
+        throw new Error("TODO");
+        // if (this.dropdown.parent instanceof GRoot)
+        //     this.dropdown.parent.hidePopup();
+        // this._selectedIndex = -1;
+        // this.selectedIndex = index;
+        // Events.dispatch(Events.STATE_CHANGED, this.displayObject, evt);
+    }
+    __rollover() {
+        this._over = true;
+        if (this._down || this.dropdown && this.dropdown.parent)
+            return;
+        this.setState(GButton.OVER);
+    }
+    __rollout() {
+        this._over = false;
+        if (this._down || this.dropdown && this.dropdown.parent)
+            return;
+        this.setState(GButton.UP);
+    }
+    __mousedown(evt) {
+        throw new Error("TODO");
+        // if (evt.target instanceof Laya.Input)
+        //     return;
+        // this._down = true;
+        // GRoot.inst.checkPopups(evt.target);
+        // Laya.stage.on(Laya.Event.MOUSE_UP, this, this.__mouseup);
+        // if (this.dropdown)
+        //     this.showDropdown();
+    }
+    __mouseup() {
+        throw new Error("TODO");
+        // if (this._down) {
+        //     this._down = false;
+        //     Laya.stage.off(Laya.Event.MOUSE_UP, this, this.__mouseup);
+        //     if (this.dropdown && !this.dropdown.parent) {
+        //         if (this._over)
+        //             this.setState(GButton.OVER);
+        //         else
+        //             this.setState(GButton.UP);
+        //     }
+        // }
+    }
+}
+
+class GSlider extends GComponent {
+    constructor() {
+        super();
+        this._min = 0;
+        this._max = 0;
+        this._value = 0;
+        this._barMaxWidth = 0;
+        this._barMaxHeight = 0;
+        this._barMaxWidthDelta = 0;
+        this._barMaxHeightDelta = 0;
+        this._clickPercent = 0;
+        this._barStartX = 0;
+        this._barStartY = 0;
+        this.changeOnClick = true;
+        /**是否可拖动开关**/
+        this.canDrag = true;
+        this._titleType = ProgressTitleType.Percent;
+        this._value = 50;
+        this._max = 100;
+        this._clickPos = new Phaser.Geom.Point();
+    }
+    get titleType() {
+        return this._titleType;
+    }
+    set titleType(value) {
+        this._titleType = value;
+    }
+    get wholeNumbers() {
+        return this._wholeNumbers;
+    }
+    set wholeNumbers(value) {
+        if (this._wholeNumbers != value) {
+            this._wholeNumbers = value;
+            this.update();
+        }
+    }
+    get min() {
+        return this._min;
+    }
+    set min(value) {
+        if (this._min != value) {
+            this._min = value;
+            this.update();
+        }
+    }
+    get max() {
+        return this._max;
+    }
+    set max(value) {
+        if (this._max != value) {
+            this._max = value;
+            this.update();
+        }
+    }
+    get value() {
+        return this._value;
+    }
+    set value(value) {
+        if (this._value != value) {
+            this._value = value;
+            this.update();
+        }
+    }
+    update() {
+        this.updateWithPercent((this._value - this._min) / (this._max - this._min));
+    }
+    updateWithPercent(percent, evt) {
+        percent = ToolSet.clamp01(percent);
+        if (evt) {
+            throw new Error("TODO");
+        }
+        if (this._titleObject) {
+            switch (this._titleType) {
+                case ProgressTitleType.Percent:
+                    this._titleObject.text = Math.floor(percent * 100) + "%";
+                    break;
+                case ProgressTitleType.ValueAndMax:
+                    this._titleObject.text = this._value + "/" + this._max;
+                    break;
+                case ProgressTitleType.Value:
+                    this._titleObject.text = "" + this._value;
+                    break;
+                case ProgressTitleType.Max:
+                    this._titleObject.text = "" + this._max;
+                    break;
+            }
+        }
+        var fullWidth = this.width - this._barMaxWidthDelta;
+        var fullHeight = this.height - this._barMaxHeightDelta;
+        if (!this._reverse) {
+            if (this._barObjectH)
+                this._barObjectH.width = Math.round(fullWidth * percent);
+            if (this._barObjectV)
+                this._barObjectV.height = Math.round(fullHeight * percent);
+        }
+        else {
+            if (this._barObjectH) {
+                this._barObjectH.width = Math.round(fullWidth * percent);
+                this._barObjectH.x = this._barStartX + (fullWidth - this._barObjectH.width);
+            }
+            if (this._barObjectV) {
+                this._barObjectV.height = Math.round(fullHeight * percent);
+                this._barObjectV.y = this._barStartY + (fullHeight - this._barObjectV.height);
+            }
+        }
+    }
+    constructExtension(buffer) {
+        throw new Error("TODO");
+        // this.displayObject.on(Laya.Event.MOUSE_DOWN, this, this.__barMouseDown);
+    }
+    handleSizeChanged() {
+        super.handleSizeChanged();
+        if (this._barObjectH)
+            this._barMaxWidth = this.width - this._barMaxWidthDelta;
+        if (this._barObjectV)
+            this._barMaxHeight = this.height - this._barMaxHeightDelta;
+        if (!this._underConstruct)
+            this.update();
+    }
+    setup_afterAdd(buffer, beginPos) {
+        super.setup_afterAdd(buffer, beginPos);
+        if (!buffer.seek(beginPos, 6)) {
+            this.update();
+            return;
+        }
+        if (buffer.readByte() != this.packageItem.objectType) {
+            this.update();
+            return;
+        }
+        this._value = buffer.readInt();
+        this._max = buffer.readInt();
+        if (buffer.version >= 2)
+            this._min = buffer.readInt();
+        this.update();
+    }
+    __gripMouseDown(evt) {
+        // this.canDrag = true;
+        // evt.stopPropagation();
+        // this._clickPos = this.globalToLocal(Laya.stage.mouseX, Laya.stage.mouseY);
+        // this._clickPercent = ToolSet.clamp01((this._value - this._min) / (this._max - this._min));
+        // Laya.stage.on(Laya.Event.MOUSE_MOVE, this, this.__gripMouseMove);
+        // Laya.stage.on(Laya.Event.MOUSE_UP, this, this.__gripMouseUp);
+    }
+    __gripMouseMove(evt) {
+        throw new Error("TODO");
+        // if (!this.canDrag) {
+        //     return;
+        // }
+        // var pt: Laya.Point = this.globalToLocal(Laya.stage.mouseX, Laya.stage.mouseY, s_vec2);
+        // var deltaX: number = pt.x - this._clickPos.x;
+        // var deltaY: number = pt.y - this._clickPos.y;
+        // if (this._reverse) {
+        //     deltaX = -deltaX;
+        //     deltaY = -deltaY;
+        // }
+        // var percent: number;
+        // if (this._barObjectH)
+        //     percent = this._clickPercent + deltaX / this._barMaxWidth;
+        // else
+        //     percent = this._clickPercent + deltaY / this._barMaxHeight;
+        // this.updateWithPercent(percent, evt);
+    }
+    __gripMouseUp(evt) {
+        throw new Error("TODO");
+        // Laya.stage.off(Laya.Event.MOUSE_MOVE, this, this.__gripMouseMove);
+        // Laya.stage.off(Laya.Event.MOUSE_UP, this, this.__gripMouseUp);
+    }
+    __barMouseDown(evt) {
+        throw new Error("TODO");
+        // if (!this.changeOnClick)
+        //     return;
+        // var pt: Laya.Point = this._gripObject.globalToLocal(evt.stageX, evt.stageY, s_vec2);
+        // var percent: number = ToolSet.clamp01((this._value - this._min) / (this._max - this._min));
+        // var delta: number;
+        // if (this._barObjectH)
+        //     delta = pt.x / this._barMaxWidth;
+        // if (this._barObjectV)
+        //     delta = pt.y / this._barMaxHeight;
+        // if (this._reverse)
+        //     percent -= delta;
+        // else
+        //     percent += delta;
+        // this.updateWithPercent(percent, evt);
+    }
+}
+new Phaser.Geom.Point();
+
+class GProgressBar extends GComponent {
+    constructor() {
+        super();
+        this._min = 0;
+        this._max = 0;
+        this._value = 0;
+        this._barMaxWidth = 0;
+        this._barMaxHeight = 0;
+        this._barMaxWidthDelta = 0;
+        this._barMaxHeightDelta = 0;
+        this._barStartX = 0;
+        this._barStartY = 0;
+        this._titleType = ProgressTitleType.Percent;
+        this._value = 50;
+        this._max = 100;
+    }
+    get titleType() {
+        return this._titleType;
+    }
+    set titleType(value) {
+        if (this._titleType != value) {
+            this._titleType = value;
+            this.update(value);
+        }
+    }
+    get min() {
+        return this._min;
+    }
+    set min(value) {
+        if (this._min != value) {
+            this._min = value;
+            this.update(this._value);
+        }
+    }
+    get max() {
+        return this._max;
+    }
+    set max(value) {
+        if (this._max != value) {
+            this._max = value;
+            this.update(this._value);
+        }
+    }
+    get value() {
+        return this._value;
+    }
+    set value(value) {
+        if (this._value != value) {
+            GTween.kill(this, false, this.update);
+            this._value = value;
+            this.update(value);
+        }
+    }
+    tweenValue(value, duration) {
+        var oldValule;
+        var tweener = GTween.getTween(this, this.update);
+        if (tweener) {
+            oldValule = tweener.value.x;
+            tweener.kill();
+        }
+        else
+            oldValule = this._value;
+        this._value = value;
+        return GTween.to(oldValule, this._value, duration).setTarget(this, this.update).setEase(EaseType.Linear);
+    }
+    update(newValue) {
+        var percent = ToolSet.clamp01((newValue - this._min) / (this._max - this._min));
+        if (this._titleObject) {
+            switch (this._titleType) {
+                case ProgressTitleType.Percent:
+                    this._titleObject.text = Math.floor(percent * 100) + "%";
+                    break;
+                case ProgressTitleType.ValueAndMax:
+                    this._titleObject.text = Math.floor(newValue) + "/" + Math.floor(this._max);
+                    break;
+                case ProgressTitleType.Value:
+                    this._titleObject.text = "" + Math.floor(newValue);
+                    break;
+                case ProgressTitleType.Max:
+                    this._titleObject.text = "" + Math.floor(this._max);
+                    break;
+            }
+        }
+        var fullWidth = this.width - this._barMaxWidthDelta;
+        var fullHeight = this.height - this._barMaxHeightDelta;
+        if (!this._reverse) {
+            if (this._barObjectH) {
+                if (!this.setFillAmount(this._barObjectH, percent))
+                    this._barObjectH.width = Math.round(fullWidth * percent);
+            }
+            if (this._barObjectV) {
+                if (!this.setFillAmount(this._barObjectV, percent))
+                    this._barObjectV.height = Math.round(fullHeight * percent);
+            }
+        }
+        else {
+            if (this._barObjectH) {
+                if (!this.setFillAmount(this._barObjectH, 1 - percent)) {
+                    this._barObjectH.width = Math.round(fullWidth * percent);
+                    this._barObjectH.x = this._barStartX + (fullWidth - this._barObjectH.width);
+                }
+            }
+            if (this._barObjectV) {
+                if (!this.setFillAmount(this._barObjectV, 1 - percent)) {
+                    this._barObjectV.height = Math.round(fullHeight * percent);
+                    this._barObjectV.y = this._barStartY + (fullHeight - this._barObjectV.height);
+                }
+            }
+        }
+        if (this._aniObject)
+            this._aniObject.setProp(ObjectPropID.Frame, Math.floor(percent * 100));
+    }
+    setFillAmount(bar, percent) {
+        if (((bar instanceof GImage) || (bar instanceof GLoader)) && bar.fillMethod != FillMethod.None) {
+            bar.fillAmount = percent;
+            return true;
+        }
+        else
+            return false;
+    }
+    constructExtension(buffer) {
+        buffer.seek(0, 6);
+        this._titleType = buffer.readByte();
+        this._reverse = buffer.readBool();
+        this._titleObject = this.getChild("title");
+        this._barObjectH = this.getChild("bar");
+        this._barObjectV = this.getChild("bar_v");
+        this._aniObject = this.getChild("ani");
+        if (this._barObjectH) {
+            this._barMaxWidth = this._barObjectH.width;
+            this._barMaxWidthDelta = this.width - this._barMaxWidth;
+            this._barStartX = this._barObjectH.x;
+        }
+        if (this._barObjectV) {
+            this._barMaxHeight = this._barObjectV.height;
+            this._barMaxHeightDelta = this.height - this._barMaxHeight;
+            this._barStartY = this._barObjectV.y;
+        }
+    }
+    handleSizeChanged() {
+        super.handleSizeChanged();
+        if (this._barObjectH)
+            this._barMaxWidth = this.width - this._barMaxWidthDelta;
+        if (this._barObjectV)
+            this._barMaxHeight = this.height - this._barMaxHeightDelta;
+        if (!this._underConstruct)
+            this.update(this._value);
+    }
+    setup_afterAdd(buffer, beginPos) {
+        super.setup_afterAdd(buffer, beginPos);
+        if (!buffer.seek(beginPos, 6)) {
+            this.update(this._value);
+            return;
+        }
+        if (buffer.readByte() != this.packageItem.objectType) {
+            this.update(this._value);
+            return;
+        }
+        this._value = buffer.readInt();
+        this._max = buffer.readInt();
+        if (buffer.version >= 2)
+            this._min = buffer.readInt();
+        this.update(this._value);
+    }
+}
+
+class GScrollBar extends GComponent {
+    constructor() {
+        super();
+        this._dragOffset = new Phaser.Geom.Point();
+        this._scrollPerc = 0;
+    }
+    setScrollPane(target, vertical) {
+        this._target = target;
+        this._vertical = vertical;
+    }
+    setDisplayPerc(value) {
+        if (this._vertical) {
+            if (!this._fixedGripSize)
+                this._grip.height = Math.floor(value * this._bar.height);
+            this._grip.y = this._bar.y + (this._bar.height - this._grip.height) * this._scrollPerc;
+        }
+        else {
+            if (!this._fixedGripSize)
+                this._grip.width = Math.floor(value * this._bar.width);
+            this._grip.x = this._bar.x + (this._bar.width - this._grip.width) * this._scrollPerc;
+        }
+        this._grip.visible = value != 0 && value != 1;
+    }
+    setScrollPerc(val) {
+        this._scrollPerc = val;
+        if (this._vertical)
+            this._grip.y = this._bar.y + (this._bar.height - this._grip.height) * this._scrollPerc;
+        else
+            this._grip.x = this._bar.x + (this._bar.width - this._grip.width) * this._scrollPerc;
+    }
+    get minSize() {
+        if (this._vertical)
+            return (this._arrowButton1 ? this._arrowButton1.height : 0) + (this._arrowButton2 ? this._arrowButton2.height : 0);
+        else
+            return (this._arrowButton1 ? this._arrowButton1.width : 0) + (this._arrowButton2 ? this._arrowButton2.width : 0);
+    }
+    get gripDragging() {
+        return this._gripDragging;
+    }
+    constructExtension(buffer) {
+        throw new Error("TODO");
+        // buffer.seek(0, 6);
+        // this._fixedGripSize = buffer.readBool();
+        // this._grip = this.getChild("grip");
+        // if (!this._grip) {
+        //     Laya.Log.print("需要定义grip");
+        //     return;
+        // }
+        // this._bar = this.getChild("bar");
+        // if (!this._bar) {
+        //     Laya.Log.print("需要定义bar");
+        //     return;
+        // }
+        // this._arrowButton1 = this.getChild("arrow1");
+        // this._arrowButton2 = this.getChild("arrow2");
+        // this._grip.on(Laya.Event.MOUSE_DOWN, this, this.__gripMouseDown);
+        // if (this._arrowButton1)
+        //     this._arrowButton1.on(Laya.Event.MOUSE_DOWN, this, this.__arrowButton1Click);
+        // if (this._arrowButton2)
+        //     this._arrowButton2.on(Laya.Event.MOUSE_DOWN, this, this.__arrowButton2Click);
+        // this.on(Laya.Event.MOUSE_DOWN, this, this.__barMouseDown);
+    }
+    __gripMouseDown(evt) {
+        throw new Error("TODO");
+        // evt.stopPropagation();
+        // this._gripDragging = true;
+        // this._target.updateScrollBarVisible();
+        // Laya.stage.on(Laya.Event.MOUSE_MOVE, this, this.__gripMouseMove);
+        // Laya.stage.on(Laya.Event.MOUSE_UP, this, this.__gripMouseUp);
+        // this.globalToLocal(Laya.stage.mouseX, Laya.stage.mouseY, this._dragOffset);
+        // this._dragOffset.x -= this._grip.x;
+        // this._dragOffset.y -= this._grip.y;
+    }
+    __gripMouseMove() {
+        throw new Error("TODO");
+        // if (!this.onStage)
+        //     return;
+        // var pt: Laya.Point = this.globalToLocal(Laya.stage.mouseX, Laya.stage.mouseY, s_vec2);
+        // if (this._vertical) {
+        //     var curY: number = pt.y - this._dragOffset.y;
+        //     this._target.setPercY((curY - this._bar.y) / (this._bar.height - this._grip.height), false);
+        // }
+        // else {
+        //     var curX: number = pt.x - this._dragOffset.x;
+        //     this._target.setPercX((curX - this._bar.x) / (this._bar.width - this._grip.width), false);
+        // }
+    }
+    __gripMouseUp(evt) {
+        throw new Error("TODO");
+        // if (!this.onStage)
+        //     return;
+        // Laya.stage.off(Laya.Event.MOUSE_MOVE, this, this.__gripMouseMove);
+        // Laya.stage.off(Laya.Event.MOUSE_UP, this, this.__gripMouseUp);
+        // this._gripDragging = false;
+        // this._target.updateScrollBarVisible();
+    }
+    __arrowButton1Click(evt) {
+        throw new Error("TODO");
+        // evt.stopPropagation();
+        // if (this._vertical)
+        //     this._target.scrollUp();
+        // else
+        //     this._target.scrollLeft();
+    }
+    __arrowButton2Click(evt) {
+        throw new Error("TODO");
+        // evt.stopPropagation();
+        // if (this._vertical)
+        //     this._target.scrollDown();
+        // else
+        //     this._target.scrollRight();
+    }
+    __barMouseDown(evt) {
+        throw new Error("TODO");
+        // var pt: Laya.Point = this._grip.globalToLocal(Laya.stage.mouseX, Laya.stage.mouseY, s_vec2);
+        // if (this._vertical) {
+        //     if (pt.y < 0)
+        //         this._target.scrollUp(4);
+        //     else
+        //         this._target.scrollDown(4);
+        // }
+        // else {
+        //     if (pt.x < 0)
+        //         this._target.scrollLeft(4);
+        //     else
+        //         this._target.scrollRight(4);
+        // }
+    }
+}
+new Phaser.Geom.Point();
+
+class GList extends GComponent {
+    constructor() {
+        super();
+        this._lineCount = 0;
+        this._columnCount = 0;
+        this._lineGap = 0;
+        this._columnGap = 0;
+        this._lastSelectedIndex = 0;
+        this._numItems = 0;
+        this._firstIndex = 0; //the top left index
+        this._curLineItemCount = 0; //item count in one line
+        this._virtualListChanged = 0; //1-content changed, 2-size changed
+        this.itemInfoVer = 0; //用来标志item是否在本次处理中已经被重用了
+        throw new Error("TODO");
+        // this._trackBounds = true;
+        // this._pool = new GObjectPool();
+        // this._layout = ListLayoutType.SingleColumn;
+        // this._autoResizeItem = true;
+        // this._lastSelectedIndex = -1;
+        // this._selectionMode = ListSelectionMode.Single;
+        // this.opaque = true;
+        // this.scrollItemToViewOnClick = true;
+        // this._align = "left";
+        // this._verticalAlign = "top";
+        // this._container = new Laya.Sprite();
+        // this._displayObject.addChild(this._container);
+    }
+    dispose() {
+        this._pool.clear();
+        super.dispose();
+    }
+    get layout() {
+        return this._layout;
+    }
+    set layout(value) {
+        if (this._layout != value) {
+            this._layout = value;
+            this.setBoundsChangedFlag();
+            if (this._virtual)
+                this.setVirtualListChangedFlag(true);
+        }
+    }
+    get lineCount() {
+        return this._lineCount;
+    }
+    set lineCount(value) {
+        if (this._lineCount != value) {
+            this._lineCount = value;
+            if (this._layout == ListLayoutType.FlowVertical || this._layout == ListLayoutType.Pagination) {
+                this.setBoundsChangedFlag();
+                if (this._virtual)
+                    this.setVirtualListChangedFlag(true);
+            }
+        }
+    }
+    get columnCount() {
+        return this._columnCount;
+    }
+    set columnCount(value) {
+        if (this._columnCount != value) {
+            this._columnCount = value;
+            if (this._layout == ListLayoutType.FlowHorizontal || this._layout == ListLayoutType.Pagination) {
+                this.setBoundsChangedFlag();
+                if (this._virtual)
+                    this.setVirtualListChangedFlag(true);
+            }
+        }
+    }
+    get lineGap() {
+        return this._lineGap;
+    }
+    set lineGap(value) {
+        if (this._lineGap != value) {
+            this._lineGap = value;
+            this.setBoundsChangedFlag();
+            if (this._virtual)
+                this.setVirtualListChangedFlag(true);
+        }
+    }
+    get columnGap() {
+        return this._columnGap;
+    }
+    set columnGap(value) {
+        if (this._columnGap != value) {
+            this._columnGap = value;
+            this.setBoundsChangedFlag();
+            if (this._virtual)
+                this.setVirtualListChangedFlag(true);
+        }
+    }
+    get align() {
+        return this._align;
+    }
+    set align(value) {
+        if (this._align != value) {
+            this._align = value;
+            this.setBoundsChangedFlag();
+            if (this._virtual)
+                this.setVirtualListChangedFlag(true);
+        }
+    }
+    get verticalAlign() {
+        return this._verticalAlign;
+    }
+    set verticalAlign(value) {
+        if (this._verticalAlign != value) {
+            this._verticalAlign = value;
+            this.setBoundsChangedFlag();
+            if (this._virtual)
+                this.setVirtualListChangedFlag(true);
+        }
+    }
+    get virtualItemSize() {
+        return this._itemSize;
+    }
+    set virtualItemSize(value) {
+        if (this._virtual) {
+            if (this._itemSize == null)
+                this._itemSize = new Phaser.Geom.Point();
+            this._itemSize.setTo(value.x, value.y);
+            this.setVirtualListChangedFlag(true);
+        }
+    }
+    get defaultItem() {
+        return this._defaultItem;
+    }
+    set defaultItem(val) {
+        this._defaultItem = UIPackage.normalizeURL(val);
+    }
+    get autoResizeItem() {
+        return this._autoResizeItem;
+    }
+    set autoResizeItem(value) {
+        if (this._autoResizeItem != value) {
+            this._autoResizeItem = value;
+            this.setBoundsChangedFlag();
+            if (this._virtual)
+                this.setVirtualListChangedFlag(true);
+        }
+    }
+    get selectionMode() {
+        return this._selectionMode;
+    }
+    set selectionMode(value) {
+        this._selectionMode = value;
+    }
+    get selectionController() {
+        return this._selectionController;
+    }
+    set selectionController(value) {
+        this._selectionController = value;
+    }
+    get itemPool() {
+        return this._pool;
+    }
+    getFromPool(url) {
+        if (!url)
+            url = this._defaultItem;
+        var obj = this._pool.getObject(url);
+        if (obj)
+            obj.visible = true;
+        return obj;
+    }
+    returnToPool(obj) {
+        throw new Error("TODO");
+        // obj.displayObject.cacheAs = "none";
+        // this._pool.returnObject(obj);
+    }
+    addChildAt(child, index) {
+        super.addChildAt(child, index);
+        throw new Error("TODO");
+        // if (child instanceof GButton) {
+        //     child.selected = false;
+        //     child.changeStateOnClick = false;
+        // }
+        // child.on(Laya.Event.CLICK, this, this.__clickItem);
+        // return child;
+    }
+    addItem(url) {
+        // if (!url)
+        //     url = this._defaultItem;
+        // return this.addChild(UIPackage.createObjectFromURL(url));
+        throw new Error("TODO");
+    }
+    addItemFromPool(url) {
+        throw new Error("TODO");
+        // return this.addChild(this.getFromPool(url));
+    }
+    removeChildAt(index, dispose) {
+        throw new Error("TODO");
+        // var child: GObject = super.removeChildAt(index);
+        // if (dispose)
+        //     child.dispose();
+        // else
+        //     child.off(Laya.Event.CLICK, this, this.__clickItem);
+        // return child;
+    }
+    removeChildToPoolAt(index) {
+        var child = super.removeChildAt(index);
+        this.returnToPool(child);
+    }
+    removeChildToPool(child) {
+        super.removeChild(child);
+        this.returnToPool(child);
+    }
+    removeChildrenToPool(beginIndex, endIndex) {
+        if (beginIndex == undefined)
+            beginIndex = 0;
+        if (endIndex == undefined)
+            endIndex = -1;
+        if (endIndex < 0 || endIndex >= this._children.length)
+            endIndex = this._children.length - 1;
+        for (var i = beginIndex; i <= endIndex; ++i)
+            this.removeChildToPoolAt(beginIndex);
+    }
+    get selectedIndex() {
+        var i;
+        if (this._virtual) {
+            for (i = 0; i < this._realNumItems; i++) {
+                var ii = this._virtualItems[i];
+                if ((ii.obj instanceof GButton) && ii.obj.selected
+                    || ii.obj == null && ii.selected) {
+                    if (this._loop)
+                        return i % this._numItems;
+                    else
+                        return i;
+                }
+            }
+        }
+        else {
+            var cnt = this._children.length;
+            for (i = 0; i < cnt; i++) {
+                var obj = this._children[i];
+                if ((obj instanceof GButton) && obj.selected)
+                    return i;
+            }
+        }
+        return -1;
+    }
+    set selectedIndex(value) {
+        if (value >= 0 && value < this.numItems) {
+            if (this._selectionMode != ListSelectionMode.Single)
+                this.clearSelection();
+            this.addSelection(value);
+        }
+        else
+            this.clearSelection();
+    }
+    getSelection(result) {
+        if (!result)
+            result = new Array();
+        var i;
+        if (this._virtual) {
+            for (i = 0; i < this._realNumItems; i++) {
+                var ii = this._virtualItems[i];
+                if ((ii.obj instanceof GButton) && ii.obj.selected
+                    || ii.obj == null && ii.selected) {
+                    var j = i;
+                    if (this._loop) {
+                        j = i % this._numItems;
+                        if (result.indexOf(j) != -1)
+                            continue;
+                    }
+                    result.push(j);
+                }
+            }
+        }
+        else {
+            var cnt = this._children.length;
+            for (i = 0; i < cnt; i++) {
+                var obj = this._children[i];
+                if ((obj instanceof GButton) && obj.selected)
+                    result.push(i);
+            }
+        }
+        return result;
+    }
+    addSelection(index, scrollItToView) {
+        if (this._selectionMode == ListSelectionMode.None)
+            return;
+        this.checkVirtualList();
+        if (this._selectionMode == ListSelectionMode.Single)
+            this.clearSelection();
+        if (scrollItToView)
+            this.scrollToView(index);
+        this._lastSelectedIndex = index;
+        var obj;
+        if (this._virtual) {
+            var ii = this._virtualItems[index];
+            if (ii.obj)
+                obj = ii.obj;
+            ii.selected = true;
+        }
+        else
+            obj = this.getChildAt(index);
+        if ((obj instanceof GButton) && !obj.selected) {
+            obj.selected = true;
+            this.updateSelectionController(index);
+        }
+    }
+    removeSelection(index) {
+        if (this._selectionMode == ListSelectionMode.None)
+            return;
+        var obj;
+        if (this._virtual) {
+            var ii = this._virtualItems[index];
+            if (ii.obj)
+                obj = ii.obj;
+            ii.selected = false;
+        }
+        else
+            obj = this.getChildAt(index);
+        if (obj instanceof GButton)
+            obj.selected = false;
+    }
+    clearSelection() {
+        var i;
+        if (this._virtual) {
+            for (i = 0; i < this._realNumItems; i++) {
+                var ii = this._virtualItems[i];
+                if (ii.obj instanceof GButton)
+                    ii.obj.selected = false;
+                ii.selected = false;
+            }
+        }
+        else {
+            var cnt = this._children.length;
+            for (i = 0; i < cnt; i++) {
+                var obj = this._children[i];
+                if (obj instanceof GButton)
+                    obj.selected = false;
+            }
+        }
+    }
+    clearSelectionExcept(g) {
+        var i;
+        if (this._virtual) {
+            for (i = 0; i < this._realNumItems; i++) {
+                var ii = this._virtualItems[i];
+                if (ii.obj != g) {
+                    if (ii.obj instanceof GButton)
+                        ii.obj.selected = false;
+                    ii.selected = false;
+                }
+            }
+        }
+        else {
+            var cnt = this._children.length;
+            for (i = 0; i < cnt; i++) {
+                var obj = this._children[i];
+                if ((obj instanceof GButton) && obj != g)
+                    obj.selected = false;
+            }
+        }
+    }
+    selectAll() {
+        this.checkVirtualList();
+        var last = -1;
+        var i;
+        if (this._virtual) {
+            for (i = 0; i < this._realNumItems; i++) {
+                var ii = this._virtualItems[i];
+                if ((ii.obj instanceof GButton) && !ii.obj.selected) {
+                    ii.obj.selected = true;
+                    last = i;
+                }
+                ii.selected = true;
+            }
+        }
+        else {
+            var cnt = this._children.length;
+            for (i = 0; i < cnt; i++) {
+                var obj = this._children[i];
+                if ((obj instanceof GButton) && !obj.selected) {
+                    obj.selected = true;
+                    last = i;
+                }
+            }
+        }
+        if (last != -1)
+            this.updateSelectionController(last);
+    }
+    selectNone() {
+        this.clearSelection();
+    }
+    selectReverse() {
+        this.checkVirtualList();
+        var last = -1;
+        var i;
+        if (this._virtual) {
+            for (i = 0; i < this._realNumItems; i++) {
+                var ii = this._virtualItems[i];
+                if (ii.obj instanceof GButton) {
+                    ii.obj.selected = !ii.obj.selected;
+                    if (ii.obj.selected)
+                        last = i;
+                }
+                ii.selected = !ii.selected;
+            }
+        }
+        else {
+            var cnt = this._children.length;
+            for (i = 0; i < cnt; i++) {
+                var obj = this._children[i];
+                if (obj instanceof GButton) {
+                    obj.selected = !obj.selected;
+                    if (obj.selected)
+                        last = i;
+                }
+            }
+        }
+        if (last != -1)
+            this.updateSelectionController(last);
+    }
+    handleArrowKey(dir) {
+        var index = this.selectedIndex;
+        if (index == -1)
+            return;
+        switch (dir) {
+            case 1: //up
+                if (this._layout == ListLayoutType.SingleColumn || this._layout == ListLayoutType.FlowVertical) {
+                    index--;
+                    if (index >= 0) {
+                        this.clearSelection();
+                        this.addSelection(index, true);
+                    }
+                }
+                else if (this._layout == ListLayoutType.FlowHorizontal || this._layout == ListLayoutType.Pagination) {
+                    var current = this._children[index];
+                    var k = 0;
+                    for (var i = index - 1; i >= 0; i--) {
+                        var obj = this._children[i];
+                        if (obj.y != current.y) {
+                            current = obj;
+                            break;
+                        }
+                        k++;
+                    }
+                    for (; i >= 0; i--) {
+                        obj = this._children[i];
+                        if (obj.y != current.y) {
+                            this.clearSelection();
+                            this.addSelection(i + k + 1, true);
+                            break;
+                        }
+                    }
+                }
+                break;
+            case 3: //right
+                if (this._layout == ListLayoutType.SingleRow || this._layout == ListLayoutType.FlowHorizontal || this._layout == ListLayoutType.Pagination) {
+                    index++;
+                    if (index < this.numItems) {
+                        this.clearSelection();
+                        this.addSelection(index, true);
+                    }
+                }
+                else if (this._layout == ListLayoutType.FlowVertical) {
+                    current = this._children[index];
+                    k = 0;
+                    var cnt = this._children.length;
+                    for (i = index + 1; i < cnt; i++) {
+                        obj = this._children[i];
+                        if (obj.x != current.x) {
+                            current = obj;
+                            break;
+                        }
+                        k++;
+                    }
+                    for (; i < cnt; i++) {
+                        obj = this._children[i];
+                        if (obj.x != current.x) {
+                            this.clearSelection();
+                            this.addSelection(i - k - 1, true);
+                            break;
+                        }
+                    }
+                }
+                break;
+            case 5: //down
+                if (this._layout == ListLayoutType.SingleColumn || this._layout == ListLayoutType.FlowVertical) {
+                    index++;
+                    if (index < this.numItems) {
+                        this.clearSelection();
+                        this.addSelection(index, true);
+                    }
+                }
+                else if (this._layout == ListLayoutType.FlowHorizontal || this._layout == ListLayoutType.Pagination) {
+                    current = this._children[index];
+                    k = 0;
+                    cnt = this._children.length;
+                    for (i = index + 1; i < cnt; i++) {
+                        obj = this._children[i];
+                        if (obj.y != current.y) {
+                            current = obj;
+                            break;
+                        }
+                        k++;
+                    }
+                    for (; i < cnt; i++) {
+                        obj = this._children[i];
+                        if (obj.y != current.y) {
+                            this.clearSelection();
+                            this.addSelection(i - k - 1, true);
+                            break;
+                        }
+                    }
+                }
+                break;
+            case 7: //left
+                if (this._layout == ListLayoutType.SingleRow || this._layout == ListLayoutType.FlowHorizontal || this._layout == ListLayoutType.Pagination) {
+                    index--;
+                    if (index >= 0) {
+                        this.clearSelection();
+                        this.addSelection(index, true);
+                    }
+                }
+                else if (this._layout == ListLayoutType.FlowVertical) {
+                    current = this._children[index];
+                    k = 0;
+                    for (i = index - 1; i >= 0; i--) {
+                        obj = this._children[i];
+                        if (obj.x != current.x) {
+                            current = obj;
+                            break;
+                        }
+                        k++;
+                    }
+                    for (; i >= 0; i--) {
+                        obj = this._children[i];
+                        if (obj.x != current.x) {
+                            this.clearSelection();
+                            this.addSelection(i + k + 1, true);
+                            break;
+                        }
+                    }
+                }
+                break;
+        }
+    }
+    __clickItem(evt) {
+        throw new Error("TODO");
+        // if (this._scrollPane && this._scrollPane.isDragged)
+        //     return;
+        // var item: GObject = GObject.cast(evt.currentTarget);
+        // this.setSelectionOnEvent(item, evt);
+        // if (this._scrollPane && this.scrollItemToViewOnClick)
+        //     this._scrollPane.scrollToView(item, true);
+        // this.dispatchItemEvent(item, Events.createEvent(Events.CLICK_ITEM, this.displayObject, evt));
+    }
+    dispatchItemEvent(item, evt) {
+        throw new Error("TODO");
+        // this.displayObject.event(Events.CLICK_ITEM, [item, evt]);
+    }
+    setSelectionOnEvent(item, evt) {
+        throw new Error("TODO");
+        // if (!(item instanceof GButton) || this._selectionMode == ListSelectionMode.None)
+        //     return;
+        // var dontChangeLastIndex: boolean = false;
+        // var index: number = this.childIndexToItemIndex(this.getChildIndex(item));
+        // if (this._selectionMode == ListSelectionMode.Single) {
+        //     if (!item.selected) {
+        //         this.clearSelectionExcept(item);
+        //         item.selected = true;
+        //     }
+        // }
+        // else {
+        //     if (evt.shiftKey) {
+        //         if (!item.selected) {
+        //             if (this._lastSelectedIndex != -1) {
+        //                 var min: number = Math.min(this._lastSelectedIndex, index);
+        //                 var max: number = Math.max(this._lastSelectedIndex, index);
+        //                 max = Math.min(max, this.numItems - 1);
+        //                 var i: number;
+        //                 if (this._virtual) {
+        //                     for (i = min; i <= max; i++) {
+        //                         var ii: ItemInfo = this._virtualItems[i];
+        //                         if (ii.obj instanceof GButton)
+        //                             ii.obj.selected = true;
+        //                         ii.selected = true;
+        //                     }
+        //                 }
+        //                 else {
+        //                     for (i = min; i <= max; i++) {
+        //                         var obj: GObject = this.getChildAt(i);
+        //                         if (obj instanceof GButton)
+        //                             obj.selected = true;
+        //                     }
+        //                 }
+        //                 dontChangeLastIndex = true;
+        //             }
+        //             else {
+        //                 item.selected = true;
+        //             }
+        //         }
+        //     }
+        //     else if (evt.ctrlKey || this._selectionMode == ListSelectionMode.Multiple_SingleClick) {
+        //         item.selected = !item.selected;
+        //     }
+        //     else {
+        //         if (!item.selected) {
+        //             this.clearSelectionExcept(item);
+        //             item.selected = true;
+        //         }
+        //         else
+        //             this.clearSelectionExcept(item);
+        //     }
+        // }
+        // if (!dontChangeLastIndex)
+        //     this._lastSelectedIndex = index;
+        // if (item.selected)
+        //     this.updateSelectionController(index);
+    }
+    resizeToFit(itemCount, minSize) {
+        if (itemCount == null)
+            itemCount = 100000;
+        minSize = minSize || 0;
+        this.ensureBoundsCorrect();
+        var curCount = this.numItems;
+        if (itemCount > curCount)
+            itemCount = curCount;
+        if (this._virtual) {
+            var lineCount = Math.ceil(itemCount / this._curLineItemCount);
+            if (this._layout == ListLayoutType.SingleColumn || this._layout == ListLayoutType.FlowHorizontal)
+                this.viewHeight = lineCount * this._itemSize.y + Math.max(0, lineCount - 1) * this._lineGap;
+            else
+                this.viewWidth = lineCount * this._itemSize.x + Math.max(0, lineCount - 1) * this._columnGap;
+        }
+        else if (itemCount == 0) {
+            if (this._layout == ListLayoutType.SingleColumn || this._layout == ListLayoutType.FlowHorizontal)
+                this.viewHeight = minSize;
+            else
+                this.viewWidth = minSize;
+        }
+        else {
+            var i = itemCount - 1;
+            var obj = null;
+            while (i >= 0) {
+                obj = this.getChildAt(i);
+                if (!this.foldInvisibleItems || obj.visible)
+                    break;
+                i--;
+            }
+            if (i < 0) {
+                if (this._layout == ListLayoutType.SingleColumn || this._layout == ListLayoutType.FlowHorizontal)
+                    this.viewHeight = minSize;
+                else
+                    this.viewWidth = minSize;
+            }
+            else {
+                var size = 0;
+                if (this._layout == ListLayoutType.SingleColumn || this._layout == ListLayoutType.FlowHorizontal) {
+                    size = obj.y + obj.height;
+                    if (size < minSize)
+                        size = minSize;
+                    this.viewHeight = size;
+                }
+                else {
+                    size = obj.x + obj.width;
+                    if (size < minSize)
+                        size = minSize;
+                    this.viewWidth = size;
+                }
+            }
+        }
+    }
+    getMaxItemWidth() {
+        var cnt = this._children.length;
+        var max = 0;
+        for (var i = 0; i < cnt; i++) {
+            var child = this.getChildAt(i);
+            if (child.width > max)
+                max = child.width;
+        }
+        return max;
+    }
+    handleSizeChanged() {
+        super.handleSizeChanged();
+        this.setBoundsChangedFlag();
+        if (this._virtual)
+            this.setVirtualListChangedFlag(true);
+    }
+    handleControllerChanged(c) {
+        super.handleControllerChanged(c);
+        if (this._selectionController == c)
+            this.selectedIndex = c.selectedIndex;
+    }
+    updateSelectionController(index) {
+        if (this._selectionController && !this._selectionController.changing
+            && index < this._selectionController.pageCount) {
+            var c = this._selectionController;
+            this._selectionController = null;
+            c.selectedIndex = index;
+            this._selectionController = c;
+        }
+    }
+    shouldSnapToNext(dir, delta, size) {
+        return dir < 0 && delta > UIConfig.defaultScrollSnappingThreshold * size
+            || dir > 0 && delta > (1 - UIConfig.defaultScrollSnappingThreshold) * size
+            || dir == 0 && delta > size / 2;
+    }
+    getSnappingPositionWithDir(xValue, yValue, xDir, yDir, result) {
+        if (this._virtual) {
+            if (!result)
+                result = new Phaser.Geom.Point();
+            var saved;
+            var index;
+            var size;
+            if (this._layout == ListLayoutType.SingleColumn || this._layout == ListLayoutType.FlowHorizontal) {
+                saved = yValue;
+                s_n = yValue;
+                index = this.getIndexOnPos1(false);
+                yValue = s_n;
+                if (index < this._virtualItems.length && index < this._realNumItems) {
+                    size = this._virtualItems[index].height;
+                    if (this.shouldSnapToNext(yDir, saved - yValue, size))
+                        yValue += size + this._lineGap;
+                }
+            }
+            else if (this._layout == ListLayoutType.SingleRow || this._layout == ListLayoutType.FlowVertical) {
+                saved = xValue;
+                s_n = xValue;
+                index = this.getIndexOnPos2(false);
+                xValue = s_n;
+                if (index < this._virtualItems.length && index < this._realNumItems) {
+                    size = this._virtualItems[index].width;
+                    if (this.shouldSnapToNext(xDir, saved - xValue, size))
+                        xValue += size + this._columnGap;
+                }
+            }
+            else {
+                saved = xValue;
+                s_n = xValue;
+                index = this.getIndexOnPos3(false);
+                xValue = s_n;
+                if (index < this._virtualItems.length && index < this._realNumItems) {
+                    size = this._virtualItems[index].width;
+                    if (this.shouldSnapToNext(xDir, saved - xValue, size))
+                        xValue += size + this._columnGap;
+                }
+            }
+            result.x = xValue;
+            result.y = yValue;
+            return result;
+        }
+        else
+            return super.getSnappingPositionWithDir(xValue, yValue, xDir, yDir, result);
+    }
+    scrollToView(index, ani, setFirst) {
+        throw new Error("TODO");
+        // if (this._virtual) {
+        //     if (this._numItems == 0)
+        //         return;
+        //     this.checkVirtualList();
+        //     if (index >= this._virtualItems.length)
+        //         throw new Error("Invalid child index: " + index + ">" + this._virtualItems.length);
+        //     if (this._loop)
+        //         index = Math.floor(this._firstIndex / this._numItems) * this._numItems + index;
+        //     var rect: Laya.Rectangle;
+        //     var ii: ItemInfo = this._virtualItems[index];
+        //     var pos: number = 0;
+        //     var i: number;
+        //     if (this._layout == ListLayoutType.SingleColumn || this._layout == ListLayoutType.FlowHorizontal) {
+        //         for (i = this._curLineItemCount - 1; i < index; i += this._curLineItemCount)
+        //             pos += this._virtualItems[i].height + this._lineGap;
+        //         rect = new Laya.Rectangle(0, pos, this._itemSize.x, ii.height);
+        //     }
+        //     else if (this._layout == ListLayoutType.SingleRow || this._layout == ListLayoutType.FlowVertical) {
+        //         for (i = this._curLineItemCount - 1; i < index; i += this._curLineItemCount)
+        //             pos += this._virtualItems[i].width + this._columnGap;
+        //         rect = new Laya.Rectangle(pos, 0, ii.width, this._itemSize.y);
+        //     }
+        //     else {
+        //         var page: number = index / (this._curLineItemCount * this._curLineItemCount2);
+        //         rect = new Laya.Rectangle(page * this.viewWidth + (index % this._curLineItemCount) * (ii.width + this._columnGap),
+        //             (index / this._curLineItemCount) % this._curLineItemCount2 * (ii.height + this._lineGap),
+        //             ii.width, ii.height);
+        //     }
+        //     if (this._scrollPane)
+        //         this._scrollPane.scrollToView(rect, ani, setFirst);
+        // }
+        // else {
+        //     var obj: GObject = this.getChildAt(index);
+        //     if (this._scrollPane)
+        //         this._scrollPane.scrollToView(obj, ani, setFirst);
+        //     else if (this._parent && this._parent.scrollPane)
+        //         this._parent.scrollPane.scrollToView(obj, ani, setFirst);
+        // }
+    }
+    getFirstChildInView() {
+        return this.childIndexToItemIndex(super.getFirstChildInView());
+    }
+    childIndexToItemIndex(index) {
+        if (!this._virtual)
+            return index;
+        if (this._layout == ListLayoutType.Pagination) {
+            for (var i = this._firstIndex; i < this._realNumItems; i++) {
+                if (this._virtualItems[i].obj) {
+                    index--;
+                    if (index < 0)
+                        return i;
+                }
+            }
+            return index;
+        }
+        else {
+            index += this._firstIndex;
+            if (this._loop && this._numItems > 0)
+                index = index % this._numItems;
+            return index;
+        }
+    }
+    itemIndexToChildIndex(index) {
+        if (!this._virtual)
+            return index;
+        if (this._layout == ListLayoutType.Pagination) {
+            return this.getChildIndex(this._virtualItems[index].obj);
+        }
+        else {
+            if (this._loop && this._numItems > 0) {
+                var j = this._firstIndex % this._numItems;
+                if (index >= j)
+                    index = index - j;
+                else
+                    index = this._numItems - j + index;
+            }
+            else
+                index -= this._firstIndex;
+            return index;
+        }
+    }
+    setVirtual() {
+        this._setVirtual(false);
+    }
+    /**
+     * Set the list to be virtual list, and has loop behavior.
+     */
+    setVirtualAndLoop() {
+        this._setVirtual(true);
+    }
+    _setVirtual(loop) {
+        throw new Error("TODO");
+        // if (!this._virtual) {
+        //     if (this._scrollPane == null)
+        //         throw new Error("Virtual list must be scrollable!");
+        //     if (loop) {
+        //         if (this._layout == ListLayoutType.FlowHorizontal || this._layout == ListLayoutType.FlowVertical)
+        //             throw new Error("Loop list instanceof not supported for FlowHorizontal or FlowVertical this.layout!");
+        //         this._scrollPane.bouncebackEffect = false;
+        //     }
+        //     this._virtual = true;
+        //     this._loop = loop;
+        //     this._virtualItems = new Array<ItemInfo>();
+        //     this.removeChildrenToPool();
+        //     if (this._itemSize == null) {
+        //         this._itemSize = new Phaser.Geom.Point();
+        //         var obj: GObject = this.getFromPool(null);
+        //         if (obj == null) {
+        //             throw new Error("Virtual List must have a default list item resource.");
+        //         }
+        //         else {
+        //             this._itemSize.x = obj.width;
+        //             this._itemSize.y = obj.height;
+        //         }
+        //         this.returnToPool(obj);
+        //     }
+        //     if (this._layout == ListLayoutType.SingleColumn || this._layout == ListLayoutType.FlowHorizontal) {
+        //         this._scrollPane.scrollStep = this._itemSize.y;
+        //         if (this._loop)
+        //             this._scrollPane._loop = 2;
+        //     }
+        //     else {
+        //         this._scrollPane.scrollStep = this._itemSize.x;
+        //         if (this._loop)
+        //             this._scrollPane._loop = 1;
+        //     }
+        //     this.on(Events.SCROLL, this, this.__scrolled);
+        //     this.setVirtualListChangedFlag(true);
+        // }
+    }
+    /**
+     * Set the list item count.
+     * If the list instanceof not virtual, specified number of items will be created.
+     * If the list instanceof virtual, only items in view will be created.
+     */
+    get numItems() {
+        if (this._virtual)
+            return this._numItems;
+        else
+            return this._children.length;
+    }
+    set numItems(value) {
+        throw new Error("TODO");
+        // var i: number;
+        // if (this._virtual) {
+        //     if (this.itemRenderer == null)
+        //         throw new Error("set itemRenderer first!");
+        //     this._numItems = value;
+        //     if (this._loop)
+        //         this._realNumItems = this._numItems * 6;//设置6倍数量，用于循环滚动
+        //     else
+        //         this._realNumItems = this._numItems;
+        //     //_virtualItems的设计是只增不减的
+        //     var oldCount: number = this._virtualItems.length;
+        //     if (this._realNumItems > oldCount) {
+        //         for (i = oldCount; i < this._realNumItems; i++) {
+        //             var ii: ItemInfo = {
+        //                 width: this._itemSize.x,
+        //                 height: this._itemSize.y,
+        //                 updateFlag: 0
+        //             };
+        //             this._virtualItems.push(ii);
+        //         }
+        //     }
+        //     else {
+        //         for (i = this._realNumItems; i < oldCount; i++)
+        //             this._virtualItems[i].selected = false;
+        //     }
+        //     if (this._virtualListChanged != 0)
+        //         Laya.timer.clear(this, this._refreshVirtualList);
+        //     //立即刷新
+        //     this._refreshVirtualList();
+        // }
+        // else {
+        //     var cnt: number = this._children.length;
+        //     if (value > cnt) {
+        //         for (i = cnt; i < value; i++) {
+        //             if (this.itemProvider == null)
+        //                 this.addItemFromPool();
+        //             else
+        //                 this.addItemFromPool(this.itemProvider.runWith(i));
+        //         }
+        //     }
+        //     else {
+        //         this.removeChildrenToPool(value, cnt);
+        //     }
+        //     if (this.itemRenderer != null) {
+        //         for (i = 0; i < value; i++)
+        //             this.itemRenderer.runWith([i, this.getChildAt(i)]);
+        //     }
+        // }
+    }
+    refreshVirtualList() {
+        this.setVirtualListChangedFlag(false);
+    }
+    checkVirtualList() {
+        throw new Error("TODO");
+        // if (this._virtualListChanged != 0) {
+        //     this._refreshVirtualList();
+        //     Laya.timer.clear(this, this._refreshVirtualList);
+        // }
+    }
+    setVirtualListChangedFlag(layoutChanged) {
+        throw new Error("TODO");
+        // if (layoutChanged)
+        //     this._virtualListChanged = 2;
+        // else if (this._virtualListChanged == 0)
+        //     this._virtualListChanged = 1;
+        // Laya.timer.callLater(this, this._refreshVirtualList);
+    }
+    _refreshVirtualList() {
+        throw new Error("TODO");
+        // if (!this._displayObject)
+        //     return;
+        // var layoutChanged: boolean = this._virtualListChanged == 2;
+        // this._virtualListChanged = 0;
+        // this._eventLocked = true;
+        // if (layoutChanged) {
+        //     if (this._layout == ListLayoutType.SingleColumn || this._layout == ListLayoutType.SingleRow)
+        //         this._curLineItemCount = 1;
+        //     else if (this._layout == ListLayoutType.FlowHorizontal) {
+        //         if (this._columnCount > 0)
+        //             this._curLineItemCount = this._columnCount;
+        //         else {
+        //             this._curLineItemCount = Math.floor((this._scrollPane.viewWidth + this._columnGap) / (this._itemSize.x + this._columnGap));
+        //             if (this._curLineItemCount <= 0)
+        //                 this._curLineItemCount = 1;
+        //         }
+        //     }
+        //     else if (this._layout == ListLayoutType.FlowVertical) {
+        //         if (this._lineCount > 0)
+        //             this._curLineItemCount = this._lineCount;
+        //         else {
+        //             this._curLineItemCount = Math.floor((this._scrollPane.viewHeight + this._lineGap) / (this._itemSize.y + this._lineGap));
+        //             if (this._curLineItemCount <= 0)
+        //                 this._curLineItemCount = 1;
+        //         }
+        //     }
+        //     else //pagination
+        //     {
+        //         if (this._columnCount > 0)
+        //             this._curLineItemCount = this._columnCount;
+        //         else {
+        //             this._curLineItemCount = Math.floor((this._scrollPane.viewWidth + this._columnGap) / (this._itemSize.x + this._columnGap));
+        //             if (this._curLineItemCount <= 0)
+        //                 this._curLineItemCount = 1;
+        //         }
+        //         if (this._lineCount > 0)
+        //             this._curLineItemCount2 = this._lineCount;
+        //         else {
+        //             this._curLineItemCount2 = Math.floor((this._scrollPane.viewHeight + this._lineGap) / (this._itemSize.y + this._lineGap));
+        //             if (this._curLineItemCount2 <= 0)
+        //                 this._curLineItemCount2 = 1;
+        //         }
+        //     }
+        // }
+        // var ch: number = 0, cw: number = 0;
+        // if (this._realNumItems > 0) {
+        //     var i: number;
+        //     var len: number = Math.ceil(this._realNumItems / this._curLineItemCount) * this._curLineItemCount;
+        //     var len2: number = Math.min(this._curLineItemCount, this._realNumItems);
+        //     if (this._layout == ListLayoutType.SingleColumn || this._layout == ListLayoutType.FlowHorizontal) {
+        //         for (i = 0; i < len; i += this._curLineItemCount)
+        //             ch += this._virtualItems[i].height + this._lineGap;
+        //         if (ch > 0)
+        //             ch -= this._lineGap;
+        //         if (this._autoResizeItem)
+        //             cw = this._scrollPane.viewWidth;
+        //         else {
+        //             for (i = 0; i < len2; i++)
+        //                 cw += this._virtualItems[i].width + this._columnGap;
+        //             if (cw > 0)
+        //                 cw -= this._columnGap;
+        //         }
+        //     }
+        //     else if (this._layout == ListLayoutType.SingleRow || this._layout == ListLayoutType.FlowVertical) {
+        //         for (i = 0; i < len; i += this._curLineItemCount)
+        //             cw += this._virtualItems[i].width + this._columnGap;
+        //         if (cw > 0)
+        //             cw -= this._columnGap;
+        //         if (this._autoResizeItem)
+        //             ch = this._scrollPane.viewHeight;
+        //         else {
+        //             for (i = 0; i < len2; i++)
+        //                 ch += this._virtualItems[i].height + this._lineGap;
+        //             if (ch > 0)
+        //                 ch -= this._lineGap;
+        //         }
+        //     }
+        //     else {
+        //         var pageCount: number = Math.ceil(len / (this._curLineItemCount * this._curLineItemCount2));
+        //         cw = pageCount * this.viewWidth;
+        //         ch = this.viewHeight;
+        //     }
+        // }
+        // this.handleAlign(cw, ch);
+        // this._scrollPane.setContentSize(cw, ch);
+        // this._eventLocked = false;
+        // this.handleScroll(true);
+    }
+    __scrolled(evt) {
+        throw new Error("TODO");
+        // this.handleScroll(false);
+    }
+    getIndexOnPos1(forceUpdate) {
+        throw new Error("TODO");
+        // if (this._realNumItems < this._curLineItemCount) {
+        //     s_n = 0;
+        //     return 0;
+        // }
+        // var i: number;
+        // var pos2: number;
+        // var pos3: number;
+        // if (this.numChildren > 0 && !forceUpdate) {
+        //     pos2 = this.getChildAt(0).y;
+        //     if (pos2 > s_n) {
+        //         for (i = this._firstIndex - this._curLineItemCount; i >= 0; i -= this._curLineItemCount) {
+        //             pos2 -= (this._virtualItems[i].height + this._lineGap);
+        //             if (pos2 <= s_n) {
+        //                 s_n = pos2;
+        //                 return i;
+        //             }
+        //         }
+        //         s_n = 0;
+        //         return 0;
+        //     }
+        //     else {
+        //         for (i = this._firstIndex; i < this._realNumItems; i += this._curLineItemCount) {
+        //             pos3 = pos2 + this._virtualItems[i].height + this._lineGap;
+        //             if (pos3 > s_n) {
+        //                 s_n = pos2;
+        //                 return i;
+        //             }
+        //             pos2 = pos3;
+        //         }
+        //         s_n = pos2;
+        //         return this._realNumItems - this._curLineItemCount;
+        //     }
+        // }
+        // else {
+        //     pos2 = 0;
+        //     for (i = 0; i < this._realNumItems; i += this._curLineItemCount) {
+        //         pos3 = pos2 + this._virtualItems[i].height + this._lineGap;
+        //         if (pos3 > s_n) {
+        //             s_n = pos2;
+        //             return i;
+        //         }
+        //         pos2 = pos3;
+        //     }
+        //     s_n = pos2;
+        //     return this._realNumItems - this._curLineItemCount;
+        // }
+    }
+    getIndexOnPos2(forceUpdate) {
+        throw new Error("TODO");
+        // if (this._realNumItems < this._curLineItemCount) {
+        //     s_n = 0;
+        //     return 0;
+        // }
+        // var i: number;
+        // var pos2: number;
+        // var pos3: number;
+        // if (this.numChildren > 0 && !forceUpdate) {
+        //     pos2 = this.getChildAt(0).x;
+        //     if (pos2 > s_n) {
+        //         for (i = this._firstIndex - this._curLineItemCount; i >= 0; i -= this._curLineItemCount) {
+        //             pos2 -= (this._virtualItems[i].width + this._columnGap);
+        //             if (pos2 <= s_n) {
+        //                 s_n = pos2;
+        //                 return i;
+        //             }
+        //         }
+        //         s_n = 0;
+        //         return 0;
+        //     }
+        //     else {
+        //         for (i = this._firstIndex; i < this._realNumItems; i += this._curLineItemCount) {
+        //             pos3 = pos2 + this._virtualItems[i].width + this._columnGap;
+        //             if (pos3 > s_n) {
+        //                 s_n = pos2;
+        //                 return i;
+        //             }
+        //             pos2 = pos3;
+        //         }
+        //         s_n = pos2;
+        //         return this._realNumItems - this._curLineItemCount;
+        //     }
+        // }
+        // else {
+        //     pos2 = 0;
+        //     for (i = 0; i < this._realNumItems; i += this._curLineItemCount) {
+        //         pos3 = pos2 + this._virtualItems[i].width + this._columnGap;
+        //         if (pos3 > s_n) {
+        //             s_n = pos2;
+        //             return i;
+        //         }
+        //         pos2 = pos3;
+        //     }
+        //     s_n = pos2;
+        //     return this._realNumItems - this._curLineItemCount;
+        // }
+    }
+    getIndexOnPos3(forceUpdate) {
+        throw new Error("TODO");
+        // if (this._realNumItems < this._curLineItemCount) {
+        //     s_n = 0;
+        //     return 0;
+        // }
+        // var viewWidth: number = this.viewWidth;
+        // var page: number = Math.floor(s_n / viewWidth);
+        // var startIndex: number = page * (this._curLineItemCount * this._curLineItemCount2);
+        // var pos2: number = page * viewWidth;
+        // var i: number;
+        // var pos3: number;
+        // for (i = 0; i < this._curLineItemCount; i++) {
+        //     pos3 = pos2 + this._virtualItems[startIndex + i].width + this._columnGap;
+        //     if (pos3 > s_n) {
+        //         s_n = pos2;
+        //         return startIndex + i;
+        //     }
+        //     pos2 = pos3;
+        // }
+        // s_n = pos2;
+        // return startIndex + this._curLineItemCount - 1;
+    }
+    handleScroll(forceUpdate) {
+        // if (this._eventLocked)
+        //     return;
+        // if (this._layout == ListLayoutType.SingleColumn || this._layout == ListLayoutType.FlowHorizontal) {
+        //     var enterCounter: number = 0;
+        //     while (this.handleScroll1(forceUpdate)) {
+        //         enterCounter++;
+        //         forceUpdate = false;
+        //         if (enterCounter > 20) {
+        //             console.log("FairyGUI: list will never be <the> filled item renderer function always returns a different size.");
+        //             break;
+        //         }
+        //     }
+        //     this.handleArchOrder1();
+        // }
+        // else if (this._layout == ListLayoutType.SingleRow || this._layout == ListLayoutType.FlowVertical) {
+        //     enterCounter = 0;
+        //     while (this.handleScroll2(forceUpdate)) {
+        //         enterCounter++;
+        //         forceUpdate = false;
+        //         if (enterCounter > 20) {
+        //             console.log("FairyGUI: list will never be <the> filled item renderer function always returns a different size.");
+        //             break;
+        //         }
+        //     }
+        //     this.handleArchOrder2();
+        // }
+        // else {
+        //     this.handleScroll3(forceUpdate);
+        // }
+        // this._boundsChanged = false;
+    }
+    handleScroll1(forceUpdate) {
+        throw new Error("TODO");
+        // var pos: number = this._scrollPane.scrollingPosY;
+        // var max: number = pos + this._scrollPane.viewHeight;
+        // var end: boolean = max == this._scrollPane.contentHeight;//这个标志表示当前需要滚动到最末，无论内容变化大小
+        // //寻找当前位置的第一条项目
+        // s_n = pos;
+        // var newFirstIndex: number = this.getIndexOnPos1(forceUpdate);
+        // pos = s_n;
+        // if (newFirstIndex == this._firstIndex && !forceUpdate)
+        //     return false;
+        // var oldFirstIndex: number = this._firstIndex;
+        // this._firstIndex = newFirstIndex;
+        // var curIndex: number = newFirstIndex;
+        // var forward: boolean = oldFirstIndex > newFirstIndex;
+        // var childCount: number = this.numChildren;
+        // var lastIndex: number = oldFirstIndex + childCount - 1;
+        // var reuseIndex: number = forward ? lastIndex : oldFirstIndex;
+        // var curX: number = 0, curY: number = pos;
+        // var needRender: boolean;
+        // var deltaSize: number = 0;
+        // var firstItemDeltaSize: number = 0;
+        // var url: string = this._defaultItem;
+        // var ii: ItemInfo, ii2: ItemInfo;
+        // var i: number, j: number;
+        // var partSize: number = (this._scrollPane.viewWidth - this._columnGap * (this._curLineItemCount - 1)) / this._curLineItemCount;
+        // this.itemInfoVer++;
+        // while (curIndex < this._realNumItems && (end || curY < max)) {
+        //     ii = this._virtualItems[curIndex];
+        //     if (ii.obj == null || forceUpdate) {
+        //         if (this.itemProvider != null) {
+        //             url = this.itemProvider.runWith(curIndex % this._numItems);
+        //             if (url == null)
+        //                 url = this._defaultItem;
+        //             url = UIPackage.normalizeURL(url);
+        //         }
+        //         if (ii.obj && ii.obj.resourceURL != url) {
+        //             if (ii.obj instanceof GButton)
+        //                 ii.selected = ii.obj.selected;
+        //             this.removeChildToPool(ii.obj);
+        //             ii.obj = null;
+        //         }
+        //     }
+        //     if (ii.obj == null) {
+        //         //搜索最适合的重用item，保证每次刷新需要新建或者重新render的item最少
+        //         if (forward) {
+        //             for (j = reuseIndex; j >= oldFirstIndex; j--) {
+        //                 ii2 = this._virtualItems[j];
+        //                 if (ii2.obj && ii2.updateFlag != this.itemInfoVer && ii2.obj.resourceURL == url) {
+        //                     if (ii2.obj instanceof GButton)
+        //                         ii2.selected = ii2.obj.selected;
+        //                     ii.obj = ii2.obj;
+        //                     ii2.obj = null;
+        //                     if (j == reuseIndex)
+        //                         reuseIndex--;
+        //                     break;
+        //                 }
+        //             }
+        //         }
+        //         else {
+        //             for (j = reuseIndex; j <= lastIndex; j++) {
+        //                 ii2 = this._virtualItems[j];
+        //                 if (ii2.obj && ii2.updateFlag != this.itemInfoVer && ii2.obj.resourceURL == url) {
+        //                     if (ii2.obj instanceof GButton)
+        //                         ii2.selected = ii2.obj.selected;
+        //                     ii.obj = ii2.obj;
+        //                     ii2.obj = null;
+        //                     if (j == reuseIndex)
+        //                         reuseIndex++;
+        //                     break;
+        //                 }
+        //             }
+        //         }
+        //         if (ii.obj) {
+        //             this.setChildIndex(ii.obj, forward ? curIndex - newFirstIndex : this.numChildren);
+        //         }
+        //         else {
+        //             ii.obj = this._pool.getObject(url);
+        //             if (forward)
+        //                 this.addChildAt(ii.obj, curIndex - newFirstIndex);
+        //             else
+        //                 this.addChild(ii.obj);
+        //         }
+        //         if (ii.obj instanceof GButton)
+        //             ii.obj.selected = ii.selected;
+        //         needRender = true;
+        //     }
+        //     else
+        //         needRender = forceUpdate;
+        //     if (needRender) {
+        //         if (this._autoResizeItem && (this._layout == ListLayoutType.SingleColumn || this._columnCount > 0))
+        //             ii.obj.setSize(partSize, ii.obj.height, true);
+        //         this.itemRenderer.runWith([curIndex % this._numItems, ii.obj]);
+        //         if (curIndex % this._curLineItemCount == 0) {
+        //             deltaSize += Math.ceil(ii.obj.height) - ii.height;
+        //             if (curIndex == newFirstIndex && oldFirstIndex > newFirstIndex) {
+        //                 //当内容向下滚动时，如果新出现的项目大小发生变化，需要做一个位置补偿，才不会导致滚动跳动
+        //                 firstItemDeltaSize = Math.ceil(ii.obj.height) - ii.height;
+        //             }
+        //         }
+        //         ii.width = Math.ceil(ii.obj.width);
+        //         ii.height = Math.ceil(ii.obj.height);
+        //     }
+        //     ii.updateFlag = this.itemInfoVer;
+        //     ii.obj.setXY(curX, curY);
+        //     if (curIndex == newFirstIndex) //要显示多一条才不会穿帮
+        //         max += ii.height;
+        //     curX += ii.width + this._columnGap;
+        //     if (curIndex % this._curLineItemCount == this._curLineItemCount - 1) {
+        //         curX = 0;
+        //         curY += ii.height + this._lineGap;
+        //     }
+        //     curIndex++;
+        // }
+        // for (i = 0; i < childCount; i++) {
+        //     ii = this._virtualItems[oldFirstIndex + i];
+        //     if (ii.updateFlag != this.itemInfoVer && ii.obj) {
+        //         if (ii.obj instanceof GButton)
+        //             ii.selected = ii.obj.selected;
+        //         this.removeChildToPool(ii.obj);
+        //         ii.obj = null;
+        //     }
+        // }
+        // childCount = this._children.length;
+        // for (i = 0; i < childCount; i++) {
+        //     var obj: GObject = this._virtualItems[newFirstIndex + i].obj;
+        //     if (this._children[i] != obj)
+        //         this.setChildIndex(obj, i);
+        // }
+        // if (deltaSize != 0 || firstItemDeltaSize != 0)
+        //     this._scrollPane.changeContentSizeOnScrolling(0, deltaSize, 0, firstItemDeltaSize);
+        // if (curIndex > 0 && this.numChildren > 0 && this._container.y <= 0 && this.getChildAt(0).y > -this._container.y)//最后一页没填满！
+        //     return true;
+        // else
+        //     return false;
+    }
+    handleScroll2(forceUpdate) {
+        throw new Error("TODO");
+        // var pos: number = this._scrollPane.scrollingPosX;
+        // var max: number = pos + this._scrollPane.viewWidth;
+        // var end: boolean = pos == this._scrollPane.contentWidth;//这个标志表示当前需要滚动到最末，无论内容变化大小
+        // //寻找当前位置的第一条项目
+        // s_n = pos;
+        // var newFirstIndex: number = this.getIndexOnPos2(forceUpdate);
+        // pos = s_n;
+        // if (newFirstIndex == this._firstIndex && !forceUpdate)
+        //     return false;
+        // var oldFirstIndex: number = this._firstIndex;
+        // this._firstIndex = newFirstIndex;
+        // var curIndex: number = newFirstIndex;
+        // var forward: boolean = oldFirstIndex > newFirstIndex;
+        // var childCount: number = this.numChildren;
+        // var lastIndex: number = oldFirstIndex + childCount - 1;
+        // var reuseIndex: number = forward ? lastIndex : oldFirstIndex;
+        // var curX: number = pos, curY: number = 0;
+        // var needRender: boolean;
+        // var deltaSize: number = 0;
+        // var firstItemDeltaSize: number = 0;
+        // var url: string = this._defaultItem;
+        // var ii: ItemInfo, ii2: ItemInfo;
+        // var i: number, j: number;
+        // var partSize: number = (this._scrollPane.viewHeight - this._lineGap * (this._curLineItemCount - 1)) / this._curLineItemCount;
+        // this.itemInfoVer++;
+        // while (curIndex < this._realNumItems && (end || curX < max)) {
+        //     ii = this._virtualItems[curIndex];
+        //     if (ii.obj == null || forceUpdate) {
+        //         if (this.itemProvider != null) {
+        //             url = this.itemProvider.runWith(curIndex % this._numItems);
+        //             if (url == null)
+        //                 url = this._defaultItem;
+        //             url = UIPackage.normalizeURL(url);
+        //         }
+        //         if (ii.obj && ii.obj.resourceURL != url) {
+        //             if (ii.obj instanceof GButton)
+        //                 ii.selected = ii.obj.selected;
+        //             this.removeChildToPool(ii.obj);
+        //             ii.obj = null;
+        //         }
+        //     }
+        //     if (ii.obj == null) {
+        //         if (forward) {
+        //             for (j = reuseIndex; j >= oldFirstIndex; j--) {
+        //                 ii2 = this._virtualItems[j];
+        //                 if (ii2.obj && ii2.updateFlag != this.itemInfoVer && ii2.obj.resourceURL == url) {
+        //                     if (ii2.obj instanceof GButton)
+        //                         ii2.selected = ii2.obj.selected;
+        //                     ii.obj = ii2.obj;
+        //                     ii2.obj = null;
+        //                     if (j == reuseIndex)
+        //                         reuseIndex--;
+        //                     break;
+        //                 }
+        //             }
+        //         }
+        //         else {
+        //             for (j = reuseIndex; j <= lastIndex; j++) {
+        //                 ii2 = this._virtualItems[j];
+        //                 if (ii2.obj && ii2.updateFlag != this.itemInfoVer && ii2.obj.resourceURL == url) {
+        //                     if (ii2.obj instanceof GButton)
+        //                         ii2.selected = ii2.obj.selected;
+        //                     ii.obj = ii2.obj;
+        //                     ii2.obj = null;
+        //                     if (j == reuseIndex)
+        //                         reuseIndex++;
+        //                     break;
+        //                 }
+        //             }
+        //         }
+        //         if (ii.obj) {
+        //             this.setChildIndex(ii.obj, forward ? curIndex - newFirstIndex : this.numChildren);
+        //         }
+        //         else {
+        //             ii.obj = this._pool.getObject(url);
+        //             if (forward)
+        //                 this.addChildAt(ii.obj, curIndex - newFirstIndex);
+        //             else
+        //                 this.addChild(ii.obj);
+        //         }
+        //         if (ii.obj instanceof GButton)
+        //             ii.obj.selected = ii.selected;
+        //         needRender = true;
+        //     }
+        //     else
+        //         needRender = forceUpdate;
+        //     if (needRender) {
+        //         if (this._autoResizeItem && (this._layout == ListLayoutType.SingleRow || this._lineCount > 0))
+        //             ii.obj.setSize(ii.obj.width, partSize, true);
+        //         this.itemRenderer.runWith([curIndex % this._numItems, ii.obj]);
+        //         if (curIndex % this._curLineItemCount == 0) {
+        //             deltaSize += Math.ceil(ii.obj.width) - ii.width;
+        //             if (curIndex == newFirstIndex && oldFirstIndex > newFirstIndex) {
+        //                 //当内容向下滚动时，如果新出现的一个项目大小发生变化，需要做一个位置补偿，才不会导致滚动跳动
+        //                 firstItemDeltaSize = Math.ceil(ii.obj.width) - ii.width;
+        //             }
+        //         }
+        //         ii.width = Math.ceil(ii.obj.width);
+        //         ii.height = Math.ceil(ii.obj.height);
+        //     }
+        //     ii.updateFlag = this.itemInfoVer;
+        //     ii.obj.setXY(curX, curY);
+        //     if (curIndex == newFirstIndex) //要显示多一条才不会穿帮
+        //         max += ii.width;
+        //     curY += ii.height + this._lineGap;
+        //     if (curIndex % this._curLineItemCount == this._curLineItemCount - 1) {
+        //         curY = 0;
+        //         curX += ii.width + this._columnGap;
+        //     }
+        //     curIndex++;
+        // }
+        // for (i = 0; i < childCount; i++) {
+        //     ii = this._virtualItems[oldFirstIndex + i];
+        //     if (ii.updateFlag != this.itemInfoVer && ii.obj) {
+        //         if (ii.obj instanceof GButton)
+        //             ii.selected = ii.obj.selected;
+        //         this.removeChildToPool(ii.obj);
+        //         ii.obj = null;
+        //     }
+        // }
+        // childCount = this._children.length;
+        // for (i = 0; i < childCount; i++) {
+        //     var obj: GObject = this._virtualItems[newFirstIndex + i].obj;
+        //     if (this._children[i] != obj)
+        //         this.setChildIndex(obj, i);
+        // }
+        // if (deltaSize != 0 || firstItemDeltaSize != 0)
+        //     this._scrollPane.changeContentSizeOnScrolling(deltaSize, 0, firstItemDeltaSize, 0);
+        // if (curIndex > 0 && this.numChildren > 0 && this._container.x <= 0 && this.getChildAt(0).x > - this._container.x)//最后一页没填满！
+        //     return true;
+        // else
+        //     return false;
+    }
+    handleScroll3(forceUpdate) {
+        throw new Error("TODO");
+        // var pos: number = this._scrollPane.scrollingPosX;
+        // //寻找当前位置的第一条项目
+        // s_n = pos;
+        // var newFirstIndex: number = this.getIndexOnPos3(forceUpdate);
+        // pos = s_n;
+        // if (newFirstIndex == this._firstIndex && !forceUpdate)
+        //     return;
+        // var oldFirstIndex: number = this._firstIndex;
+        // this._firstIndex = newFirstIndex;
+        // //分页模式不支持不等高，所以渲染满一页就好了
+        // var reuseIndex: number = oldFirstIndex;
+        // var virtualItemCount: number = this._virtualItems.length;
+        // var pageSize: number = this._curLineItemCount * this._curLineItemCount2;
+        // var startCol: number = newFirstIndex % this._curLineItemCount;
+        // var viewWidth: number = this.viewWidth;
+        // var page: number = Math.floor(newFirstIndex / pageSize);
+        // var startIndex: number = page * pageSize;
+        // var lastIndex: number = startIndex + pageSize * 2; //测试两页
+        // var needRender: boolean;
+        // var i: number;
+        // var ii: ItemInfo, ii2: ItemInfo;
+        // var col: number;
+        // var url: string = this._defaultItem;
+        // var partWidth: number = (this._scrollPane.viewWidth - this._columnGap * (this._curLineItemCount - 1)) / this._curLineItemCount;
+        // var partHeight: number = (this._scrollPane.viewHeight - this._lineGap * (this._curLineItemCount2 - 1)) / this._curLineItemCount2;
+        // this.itemInfoVer++;
+        // //先标记这次要用到的项目
+        // for (i = startIndex; i < lastIndex; i++) {
+        //     if (i >= this._realNumItems)
+        //         continue;
+        //     col = i % this._curLineItemCount;
+        //     if (i - startIndex < pageSize) {
+        //         if (col < startCol)
+        //             continue;
+        //     }
+        //     else {
+        //         if (col > startCol)
+        //             continue;
+        //     }
+        //     ii = this._virtualItems[i];
+        //     ii.updateFlag = this.itemInfoVer;
+        // }
+        // var lastObj: GObject = null;
+        // var insertIndex: number = 0;
+        // for (i = startIndex; i < lastIndex; i++) {
+        //     if (i >= this._realNumItems)
+        //         continue;
+        //     ii = this._virtualItems[i];
+        //     if (ii.updateFlag != this.itemInfoVer)
+        //         continue;
+        //     if (ii.obj == null) {
+        //         //寻找看有没有可重用的
+        //         while (reuseIndex < virtualItemCount) {
+        //             ii2 = this._virtualItems[reuseIndex];
+        //             if (ii2.obj && ii2.updateFlag != this.itemInfoVer) {
+        //                 if (ii2.obj instanceof GButton)
+        //                     ii2.selected = ii2.obj.selected;
+        //                 ii.obj = ii2.obj;
+        //                 ii2.obj = null;
+        //                 break;
+        //             }
+        //             reuseIndex++;
+        //         }
+        //         if (insertIndex == -1)
+        //             insertIndex = this.getChildIndex(lastObj) + 1;
+        //         if (ii.obj == null) {
+        //             if (this.itemProvider != null) {
+        //                 url = this.itemProvider.runWith(i % this._numItems);
+        //                 if (url == null)
+        //                     url = this._defaultItem;
+        //                 url = UIPackage.normalizeURL(url);
+        //             }
+        //             ii.obj = this._pool.getObject(url);
+        //             this.addChildAt(ii.obj, insertIndex);
+        //         }
+        //         else {
+        //             insertIndex = this.setChildIndexBefore(ii.obj, insertIndex);
+        //         }
+        //         insertIndex++;
+        //         if (ii.obj instanceof GButton)
+        //             ii.obj.selected = ii.selected;
+        //         needRender = true;
+        //     }
+        //     else {
+        //         needRender = forceUpdate;
+        //         insertIndex = -1;
+        //         lastObj = ii.obj;
+        //     }
+        //     if (needRender) {
+        //         if (this._autoResizeItem) {
+        //             if (this._curLineItemCount == this._columnCount && this._curLineItemCount2 == this._lineCount)
+        //                 ii.obj.setSize(partWidth, partHeight, true);
+        //             else if (this._curLineItemCount == this._columnCount)
+        //                 ii.obj.setSize(partWidth, ii.obj.height, true);
+        //             else if (this._curLineItemCount2 == this._lineCount)
+        //                 ii.obj.setSize(ii.obj.width, partHeight, true);
+        //         }
+        //         this.itemRenderer.runWith([i % this._numItems, ii.obj]);
+        //         ii.width = Math.ceil(ii.obj.width);
+        //         ii.height = Math.ceil(ii.obj.height);
+        //     }
+        // }
+        // //排列item
+        // var borderX: number = (startIndex / pageSize) * viewWidth;
+        // var xx: number = borderX;
+        // var yy: number = 0;
+        // var lineHeight: number = 0;
+        // for (i = startIndex; i < lastIndex; i++) {
+        //     if (i >= this._realNumItems)
+        //         continue;
+        //     ii = this._virtualItems[i];
+        //     if (ii.updateFlag == this.itemInfoVer)
+        //         ii.obj.setXY(xx, yy);
+        //     if (ii.height > lineHeight)
+        //         lineHeight = ii.height;
+        //     if (i % this._curLineItemCount == this._curLineItemCount - 1) {
+        //         xx = borderX;
+        //         yy += lineHeight + this._lineGap;
+        //         lineHeight = 0;
+        //         if (i == startIndex + pageSize - 1) {
+        //             borderX += viewWidth;
+        //             xx = borderX;
+        //             yy = 0;
+        //         }
+        //     }
+        //     else
+        //         xx += ii.width + this._columnGap;
+        // }
+        // //释放未使用的
+        // for (i = reuseIndex; i < virtualItemCount; i++) {
+        //     ii = this._virtualItems[i];
+        //     if (ii.updateFlag != this.itemInfoVer && ii.obj) {
+        //         if (ii.obj instanceof GButton)
+        //             ii.selected = ii.obj.selected;
+        //         this.removeChildToPool(ii.obj);
+        //         ii.obj = null;
+        //     }
+        // }
+    }
+    handleArchOrder1() {
+        if (this.childrenRenderOrder == ChildrenRenderOrder.Arch) {
+            var mid = this._scrollPane.posY + this.viewHeight / 2;
+            var minDist = Number.POSITIVE_INFINITY;
+            var dist = 0;
+            var apexIndex = 0;
+            var cnt = this.numChildren;
+            for (var i = 0; i < cnt; i++) {
+                var obj = this.getChildAt(i);
+                if (!this.foldInvisibleItems || obj.visible) {
+                    dist = Math.abs(mid - obj.y - obj.height / 2);
+                    if (dist < minDist) {
+                        minDist = dist;
+                        apexIndex = i;
+                    }
+                }
+            }
+            this.apexIndex = apexIndex;
+        }
+    }
+    handleArchOrder2() {
+        throw new Error("TODO");
+        //     if (this.childrenRenderOrder == ChildrenRenderOrder.Arch) {
+        //         var mid: number = this._scrollPane.posX + this.viewWidth / 2;
+        //         var minDist: number = Number.POSITIVE_INFINITY;
+        //         var dist: number = 0;
+        //         var apexIndex: number = 0;
+        //         var cnt: number = this.numChildren;
+        //         for (var i: number = 0; i < cnt; i++) {
+        //             var obj: GObject = this.getChildAt(i);
+        //             if (!this.foldInvisibleItems || obj.visible) {
+        //                 dist = Math.abs(mid - obj.x - obj.width / 2);
+        //                 if (dist < minDist) {
+        //                     minDist = dist;
+        //                     apexIndex = i;
+        //                 }
+        //             }
+        //         }
+        //         this.apexIndex = apexIndex;
+        //     }
+        // }
+        // private handleAlign(contentWidth: number, contentHeight: number): void {
+        //     var newOffsetX: number = 0;
+        //     var newOffsetY: number = 0;
+        //     if (contentHeight < this.viewHeight) {
+        //         if (this._verticalAlign == "middle")
+        //             newOffsetY = Math.floor((this.viewHeight - contentHeight) / 2);
+        //         else if (this._verticalAlign == "bottom")
+        //             newOffsetY = this.viewHeight - contentHeight;
+        //     }
+        //     if (contentWidth < this.viewWidth) {
+        //         if (this._align == "center")
+        //             newOffsetX = Math.floor((this.viewWidth - contentWidth) / 2);
+        //         else if (this._align == "right")
+        //             newOffsetX = this.viewWidth - contentWidth;
+        //     }
+        //     if (newOffsetX != this._alignOffset.x || newOffsetY != this._alignOffset.y) {
+        //         this._alignOffset.setTo(newOffsetX, newOffsetY);
+        //         if (this._scrollPane)
+        //             this._scrollPane.adjustMaskContainer();
+        //         else
+        //             this._container.pos(this._margin.left + this._alignOffset.x, this._margin.top + this._alignOffset.y);
+        //     }
+    }
+    updateBounds() {
+        // if (this._virtual)
+        //     return;
+        // var i: number;
+        // var child: GObject;
+        // var curX: number = 0;
+        // var curY: number = 0;
+        // var maxWidth: number = 0;
+        // var maxHeight: number = 0;
+        // var cw: number, ch: number;
+        // var j: number = 0;
+        // var page: number = 0;
+        // var k: number = 0;
+        // var cnt: number = this._children.length;
+        // var viewWidth: number = this.viewWidth;
+        // var viewHeight: number = this.viewHeight;
+        // var lineSize: number = 0;
+        // var lineStart: number = 0;
+        // var ratio: number;
+        // if (this._layout == ListLayoutType.SingleColumn) {
+        //     for (i = 0; i < cnt; i++) {
+        //         child = this.getChildAt(i);
+        //         if (this.foldInvisibleItems && !child.visible)
+        //             continue;
+        //         if (curY != 0)
+        //             curY += this._lineGap;
+        //         child.y = curY;
+        //         if (this._autoResizeItem)
+        //             child.setSize(viewWidth, child.height, true);
+        //         curY += Math.ceil(child.height);
+        //         if (child.width > maxWidth)
+        //             maxWidth = child.width;
+        //     }
+        //     ch = curY;
+        //     if (ch <= viewHeight && this._autoResizeItem && this._scrollPane && this._scrollPane._displayInDemand && this._scrollPane.vtScrollBar) {
+        //         viewWidth += this._scrollPane.vtScrollBar.width;
+        //         for (i = 0; i < cnt; i++) {
+        //             child = this.getChildAt(i);
+        //             if (this.foldInvisibleItems && !child.visible)
+        //                 continue;
+        //             child.setSize(viewWidth, child.height, true);
+        //             if (child.width > maxWidth)
+        //                 maxWidth = child.width;
+        //         }
+        //     }
+        //     cw = Math.ceil(maxWidth);
+        // }
+        // else if (this._layout == ListLayoutType.SingleRow) {
+        //     for (i = 0; i < cnt; i++) {
+        //         child = this.getChildAt(i);
+        //         if (this.foldInvisibleItems && !child.visible)
+        //             continue;
+        //         if (curX != 0)
+        //             curX += this._columnGap;
+        //         child.x = curX;
+        //         if (this._autoResizeItem)
+        //             child.setSize(child.width, viewHeight, true);
+        //         curX += Math.ceil(child.width);
+        //         if (child.height > maxHeight)
+        //             maxHeight = child.height;
+        //     }
+        //     cw = curX;
+        //     if (cw <= viewWidth && this._autoResizeItem && this._scrollPane && this._scrollPane._displayInDemand && this._scrollPane.hzScrollBar) {
+        //         viewHeight += this._scrollPane.hzScrollBar.height;
+        //         for (i = 0; i < cnt; i++) {
+        //             child = this.getChildAt(i);
+        //             if (this.foldInvisibleItems && !child.visible)
+        //                 continue;
+        //             child.setSize(child.width, viewHeight, true);
+        //             if (child.height > maxHeight)
+        //                 maxHeight = child.height;
+        //         }
+        //     }
+        //     ch = Math.ceil(maxHeight);
+        // }
+        // else if (this._layout == ListLayoutType.FlowHorizontal) {
+        //     if (this._autoResizeItem && this._columnCount > 0) {
+        //         for (i = 0; i < cnt; i++) {
+        //             child = this.getChildAt(i);
+        //             if (this.foldInvisibleItems && !child.visible)
+        //                 continue;
+        //             lineSize += child.sourceWidth;
+        //             j++;
+        //             if (j == this._columnCount || i == cnt - 1) {
+        //                 ratio = (viewWidth - lineSize - (j - 1) * this._columnGap) / lineSize;
+        //                 curX = 0;
+        //                 for (j = lineStart; j <= i; j++) {
+        //                     child = this.getChildAt(j);
+        //                     if (this.foldInvisibleItems && !child.visible)
+        //                         continue;
+        //                     child.setXY(curX, curY);
+        //                     if (j < i) {
+        //                         child.setSize(child.sourceWidth + Math.round(child.sourceWidth * ratio), child.height, true);
+        //                         curX += Math.ceil(child.width) + this._columnGap;
+        //                     }
+        //                     else {
+        //                         child.setSize(viewWidth - curX, child.height, true);
+        //                     }
+        //                     if (child.height > maxHeight)
+        //                         maxHeight = child.height;
+        //                 }
+        //                 //new line
+        //                 curY += Math.ceil(maxHeight) + this._lineGap;
+        //                 maxHeight = 0;
+        //                 j = 0;
+        //                 lineStart = i + 1;
+        //                 lineSize = 0;
+        //             }
+        //         }
+        //         ch = curY + Math.ceil(maxHeight);
+        //         cw = viewWidth;
+        //     }
+        //     else {
+        //         for (i = 0; i < cnt; i++) {
+        //             child = this.getChildAt(i);
+        //             if (this.foldInvisibleItems && !child.visible)
+        //                 continue;
+        //             if (curX != 0)
+        //                 curX += this._columnGap;
+        //             if (this._columnCount != 0 && j >= this._columnCount
+        //                 || this._columnCount == 0 && curX + child.width > viewWidth && maxHeight != 0) {
+        //                 //new line
+        //                 curX = 0;
+        //                 curY += Math.ceil(maxHeight) + this._lineGap;
+        //                 maxHeight = 0;
+        //                 j = 0;
+        //             }
+        //             child.setXY(curX, curY);
+        //             curX += Math.ceil(child.width);
+        //             if (curX > maxWidth)
+        //                 maxWidth = curX;
+        //             if (child.height > maxHeight)
+        //                 maxHeight = child.height;
+        //             j++;
+        //         }
+        //         ch = curY + Math.ceil(maxHeight);
+        //         cw = Math.ceil(maxWidth);
+        //     }
+        // }
+        // else if (this._layout == ListLayoutType.FlowVertical) {
+        //     if (this._autoResizeItem && this._lineCount > 0) {
+        //         for (i = 0; i < cnt; i++) {
+        //             child = this.getChildAt(i);
+        //             if (this.foldInvisibleItems && !child.visible)
+        //                 continue;
+        //             lineSize += child.sourceHeight;
+        //             j++;
+        //             if (j == this._lineCount || i == cnt - 1) {
+        //                 ratio = (viewHeight - lineSize - (j - 1) * this._lineGap) / lineSize;
+        //                 curY = 0;
+        //                 for (j = lineStart; j <= i; j++) {
+        //                     child = this.getChildAt(j);
+        //                     if (this.foldInvisibleItems && !child.visible)
+        //                         continue;
+        //                     child.setXY(curX, curY);
+        //                     if (j < i) {
+        //                         child.setSize(child.width, child.sourceHeight + Math.round(child.sourceHeight * ratio), true);
+        //                         curY += Math.ceil(child.height) + this._lineGap;
+        //                     }
+        //                     else {
+        //                         child.setSize(child.width, viewHeight - curY, true);
+        //                     }
+        //                     if (child.width > maxWidth)
+        //                         maxWidth = child.width;
+        //                 }
+        //                 //new line
+        //                 curX += Math.ceil(maxWidth) + this._columnGap;
+        //                 maxWidth = 0;
+        //                 j = 0;
+        //                 lineStart = i + 1;
+        //                 lineSize = 0;
+        //             }
+        //         }
+        //         cw = curX + Math.ceil(maxWidth);
+        //         ch = viewHeight;
+        //     }
+        //     else {
+        //         for (i = 0; i < cnt; i++) {
+        //             child = this.getChildAt(i);
+        //             if (this.foldInvisibleItems && !child.visible)
+        //                 continue;
+        //             if (curY != 0)
+        //                 curY += this._lineGap;
+        //             if (this._lineCount != 0 && j >= this._lineCount
+        //                 || this._lineCount == 0 && curY + child.height > viewHeight && maxWidth != 0) {
+        //                 curY = 0;
+        //                 curX += Math.ceil(maxWidth) + this._columnGap;
+        //                 maxWidth = 0;
+        //                 j = 0;
+        //             }
+        //             child.setXY(curX, curY);
+        //             curY += Math.ceil(child.height);
+        //             if (curY > maxHeight)
+        //                 maxHeight = curY;
+        //             if (child.width > maxWidth)
+        //                 maxWidth = child.width;
+        //             j++;
+        //         }
+        //         cw = curX + Math.ceil(maxWidth);
+        //         ch = Math.ceil(maxHeight);
+        //     }
+        // }
+        // else //pagination
+        // {
+        //     var eachHeight: number;
+        //     if (this._autoResizeItem && this._lineCount > 0)
+        //         eachHeight = Math.floor((viewHeight - (this._lineCount - 1) * this._lineGap) / this._lineCount);
+        //     if (this._autoResizeItem && this._columnCount > 0) {
+        //         for (i = 0; i < cnt; i++) {
+        //             child = this.getChildAt(i);
+        //             if (this.foldInvisibleItems && !child.visible)
+        //                 continue;
+        //             if (j == 0 && (this._lineCount != 0 && k >= this._lineCount
+        //                 || this._lineCount == 0 && curY + child.height > viewHeight)) {
+        //                 //new page
+        //                 page++;
+        //                 curY = 0;
+        //                 k = 0;
+        //             }
+        //             lineSize += child.sourceWidth;
+        //             j++;
+        //             if (j == this._columnCount || i == cnt - 1) {
+        //                 ratio = (viewWidth - lineSize - (j - 1) * this._columnGap) / lineSize;
+        //                 curX = 0;
+        //                 for (j = lineStart; j <= i; j++) {
+        //                     child = this.getChildAt(j);
+        //                     if (this.foldInvisibleItems && !child.visible)
+        //                         continue;
+        //                     child.setXY(page * viewWidth + curX, curY);
+        //                     if (j < i) {
+        //                         child.setSize(child.sourceWidth + Math.round(child.sourceWidth * ratio),
+        //                             this._lineCount > 0 ? eachHeight : child.height, true);
+        //                         curX += Math.ceil(child.width) + this._columnGap;
+        //                     }
+        //                     else {
+        //                         child.setSize(viewWidth - curX, this._lineCount > 0 ? eachHeight : child.height, true);
+        //                     }
+        //                     if (child.height > maxHeight)
+        //                         maxHeight = child.height;
+        //                 }
+        //                 //new line
+        //                 curY += Math.ceil(maxHeight) + this._lineGap;
+        //                 maxHeight = 0;
+        //                 j = 0;
+        //                 lineStart = i + 1;
+        //                 lineSize = 0;
+        //                 k++;
+        //             }
+        //         }
+        //     }
+        //     else {
+        //         for (i = 0; i < cnt; i++) {
+        //             child = this.getChildAt(i);
+        //             if (this.foldInvisibleItems && !child.visible)
+        //                 continue;
+        //             if (curX != 0)
+        //                 curX += this._columnGap;
+        //             if (this._autoResizeItem && this._lineCount > 0)
+        //                 child.setSize(child.width, eachHeight, true);
+        //             if (this._columnCount != 0 && j >= this._columnCount
+        //                 || this._columnCount == 0 && curX + child.width > viewWidth && maxHeight != 0) {
+        //                 //new line
+        //                 curX = 0;
+        //                 curY += Math.ceil(maxHeight) + this._lineGap;
+        //                 maxHeight = 0;
+        //                 j = 0;
+        //                 k++;
+        //                 if (this._lineCount != 0 && k >= this._lineCount
+        //                     || this._lineCount == 0 && curY + child.height > viewHeight && maxWidth != 0)//new page
+        //                 {
+        //                     page++;
+        //                     curY = 0;
+        //                     k = 0;
+        //                 }
+        //             }
+        //             child.setXY(page * viewWidth + curX, curY);
+        //             curX += Math.ceil(child.width);
+        //             if (curX > maxWidth)
+        //                 maxWidth = curX;
+        //             if (child.height > maxHeight)
+        //                 maxHeight = child.height;
+        //             j++;
+        //         }
+        //     }
+        //     ch = page > 0 ? viewHeight : curY + Math.ceil(maxHeight);
+        //     cw = (page + 1) * viewWidth;
+        // }
+        // this.handleAlign(cw, ch);
+        // this.setBounds(0, 0, cw, ch);
+    }
+    setup_beforeAdd(buffer, beginPos) {
+        super.setup_beforeAdd(buffer, beginPos);
+        buffer.seek(beginPos, 5);
+        var i1;
+        this._layout = buffer.readByte();
+        this._selectionMode = buffer.readByte();
+        i1 = buffer.readByte();
+        this._align = i1 == 0 ? "left" : (i1 == 1 ? "center" : "right");
+        i1 = buffer.readByte();
+        this._verticalAlign = i1 == 0 ? "top" : (i1 == 1 ? "middle" : "bottom");
+        this._lineGap = buffer.readShort();
+        this._columnGap = buffer.readShort();
+        this._lineCount = buffer.readShort();
+        this._columnCount = buffer.readShort();
+        this._autoResizeItem = buffer.readBool();
+        this._childrenRenderOrder = buffer.readByte();
+        this._apexIndex = buffer.readShort();
+        if (buffer.readBool()) {
+            this._margin.top = buffer.readInt();
+            this._margin.bottom = buffer.readInt();
+            this._margin.left = buffer.readInt();
+            this._margin.right = buffer.readInt();
+        }
+        var overflow = buffer.readByte();
+        if (overflow == OverflowType.Scroll) {
+            var savedPos = buffer.position;
+            buffer.seek(beginPos, 7);
+            this.setupScroll(buffer);
+            buffer.position = savedPos;
+        }
+        else
+            this.setupOverflow(overflow);
+        if (buffer.readBool()) //clipSoftness
+            buffer.skip(8);
+        if (buffer.version >= 2) {
+            this.scrollItemToViewOnClick = buffer.readBool();
+            this.foldInvisibleItems = buffer.readBool();
+        }
+        buffer.seek(beginPos, 8);
+        this._defaultItem = buffer.readS();
+        this.readItems(buffer);
+    }
+    readItems(buffer) {
+        var cnt;
+        var i;
+        var nextPos;
+        var str;
+        cnt = buffer.readShort();
+        for (i = 0; i < cnt; i++) {
+            nextPos = buffer.readShort();
+            nextPos += buffer.position;
+            str = buffer.readS();
+            if (str == null) {
+                str = this._defaultItem;
+                if (!str) {
+                    buffer.position = nextPos;
+                    continue;
+                }
+            }
+            var obj = this.getFromPool(str);
+            if (obj) {
+                throw new Error("TODO");
+            }
+            buffer.position = nextPos;
+        }
+    }
+    setupItem(buffer, obj) {
+        var str;
+        str = buffer.readS();
+        if (str != null)
+            obj.text = str;
+        str = buffer.readS();
+        if (str != null && (obj instanceof GButton))
+            obj.selectedTitle = str;
+        str = buffer.readS();
+        if (str != null)
+            obj.icon = str;
+        str = buffer.readS();
+        if (str != null && (obj instanceof GButton))
+            obj.selectedIcon = str;
+        str = buffer.readS();
+        if (str != null)
+            obj.name = str;
+        var cnt;
+        var i;
+        if (obj instanceof GComponent) {
+            cnt = buffer.readShort();
+            for (i = 0; i < cnt; i++) {
+                var cc = obj.getController(buffer.readS());
+                str = buffer.readS();
+                if (cc)
+                    cc.selectedPageId = str;
+            }
+            if (buffer.version >= 2) {
+                cnt = buffer.readShort();
+                for (i = 0; i < cnt; i++) {
+                    var target = buffer.readS();
+                    var propertyId = buffer.readShort();
+                    var value = buffer.readS();
+                    var obj2 = obj.getChildByPath(target);
+                    if (obj2)
+                        obj2.setProp(propertyId, value);
+                }
+            }
+        }
+    }
+    setup_afterAdd(buffer, beginPos) {
+        super.setup_afterAdd(buffer, beginPos);
+        buffer.seek(beginPos, 6);
+        var i = buffer.readShort();
+        if (i != -1)
+            this._selectionController = this._parent.getControllerAt(i);
+    }
+}
+var s_n = 0;
+
+class GTreeNode {
+    constructor(hasChild, resURL) {
+        this._level = 0;
+        this._resURL = resURL;
+        if (hasChild)
+            this._children = new Array();
+    }
+    set expanded(value) {
+        if (this._children == null)
+            return;
+        if (this._expanded != value) {
+            this._expanded = value;
+            if (this._tree) {
+                if (this._expanded)
+                    this._tree._afterExpanded(this);
+                else
+                    this._tree._afterCollapsed(this);
+            }
+        }
+    }
+    get expanded() {
+        return this._expanded;
+    }
+    get isFolder() {
+        return this._children != null;
+    }
+    get parent() {
+        return this._parent;
+    }
+    get text() {
+        if (this._cell)
+            return this._cell.text;
+        else
+            return null;
+    }
+    set text(value) {
+        if (this._cell)
+            this._cell.text = value;
+    }
+    get icon() {
+        if (this._cell)
+            return this._cell.icon;
+        else
+            return null;
+    }
+    set icon(value) {
+        if (this._cell)
+            this._cell.icon = value;
+    }
+    get cell() {
+        return this._cell;
+    }
+    get level() {
+        return this._level;
+    }
+    _setLevel(value) {
+        this._level = value;
+    }
+    addChild(child) {
+        this.addChildAt(child, this._children.length);
+        return child;
+    }
+    addChildAt(child, index) {
+        if (!child)
+            throw new Error("child is null");
+        var numChildren = this._children.length;
+        if (index >= 0 && index <= numChildren) {
+            if (child._parent == this) {
+                this.setChildIndex(child, index);
+            }
+            else {
+                if (child._parent)
+                    child._parent.removeChild(child);
+                var cnt = this._children.length;
+                if (index == cnt)
+                    this._children.push(child);
+                else
+                    this._children.splice(index, 0, child);
+                child._parent = this;
+                child._level = this._level + 1;
+                child._setTree(this._tree);
+                if (this._tree && this == this._tree.rootNode || this._cell && this._cell.parent && this._expanded)
+                    throw new Error("TODO");
+                // this._tree._afterInserted(child);
+            }
+            return child;
+        }
+        else {
+            throw new RangeError("Invalid child index");
+        }
+    }
+    removeChild(child) {
+        var childIndex = this._children.indexOf(child);
+        if (childIndex != -1) {
+            this.removeChildAt(childIndex);
+        }
+        return child;
+    }
+    removeChildAt(index) {
+        if (index >= 0 && index < this.numChildren) {
+            var child = this._children[index];
+            this._children.splice(index, 1);
+            child._parent = null;
+            if (this._tree) {
+                child._setTree(null);
+                this._tree._afterRemoved(child);
+            }
+            return child;
+        }
+        else {
+            throw "Invalid child index";
+        }
+    }
+    removeChildren(beginIndex, endIndex) {
+        beginIndex = beginIndex || 0;
+        if (endIndex == null)
+            endIndex = -1;
+        if (endIndex < 0 || endIndex >= this.numChildren)
+            endIndex = this.numChildren - 1;
+        for (var i = beginIndex; i <= endIndex; ++i)
+            this.removeChildAt(beginIndex);
+    }
+    getChildAt(index) {
+        if (index >= 0 && index < this.numChildren)
+            return this._children[index];
+        else
+            throw "Invalid child index";
+    }
+    getChildIndex(child) {
+        return this._children.indexOf(child);
+    }
+    getPrevSibling() {
+        if (this._parent == null)
+            return null;
+        var i = this._parent._children.indexOf(this);
+        if (i <= 0)
+            return null;
+        return this._parent._children[i - 1];
+    }
+    getNextSibling() {
+        if (this._parent == null)
+            return null;
+        var i = this._parent._children.indexOf(this);
+        if (i < 0 || i >= this._parent._children.length - 1)
+            return null;
+        return this._parent._children[i + 1];
+    }
+    setChildIndex(child, index) {
+        var oldIndex = this._children.indexOf(child);
+        if (oldIndex == -1)
+            throw "Not a child of this container";
+        var cnt = this._children.length;
+        if (index < 0)
+            index = 0;
+        else if (index > cnt)
+            index = cnt;
+        if (oldIndex == index)
+            return;
+        this._children.splice(oldIndex, 1);
+        this._children.splice(index, 0, child);
+        if (this._tree && this == this._tree.rootNode || this._cell && this._cell.parent && this._expanded)
+            this._tree._afterMoved(child);
+    }
+    swapChildren(child1, child2) {
+        var index1 = this._children.indexOf(child1);
+        var index2 = this._children.indexOf(child2);
+        if (index1 == -1 || index2 == -1)
+            throw "Not a child of this container";
+        this.swapChildrenAt(index1, index2);
+    }
+    swapChildrenAt(index1, index2) {
+        var child1 = this._children[index1];
+        var child2 = this._children[index2];
+        this.setChildIndex(child1, index2);
+        this.setChildIndex(child2, index1);
+    }
+    get numChildren() {
+        return this._children.length;
+    }
+    expandToRoot() {
+        var p = this;
+        while (p) {
+            p.expanded = true;
+            p = p.parent;
+        }
+    }
+    get tree() {
+        return this._tree;
+    }
+    _setTree(value) {
+        this._tree = value;
+        if (this._tree && this._tree.treeNodeWillExpand && this._expanded)
+            this._tree.treeNodeWillExpand(this, true);
+        if (this._children) {
+            var cnt = this._children.length;
+            for (var i = 0; i < cnt; i++) {
+                var node = this._children[i];
+                node._level = this._level + 1;
+                node._setTree(value);
+            }
+        }
+    }
+}
+
+class GTree extends GList {
+    constructor() {
+        super();
+        this._indent = 15;
+        this._rootNode = new GTreeNode(true);
+        this._rootNode._setTree(this);
+        this._rootNode.expanded = true;
+    }
+    get rootNode() {
+        return this._rootNode;
+    }
+    get indent() {
+        return this._indent;
+    }
+    set indent(value) {
+        this._indent = value;
+    }
+    get clickToExpand() {
+        return this._clickToExpand;
+    }
+    set clickToExpand(value) {
+        this._clickToExpand = value;
+    }
+    getSelectedNode() {
+        throw new Error("TODO");
+        // if (this.selectedIndex != -1)
+        //     return this.getChildAt(this.selectedIndex)._treeNode;
+        // else
+        //     return null;
+    }
+    getSelectedNodes(result) {
+        throw new Error("TODO");
+        // if (!result)
+        //     result = new Array<GTreeNode>();
+        // s_list.length = 0;
+        // super.getSelection(s_list);
+        // var cnt: number = s_list.length;
+        // var ret: Array<GTreeNode> = new Array<GTreeNode>();
+        // for (var i: number = 0; i < cnt; i++) {
+        //     var node: GTreeNode = this.getChildAt(s_list[i])._treeNode;
+        //     ret.push(node);
+        // }
+        // return ret;
+    }
+    selectNode(node, scrollItToView) {
+        var parentNode = node.parent;
+        while (parentNode && parentNode != this._rootNode) {
+            parentNode.expanded = true;
+            parentNode = parentNode.parent;
+        }
+        if (!node._cell)
+            return;
+        this.addSelection(this.getChildIndex(node._cell), scrollItToView);
+    }
+    unselectNode(node) {
+        if (!node._cell)
+            return;
+        this.removeSelection(this.getChildIndex(node._cell));
+    }
+    expandAll(folderNode) {
+        if (!folderNode)
+            folderNode = this._rootNode;
+        folderNode.expanded = true;
+        var cnt = folderNode.numChildren;
+        for (var i = 0; i < cnt; i++) {
+            var node = folderNode.getChildAt(i);
+            if (node.isFolder)
+                this.expandAll(node);
+        }
+    }
+    collapseAll(folderNode) {
+        if (!folderNode)
+            folderNode = this._rootNode;
+        if (folderNode != this._rootNode)
+            folderNode.expanded = false;
+        var cnt = folderNode.numChildren;
+        for (var i = 0; i < cnt; i++) {
+            var node = folderNode.getChildAt(i);
+            if (node.isFolder)
+                this.collapseAll(node);
+        }
+    }
+    createCell(node) {
+        throw new Error("TODO");
+        //     var child: GComponent = <GComponent>this.getFromPool(node._resURL ? node._resURL : this.defaultItem);
+        //     if (!child)
+        //         throw new Error("cannot create tree node object.");
+        //     child._treeNode = node;
+        //     node._cell = child;
+        //     var indentObj: GObject = child.getChild("indent");
+        //     if (indentObj)
+        //         indentObj.width = (node.level - 1) * this._indent;
+        //     var cc: Controller;
+        //     cc = child.getController("expanded");
+        //     if (cc) {
+        //         cc.on(Events.STATE_CHANGED, this, this.__expandedStateChanged);
+        //         cc.selectedIndex = node.expanded ? 1 : 0;
+        //     }
+        //     cc = child.getController("leaf");
+        //     if (cc)
+        //         cc.selectedIndex = node.isFolder ? 0 : 1;
+        //     if (node.isFolder)
+        //         child.on(Laya.Event.MOUSE_DOWN, this, this.__cellMouseDown);
+        //     if (this.treeNodeRender)
+        //         this.treeNodeRender.runWith([node, child]);
+        // }
+        // public _afterInserted(node: GTreeNode): void {
+        //     if (!node._cell)
+        //         this.createCell(node);
+        //     var index: number = this.getInsertIndexForNode(node);
+        //     this.addChildAt(node._cell, index);
+        //     if (this.treeNodeRender)
+        //         this.treeNodeRender.runWith([node, node._cell]);
+        //     if (node.isFolder && node.expanded)
+        //         this.checkChildren(node, index);
+    }
+    getInsertIndexForNode(node) {
+        var prevNode = node.getPrevSibling();
+        if (!prevNode)
+            prevNode = node.parent;
+        var insertIndex = this.getChildIndex(prevNode._cell) + 1;
+        var myLevel = node.level;
+        var cnt = this.numChildren;
+        for (var i = insertIndex; i < cnt; i++) {
+            var testNode = this.getChildAt(i)._treeNode;
+            if (testNode.level <= myLevel)
+                break;
+            insertIndex++;
+        }
+        return insertIndex;
+    }
+    _afterRemoved(node) {
+        this.removeNode(node);
+    }
+    _afterExpanded(node) {
+        if (node == this._rootNode) {
+            this.checkChildren(this._rootNode, 0);
+            return;
+        }
+        if (this.treeNodeWillExpand != null)
+            this.treeNodeWillExpand(node, true);
+        if (!node._cell)
+            return;
+        if (this.treeNodeRender)
+            this.treeNodeRender(node, node._cell);
+        var cc = node._cell.getController("expanded");
+        if (cc)
+            cc.selectedIndex = 1;
+        if (node._cell.parent)
+            this.checkChildren(node, this.getChildIndex(node._cell));
+    }
+    _afterCollapsed(node) {
+        if (node == this._rootNode) {
+            this.checkChildren(this._rootNode, 0);
+            return;
+        }
+        if (this.treeNodeWillExpand)
+            this.treeNodeWillExpand(node, false);
+        if (!node._cell)
+            return;
+        if (this.treeNodeRender)
+            this.treeNodeRender(node, node._cell);
+        var cc = node._cell.getController("expanded");
+        if (cc)
+            cc.selectedIndex = 0;
+        if (node._cell.parent)
+            this.hideFolderNode(node);
+    }
+    _afterMoved(node) {
+        var startIndex = this.getChildIndex(node._cell);
+        var endIndex;
+        if (node.isFolder)
+            endIndex = this.getFolderEndIndex(startIndex, node.level);
+        else
+            endIndex = startIndex + 1;
+        var insertIndex = this.getInsertIndexForNode(node);
+        var i;
+        var cnt = endIndex - startIndex;
+        var obj;
+        if (insertIndex < startIndex) {
+            for (i = 0; i < cnt; i++) {
+                obj = this.getChildAt(startIndex + i);
+                this.setChildIndex(obj, insertIndex + i);
+            }
+        }
+        else {
+            for (i = 0; i < cnt; i++) {
+                obj = this.getChildAt(startIndex);
+                this.setChildIndex(obj, insertIndex);
+            }
+        }
+    }
+    getFolderEndIndex(startIndex, level) {
+        var cnt = this.numChildren;
+        for (var i = startIndex + 1; i < cnt; i++) {
+            var node = this.getChildAt(i)._treeNode;
+            if (node.level <= level)
+                return i;
+        }
+        return cnt;
+    }
+    checkChildren(folderNode, index) {
+        var cnt = folderNode.numChildren;
+        for (var i = 0; i < cnt; i++) {
+            index++;
+            var node = folderNode.getChildAt(i);
+            if (!node._cell)
+                this.createCell(node);
+            if (!node._cell.parent)
+                this.addChildAt(node._cell, index);
+            if (node.isFolder && node.expanded)
+                index = this.checkChildren(node, index);
+        }
+        return index;
+    }
+    hideFolderNode(folderNode) {
+        var cnt = folderNode.numChildren;
+        for (var i = 0; i < cnt; i++) {
+            var node = folderNode.getChildAt(i);
+            if (node._cell)
+                this.removeChild(node._cell);
+            if (node.isFolder && node.expanded)
+                this.hideFolderNode(node);
+        }
+    }
+    removeNode(node) {
+        if (node._cell) {
+            if (node._cell.parent)
+                this.removeChild(node._cell);
+            this.returnToPool(node._cell);
+            node._cell._treeNode = null;
+            node._cell = null;
+        }
+        if (node.isFolder) {
+            var cnt = node.numChildren;
+            for (var i = 0; i < cnt; i++) {
+                var node2 = node.getChildAt(i);
+                this.removeNode(node2);
+            }
+        }
+    }
+    __cellMouseDown(evt) {
+        throw new Error("TODO");
+    }
+    __expandedStateChanged(cc) {
+        var node = cc.parent._treeNode;
+        node.expanded = cc.selectedIndex == 1;
+    }
+    dispatchItemEvent(item, evt) {
+        throw new Error("TODO");
+    }
+    setup_beforeAdd(buffer, beginPos) {
+        super.setup_beforeAdd(buffer, beginPos);
+        buffer.seek(beginPos, 9);
+        this._indent = buffer.readInt();
+        this._clickToExpand = buffer.readByte();
+    }
+    readItems(buffer) {
+        var cnt;
+        var i;
+        var nextPos;
+        var str;
+        var isFolder;
+        var lastNode;
+        var level;
+        var prevLevel = 0;
+        cnt = buffer.readShort();
+        for (i = 0; i < cnt; i++) {
+            nextPos = buffer.readShort();
+            nextPos += buffer.position;
+            str = buffer.readS();
+            if (str == null) {
+                str = this.defaultItem;
+                if (!str) {
+                    buffer.position = nextPos;
+                    continue;
+                }
+            }
+            isFolder = buffer.readBool();
+            level = buffer.readByte();
+            var node = new GTreeNode(isFolder, str);
+            node.expanded = true;
+            if (i == 0)
+                this._rootNode.addChild(node);
+            else {
+                if (level > prevLevel)
+                    lastNode.addChild(node);
+                else if (level < prevLevel) {
+                    for (var j = level; j <= prevLevel; j++)
+                        lastNode = lastNode.parent;
+                    lastNode.addChild(node);
+                }
+                else
+                    lastNode.parent.addChild(node);
+            }
+            lastNode = node;
+            prevLevel = level;
+            this.setupItem(buffer, node.cell);
+            buffer.position = nextPos;
+        }
+    }
+}
+new Array();
+
+class Window extends GComponent {
+    constructor() {
+        super();
+        this._requestingCmd = 0;
+        this._uiSources = [];
+        this.bringToFontOnClick = UIConfig.bringWindowToFrontOnClick;
+        // this.displayObject.on(Phaser.GameObjects.Events.ADDED_TO_SCENE, this, this.__onShown);
+        // this.displayObject.on(Phaser.GameObjects.Events.REMOVED_FROM_SCENE, this, this.__onHidden);
+        // this.displayObject.on(Laya.Event.MOUSE_DOWN, this, this.__mouseDown);
+    }
+    addUISource(source) {
+        this._uiSources.push(source);
+    }
+    set contentPane(val) {
+        if (this._contentPane != val) {
+            if (this._contentPane)
+                this.removeChild(this._contentPane);
+            this._contentPane = val;
+            if (this._contentPane) {
+                // this.addChild(this._contentPane);
+                this.setSize(this._contentPane.width, this._contentPane.height);
+                this._contentPane.addRelation(this, RelationType.Size);
+                this._frame = (this._contentPane.getChild("frame"));
+                if (this._frame) {
+                    this.closeButton = this._frame.getChild("closeButton");
+                    this.dragArea = this._frame.getChild("dragArea");
+                    this.contentArea = this._frame.getChild("contentArea");
+                }
+            }
+        }
+    }
+    get contentPane() {
+        return this._contentPane;
+    }
+    get frame() {
+        return this._frame;
+    }
+    get closeButton() {
+        return this._closeButton;
+    }
+    set closeButton(value) {
+        if (this._closeButton)
+            this._closeButton.offClick(this.closeEventHandler);
+        this._closeButton = value;
+        if (this._closeButton)
+            this._closeButton.onClick(this.closeEventHandler);
+    }
+    get dragArea() {
+        return this._dragArea;
+    }
+    set dragArea(value) {
+        if (this._dragArea != value) {
+            if (this._dragArea) {
+                this._dragArea.draggable = false;
+                this._dragArea.off(Events.DRAG_START, this.__dragStart);
+            }
+            this._dragArea = value;
+            if (this._dragArea) {
+                if (this._dragArea instanceof GGraph)
+                    this._dragArea.drawRect(0, null, null);
+                this._dragArea.draggable = true;
+                // this._dragArea.on(Events.DRAG_START, this, this.__dragStart);
+            }
+        }
+    }
+    get contentArea() {
+        return this._contentArea;
+    }
+    set contentArea(value) {
+        this._contentArea = value;
+    }
+    show() {
+        // GRoot.inst.showWindow(this);
+    }
+    showOn(root) {
+        // root.showWindow(this);
+    }
+    hide() {
+        if (this.isShowing)
+            this.doHideAnimation();
+    }
+    hideImmediately() {
+        (this.parent instanceof GRoot) ? this.parent : null;
+        // r.hideWindowImmediately(this);
+    }
+    centerOn(r, restraint) {
+        this.setXY(Math.round((r.width - this.width) / 2), Math.round((r.height - this.height) / 2));
+        if (restraint) {
+            this.addRelation(r, RelationType.Center_Center);
+            this.addRelation(r, RelationType.Middle_Middle);
+        }
+    }
+    toggleStatus() {
+        if (this.isTop)
+            this.hide();
+        else
+            this.show();
+    }
+    get isShowing() {
+        return this.parent != null;
+    }
+    get isTop() {
+        return this.parent != null && this.parent.getChildIndex(this) == this.parent.numChildren - 1;
+    }
+    get modal() {
+        return this._modal;
+    }
+    set modal(val) {
+        this._modal = val;
+    }
+    bringToFront() {
+        // this.root.bringToFront(this);
+    }
+    showModalWait(requestingCmd) {
+        if (requestingCmd != null)
+            this._requestingCmd = requestingCmd;
+        if (UIConfig.windowModalWaiting) {
+            if (!this._modalWaitPane)
+                this._modalWaitPane = UIPackage.createObjectFromURL(UIConfig.windowModalWaiting);
+            this.layoutModalWaitPane();
+            // this.addChild(this._modalWaitPane);
+        }
+    }
+    layoutModalWaitPane() {
+        if (this._contentArea) {
+            var pt = this._frame.localToGlobal();
+            pt = this.globalToLocal(pt.x, pt.y, pt);
+            this._modalWaitPane.setXY(pt.x + this._contentArea.x, pt.y + this._contentArea.y);
+            this._modalWaitPane.setSize(this._contentArea.width, this._contentArea.height);
+        }
+        else
+            this._modalWaitPane.setSize(this.width, this.height);
+    }
+    closeModalWait(requestingCmd) {
+        if (requestingCmd != null) {
+            if (this._requestingCmd != requestingCmd)
+                return false;
+        }
+        this._requestingCmd = 0;
+        if (this._modalWaitPane && this._modalWaitPane.parent != null)
+            this.removeChild(this._modalWaitPane);
+        return true;
+    }
+    get modalWaiting() {
+        return this._modalWaitPane && this._modalWaitPane.parent != null;
+    }
+    init() {
+        if (this._inited || this._loading)
+            return;
+        if (this._uiSources.length > 0) {
+            this._loading = false;
+            var cnt = this._uiSources.length;
+            for (var i = 0; i < cnt; i++) {
+                var lib = this._uiSources[i];
+                if (!lib.loaded) {
+                    lib.load(this.__uiLoadComplete, this);
+                    this._loading = true;
+                }
+            }
+            if (!this._loading)
+                this._init();
+        }
+        else
+            this._init();
+    }
+    onInit() {
+    }
+    onShown() {
+    }
+    onHide() {
+    }
+    doShowAnimation() {
+        this.onShown();
+    }
+    doHideAnimation() {
+        this.hideImmediately();
+    }
+    __uiLoadComplete() {
+        var cnt = this._uiSources.length;
+        for (var i = 0; i < cnt; i++) {
+            var lib = this._uiSources[i];
+            if (!lib.loaded)
+                return;
+        }
+        this._loading = false;
+        this._init();
+    }
+    _init() {
+        this._inited = true;
+        this.onInit();
+        if (this.isShowing)
+            this.doShowAnimation();
+    }
+    dispose() {
+        if (this.parent)
+            this.hideImmediately();
+        super.dispose();
+    }
+    closeEventHandler() {
+        this.hide();
+    }
+    __onShown() {
+        if (!this._inited)
+            this.init();
+        else
+            this.doShowAnimation();
+    }
+    __onHidden() {
+        this.closeModalWait();
+        this.onHide();
+    }
+    __mouseDown() {
+        if (this.isShowing && this.bringToFontOnClick)
+            this.bringToFront();
+    }
+    // private __dragStart(evt: Laya.Event): void {
+    __dragStart(evt) {
+        // TODO
+        throw new Error("TODO");
+    }
+}
+
+class PopupMenu {
+    constructor(resourceURL) {
+        if (!resourceURL) {
+            resourceURL = UIConfig.popupMenu;
+            if (!resourceURL)
+                throw "UIConfig.popupMenu not defined";
+        }
+        throw "TODO";
+        // this._contentPane = UIPackage.createObjectFromURL(resourceURL).asCom;
+        // this._contentPane.on(Laya.Event.DISPLAY, this, this.__addedToStage);
+        // this._list = <GList>(this._contentPane.getChild("list"));
+        // this._list.removeChildrenToPool();
+        // this._list.addRelation(this._contentPane, RelationType.Width);
+        // this._list.removeRelation(this._contentPane, RelationType.Height);
+        // this._contentPane.addRelation(this._list, RelationType.Height);
+        // this._list.on(Events.CLICK_ITEM, this, this.__clickItem);
+    }
+    dispose() {
+        this._contentPane.dispose();
+    }
+    addItem(caption, handler) {
+        throw new Error("TODO");
+        // var item: GButton = this._list.addItemFromPool().asButton;
+        // item.title = caption;
+        // item.data = handler;
+        // item.grayed = false;
+        // var c: Controller = item.getController("checked");
+        // if (c)
+        //     c.selectedIndex = 0;
+        // return item;
+    }
+    addItemAt(caption, index, handler) {
+        throw new Error("TODO");
+        // var item: GButton = this._list.getFromPool().asButton;
+        // this._list.addChildAt(item, index);
+        // item.title = caption;
+        // item.data = handler;
+        // item.grayed = false;
+        // var c: Controller = item.getController("checked");
+        // if (c)
+        //     c.selectedIndex = 0;
+        // return item;
+    }
+    addSeperator() {
+        throw new Error("TODO");
+        // if (UIConfig.popupMenu_seperator == null)
+        //     throw "UIConfig.popupMenu_seperator not defined";
+        // this.list.addItemFromPool(UIConfig.popupMenu_seperator);
+    }
+    getItemName(index) {
+        var item = this._list.getChildAt(index);
+        return item.name;
+    }
+    setItemText(name, caption) {
+        var item = this._list.getChild(name);
+        item.title = caption;
+    }
+    setItemVisible(name, visible) {
+        var item = this._list.getChild(name);
+        if (item.visible != visible) {
+            item.visible = visible;
+            this._list.setBoundsChangedFlag();
+        }
+    }
+    setItemGrayed(name, grayed) {
+        var item = this._list.getChild(name);
+        item.grayed = grayed;
+    }
+    setItemCheckable(name, checkable) {
+        var item = this._list.getChild(name);
+        var c = item.getController("checked");
+        if (c) {
+            if (checkable) {
+                if (c.selectedIndex == 0)
+                    c.selectedIndex = 1;
+            }
+            else
+                c.selectedIndex = 0;
+        }
+    }
+    setItemChecked(name, checked) {
+        var item = this._list.getChild(name);
+        var c = item.getController("checked");
+        if (c)
+            c.selectedIndex = checked ? 2 : 1;
+    }
+    isItemChecked(name) {
+        var item = this._list.getChild(name);
+        var c = item.getController("checked");
+        if (c)
+            return c.selectedIndex == 2;
+        else
+            return false;
+    }
+    removeItem(name) {
+        throw new Error("TODO");
+        // var item: GObject = this._list.getChild(name);
+        // if (item) {
+        //     var index: number = this._list.getChildIndex(item);
+        //     this._list.removeChildToPoolAt(index);
+        //     return true;
+        // }
+        // else
+        //     return false;
+    }
+    clearItems() {
+        throw new Error("TODO");
+        // this._list.removeChildrenToPool();
+    }
+    get itemCount() {
+        return this._list.numChildren;
+    }
+    get contentPane() {
+        return this._contentPane;
+    }
+    get list() {
+        return this._list;
+    }
+    show(target = null, dir) {
+        throw "TODO";
+        // var r: GRoot = target != null ? target.root : GRoot.inst;
+        // r.showPopup(this.contentPane, (target instanceof GRoot) ? null : target, dir);
+    }
+    __clickItem(itemObject) {
+        throw "TODO";
+        // Laya.timer.once(100, this, this.__clickItem2, [itemObject]);
+    }
+    __clickItem2(itemObject) {
+        throw "TODO";
+        // if (!(itemObject instanceof GButton))
+        //     return;
+        // if (itemObject.grayed) {
+        //     this._list.selectedIndex = -1;
+        //     return;
+        // }
+        // var c: Controller = itemObject.asCom.getController("checked");
+        // if (c && c.selectedIndex != 0) {
+        //     if (c.selectedIndex == 1)
+        //         c.selectedIndex = 2;
+        //     else
+        //         c.selectedIndex = 1;
+        // }
+        // var r: GRoot = <GRoot>(this._contentPane.parent);
+        // r.hidePopup(this.contentPane);
+        // if (itemObject.data != null) {
+        //     itemObject.data();
+        // }
+    }
+    __addedToStage() {
+        throw new Error("TODO");
+        // this._list.selectedIndex = -1;
+        // this._list.resizeToFit(100000, 10);
+    }
+}
+
+class UIObjectFactory {
+    constructor() {
+    }
+    static setExtension(url, type) {
+        if (url == null)
+            throw "Invaild url: " + url;
+        var pi = UIPackage.getItemByURL(url);
+        if (pi)
+            pi.extensionType = type;
+        UIObjectFactory.extensions[url] = type;
+    }
+    static setPackageItemExtension(url, type) {
+        UIObjectFactory.setExtension(url, type);
+    }
+    static setLoaderExtension(type) {
+        UIObjectFactory.loaderType = type;
+    }
+    static resolvePackageItemExtension(pi) {
+        var extensionType = UIObjectFactory.extensions["ui://" + pi.owner.id + pi.id];
+        if (!extensionType)
+            extensionType = UIObjectFactory.extensions["ui://" + pi.owner.name + "/" + pi.name];
+        if (extensionType)
+            pi.extensionType = extensionType;
+    }
+    static newObject(type, userClass) {
+        var obj;
+        if (typeof type === 'number') {
+            switch (type) {
+                case ObjectType.Image:
+                    return new GImage();
+                case ObjectType.MovieClip:
+                // return new GMovieClip();
+                case ObjectType.Component:
+                    return new GComponent();
+                case ObjectType.Text:
+                // return new GBasicTextField();
+                case ObjectType.RichText:
+                // return new GRichTextField();
+                case ObjectType.InputText:
+                // return new GTextInput();
+                case ObjectType.Group:
+                    return new GGroup();
+                case ObjectType.List:
+                    return new GList();
+                case ObjectType.Graph:
+                // return new GGraph();
+                case ObjectType.Loader:
+                    // if (UIObjectFactory.loaderType)
+                    // return new UIObjectFactory.loaderType();
+                    // else
+                    // return new GLoader();
+                    return;
+                case ObjectType.Button:
+                    return new GButton();
+                case ObjectType.Label:
+                    return new GLabel();
+                case ObjectType.ProgressBar:
+                    return new GProgressBar();
+                case ObjectType.Slider:
+                    return new GSlider();
+                case ObjectType.ScrollBar:
+                    return new GScrollBar();
+                case ObjectType.ComboBox:
+                    return new GComboBox();
+                case ObjectType.Tree:
+                    return new GTree();
+                default:
+                    return null;
+            }
+        }
+        else {
+            if (type.type == PackageItemType.Component) {
+                if (userClass)
+                    obj = new userClass();
+                else if (type.extensionType)
+                    obj = new type.extensionType();
+                else
+                    obj = UIObjectFactory.newObject(type.objectType);
+            }
+            else
+                obj = UIObjectFactory.newObject(type.objectType);
+            if (obj)
+                obj.packageItem = type;
+        }
+        return obj;
+    }
+}
+UIObjectFactory.extensions = {};
+
+class DragDropManager {
+    constructor() {
+        throw new Error("TODO");
+        // this._agent = new GLoader();
+        // this._agent.draggable = true;
+        // this._agent.touchable = false;////important
+        // this._agent.setSize(100, 100);
+        // this._agent.setPivot(0.5, 0.5, true);
+        // this._agent.align = "center";
+        // this._agent.verticalAlign = "middle";
+        // this._agent.sortingOrder = 1000000;
+        // this._agent.on(Events.DRAG_END, this, this.__dragEnd);
+    }
+    static get inst() {
+        if (!DragDropManager._inst)
+            DragDropManager._inst = new DragDropManager();
+        return DragDropManager._inst;
+    }
+    get dragAgent() {
+        return this._agent;
+    }
+    get dragging() {
+        return this._agent.parent != null;
+    }
+    startDrag(source, icon, sourceData, touchID) {
+        if (this._agent.parent)
+            return;
+        throw new Error("TODO");
+        // this._sourceData = sourceData;
+        // this._agent.url = icon;
+        // GRoot.inst.addChild(this._agent);
+        // var pt: Laya.Point = GRoot.inst.globalToLocal(Laya.stage.mouseX, Laya.stage.mouseY);
+        // this._agent.setXY(pt.x, pt.y);
+        // this._agent.startDrag(touchID);
+    }
+    cancel() {
+        throw new Error("TODO");
+        // if (this._agent.parent) {
+        //     this._agent.stopDrag();
+        //     GRoot.inst.removeChild(this._agent);
+        //     this._sourceData = null;
+        // }
+    }
+    __dragEnd(evt) {
+        throw new Error("TODO");
+        // if (!this._agent.parent) //cancelled
+        //     return;
+        // GRoot.inst.removeChild(this._agent);
+        // var sourceData: any = this._sourceData;
+        // this._sourceData = null;
+        // var obj: GObject = GObject.cast(evt.target);
+        // while (obj) {
+        //     if (obj.displayObject.hasListener(Events.DROP)) {
+        //         obj.requestFocus();
+        //         obj.displayObject.event(Events.DROP, [sourceData, Events.createEvent(Events.DROP, obj.displayObject, evt)]);
+        //         return;
+        //     }
+        //     obj = obj.parent;
+        // }
+    }
+}
+
+class AsyncOperation {
+    constructor() {
+        this._itemList = new Array();
+        this._objectPool = [];
+    }
+    createObject(pkgName, resName) {
+        var pkg = UIPackage.getByName(pkgName);
+        if (pkg) {
+            var pi = pkg.getItemByName(resName);
+            if (!pi)
+                throw new Error("resource not found: " + resName);
+            this.internalCreateObject(pi);
+        }
+        else
+            throw new Error("package not found: " + pkgName);
+    }
+    createObjectFromURL(url) {
+        var pi = UIPackage.getItemByURL(url);
+        if (pi)
+            this.internalCreateObject(pi);
+        else
+            throw new Error("resource not found: " + url);
+    }
+    cancel() {
+        // Laya.timer.clear(this, this.run);
+        // this._itemList.length = 0;
+        // if (this._objectPool.length > 0) {
+        //     var cnt: number = this._objectPool.length;
+        //     for (var i: number = 0; i < cnt; i++) {
+        //         this._objectPool[i].dispose();
+        //     }
+        //     this._objectPool.length = 0;
+        // }
+    }
+    internalCreateObject(item) {
+        throw new Error("TODO");
+        // this._itemList.length = 0;
+        // this._objectPool.length = 0;
+        // var di: DisplayListItem = { pi: item, type: item.objectType };
+        // di.childCount = this.collectComponentChildren(item);
+        // this._itemList.push(di);
+        // this._index = 0;
+        // Laya.timer.frameLoop(1, this, this.run);
+    }
+    collectComponentChildren(item) {
+        var buffer = item.rawData;
+        buffer.seek(0, 2);
+        var di;
+        var pi;
+        var i;
+        var dataLen;
+        var curPos;
+        var pkg;
+        var dcnt = buffer.readShort();
+        for (i = 0; i < dcnt; i++) {
+            dataLen = buffer.readShort();
+            curPos = buffer.position;
+            buffer.seek(curPos, 0);
+            var type = buffer.readByte();
+            var src = buffer.readS();
+            var pkgId = buffer.readS();
+            buffer.position = curPos;
+            if (src != null) {
+                if (pkgId != null)
+                    pkg = UIPackage.getById(pkgId);
+                else
+                    pkg = item.owner;
+                pi = pkg ? pkg.getItemById(src) : null;
+                di = { pi: pi, type: type };
+                if (pi && pi.type == PackageItemType.Component)
+                    di.childCount = this.collectComponentChildren(pi);
+            }
+            else {
+                di = { type: type };
+                if (type == ObjectType.List) //list
+                    di.listItemCount = this.collectListChildren(buffer);
+            }
+            this._itemList.push(di);
+            buffer.position = curPos + dataLen;
+        }
+        return dcnt;
+    }
+    collectListChildren(buffer) {
+        buffer.seek(buffer.position, 8);
+        var listItemCount = 0;
+        var i;
+        var nextPos;
+        var url;
+        var pi;
+        var di;
+        var defaultItem = buffer.readS();
+        var itemCount = buffer.readShort();
+        for (i = 0; i < itemCount; i++) {
+            nextPos = buffer.readShort();
+            nextPos += buffer.position;
+            url = buffer.readS();
+            if (url == null)
+                url = defaultItem;
+            if (url) {
+                pi = UIPackage.getItemByURL(url);
+                if (pi) {
+                    di = { pi: pi, type: pi.objectType };
+                    if (pi.type == PackageItemType.Component)
+                        di.childCount = this.collectComponentChildren(pi);
+                    this._itemList.push(di);
+                    listItemCount++;
+                }
+            }
+            buffer.position = nextPos;
+        }
+        return listItemCount;
+    }
+    run() {
+        throw new Error("TODO");
+        // var obj: GObject;
+        // var di: DisplayListItem;
+        // var poolStart: number;
+        // var k: number;
+        // var t: number = Laya.Browser.now();
+        // var frameTime: number = UIConfig.frameTimeForAsyncUIConstruction;
+        // var totalItems: number = this._itemList.length;
+        // while (this._index < totalItems) {
+        //     di = this._itemList[this._index];
+        //     if (di.pi) {
+        //         obj = UIObjectFactory.newObject(di.pi);
+        //         this._objectPool.push(obj);
+        //         UIPackage._constructing++;
+        //         if (di.pi.type == PackageItemType.Component) {
+        //             poolStart = this._objectPool.length - di.childCount - 1;
+        //             (<GComponent>obj).constructFromResource2(this._objectPool, poolStart);
+        //             this._objectPool.splice(poolStart, di.childCount);
+        //         }
+        //         else {
+        //             obj.constructFromResource();
+        //         }
+        //         UIPackage._constructing--;
+        //     }
+        //     else {
+        //         obj = UIObjectFactory.newObject(di.type);
+        //         this._objectPool.push(obj);
+        //         if (di.type == ObjectType.List && di.listItemCount > 0) {
+        //             poolStart = this._objectPool.length - di.listItemCount - 1;
+        //             for (k = 0; k < di.listItemCount; k++) //把他们都放到pool里，这样GList在创建时就不需要创建对象了
+        //                 (<GList>obj).itemPool.returnObject(this._objectPool[k + poolStart]);
+        //             this._objectPool.splice(poolStart, di.listItemCount);
+        //         }
+        //     }
+        //     this._index++;
+        //     if ((this._index % 5 == 0) && Laya.Browser.now() - t >= frameTime)
+        //         return;
+        // }
+        // Laya.timer.clear(this, this.run);
+        // var result: GObject = this._objectPool[0];
+        // this._itemList.length = 0;
+        // this._objectPool.length = 0;
+        // if (this.callback != null)
+        //     this.callback(result);
+    }
+}
+
+class MovieClip extends Image {
+    constructor() {
+        super(undefined);
+        this.interval = 0;
+        this.repeatDelay = 0;
+        this.timeScale = 1;
+        this._playing = true;
+        this._frameCount = 0;
+        this._frame = 0;
+        this._start = 0;
+        this._end = 0;
+        this._times = 0;
+        this._endAt = 0;
+        this._status = 0; //0-none, 1-next loop, 2-ending, 3-ended
+        this._frameElapsed = 0; //当前帧延迟
+        this._repeatedCount = 0;
+        throw new Error("TODO");
+        // this.mouseEnabled = false;
+        // this.setPlaySettings();
+        // this.on(Laya.Event.DISPLAY, this, this.__addToStage);
+        // this.on(Laya.Event.UNDISPLAY, this, this.__removeFromStage);
+    }
+    get frames() {
+        return this._frames;
+    }
+    set frames(value) {
+        this._frames = value;
+        this._scaleByTile = false;
+        this._scale9Grid = null;
+        if (this._frames) {
+            this._frameCount = this._frames.length;
+            if (this._end == -1 || this._end > this._frameCount - 1)
+                this._end = this._frameCount - 1;
+            if (this._endAt == -1 || this._endAt > this._frameCount - 1)
+                this._endAt = this._frameCount - 1;
+            if (this._frame < 0 || this._frame > this._frameCount - 1)
+                this._frame = this._frameCount - 1;
+            this._frameElapsed = 0;
+            this._repeatedCount = 0;
+            this._reversed = false;
+        }
+        else
+            this._frameCount = 0;
+        this.drawFrame();
+        this.checkTimer();
+    }
+    get frameCount() {
+        return this._frameCount;
+    }
+    get frame() {
+        return this._frame;
+    }
+    set frame(value) {
+        if (this._frame != value) {
+            if (this._frames && value >= this._frameCount)
+                value = this._frameCount - 1;
+            this._frame = value;
+            this._frameElapsed = 0;
+            this.drawFrame();
+        }
+    }
+    get playing() {
+        return this._playing;
+    }
+    set playing(value) {
+        if (this._playing != value) {
+            this._playing = value;
+            this.checkTimer();
+        }
+    }
+    //从start帧开始，播放到end帧（-1表示结尾），重复times次（0表示无限循环），循环结束后，停止在endAt帧（-1表示参数end）
+    rewind() {
+        this._frame = 0;
+        this._frameElapsed = 0;
+        this._reversed = false;
+        this._repeatedCount = 0;
+        this.drawFrame();
+    }
+    syncStatus(anotherMc) {
+        this._frame = anotherMc._frame;
+        this._frameElapsed = anotherMc._frameElapsed;
+        this._reversed = anotherMc._reversed;
+        this._repeatedCount = anotherMc._repeatedCount;
+        this.drawFrame();
+    }
+    advance(timeInMiniseconds) {
+        var beginFrame = this._frame;
+        var beginReversed = this._reversed;
+        var backupTime = timeInMiniseconds;
+        while (true) {
+            var tt = this.interval + this._frames[this._frame].addDelay;
+            if (this._frame == 0 && this._repeatedCount > 0)
+                tt += this.repeatDelay;
+            if (timeInMiniseconds < tt) {
+                this._frameElapsed = 0;
+                break;
+            }
+            timeInMiniseconds -= tt;
+            if (this.swing) {
+                if (this._reversed) {
+                    this._frame--;
+                    if (this._frame <= 0) {
+                        this._frame = 0;
+                        this._repeatedCount++;
+                        this._reversed = !this._reversed;
+                    }
+                }
+                else {
+                    this._frame++;
+                    if (this._frame > this._frameCount - 1) {
+                        this._frame = Math.max(0, this._frameCount - 2);
+                        this._repeatedCount++;
+                        this._reversed = !this._reversed;
+                    }
+                }
+            }
+            else {
+                this._frame++;
+                if (this._frame > this._frameCount - 1) {
+                    this._frame = 0;
+                    this._repeatedCount++;
+                }
+            }
+            if (this._frame == beginFrame && this._reversed == beginReversed) //走了一轮了
+             {
+                var roundTime = backupTime - timeInMiniseconds; //这就是一轮需要的时间
+                timeInMiniseconds -= Math.floor(timeInMiniseconds / roundTime) * roundTime; //跳过
+            }
+        }
+        this.drawFrame();
+    }
+    //从start帧开始，播放到end帧（-1表示结尾），重复times次（0表示无限循环），循环结束后，停止在endAt帧（-1表示参数end）
+    setPlaySettings(start, end, times, endAt, endHandler) {
+        if (start == undefined)
+            start = 0;
+        if (end == undefined)
+            end = -1;
+        if (times == undefined)
+            times = 0;
+        if (endAt == undefined)
+            endAt = -1;
+        this._start = start;
+        this._end = end;
+        if (this._end == -1 || this._end > this._frameCount - 1)
+            this._end = this._frameCount - 1;
+        this._times = times;
+        this._endAt = endAt;
+        if (this._endAt == -1)
+            this._endAt = this._end;
+        this._status = 0;
+        this._endHandler = endHandler;
+        this.frame = start;
+    }
+    update() {
+        throw new Error("TODO");
+        // if (!this._playing || this._frameCount == 0 || this._status == 3)
+        //     return;
+        // var dt: number = Laya.timer.delta;
+        // if (dt > 100)
+        //     dt = 100;
+        // if (this.timeScale != 1)
+        //     dt *= this.timeScale;
+        // this._frameElapsed += dt;
+        // var tt: number = this.interval + this._frames[this._frame].addDelay;
+        // if (this._frame == 0 && this._repeatedCount > 0)
+        //     tt += this.repeatDelay;
+        // if (this._frameElapsed < tt)
+        //     return;
+        // this._frameElapsed -= tt;
+        // if (this._frameElapsed > this.interval)
+        //     this._frameElapsed = this.interval;
+        // if (this.swing) {
+        //     if (this._reversed) {
+        //         this._frame--;
+        //         if (this._frame <= 0) {
+        //             this._frame = 0;
+        //             this._repeatedCount++;
+        //             this._reversed = !this._reversed;
+        //         }
+        //     }
+        //     else {
+        //         this._frame++;
+        //         if (this._frame > this._frameCount - 1) {
+        //             this._frame = Math.max(0, this._frameCount - 2);
+        //             this._repeatedCount++;
+        //             this._reversed = !this._reversed;
+        //         }
+        //     }
+        // }
+        // else {
+        //     this._frame++;
+        //     if (this._frame > this._frameCount - 1) {
+        //         this._frame = 0;
+        //         this._repeatedCount++;
+        //     }
+        // }
+        // if (this._status == 1) //new loop
+        // {
+        //     this._frame = this._start;
+        //     this._frameElapsed = 0;
+        //     this._status = 0;
+        // }
+        // else if (this._status == 2) //ending
+        // {
+        //     this._frame = this._endAt;
+        //     this._frameElapsed = 0;
+        //     this._status = 3; //ended
+        //     //play end
+        //     if (this._endHandler) {
+        //         var handler = this._endHandler;
+        //         this._endHandler = null;
+        //         handler();
+        //     }
+        // }
+        // else {
+        //     if (this._frame == this._end) {
+        //         if (this._times > 0) {
+        //             this._times--;
+        //             if (this._times == 0)
+        //                 this._status = 2;  //ending
+        //             else
+        //                 this._status = 1; //new loop
+        //         }
+        //         else {
+        //             this._status = 1; //new loop
+        //         }
+        //     }
+        // }
+        // this.drawFrame();
+    }
+    drawFrame() {
+        if (this._frameCount > 0 && this._frame < this._frames.length) {
+            var frame = this._frames[this._frame];
+            this.texture = frame.texture;
+        }
+        else
+            this.texture = null;
+        this.rebuild();
+    }
+    checkTimer() {
+        throw new Error("TODO");
+        // if (this._playing && this._frameCount > 0 && this.stage != null)
+        //     Laya.timer.frameLoop(1, this, this.update);
+        // else
+        //     Laya.timer.clear(this, this.update);
+    }
+    __addToStage() {
+        throw new Error("TODO");
+        // if (this._playing && this._frameCount > 0)
+        //     Laya.timer.frameLoop(1, this, this.update);
+    }
+    __removeFromStage() {
+        throw new Error("TODO");
+        // Laya.timer.clear(this, this.update);
+    }
+}
+
+class Event {
+}
+
+export { AlignType, AsyncOperation, AutoSizeType, ButtonMode, ByteBuffer, ChildrenRenderOrder, Controller, DragDropManager, EaseType, Event, FillMethod, FillOrigin, FillOrigin90, FlipType, GButton, GComboBox, GComponent, GGraph, GGroup, GImage, GLabel, GList, GLoader, GMovieClip, GObject, GObjectPool, GProgressBar, GRichTextField, GRoot, GScrollBar, GSlider, GTextField, GTextInput, GTree, GTreeNode, GTween, GTweener, GroupLayoutType, Image, ListLayoutType, ListSelectionMode, LoaderFillType, MovieClip, ObjectPropID, ObjectType, OverflowType, PackageItem, PackageItemType, PopupDirection, PopupMenu, ProgressTitleType, RelationType, ScrollBarDisplayType, ScrollPane, ScrollType, ToolSet, Transition, TranslationHelper, UBBParser, UIConfig, UIObjectFactory, UIPackage, VertAlignType, Window };
 //# sourceMappingURL=fairygui.esm.js.map

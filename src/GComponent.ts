@@ -1,5 +1,4 @@
 import { HitArea } from './utils/HitArea';
-import { UIObjectFactory } from './UIObjectFactory';
 import { UIPackage } from './UIPackage';
 import { TranslationHelper } from './TranslationHelper';
 import { PackageItem } from './PackageItem';
@@ -1118,12 +1117,12 @@ export class GComponent extends GObject {
                     pi = pkg ? pkg.getItemById(src) : null;
                 }
 
-                if (pi) {
-                    child = UIObjectFactory.newObject(pi);
-                    child.constructFromResource();
-                }
-                else
-                    child = UIObjectFactory.newObject(type);
+                // if (pi) {
+                //     child = UIObjectFactory.newObject(pi);
+                //     child.constructFromResource();
+                // }
+                // else
+                //     child = UIObjectFactory.newObject(type);
             }
 
             child._underConstruct = true;

@@ -1,4 +1,4 @@
-import { UIObjectFactory } from './UIObjectFactory';
+// import { UIObjectFactory } from './UIObjectFactory';
 import { TranslationHelper } from './TranslationHelper';
 import { PackageItemType, ObjectType } from './FieldTypes';
 import { GObject } from './GObject';
@@ -344,7 +344,8 @@ export class UIPackage {
                             pi.objectType = ObjectType.Component;
                         pi.rawData = buffer.readBuffer();
 
-                        UIObjectFactory.resolvePackageItemExtension(pi);
+                        // todo resolvePackageItemExtension
+                        //UIObjectFactory.resolvePackageItemExtension(pi);
                         break;
                     }
 
@@ -496,14 +497,16 @@ export class UIPackage {
     }
 
     public internalCreateObject(item: PackageItem, userClass?: new () => GObject): GObject {
-        const g = UIObjectFactory.newObject(item, userClass);
-        if (g == null) {
-            return null;
-        }
-        UIPackage._constructing++;
-        g.constructFromResource();
-        UIPackage._constructing--;
-        return g;
+        // const g = UIObjectFactory.newObject(item, userClass);
+        // if (g == null) {
+        //     return null;
+        // }
+        // UIPackage._constructing++;
+        // g.constructFromResource();
+        // UIPackage._constructing--;
+        // return g;
+        // todoo return objectfactory
+        return null;
     }
 
     public getItemById(itemId: string): PackageItem {
