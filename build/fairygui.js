@@ -7881,7 +7881,7 @@
                 }
                 const scene = GRoot.inst.scene;
                 scene.load.binary(resKey, url);
-                scene.load.once(`filecomplete-spritesheet-${resKey}`, () => {
+                scene.load.once("complete", () => {
                     pkg = new UIPackage();
                     pkg._resKey = resKey;
                     pkg.loadPackage(new ByteBuffer(scene.cache.binary.get(resKey)));
@@ -7901,6 +7901,7 @@
                         resolve(pkg);
                     });
                 });
+                scene.load.start();
             });
         }
         static removePackage(packageIdOrName) {

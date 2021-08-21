@@ -94,7 +94,7 @@ export class UIPackage {
             }
             const scene = GRoot.inst.scene;
             scene.load.binary(resKey, url);
-            scene.load.once(`filecomplete-spritesheet-${resKey}`, () => {
+            scene.load.once("complete", () => {
                 pkg = new UIPackage();
                 pkg._resKey = resKey;
                 pkg.loadPackage(new ByteBuffer(<ArrayBuffer>scene.cache.binary.get(resKey)));
@@ -113,7 +113,8 @@ export class UIPackage {
                     // this._instById
                     resolve(pkg);
                 });
-            })
+            });
+            scene.load.start();
         });
     }
 
