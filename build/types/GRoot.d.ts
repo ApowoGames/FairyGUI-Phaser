@@ -48,6 +48,8 @@ export declare class GRoot extends GComponent {
     addTimeEvent(timeEvent: Phaser.Time.TimerEvent): Phaser.Time.TimerEvent;
     removeTimeEvent(timeEvent: Phaser.Time.TimerEvent): void;
     playOneShotSound(url: string, volumeScale?: number): void;
+    showTooltips(msg: string): void;
+    showTooltipsWin(tooltipWin: GObject, xx?: number, yy?: number): void;
     createDisplayObject(): void;
     private onStageDown;
     private onStageUp;

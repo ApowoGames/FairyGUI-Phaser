@@ -4,6 +4,8 @@ import { GGraph } from './GGraph';
 import { UIStage, UIStageOptions } from './display/UIStage';
 import { GComponent } from "./GComponent";
 import { DisplayObjectEvent } from './event/DisplayObjectEvent';
+import { UIConfig } from './UIConfig';
+import { UIPackage } from './UIPackage';
 
 export class GRootMouseStatus {
     public touchDown: boolean = false;
@@ -115,6 +117,51 @@ export class GRoot extends GComponent {
             return;
 
         this.scene.sound.play(url);
+    }
+
+    public showTooltips(msg: string): void {
+        if (this._defaultTooltipWin == null) {
+            var resourceURL: string = UIConfig.tooltipsWin;
+            if (!resourceURL) {
+                console.warn("UIConfig.tooltipsWin not defined");
+                return;
+            }
+
+            this._defaultTooltipWin = UIPackage.createObjectFromURL(resourceURL);
+        }
+
+        this._defaultTooltipWin.text = msg;
+        this.showTooltipsWin(this._defaultTooltipWin);
+    }
+
+    public showTooltipsWin(tooltipWin: GObject, xx?: number, yy?: number): void {
+        // this.hideTooltips();
+
+        // this._tooltipWin = tooltipWin;
+        // if (xx == null || yy == null) {
+        //     xx = Stage.touchPos.x + 10;
+        //     yy = Stage.touchPos.y + 20;
+        // }
+        // var pt: Vector2 = this.globalToLocal(xx, yy);
+        // xx = pt.x;
+        // yy = pt.y;
+
+        // if (xx + this._tooltipWin.width > this.width) {
+        //     xx = xx - this._tooltipWin.width - 1;
+        //     if (xx < 0)
+        //         xx = 10;
+        // }
+        // if (yy + this._tooltipWin.height > this.height) {
+        //     yy = yy - this._tooltipWin.height - 1;
+        //     if (xx - this._tooltipWin.width - 1 > 0)
+        //         xx = xx - this._tooltipWin.width - 1;
+        //     if (yy < 0)
+        //         yy = 10;
+        // }
+
+        // this._tooltipWin.x = xx;
+        // this._tooltipWin.y = yy;
+        // this.addChild(this._tooltipWin);
     }
 
     public createDisplayObject() {
