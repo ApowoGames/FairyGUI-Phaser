@@ -103,7 +103,6 @@ class DefaultBoudingRectCalculator implements IBoundingRectCalculator {
 }
 
 export class UIStage extends Phaser.Events.EventEmitter {
-    protected $appStage: Phaser.GameObjects.Container;
 
     protected $options: UIStageOptions;
     protected $width: number = 0;
@@ -120,7 +119,6 @@ export class UIStage extends Phaser.Events.EventEmitter {
 
     constructor(private scene: Phaser.Scene) {
         super();
-
         UIStageInst.push(this);
     }
 
@@ -140,7 +138,7 @@ export class UIStage extends Phaser.Events.EventEmitter {
         if (index < 0) {
             (<any>this.scene).layerManager.addToLayer(type, child);
         } else {
-            (<any>this.scene).layerManager.addToLayer(type, child,index);
+            (<any>this.scene).layerManager.addToLayer(type, child, index);
         }
     }
 
