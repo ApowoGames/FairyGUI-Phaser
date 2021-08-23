@@ -16,6 +16,7 @@ import { GComponent } from './GComponent';
 import { InteractiveEvent } from './event/DisplayObjectEvent';
 import { GTree } from './GTree';
 import { GearAnimation, GearColor, GearFontSize, GearIcon, GearLook, GearSize, GearText, GearXY } from './gears';
+import { GRoot } from './GRoot';
 export class DisplayStyle {
     static EMPTY: DisplayStyle = new DisplayStyle();
     /**水平缩放 */
@@ -110,7 +111,7 @@ export class GObject {
         this._id = "" + _gInstanceCounter++;
         this._name = "";
         // todo 优先传入scene在创建display
-        // this.createDisplayObject();
+        if (GRoot.inst.scene) this.createDisplayObject();
         this._displayStyle = new DisplayStyle();
 
         this._relations = new Relations(this);
