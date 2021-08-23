@@ -69,6 +69,8 @@ export class GRoot extends GComponent {
     private setFocus(value: GObject): void {
     }
 
+    private _stageOptions: UIStageOptions;
+
     /**
      * 游戏/编辑器启动ui入口,注入uiScene
      * @param scene 
@@ -85,9 +87,26 @@ export class GRoot extends GComponent {
             this._uiStage.destroy();
         }
 
+        this._stageOptions = stageOptions;
+
         this._uiStage = new UIStage(scene);
         this._uiStage.addChild(this._container, UISceneDisplay.LAYER_ROOT);
         this.addListen();
+    }
+
+    public getResUrl(key: string): string {
+        return this._stageOptions.res + key;
+    }
+
+    public getResUIUrl(key: string): string {
+        return this._stageOptions.resUI + KeyboardEvent;
+    }
+
+    public getOsdRes(value: string): string {
+        if (this._stageOptions.osd) {
+            return this._stageOptions.osd + value;
+        }
+        return value;
     }
 
     public addListen() {
@@ -190,7 +209,7 @@ export class GRoot extends GComponent {
     }
 
     private updateContentScaleLevel(): void {
-        GRoot.contentScaleLevel = (<any>this.scene).render.scaleRatio;
+        GRoot.contentScaleLevel = this._stageOptions.dpr;
         // var mat: Phaser.GameObjects.Components.TransformMatrix = <Phaser.GameObjects.Components.TransformMatrix>(<any>Laya.stage)._canvasTransform;
         // var ss: number = Math.max(mat.getScaleX(), mat.getScaleY());
         // if (ss >= 3.5)

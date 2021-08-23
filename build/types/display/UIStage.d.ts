@@ -22,6 +22,10 @@ export declare const enum StageAlign {
     BOTTOM = 5
 }
 export interface UIStageOptions {
+    osd: string;
+    res: string;
+    resUI: string;
+    dpr: number;
     scaleMode?: StageScaleMode;
     orientation?: StageOrientation;
     resolution?: number;
@@ -43,6 +47,10 @@ export declare class DefaultUIStageOptions implements UIStageOptions {
     alignH: StageAlign;
     fallbackWidth: number;
     fallbackHeight: number;
+    osd: string;
+    res: string;
+    resUI: string;
+    dpr: number;
     [key: string]: string | number;
 }
 export declare class UIStage extends Phaser.Events.EventEmitter {

@@ -38,12 +38,16 @@ export declare class GRoot extends GComponent {
     get focus(): GObject;
     set focus(value: GObject);
     private setFocus;
+    private _stageOptions;
     /**
      * 游戏/编辑器启动ui入口,注入uiScene
      * @param scene
      * @param stageOptions
      */
     attachTo(scene: Phaser.Scene, stageOptions?: UIStageOptions): void;
+    getResUrl(key: string): string;
+    getResUIUrl(key: string): string;
+    getOsdRes(value: string): string;
     addListen(): void;
     removeListen(): void;
     addTimeEvent(timeEvent: Phaser.Time.TimerEvent): Phaser.Time.TimerEvent;

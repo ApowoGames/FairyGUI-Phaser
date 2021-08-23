@@ -16,7 +16,7 @@ export declare class AssetProxy {
     constructor();
     private static _inst;
     static get inst(): AssetProxy;
-    getRes(key: string): string;
+    getRes(key: string, type: string): Promise<any>;
     load(key: string, url: any, type: string, completeCallBack: Function, _errorCallBack?: Function): void;
     startLoad(): void;
     private onLoadComplete;

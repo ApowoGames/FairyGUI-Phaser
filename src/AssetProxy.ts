@@ -27,8 +27,18 @@ export class AssetProxy {
         return AssetProxy._inst;
     }
 
-    public getRes(key: string): string {
-        return this._resMap.get(key);
+    public getRes(key: string, type: string): Promise<any> {
+        return new Promise((resolve, reject) => {
+            if (!this._resMap.get(key)) {
+                this.load(key, GRoot.inst.getResUIUrl(key), type, (file) => {
+                    resolve(file);
+                }, () => {
+                    reject();
+                });
+            } else {
+                resolve(GRoot.inst.getResUIUrl(key));
+            }
+        });
     }
 
     public load(key: string, url: any, type: string, completeCallBack: Function, _errorCallBack?: Function): void {
@@ -80,8 +90,8 @@ export class AssetProxy {
         GRoot.inst.scene.load.start();
     }
 
-    private onLoadComplete() {
-        if (this._completeCallBack) this._completeCallBack();
+    private onLoadComplete(file?: string) {
+        if (this._completeCallBack) this._completeCallBack(file);
     }
 
     private onLoadError() {

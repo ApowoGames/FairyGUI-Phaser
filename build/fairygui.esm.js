@@ -7825,6 +7825,98 @@ class PackageItem {
     }
 }
 
+var LoaderType;
+(function (LoaderType) {
+    LoaderType["IMAGE"] = "image";
+    LoaderType["ATLAS"] = "atlas";
+    LoaderType["AUDIO"] = "audio";
+    LoaderType["VIDEO"] = "video";
+    LoaderType["JSON"] = "json";
+    LoaderType["SCRIPT"] = "script";
+    LoaderType["GLSL"] = "glsl";
+    LoaderType["BITMAPFONT"] = "bitmapFont";
+    LoaderType["SPRITESHEET"] = "spritesheet";
+})(LoaderType || (LoaderType = {}));
+class AssetProxy {
+    constructor() {
+        this._resMap = new Map();
+    }
+    static get inst() {
+        if (!AssetProxy._inst)
+            AssetProxy._inst = new AssetProxy();
+        return AssetProxy._inst;
+    }
+    getRes(key, type) {
+        return new Promise((resolve, reject) => {
+            if (!this._resMap.get(key)) {
+                this.load(key, GRoot.inst.getResUIUrl(key), type, (file) => {
+                    resolve(file);
+                }, () => {
+                    reject();
+                });
+            }
+            else {
+                resolve(GRoot.inst.getResUIUrl(key));
+            }
+        });
+    }
+    load(key, url, type, completeCallBack, _errorCallBack) {
+        this._resMap.set(key, url);
+        this._completeCallBack = completeCallBack;
+        this._errorCallBack = _errorCallBack;
+        if (GRoot.inst.scene.cache.obj.has(key)) {
+            if (this._completeCallBack) {
+                return this._completeCallBack();
+            }
+        }
+        switch (type) {
+            case LoaderType.IMAGE:
+                GRoot.inst.scene.load.image(key, url);
+                break;
+            case LoaderType.ATLAS:
+                GRoot.inst.scene.load.atlas(key, url);
+                break;
+            case LoaderType.AUDIO:
+                GRoot.inst.scene.load.audio(key, url);
+                break;
+            case LoaderType.VIDEO:
+                GRoot.inst.scene.load.video(key, url);
+                break;
+            case LoaderType.JSON:
+                GRoot.inst.scene.load.json(key, url);
+                break;
+            case LoaderType.SCRIPT:
+                GRoot.inst.scene.load.script(key, url);
+                break;
+            case LoaderType.GLSL:
+                GRoot.inst.scene.load.glsl(key, url);
+                break;
+            case LoaderType.BITMAPFONT:
+                GRoot.inst.scene.load.bitmapFont(key, url);
+                break;
+            case LoaderType.SPRITESHEET:
+                GRoot.inst.scene.load.spritesheet(key, url);
+                break;
+            default:
+                GRoot.inst.scene.load.image(key, url);
+                break;
+        }
+    }
+    startLoad() {
+        GRoot.inst.scene.load.on(Phaser.Loader.Events.FILE_COMPLETE, this.onLoadComplete, this);
+        GRoot.inst.scene.load.on(Phaser.Loader.Events.FILE_LOAD_ERROR, this.onLoadError, this);
+        GRoot.inst.scene.load.start();
+    }
+    onLoadComplete(file) {
+        if (this._completeCallBack)
+            this._completeCallBack(file);
+    }
+    onLoadError() {
+        if (this._errorCallBack)
+            this._errorCallBack();
+    }
+}
+
 class UIPackage {
     constructor() {
         this._items = [];
@@ -8268,8 +8360,11 @@ class UIPackage {
                 return item.texture;
             case PackageItemType.Atlas:
                 if (!item.decoded) {
-                    item.decoded = true;
-                    //     item.texture = AssetProxy.inst.getRes(item.file);
+                    AssetProxy.inst.getRes(item.file, LoaderType.IMAGE).then((texturePath) => {
+                        item.decoded = true;
+                        const texture = GRoot.inst.scene.textures.get(texturePath);
+                        item.texture = texture;
+                    });
                     //     if(!fgui.UIConfig.textureLinearSampling)
                     //     item.texture.isLinearSampling = false;
                 }
@@ -10795,9 +10890,22 @@ class GRoot extends GComponent {
             this._uiStage.removeChild(this._container, UISceneDisplay.LAYER_ROOT);
             this._uiStage.destroy();
         }
+        this._stageOptions = stageOptions;
         this._uiStage = new UIStage(scene);
         this._uiStage.addChild(this._container, UISceneDisplay.LAYER_ROOT);
         this.addListen();
+    }
+    getResUrl(key) {
+        return this._stageOptions.res + key;
+    }
+    getResUIUrl(key) {
+        return this._stageOptions.resUI + KeyboardEvent;
+    }
+    getOsdRes(value) {
+        if (this._stageOptions.osd) {
+            return this._stageOptions.osd + value;
+        }
+        return value;
     }
     addListen() {
         this.removeListen();
@@ -10882,7 +10990,7 @@ class GRoot extends GComponent {
         this.updateContentScaleLevel();
     }
     updateContentScaleLevel() {
-        GRoot.contentScaleLevel = this.scene.render.scaleRatio;
+        GRoot.contentScaleLevel = this._stageOptions.dpr;
         // var mat: Phaser.GameObjects.Components.TransformMatrix = <Phaser.GameObjects.Components.TransformMatrix>(<any>Laya.stage)._canvasTransform;
         // var ss: number = Math.max(mat.getScaleX(), mat.getScaleY());
         // if (ss >= 3.5)
@@ -11644,87 +11752,6 @@ class GObjectPool {
         }
         this._count++;
         arr.push(obj);
-    }
-}
-
-var LoaderType;
-(function (LoaderType) {
-    LoaderType["IMAGE"] = "image";
-    LoaderType["ATLAS"] = "atlas";
-    LoaderType["AUDIO"] = "audio";
-    LoaderType["VIDEO"] = "video";
-    LoaderType["JSON"] = "json";
-    LoaderType["SCRIPT"] = "script";
-    LoaderType["GLSL"] = "glsl";
-    LoaderType["BITMAPFONT"] = "bitmapFont";
-    LoaderType["SPRITESHEET"] = "spritesheet";
-})(LoaderType || (LoaderType = {}));
-class AssetProxy {
-    constructor() {
-        this._resMap = new Map();
-    }
-    static get inst() {
-        if (!AssetProxy._inst)
-            AssetProxy._inst = new AssetProxy();
-        return AssetProxy._inst;
-    }
-    getRes(key) {
-        return this._resMap.get(key);
-    }
-    load(key, url, type, completeCallBack, _errorCallBack) {
-        this._resMap.set(key, url);
-        this._completeCallBack = completeCallBack;
-        this._errorCallBack = _errorCallBack;
-        if (GRoot.inst.scene.cache.obj.has(key)) {
-            if (this._completeCallBack) {
-                return this._completeCallBack();
-            }
-        }
-        switch (type) {
-            case LoaderType.IMAGE:
-                GRoot.inst.scene.load.image(key, url);
-                break;
-            case LoaderType.ATLAS:
-                GRoot.inst.scene.load.atlas(key, url);
-                break;
-            case LoaderType.AUDIO:
-                GRoot.inst.scene.load.audio(key, url);
-                break;
-            case LoaderType.VIDEO:
-                GRoot.inst.scene.load.video(key, url);
-                break;
-            case LoaderType.JSON:
-                GRoot.inst.scene.load.json(key, url);
-                break;
-            case LoaderType.SCRIPT:
-                GRoot.inst.scene.load.script(key, url);
-                break;
-            case LoaderType.GLSL:
-                GRoot.inst.scene.load.glsl(key, url);
-                break;
-            case LoaderType.BITMAPFONT:
-                GRoot.inst.scene.load.bitmapFont(key, url);
-                break;
-            case LoaderType.SPRITESHEET:
-                GRoot.inst.scene.load.spritesheet(key, url);
-                break;
-            default:
-                GRoot.inst.scene.load.image(key, url);
-                break;
-        }
-    }
-    startLoad() {
-        GRoot.inst.scene.load.on(Phaser.Loader.Events.FILE_COMPLETE, this.onLoadComplete, this);
-        GRoot.inst.scene.load.on(Phaser.Loader.Events.FILE_LOAD_ERROR, this.onLoadError, this);
-        GRoot.inst.scene.load.start();
-    }
-    onLoadComplete() {
-        if (this._completeCallBack)
-            this._completeCallBack();
-    }
-    onLoadError() {
-        if (this._errorCallBack)
-            this._errorCallBack();
     }
 }
 

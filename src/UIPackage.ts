@@ -5,7 +5,7 @@ import { GRoot } from './GRoot';
 import { UIConfig } from './UIConfig';
 import { ByteBuffer } from './utils/ByteBuffer';
 import { PackageItem } from './PackageItem';
-import { AssetProxy } from './AssetProxy';
+import { AssetProxy, LoaderType } from './AssetProxy';
 type PackageDependency = { id: string, name: string };
 export class UIPackage {
     private _id: string;
@@ -558,8 +558,12 @@ export class UIPackage {
 
             case PackageItemType.Atlas:
                 if (!item.decoded) {
-                    item.decoded = true;
-                    //     item.texture = AssetProxy.inst.getRes(item.file);
+
+                    AssetProxy.inst.getRes(item.file, LoaderType.IMAGE).then((texturePath) => {
+                        item.decoded = true;
+                        const texture = GRoot.inst.scene.textures.get(texturePath);
+                        item.texture = texture;
+                    });
                     //     if(!fgui.UIConfig.textureLinearSampling)
                     //     item.texture.isLinearSampling = false;
                 }

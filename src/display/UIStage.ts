@@ -26,8 +26,11 @@ export const enum StageAlign {
     MIDDLE,
     BOTTOM
 }
-
 export interface UIStageOptions {
+    osd: string;
+    res: string;
+    resUI: string;
+    dpr: number;
     scaleMode?: StageScaleMode;
     orientation?: StageOrientation;
     resolution?: number;
@@ -50,6 +53,10 @@ export class DefaultUIStageOptions implements UIStageOptions {
     public alignH: StageAlign = StageAlign.CENTER;
     public fallbackWidth: number = 0;
     public fallbackHeight: number = 0;
+    osd: string = "/";
+    res: string = "resources/";
+    resUI: string = "resources/ui";
+    dpr: number = 1;
     [key: string]: string | number;
 }
 
