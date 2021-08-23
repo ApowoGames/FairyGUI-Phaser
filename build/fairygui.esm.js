@@ -7892,10 +7892,16 @@ class UIPackage {
                         promises.push();
                     }
                 }
-                Promise.all(promises).then(() => {
-                    // this._instById
+                let resolve2 = () => {
+                    UIPackage._instById[pkg.id] = pkg;
+                    UIPackage._instByName[pkg.name] = pkg;
+                    UIPackage._instById[pkg._resKey] = pkg;
                     resolve(pkg);
-                });
+                };
+                if (promises.length > 0)
+                    Promise.all(promises).then(resolve2);
+                else
+                    resolve2();
             });
             scene.load.start();
         });
