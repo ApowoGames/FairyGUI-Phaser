@@ -664,7 +664,8 @@
         // public static setColorFilter(obj: Laya.Sprite, color?: string | number[] | boolean): void {
         static setColorFilter(obj, color) {
             // TODO
-            throw new Error("TODO");
+            console.log("todo color filter");
+            // throw new Error("TODO");
             // var filter: Laya.ColorFilter = (<any>obj).$_colorFilter_; //cached instance
             // var filters: any[] = obj.filters;
             // var toApplyColor: any;
