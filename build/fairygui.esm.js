@@ -4501,7 +4501,8 @@ class GGroup extends GObject {
     }
     handleVisibleChanged() {
         if (!this._parent)
-            var cnt = this._parent.numChildren;
+            return;
+        var cnt = this._parent.numChildren;
         for (var i = 0; i < cnt; i++) {
             var child = this._parent.getChildAt(i);
             if (child.group == this)
