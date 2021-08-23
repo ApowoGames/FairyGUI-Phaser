@@ -3403,8 +3403,7 @@
             }
         }
         get internalVisible() {
-            return this._internalVisible && (!this._group || this._group.internalVisible)
-                && !this._displayObject._cacheStyle.maskParent;
+            return this._internalVisible && (!this._group || this._group.internalVisible);
         }
         get internalVisible2() {
             return this._visible && (!this._group || this._group.internalVisible2);

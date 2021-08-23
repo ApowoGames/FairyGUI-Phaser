@@ -570,8 +570,7 @@ export class GObject {
     }
 
     public get internalVisible(): boolean {
-        return this._internalVisible && (!this._group || this._group.internalVisible)
-            && !(<any>this._displayObject)._cacheStyle.maskParent;
+        return this._internalVisible && (!this._group || this._group.internalVisible);
     }
 
     public get internalVisible2(): boolean {
