@@ -15,6 +15,7 @@ import { Margin } from './Margin';
 import { Controller } from './Controller';
 import { Graphics } from './display/Graphics';
 import { GObject } from './GObject';
+import { Decls, UIPackage } from './UIPackage';
 export class GComponent extends GObject {
     private _sortingChildCount: number = 0;
     private _opaque: boolean;
@@ -1108,22 +1109,20 @@ export class GComponent extends GObject {
 
                 var pi: PackageItem = null;
                 if (src != null) {
-                    // var pkg: UIPackage;
-                    // if (pkgId != null)
-                    //     pkg = UIPackage.getById(pkgId);
-                    // else
-                    //     pkg = contentItem.owner;
+                    var pkg: UIPackage;
+                    if (pkgId != null)
+                        pkg = UIPackage.getById(pkgId);
+                    else
+                        pkg = contentItem.owner;
 
-                    // pi = pkg ? pkg.getItemById(src) : null;
+                    pi = pkg ? pkg.getItemById(src) : null;
                 }
-                throw "error";
-
-                // if (pi) {
-                //     child = UIObjectFactory.newObject(pi);
-                //     child.constructFromResource();
-                // }
-                // else
-                //     child = UIObjectFactory.newObject(type);
+                if (pi) {
+                    child = Decls.UIObjectFactory.newObject(pi);
+                    child.constructFromResource();
+                }
+                else
+                    child = Decls.UIObjectFactory.newObject(type);
             }
 
             child._underConstruct = true;

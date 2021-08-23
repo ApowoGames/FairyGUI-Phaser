@@ -10595,17 +10595,24 @@ class GComponent extends GObject {
                 child = objectPool[poolIndex + i];
             else {
                 buffer.seek(curPos, 0);
-                buffer.readByte();
-                buffer.readS();
-                buffer.readS();
+                var type = buffer.readByte();
+                var src = buffer.readS();
+                var pkgId = buffer.readS();
                 var pi = null;
-                throw "error";
-                // if (pi) {
-                //     child = UIObjectFactory.newObject(pi);
-                //     child.constructFromResource();
-                // }
-                // else
-                //     child = UIObjectFactory.newObject(type);
+                if (src != null) {
+                    var pkg;
+                    if (pkgId != null)
+                        pkg = UIPackage.getById(pkgId);
+                    else
+                        pkg = contentItem.owner;
+                    pi = pkg ? pkg.getItemById(src) : null;
+                }
+                if (pi) {
+                    child = Decls.UIObjectFactory.newObject(pi);
+                    child.constructFromResource();
+                }
+                else
+                    child = Decls.UIObjectFactory.newObject(type);
             }
             child._underConstruct = true;
             child.setup_beforeAdd(buffer, curPos);
