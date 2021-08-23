@@ -5,6 +5,7 @@ import { GRoot } from './GRoot';
 import { UIConfig } from './UIConfig';
 import { ByteBuffer } from './utils/ByteBuffer';
 import { PackageItem } from './PackageItem';
+import { AssetProxy } from './AssetProxy';
 type PackageDependency = { id: string, name: string };
 export class UIPackage {
     private _id: string;
@@ -314,13 +315,13 @@ export class UIPackage {
                         pi.objectType = ObjectType.Image;
                         var scaleOption: number = buffer.readByte();
                         if (scaleOption == 1) {
-                        pi.scale9Grid = new Phaser.Geom.Rectangle();
-                        pi.scale9Grid.x = buffer.readInt();
-                        pi.scale9Grid.y = buffer.readInt();
-                        pi.scale9Grid.width = buffer.readInt();
-                        pi.scale9Grid.height = buffer.readInt();
+                            pi.scale9Grid = new Phaser.Geom.Rectangle();
+                            pi.scale9Grid.x = buffer.readInt();
+                            pi.scale9Grid.y = buffer.readInt();
+                            pi.scale9Grid.width = buffer.readInt();
+                            pi.scale9Grid.height = buffer.readInt();
 
-                        pi.tileGridIndice = buffer.readInt();
+                            pi.tileGridIndice = buffer.readInt();
                         }
                         else if (scaleOption == 2)
                             pi.scaleByTile = true;
@@ -535,34 +536,34 @@ export class UIPackage {
     public getItemAsset(item: PackageItem): Object {
         switch (item.type) {
             case PackageItemType.Image:
-            if (!item.decoded) {
-                item.decoded = true;
-                var sprite: AtlasSprite = this._sprites[item.id];
-                if (sprite) {
-                    var atlasTexture: Phaser.Textures.Texture = <Phaser.Textures.Texture>(this.getItemAsset(sprite.atlas));
-                    if (atlasTexture) {
-                        // item.texture = new Phaser.Textures.Texture(0,);
-                        // Laya.Texture.create(atlasTexture,
-                        //     sprite.rect.x, sprite.rect.y, sprite.rect.width, sprite.rect.height,
-                        //     sprite.offset.x, sprite.offset.y,
-                        //     sprite.originalSize.x, sprite.originalSize.y);
-                    } else {
-                        item.texture = null;
+                if (!item.decoded) {
+                    item.decoded = true;
+                    var sprite: AtlasSprite = this._sprites[item.id];
+                    if (sprite) {
+                        var atlasTexture: Phaser.Textures.Texture = <Phaser.Textures.Texture>(this.getItemAsset(sprite.atlas));
+                        if (atlasTexture) {
+                            item.texture = atlasTexture;
+                            // Laya.Texture.create(atlasTexture,
+                            //     sprite.rect.x, sprite.rect.y, sprite.rect.width, sprite.rect.height,
+                            //     sprite.offset.x, sprite.offset.y,
+                            //     sprite.originalSize.x, sprite.originalSize.y);
+                        } else {
+                            item.texture = null;
+                        }
                     }
+                    else
+                        item.texture = null;
                 }
-                else
-                    item.texture = null;
-            }
-            return item.texture;
+                return item.texture;
 
             case PackageItemType.Atlas:
                 if (!item.decoded) {
                     item.decoded = true;
-                    // item.texture = AssetProxy.inst.getRes(item.file);
-                    //if(!fgui.UIConfig.textureLinearSampling)
-                    //item.texture.isLinearSampling = false;
+                    //     item.texture = AssetProxy.inst.getRes(item.file);
+                    //     if(!fgui.UIConfig.textureLinearSampling)
+                    //     item.texture.isLinearSampling = false;
                 }
-            // return item.texture;
+                return item.texture;
 
             case PackageItemType.Font:
             // if (!item.decoded) {

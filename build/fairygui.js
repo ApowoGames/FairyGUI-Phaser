@@ -8255,7 +8255,13 @@
                         var sprite = this._sprites[item.id];
                         if (sprite) {
                             var atlasTexture = (this.getItemAsset(sprite.atlas));
-                            if (atlasTexture) ;
+                            if (atlasTexture) {
+                                item.texture = atlasTexture;
+                                // Laya.Texture.create(atlasTexture,
+                                //     sprite.rect.x, sprite.rect.y, sprite.rect.width, sprite.rect.height,
+                                //     sprite.offset.x, sprite.offset.y,
+                                //     sprite.originalSize.x, sprite.originalSize.y);
+                            }
                             else {
                                 item.texture = null;
                             }
@@ -8267,11 +8273,11 @@
                 case exports.PackageItemType.Atlas:
                     if (!item.decoded) {
                         item.decoded = true;
-                        // item.texture = AssetProxy.inst.getRes(item.file);
-                        //if(!fgui.UIConfig.textureLinearSampling)
-                        //item.texture.isLinearSampling = false;
+                        //     item.texture = AssetProxy.inst.getRes(item.file);
+                        //     if(!fgui.UIConfig.textureLinearSampling)
+                        //     item.texture.isLinearSampling = false;
                     }
-                // return item.texture;
+                    return item.texture;
                 case exports.PackageItemType.Font:
                 // if (!item.decoded) {
                 //     item.decoded = true;
