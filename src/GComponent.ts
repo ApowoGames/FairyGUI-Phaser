@@ -48,7 +48,7 @@ export class GComponent extends GObject {
 
     public createDisplayObject(): void {
         super.createDisplayObject();
-        this._displayObject.setInteractive(true);
+        // this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this._width, this._height), Phaser.Geom.Rectangle.Contains);
         this._container = this._displayObject;
     }
 

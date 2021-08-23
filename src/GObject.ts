@@ -1179,6 +1179,7 @@ export class GObject {
 
     protected handleSizeChanged(): void {
         this._displayObject.setSize(this._width, this._height);
+        this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this._width, this._height), Phaser.Geom.Rectangle.Contains);
     }
 
     protected handleScaleChanged(): void {

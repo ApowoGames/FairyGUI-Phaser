@@ -3913,6 +3913,7 @@
         }
         handleSizeChanged() {
             this._displayObject.setSize(this._width, this._height);
+            this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this._width, this._height), Phaser.Geom.Rectangle.Contains);
         }
         handleScaleChanged() {
             this._displayObject.setScale(this._scaleX, this._scaleY);
@@ -9711,7 +9712,7 @@
         }
         createDisplayObject() {
             super.createDisplayObject();
-            this._displayObject.setInteractive(true);
+            // this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this._width, this._height), Phaser.Geom.Rectangle.Contains);
             this._container = this._displayObject;
         }
         dispose() {
