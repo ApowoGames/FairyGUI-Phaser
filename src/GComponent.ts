@@ -1036,6 +1036,7 @@ export class GComponent extends GObject {
         this.initWidth = this.sourceWidth;
         this.initHeight = this.sourceHeight;
 
+        if (!this.displayObject) this.createDisplayObject();
         this.setSize(this.sourceWidth, this.sourceHeight);
 
         if (buffer.readBool()) {
