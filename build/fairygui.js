@@ -5287,8 +5287,8 @@
     }
 
     class GImage extends GObject {
-        constructor() {
-            super();
+        constructor(scene) {
+            super(scene);
             this._flip = 0;
         }
         get image() {
@@ -16622,7 +16622,7 @@
             if (typeof type === 'number') {
                 switch (type) {
                     case exports.ObjectType.Image:
-                        return new GImage();
+                        return new GImage(GRoot.inst.scene);
                     case exports.ObjectType.MovieClip:
                     // return new GMovieClip();
                     case exports.ObjectType.Component:

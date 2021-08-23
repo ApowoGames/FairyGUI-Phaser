@@ -5283,8 +5283,8 @@ class Image extends Phaser.GameObjects.Container {
 }
 
 class GImage extends GObject {
-    constructor() {
-        super();
+    constructor(scene) {
+        super(scene);
         this._flip = 0;
     }
     get image() {
@@ -16618,7 +16618,7 @@ class UIObjectFactory {
         if (typeof type === 'number') {
             switch (type) {
                 case ObjectType.Image:
-                    return new GImage();
+                    return new GImage(GRoot.inst.scene);
                 case ObjectType.MovieClip:
                 // return new GMovieClip();
                 case ObjectType.Component:

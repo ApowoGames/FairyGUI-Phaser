@@ -56,7 +56,7 @@ export class UIObjectFactory {
         if (typeof type === 'number') {
             switch (type) {
                 case ObjectType.Image:
-                    return new GImage();
+                    return new GImage(GRoot.inst.scene);
 
                 case ObjectType.MovieClip:
                 // return new GMovieClip();

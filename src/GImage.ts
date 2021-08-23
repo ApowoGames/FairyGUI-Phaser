@@ -8,8 +8,8 @@ export class GImage extends GObject {
     private _flip: number = 0;
     private _contentItem: PackageItem;
 
-    constructor() {
-        super();
+    constructor(scene?: Phaser.Scene) {
+        super(scene);
     }
 
     public get image(): Image {

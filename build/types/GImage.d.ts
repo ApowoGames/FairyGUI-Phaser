@@ -5,7 +5,7 @@ export declare class GImage extends GObject {
     private _image;
     private _flip;
     private _contentItem;
-    constructor();
+    constructor(scene?: Phaser.Scene);
     get image(): Image;
     get color(): string;
     set color(value: string);
