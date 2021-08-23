@@ -11,6 +11,6 @@ export declare class UIObjectFactory {
     static setExtension(url: string, type: new () => GComponent): void;
     static setPackageItemExtension(url: string, type: new () => GComponent): void;
     static setLoaderExtension(type: new () => GLoader): void;
-    static resolvePackageItemExtension(pi: PackageItem): void;
+    static resolveExtension(pi: PackageItem): void;
     static newObject(type: number | PackageItem, userClass?: new () => GObject): GObject;
 }

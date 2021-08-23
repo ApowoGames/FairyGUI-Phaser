@@ -11,7 +11,7 @@ import { GImage } from './GImage';
 import { ObjectType, PackageItemType } from './FieldTypes';
 import { GObject } from './GObject';
 import { PackageItem } from './PackageItem';
-import { UIPackage } from './UIPackage';
+import { Decls, UIPackage } from './UIPackage';
 import { GLoader } from './GLoader';
 import { GTree } from './GTree';
 
@@ -41,7 +41,7 @@ export class UIObjectFactory {
         UIObjectFactory.loaderType = type;
     }
 
-    public static resolvePackageItemExtension(pi: PackageItem): void {
+    public static resolveExtension(pi: PackageItem): void {
         var extensionType = UIObjectFactory.extensions["ui://" + pi.owner.id + pi.id];
         if (!extensionType)
             extensionType = UIObjectFactory.extensions["ui://" + pi.owner.name + "/" + pi.name];
@@ -126,3 +126,4 @@ export class UIObjectFactory {
         return obj;
     }
 }
+Decls.UIObjectFactory = UIObjectFactory;

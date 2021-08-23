@@ -8068,9 +8068,9 @@ class UIPackage {
                     }
                 case PackageItemType.MovieClip:
                     {
-                        // pi.smoothing = buffer.readBool();
-                        // pi.objectType = ObjectType.MovieClip;
-                        // pi.rawData = buffer.readBuffer();
+                        pi.smoothing = buffer.readBool();
+                        pi.objectType = ObjectType.MovieClip;
+                        pi.rawData = buffer.readBuffer();
                         break;
                     }
                 case PackageItemType.Font:
@@ -16580,7 +16580,7 @@ class UIObjectFactory {
     static setLoaderExtension(type) {
         UIObjectFactory.loaderType = type;
     }
-    static resolvePackageItemExtension(pi) {
+    static resolveExtension(pi) {
         var extensionType = UIObjectFactory.extensions["ui://" + pi.owner.id + pi.id];
         if (!extensionType)
             extensionType = UIObjectFactory.extensions["ui://" + pi.owner.name + "/" + pi.name];
@@ -16651,6 +16651,7 @@ class UIObjectFactory {
     }
 }
 UIObjectFactory.extensions = {};
+Decls.UIObjectFactory = UIObjectFactory;
 
 class DragDropManager {
     constructor() {

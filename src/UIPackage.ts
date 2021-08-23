@@ -331,9 +331,9 @@ export class UIPackage {
 
                 case PackageItemType.MovieClip:
                     {
-                        // pi.smoothing = buffer.readBool();
-                        // pi.objectType = ObjectType.MovieClip;
-                        // pi.rawData = buffer.readBuffer();
+                        pi.smoothing = buffer.readBool();
+                        pi.objectType = ObjectType.MovieClip;
+                        pi.rawData = buffer.readBuffer();
                         break;
                     }
 

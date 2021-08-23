@@ -8072,9 +8072,9 @@
                         }
                     case exports.PackageItemType.MovieClip:
                         {
-                            // pi.smoothing = buffer.readBool();
-                            // pi.objectType = ObjectType.MovieClip;
-                            // pi.rawData = buffer.readBuffer();
+                            pi.smoothing = buffer.readBool();
+                            pi.objectType = exports.ObjectType.MovieClip;
+                            pi.rawData = buffer.readBuffer();
                             break;
                         }
                     case exports.PackageItemType.Font:
@@ -16584,7 +16584,7 @@
         static setLoaderExtension(type) {
             UIObjectFactory.loaderType = type;
         }
-        static resolvePackageItemExtension(pi) {
+        static resolveExtension(pi) {
             var extensionType = UIObjectFactory.extensions["ui://" + pi.owner.id + pi.id];
             if (!extensionType)
                 extensionType = UIObjectFactory.extensions["ui://" + pi.owner.name + "/" + pi.name];
@@ -16655,6 +16655,7 @@
         }
     }
     UIObjectFactory.extensions = {};
+    Decls.UIObjectFactory = UIObjectFactory;
 
     class DragDropManager {
         constructor() {
