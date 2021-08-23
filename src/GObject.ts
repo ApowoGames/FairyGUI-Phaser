@@ -16,7 +16,6 @@ import { GComponent } from './GComponent';
 import { InteractiveEvent } from './event/DisplayObjectEvent';
 import { GTree } from './GTree';
 import { GearAnimation, GearColor, GearFontSize, GearIcon, GearLook, GearSize, GearText, GearXY } from './gears';
-import { GRoot } from './GRoot';
 export class DisplayStyle {
     static EMPTY: DisplayStyle = new DisplayStyle();
     /**水平缩放 */
@@ -1154,8 +1153,7 @@ export class GObject {
     }
 
     public createDisplayObject(): void {
-        this._displayObject = new Phaser.GameObjects.Container(this.scene);
-        GRoot.inst.add(this);
+        this._displayObject = this.scene.add.container(0, 0);
         this._displayObject["$owner"] = this;
     }
 
