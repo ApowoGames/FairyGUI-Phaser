@@ -535,24 +535,25 @@ export class UIPackage {
     public getItemAsset(item: PackageItem): Object {
         switch (item.type) {
             case PackageItemType.Image:
-            // if (!item.decoded) {
-            //     item.decoded = true;
-            //     var sprite: AtlasSprite = this._sprites[item.id];
-            //     if (sprite) {
-            //         var atlasTexture: Laya.Texture = <Laya.Texture>(this.getItemAsset(sprite.atlas));
-            //         if (atlasTexture) {
-            //             item.texture = Laya.Texture.create(atlasTexture,
-            //                 sprite.rect.x, sprite.rect.y, sprite.rect.width, sprite.rect.height,
-            //                 sprite.offset.x, sprite.offset.y,
-            //                 sprite.originalSize.x, sprite.originalSize.y);
-            //         } else {
-            //             item.texture = null;
-            //         }
-            //     }
-            //     else
-            //         item.texture = null;
-            // }
-            // return item.texture;
+            if (!item.decoded) {
+                item.decoded = true;
+                var sprite: AtlasSprite = this._sprites[item.id];
+                if (sprite) {
+                    var atlasTexture: Phaser.Textures.Texture = <Phaser.Textures.Texture>(this.getItemAsset(sprite.atlas));
+                    if (atlasTexture) {
+                        // item.texture = new Phaser.Textures.Texture(0,);
+                        // Laya.Texture.create(atlasTexture,
+                        //     sprite.rect.x, sprite.rect.y, sprite.rect.width, sprite.rect.height,
+                        //     sprite.offset.x, sprite.offset.y,
+                        //     sprite.originalSize.x, sprite.originalSize.y);
+                    } else {
+                        item.texture = null;
+                    }
+                }
+                else
+                    item.texture = null;
+            }
+            return item.texture;
 
             case PackageItemType.Atlas:
                 if (!item.decoded) {
