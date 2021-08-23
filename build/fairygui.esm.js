@@ -2953,6 +2953,2558 @@ class GearXY extends GearBase {
     }
 }
 
+class DisplayStyle {
+    constructor() {
+        /**水平缩放 */
+        this.scaleX = 1;
+        /**垂直缩放 */
+        this.scaleY = 1;
+        /**水平倾斜角度 */
+        this.skewX = 0;
+        /**垂直倾斜角度 */
+        this.skewY = 0;
+        /**X轴心点 */
+        this.pivotX = 0;
+        /**Y轴心点 */
+        this.pivotY = 0;
+        /**旋转角度 */
+        this.rotation = 0;
+        /**透明度 */
+        this.alpha = 1;
+    }
+}
+DisplayStyle.EMPTY = new DisplayStyle();
+class GObject {
+    constructor() {
+        this._x = 0;
+        this._y = 0;
+        this._alpha = 1;
+        this._rotation = 0;
+        this._visible = true;
+        this._dpr = 1;
+        // 可交互默认false
+        this._touchable = false;
+        this._scaleX = 1;
+        this._scaleY = 1;
+        this._skewX = 0;
+        this._skewY = 0;
+        this._pivotX = 0;
+        this._pivotY = 0;
+        this._pivotOffsetX = 0;
+        this._pivotOffsetY = 0;
+        this._sortingOrder = 0;
+        this._internalVisible = true;
+        this._yOffset = 0;
+        this.minWidth = 0;
+        this.minHeight = 0;
+        this.maxWidth = 0;
+        this.maxHeight = 0;
+        this.sourceWidth = 0;
+        this.sourceHeight = 0;
+        this.initWidth = 0;
+        this.initHeight = 0;
+        this._width = 0;
+        this._height = 0;
+        this._rawWidth = 0;
+        this._rawHeight = 0;
+        this._sizePercentInGroup = 0;
+        this._id = "" + _gInstanceCounter++;
+        this._name = "";
+        // todo 优先传入scene在创建display
+        if (this.scene)
+            this.createDisplayObject();
+        this._displayStyle = new DisplayStyle();
+        this._relations = new Relations(this);
+        this._gears = new Array(10);
+    }
+    get dpr() {
+        return this._dpr;
+    }
+    set dpr(value) {
+        this._dpr = value;
+    }
+    get id() {
+        return this._id;
+    }
+    set id(value) {
+        this._id = value;
+    }
+    get name() {
+        return this._name;
+    }
+    set name(value) {
+        this._name = value;
+    }
+    get x() {
+        return this._x;
+    }
+    set x(value) {
+        this.setXY(value, this._y);
+    }
+    get y() {
+        return this._y;
+    }
+    set y(value) {
+        this.setXY(this._x, value);
+    }
+    get scene() {
+        return this._scene;
+    }
+    set scene(value) {
+        this._scene = value;
+    }
+    get timeEvent() {
+        return this._timeEvent;
+    }
+    set timeEvent(value) {
+        this._timeEvent = value;
+    }
+    setXY(xv, yv) {
+        if (this._x != xv || this._y != yv) {
+            var dx = xv - this._x;
+            var dy = yv - this._y;
+            this._x = xv;
+            this._y = yv;
+            this.handleXYChanged();
+            if (this instanceof GGroup)
+                this.moveChildren(dx, dy);
+            this.updateGear(1);
+            // if (this._parent && !(this._parent instanceof GList)) {
+            if (this._parent) {
+                this._parent.setBoundsChangedFlag();
+                if (this._group)
+                    this._group.setBoundsChangedFlag(true);
+                this.displayObject.emit(Events.XY_CHANGED);
+            }
+            if (GObject.draggingObject == this && !sUpdateInDragging)
+                this.localToGlobalRect(0, 0, this.width, this.height, sGlobalRect);
+        }
+    }
+    get xMin() {
+        return this._pivotAsAnchor ? (this._x - this._width * this._pivotX) : this._x;
+    }
+    set xMin(value) {
+        if (this._pivotAsAnchor)
+            this.setXY(value + this._width * this._pivotX, this._y);
+        else
+            this.setXY(value, this._y);
+    }
+    get yMin() {
+        return this._pivotAsAnchor ? (this._y - this._height * this._pivotY) : this._y;
+    }
+    set yMin(value) {
+        if (this._pivotAsAnchor)
+            this.setXY(this._x, value + this._height * this._pivotY);
+        else
+            this.setXY(this._x, value);
+    }
+    get pixelSnapping() {
+        return this._pixelSnapping;
+    }
+    set pixelSnapping(value) {
+        if (this._pixelSnapping != value) {
+            this._pixelSnapping = value;
+            this.handleXYChanged();
+        }
+    }
+    center(restraint) {
+        let r;
+        if (this._parent)
+            r = this.parent;
+        else
+            r = this.root;
+        this.setXY((r.width - this.width) / 2, (r.height - this.height) / 2);
+        if (restraint) {
+            this.addRelation(r, RelationType.Center_Center);
+            this.addRelation(r, RelationType.Middle_Middle);
+        }
+    }
+    get width() {
+        this.ensureSizeCorrect();
+        if (this._relations.sizeDirty)
+            this._relations.ensureRelationsSizeCorrect();
+        return this._width;
+    }
+    set width(value) {
+        this.setSize(value, this._rawHeight);
+    }
+    get height() {
+        this.ensureSizeCorrect();
+        if (this._relations.sizeDirty)
+            this._relations.ensureRelationsSizeCorrect();
+        return this._height;
+    }
+    set height(value) {
+        this.setSize(this._rawWidth, value);
+    }
+    setSize(wv, hv, ignorePivot) {
+        if (this._rawWidth != wv || this._rawHeight != hv) {
+            this._rawWidth = wv;
+            this._rawHeight = hv;
+            if (wv < this.minWidth)
+                wv = this.minWidth;
+            if (hv < this.minHeight)
+                hv = this.minHeight;
+            if (this.maxWidth > 0 && wv > this.maxWidth)
+                wv = this.maxWidth;
+            if (this.maxHeight > 0 && hv > this.maxHeight)
+                hv = this.maxHeight;
+            var dWidth = wv - this._width;
+            var dHeight = hv - this._height;
+            this._width = wv;
+            this._height = hv;
+            this.handleSizeChanged();
+            if (this._pivotX != 0 || this._pivotY != 0) {
+                if (!this._pivotAsAnchor) {
+                    if (!ignorePivot)
+                        this.setXY(this.x - this._pivotX * dWidth, this.y - this._pivotY * dHeight);
+                    this.updatePivotOffset();
+                }
+                else
+                    this.applyPivot();
+            }
+            if (this instanceof GGroup)
+                this.resizeChildren(dWidth, dHeight);
+            this.updateGear(2);
+            if (this._parent) {
+                this._relations.onOwnerSizeChanged(dWidth, dHeight, this._pivotAsAnchor || !ignorePivot);
+                this._parent.setBoundsChangedFlag();
+                if (this._group)
+                    this._group.setBoundsChangedFlag();
+            }
+            this.displayObject.emit(Events.SIZE_CHANGED);
+        }
+    }
+    ensureSizeCorrect() {
+    }
+    makeFullScreen() {
+        // this.setSize(GRoot.inst.width, GRoot.inst.height);
+    }
+    get actualWidth() {
+        return this.width * Math.abs(this._scaleX);
+    }
+    get actualHeight() {
+        return this.height * Math.abs(this._scaleY);
+    }
+    get scaleX() {
+        return this._scaleX;
+    }
+    set scaleX(value) {
+        this.setScale(value, this._scaleY);
+    }
+    get scaleY() {
+        return this._scaleY;
+    }
+    set scaleY(value) {
+        this.setScale(this._scaleX, value);
+    }
+    setScale(sx, sy) {
+        if (this._scaleX != sx || this._scaleY != sy) {
+            this._scaleX = sx;
+            this._scaleY = sy;
+            this.handleScaleChanged();
+            this.applyPivot();
+            this.updateGear(2);
+        }
+    }
+    get skewX() {
+        return this._skewX;
+    }
+    set skewX(value) {
+        this.setSkew(value, this._skewY);
+    }
+    get skewY() {
+        return this._skewY;
+    }
+    set skewY(value) {
+        this.setSkew(this._skewX, value);
+    }
+    setSkew(sx, sy) {
+        if (this._skewX != sx || this._skewY != sy) {
+            this._skewX = sx;
+            this._skewY = sy;
+            if (this._displayObject) {
+                this._displayStyle.skewX = -sx,
+                    this._displayStyle.skewY = sy;
+                this._adjustTransform();
+                // this._displayObject.skew(-sx, sy);
+                this.applyPivot();
+            }
+        }
+    }
+    _adjustTransform() {
+        var sx = this._displayStyle.scaleX, sy = this._displayStyle.scaleY;
+        var sskx = this._displayStyle.skewX;
+        var ssky = this._displayStyle.skewY;
+        var rot = this._displayStyle.rotation;
+        const m = this._displayObject.getLocalTransformMatrix();
+        // var m: Matrix = this._transform || (this._transform = this._createTransform());
+        if (rot || sx !== 1 || sy !== 1 || sskx !== 0 || ssky !== 0) {
+            // m._bTransform = true;
+            var skx = (rot - sskx) * 0.0174532922222222; //laya.CONST.PI180;
+            var sky = (rot + ssky) * 0.0174532922222222;
+            var cx = Math.cos(sky);
+            var ssx = Math.sin(sky);
+            var cy = Math.sin(skx);
+            var ssy = Math.cos(skx);
+            m.a = sx * cx;
+            m.b = sx * ssx;
+            m.c = -sy * cy;
+            m.d = sy * ssy;
+            m.tx = m.ty = 0;
+        }
+        else {
+            m.loadIdentity();
+            // this._renderType &= ~SpriteConst.TRANSFORM;
+            // this._setRenderType(this._renderType);
+        }
+        return m;
+    }
+    get pivotX() {
+        return this._pivotX;
+    }
+    set pivotX(value) {
+        this.setPivot(value, this._pivotY);
+    }
+    get pivotY() {
+        return this._pivotY;
+    }
+    set pivotY(value) {
+        this.setPivot(this._pivotX, value);
+    }
+    setPivot(xv, yv = 0, asAnchor) {
+        if (this._pivotX != xv || this._pivotY != yv || this._pivotAsAnchor != asAnchor) {
+            this._pivotX = xv;
+            this._pivotY = yv;
+            this._pivotAsAnchor = asAnchor;
+            this.updatePivotOffset();
+            this.handleXYChanged();
+        }
+    }
+    get pivotAsAnchor() {
+        return this._pivotAsAnchor;
+    }
+    internalSetPivot(xv, yv, asAnchor) {
+        this._pivotX = xv;
+        this._pivotY = yv;
+        this._pivotAsAnchor = asAnchor;
+        if (this._pivotAsAnchor)
+            this.handleXYChanged();
+    }
+    updatePivotOffset() {
+        if (this._displayObject) {
+            const transform = this._displayObject.getLocalTransformMatrix();
+            if (transform && (this._pivotX != 0 || this._pivotY != 0)) {
+                sHelperPoint.x = this._pivotX * this._width;
+                sHelperPoint.y = this._pivotY * this._height;
+                const pt = new Phaser.Geom.Point();
+                transform.transformPoint(this._pivotX * this._width, this._pivotY * this._height, pt);
+                this._pivotOffsetX = this._pivotX * this._width - pt.x;
+                this._pivotOffsetY = this._pivotY * this._height - pt.y;
+            }
+            else {
+                this._pivotOffsetX = 0;
+                this._pivotOffsetY = 0;
+            }
+        }
+    }
+    applyPivot() {
+        if (this._pivotX != 0 || this._pivotY != 0) {
+            this.updatePivotOffset();
+            this.handleXYChanged();
+        }
+    }
+    get touchable() {
+        return this._touchable;
+    }
+    set touchable(value) {
+        if (this._touchable != value) {
+            this._touchable = value;
+            this.updateGear(3);
+            // if ((this instanceof GImage) || (this instanceof GMovieClip)
+            //     || (this instanceof GTextField) && !(this instanceof GTextInput) && !(this instanceof GRichTextField))
+            //     //Touch is not supported by GImage/GMovieClip/GTextField
+            //     return;
+            if (this._displayObject)
+                if (this._touchable) {
+                    this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this._width / this.scaleX, this._height / this.scaleY), Phaser.Geom.Rectangle.Contains);
+                }
+                else {
+                    this._displayObject.disableInteractive();
+                }
+        }
+    }
+    get grayed() {
+        return this._grayed;
+    }
+    set grayed(value) {
+        if (this._grayed != value) {
+            this._grayed = value;
+            this.handleGrayedChanged();
+            this.updateGear(3);
+        }
+    }
+    get enabled() {
+        return !this._grayed && this._touchable;
+    }
+    set enabled(value) {
+        this.grayed = !value;
+        this.touchable = value;
+    }
+    get rotation() {
+        return this._rotation;
+    }
+    set rotation(value) {
+        if (this._rotation != value) {
+            this._rotation = value;
+            if (this._displayObject) {
+                this._displayObject.rotation = this.normalizeRotation;
+                this.applyPivot();
+            }
+            this.updateGear(3);
+        }
+    }
+    get normalizeRotation() {
+        var rot = this._rotation % 360;
+        if (rot > 180)
+            rot = rot - 360;
+        else if (rot < -180)
+            rot = 360 + rot;
+        return rot;
+    }
+    get alpha() {
+        return this._alpha;
+    }
+    set alpha(value) {
+        if (this._alpha != value) {
+            this._alpha = value;
+            this.handleAlphaChanged();
+            this.updateGear(3);
+        }
+    }
+    get visible() {
+        return this._visible;
+    }
+    set visible(value) {
+        if (this._visible != value) {
+            this._visible = value;
+            this.handleVisibleChanged();
+            if (this._parent)
+                this._parent.setBoundsChangedFlag();
+            if (this._group && this._group.excludeInvisibles)
+                this._group.setBoundsChangedFlag();
+        }
+    }
+    get internalVisible() {
+        return this._internalVisible && (!this._group || this._group.internalVisible)
+            && !this._displayObject._cacheStyle.maskParent;
+    }
+    get internalVisible2() {
+        return this._visible && (!this._group || this._group.internalVisible2);
+    }
+    get internalVisible3() {
+        return this._internalVisible && this._visible;
+    }
+    get sortingOrder() {
+        return this._sortingOrder;
+    }
+    set sortingOrder(value) {
+        if (value < 0)
+            value = 0;
+        if (this._sortingOrder != value) {
+            var old = this._sortingOrder;
+            this._sortingOrder = value;
+            if (this._parent)
+                this._parent.childSortingOrderChanged(this, old, this._sortingOrder);
+        }
+    }
+    get focused() {
+        return this.root.focus == this;
+    }
+    requestFocus() {
+        this.root.focus = this;
+    }
+    get tooltips() {
+        return this._tooltips;
+    }
+    set tooltips(value) {
+        if (this._tooltips) {
+            this.off(InteractiveEvent.GAMEOBJECT_OVER, this.__rollOver);
+            this.off(InteractiveEvent.GAMEOBJECT_OUT, this.__rollOut);
+        }
+        this._tooltips = value;
+        if (this._tooltips) {
+            this.on(InteractiveEvent.GAMEOBJECT_OVER, this.__rollOver);
+            this.on(InteractiveEvent.GAMEOBJECT_OUT, this.__rollOut);
+        }
+    }
+    __rollOver(evt) {
+        // this._timeEvent = GRoot.inst.addTimeEvent(new Phaser.Time.TimerEvent({ delay: 100, callback: this.__doShowTooltips }));
+        // Laya.timer.once(100, this, this.__doShowTooltips);
+    }
+    __doShowTooltips() {
+        // var r: GRoot = this.root;
+        // if (r)
+        // this.root.showTooltips(this._tooltips);
+    }
+    __rollOut(evt) {
+        // if (this._timeEvent) GRoot.inst.removeTimeEvent(this._timeEvent);
+        // Laya.timer.clear(this, this.__doShowTooltips);
+        // this.root.hideTooltips();
+    }
+    get blendMode() {
+        return this._displayObject.blendMode;
+    }
+    set blendMode(value) {
+        this._displayObject.blendMode = value;
+    }
+    get filters() {
+        return null; // this._displayObject.filters;
+    }
+    set filters(value) {
+        // this._displayObject.filters = value;
+    }
+    get inContainer() {
+        return this._displayObject != null && this._displayObject.parentContainer != null;
+    }
+    get onStage() {
+        return this._displayObject != null;
+        // return this._displayObject != null && this._displayObject.stage != null;
+    }
+    get resourceURL() {
+        if (this.packageItem)
+            return "ui://" + this.packageItem.owner.id + this.packageItem.id;
+        else
+            return null;
+    }
+    set group(value) {
+        if (this._group != value) {
+            if (this._group)
+                this._group.setBoundsChangedFlag();
+            this._group = value;
+            if (this._group)
+                this._group.setBoundsChangedFlag();
+        }
+    }
+    get group() {
+        return this._group;
+    }
+    getGear(index) {
+        var gear = this._gears[index];
+        if (!gear)
+            this._gears[index] = gear = createGear(this, index);
+        return gear;
+    }
+    updateGear(index) {
+        if (this._underConstruct || this._gearLocked)
+            return;
+        var gear = this._gears[index];
+        if (gear && gear.controller)
+            gear.updateState();
+    }
+    checkGearController(index, c) {
+        return this._gears[index] && this._gears[index].controller == c;
+    }
+    updateGearFromRelations(index, dx, dy) {
+        if (this._gears[index])
+            this._gears[index].updateFromRelations(dx, dy);
+    }
+    addDisplayLock() {
+        var gearDisplay = (this._gears[0]);
+        if (gearDisplay && gearDisplay.controller) {
+            var ret = gearDisplay.addLock();
+            this.checkGearDisplay();
+            return ret;
+        }
+        else
+            return 0;
+    }
+    releaseDisplayLock(token) {
+        var gearDisplay = (this._gears[0]);
+        if (gearDisplay && gearDisplay.controller) {
+            gearDisplay.releaseLock(token);
+            this.checkGearDisplay();
+        }
+    }
+    checkGearDisplay() {
+        if (this._handlingController)
+            return;
+        var connected = !this._gears[0] || (this._gears[0]).connected;
+        if (this._gears[8])
+            connected = this._gears[8].evaluate(connected);
+        if (connected != this._internalVisible) {
+            this._internalVisible = connected;
+            if (this._parent) {
+                this._parent.childStateChanged(this);
+                if (this._group && this._group.excludeInvisibles)
+                    this._group.setBoundsChangedFlag();
+            }
+        }
+    }
+    get relations() {
+        return this._relations;
+    }
+    addRelation(target, relationType, usePercent) {
+        this._relations.add(target, relationType, usePercent);
+    }
+    removeRelation(target, relationType) {
+        this._relations.remove(target, relationType);
+    }
+    get displayObject() {
+        return this._displayObject;
+    }
+    get parent() {
+        return this._parent;
+    }
+    set parent(val) {
+        this._parent = val;
+    }
+    removeFromParent() {
+        if (this._parent)
+            this._parent.removeChild(this);
+    }
+    get root() {
+        // if (this instanceof GRoot)
+        //     return this;
+        // let p: GObject = this._parent;
+        // while (p) {
+        //     if (p instanceof GRoot)
+        //         return p;
+        //     p = p.parent;
+        // }
+        // return GRoot.inst;
+        return null;
+    }
+    get asCom() {
+        return this;
+    }
+    // public get asButton(): GButton {
+    //     return <GButton><any>this;
+    // }
+    // public get asLabel(): GLabel {
+    //     return <GLabel><any>this;
+    // }
+    // public get asProgress(): GProgressBar {
+    //     return <GProgressBar><any>this;
+    // }
+    // public get asTextField(): GTextField {
+    //     return <GTextField><any>this;
+    // }
+    // public get asRichTextField(): GRichTextField {
+    //     return <GRichTextField><any>this;
+    // }
+    // public get asTextInput(): GTextInput {
+    //     return <GTextInput><any>this;
+    // }
+    // public get asLoader(): GLoader {
+    //     return <GLoader><any>this;
+    // }
+    // public get asList(): GList {
+    //     return <GList><any>this;
+    // }
+    get asTree() {
+        return this;
+    }
+    // public get asGraph(): GGraph {
+    //     return <GGraph><any>this;
+    // }
+    get asGroup() {
+        return this;
+    }
+    // public get asSlider(): GSlider {
+    //     return <GSlider><any>this;
+    // }
+    // public get asComboBox(): GComboBox {
+    //     return <GComboBox><any>this;
+    // }
+    // public get asImage(): GImage {
+    //     return <GImage><any>this;
+    // }
+    // public get asMovieClip(): GMovieClip {
+    //     return <GMovieClip><any>this;
+    // }
+    get text() {
+        return null;
+    }
+    set text(value) {
+    }
+    get icon() {
+        return null;
+    }
+    set icon(value) {
+    }
+    get treeNode() {
+        return this._treeNode;
+    }
+    get isDisposed() {
+        return this._displayObject == null;
+    }
+    get scrollRect() {
+        return this._displayStyle && this._displayStyle.scrollRect;
+    }
+    set scrollRect(val) {
+        this._displayStyle.scrollRect = val;
+    }
+    /**
+     * <p>可以设置一个Rectangle区域作为点击区域，或者设置一个<code>HitArea</code>实例作为点击区域，HitArea内可以设置可点击和不可点击区域。</p>
+     * <p>如果不设置hitArea，则根据宽高形成的区域进行碰撞。</p>
+    */
+    get hitArea() {
+        return this._displayStyle.hitArea;
+    }
+    set hitArea(value) {
+        this._displayStyle.hitArea = value;
+    }
+    dispose() {
+        this.removeFromParent();
+        this._relations.dispose();
+        this._displayObject.destroy();
+        this._displayObject = null;
+        for (var i = 0; i < 10; i++) {
+            var gear = this._gears[i];
+            if (gear)
+                gear.dispose();
+        }
+    }
+    onClick(listener) {
+        this.on(InteractiveEvent.GAMEOBJECT_UP, listener);
+    }
+    offClick(listener, once = false) {
+        this.off(InteractiveEvent.GAMEOBJECT_UP, listener, once);
+    }
+    hasClickListener() {
+        return this._displayObject && this._touchable; // hasListener(InteractiveEvent.CLICK);
+    }
+    on(type, listener) {
+        this._displayObject.on(type, listener, this);
+    }
+    off(type, listener, once = false) {
+        this._displayObject.off(type, listener, this, once);
+    }
+    get draggable() {
+        return this._draggable;
+    }
+    set draggable(value) {
+        if (this._draggable != value) {
+            this._draggable = value;
+            this.initDrag();
+        }
+    }
+    get dragBounds() {
+        return this._dragBounds;
+    }
+    set dragBounds(value) {
+        this._dragBounds = value;
+    }
+    startDrag(touchID) {
+        // if (this._displayObject.stage == null)
+        //     return;
+        this.dragBegin(touchID);
+    }
+    stopDrag() {
+        this.dragEnd();
+    }
+    get dragging() {
+        return GObject.draggingObject == this;
+    }
+    localToGlobal(ax, ay, result) {
+        ax = ax || 0;
+        ay = ay || 0;
+        if (this._pivotAsAnchor) {
+            ax += this._pivotX * this._width;
+            ay += this._pivotY * this._height;
+        }
+        result = result || new Phaser.Geom.Point();
+        result.x = ax;
+        result.y = ay;
+        return this._localToGlobal(result, false);
+    }
+    _localToGlobal(point, createNewPoint = false) {
+        if (createNewPoint === true) {
+            point = new Phaser.Geom.Point(point.x, point.y);
+        }
+        let ele = this._displayObject;
+        while (ele) {
+            if (!ele.parentContainer)
+                break;
+            ele = ele.parentContainer;
+        }
+        return new Phaser.Geom.Point(ele.x, ele.y);
+    }
+    globalToLocal(ax, ay, result) {
+        ax = ax || 0;
+        ay = ay || 0;
+        result = result || new Phaser.Geom.Point();
+        result.x = ax;
+        result.y = ay;
+        result = this._globalToLocal(result, false);
+        if (this._pivotAsAnchor) {
+            result.x -= this._pivotX * this._width;
+            result.y -= this._pivotY * this._height;
+        }
+        return result;
+        // let ele: Phaser.GameObjects.Container = this._displayObject;
+        // let list: any[] = [];
+        // while (ele) {
+        //     list.push(ele);
+        //     if (!ele.parentContainer) break;
+        //     ele = ele.parentContainer;
+        // }
+        // var i: number = list.length - 1;
+        // while (i >= 0) {
+        //     ele = list[i];
+        //     i--;
+        // }
+        // return new Phaser.Geom.Point(ele.x, ele.y);
+    }
+    _globalToLocal(point, createNewPoint = false) {
+        if (createNewPoint) {
+            point = new Phaser.Geom.Point(point.x, point.y);
+        }
+        let ele = this._displayObject;
+        let list = [];
+        while (ele) {
+            list.push(ele);
+            if (!ele.parentContainer)
+                break;
+            ele = ele.parentContainer;
+        }
+        var i = list.length - 1;
+        while (i >= 0) {
+            ele = list[i];
+            point = this.fromParentPoint(point);
+            i--;
+        }
+        return point;
+    }
+    /**
+ * 将本地坐标系坐标转转换到父容器坐标系。
+ * @param point 本地坐标点。
+ * @return  转换后的点。
+ */
+    toParentPoint(point) {
+        if (!point)
+            return point;
+        point.x -= this.pivotX;
+        point.y -= this.pivotY;
+        const tmpPoint = new Phaser.Geom.Point();
+        if (this._displayObject) {
+            const matrix = this._displayObject.getLocalTransformMatrix();
+            matrix.transformPoint(point.x, point.y, tmpPoint);
+        }
+        tmpPoint.x += this._displayObject.x;
+        tmpPoint.y += this._displayObject.y;
+        var scroll = this._displayStyle.scrollRect;
+        if (scroll) {
+            point.x -= scroll.x;
+            point.y -= scroll.y;
+        }
+        return point;
+    }
+    /**
+     * 将父容器坐标系坐标转换到本地坐标系。
+     * @param point 父容器坐标点。
+     * @return  转换后的点。
+     */
+    fromParentPoint(point) {
+        if (!point)
+            return point;
+        point.x -= this._displayObject.x;
+        point.y -= this._displayObject.y;
+        var scroll = this._displayStyle.scrollRect;
+        if (scroll) {
+            point.x += scroll.x;
+            point.y += scroll.y;
+        }
+        const matrix = this._displayObject.getLocalTransformMatrix();
+        if (matrix) {
+            //_transform.setTranslate(0,0);
+            this.invertTransformPoint(point);
+        }
+        point.x += this.pivotX;
+        point.y += this.pivotY;
+        return point;
+    }
+    /**
+ * 对指定的点应用当前矩阵的逆转化并返回此点。
+ * @param	out 待转化的点 Point 对象。
+ * @return	返回out
+ */
+    invertTransformPoint(out) {
+        const matrix = this._displayObject.getLocalTransformMatrix();
+        var a1 = matrix.a;
+        var b1 = matrix.b;
+        var c1 = matrix.c;
+        var d1 = matrix.d;
+        var tx1 = matrix.tx;
+        var n = a1 * d1 - b1 * c1;
+        var a2 = d1 / n;
+        var b2 = -b1 / n;
+        var c2 = -c1 / n;
+        var d2 = a1 / n;
+        var tx2 = (c1 * matrix.ty - d1 * tx1) / n;
+        var ty2 = -(a1 * matrix.ty - b1 * tx1) / n;
+        return out.setTo(a2 * out.x + c2 * out.y + tx2, b2 * out.x + d2 * out.y + ty2);
+    }
+    localToGlobalRect(ax, ay, aw, ah, result) {
+        ax = ax || 0;
+        ay = ay || 0;
+        aw = aw || 0;
+        ah = ah || 0;
+        result = result || new Phaser.Geom.Rectangle();
+        var pt = this.localToGlobal(ax, ay);
+        result.x = pt.x;
+        result.y = pt.y;
+        pt = this.localToGlobal(ax + aw, ay + ah);
+        result.width = pt.x - result.x;
+        result.height = pt.y - result.y;
+        return result;
+    }
+    globalToLocalRect(ax, ay, aw, ah, result) {
+        ax = ax || 0;
+        ay = ay || 0;
+        aw = aw || 0;
+        ah = ah || 0;
+        result = result || new Phaser.Geom.Rectangle();
+        var pt = this.globalToLocal(ax, ay);
+        result.x = pt.x;
+        result.y = pt.y;
+        pt = this.globalToLocal(ax + aw, ay + ah);
+        result.width = pt.x - result.x;
+        result.height = pt.y - result.y;
+        return result;
+    }
+    handleControllerChanged(c) {
+        this._handlingController = true;
+        for (var i = 0; i < 10; i++) {
+            var gear = this._gears[i];
+            if (gear && gear.controller == c)
+                gear.apply();
+        }
+        this._handlingController = false;
+        this.checkGearDisplay();
+    }
+    createDisplayObject() {
+        this._displayObject = new Phaser.GameObjects.Container(this.scene);
+        this._displayObject["$owner"] = this;
+    }
+    setDisplayObject(val) {
+        this._displayObject = val;
+        this._displayObject["$owner"] = this;
+    }
+    handleXYChanged() {
+        var xv = this._x;
+        var yv = this._y + this._yOffset;
+        if (this._pivotAsAnchor) {
+            xv -= this._pivotX * this._width;
+            yv -= this._pivotY * this._height;
+        }
+        if (this._pixelSnapping) {
+            xv = Math.round(xv);
+            yv = Math.round(yv);
+        }
+        this._displayObject.setPosition(xv + this._pivotOffsetX, yv + this._pivotOffsetY);
+    }
+    handleSizeChanged() {
+        this._displayObject.setSize(this._width, this._height);
+    }
+    handleScaleChanged() {
+        this._displayObject.setScale(this._scaleX, this._scaleY);
+    }
+    handleGrayedChanged() {
+        ToolSet.setColorFilter(this._displayObject, this._grayed);
+    }
+    handleAlphaChanged() {
+        this._displayObject.alpha = this._alpha;
+    }
+    handleVisibleChanged() {
+        this._displayObject.visible = this.internalVisible2;
+    }
+    getProp(index) {
+        switch (index) {
+            case ObjectPropID.Text:
+                return this.text;
+            case ObjectPropID.Icon:
+                return this.icon;
+            case ObjectPropID.Color:
+                return null;
+            case ObjectPropID.OutlineColor:
+                return null;
+            case ObjectPropID.Playing:
+                return false;
+            case ObjectPropID.Frame:
+                return 0;
+            case ObjectPropID.DeltaTime:
+                return 0;
+            case ObjectPropID.TimeScale:
+                return 1;
+            case ObjectPropID.FontSize:
+                return 0;
+            case ObjectPropID.Selected:
+                return false;
+            default:
+                return undefined;
+        }
+    }
+    setProp(index, value) {
+        switch (index) {
+            case ObjectPropID.Text:
+                this.text = value;
+                break;
+            case ObjectPropID.Icon:
+                this.icon = value;
+                break;
+        }
+    }
+    constructFromResource() {
+    }
+    setup_beforeAdd(buffer, beginPos) {
+        buffer.seek(beginPos, 0);
+        buffer.skip(5);
+        var f1;
+        var f2;
+        this._id = buffer.readS();
+        this._name = buffer.readS();
+        f1 = buffer.readInt();
+        f2 = buffer.readInt();
+        this.setXY(f1, f2);
+        if (buffer.readBool()) {
+            this.initWidth = buffer.readInt();
+            this.initHeight = buffer.readInt();
+            this.setSize(this.initWidth, this.initHeight, true);
+        }
+        if (buffer.readBool()) {
+            this.minWidth = buffer.readInt();
+            this.maxWidth = buffer.readInt();
+            this.minHeight = buffer.readInt();
+            this.maxHeight = buffer.readInt();
+        }
+        if (buffer.readBool()) {
+            f1 = buffer.readShort();
+            f2 = buffer.readShort();
+            this.setScale(f1, f2);
+        }
+        if (buffer.readBool()) {
+            f1 = buffer.readShort();
+            f2 = buffer.readShort();
+            this.setSkew(f1, f2);
+        }
+        if (buffer.readBool()) {
+            f1 = buffer.readShort();
+            f2 = buffer.readShort();
+            this.setPivot(f1, f2, buffer.readBool());
+        }
+        f1 = buffer.readShort();
+        if (f1 != 1)
+            this.alpha = f1;
+        f1 = buffer.readShort();
+        if (f1 != 0)
+            this.rotation = f1;
+        if (!buffer.readBool())
+            this.visible = false;
+        if (!buffer.readBool())
+            this.touchable = false;
+        if (buffer.readBool())
+            this.grayed = true;
+        var bm = buffer.readByte();
+        if (BlendMode[bm])
+            this.blendMode = BlendMode[bm];
+        var filter = buffer.readByte();
+        if (filter == 1) {
+            ToolSet.setColorFilter(this._displayObject, [buffer.readFloat(), buffer.readFloat(), buffer.readFloat(), buffer.readFloat()]);
+        }
+        var str = buffer.readS();
+        if (str != null)
+            this.data = str;
+    }
+    setup_afterAdd(buffer, beginPos) {
+        buffer.seek(beginPos, 1);
+        var str = buffer.readS();
+        if (str != null)
+            this.tooltips = str;
+        var groupId = buffer.readShort();
+        if (groupId >= 0)
+            this.group = this.parent.getChildAt(groupId);
+        buffer.seek(beginPos, 2);
+        var cnt = buffer.readShort();
+        for (var i = 0; i < cnt; i++) {
+            var nextPos = buffer.readShort();
+            nextPos += buffer.position;
+            var gear = this.getGear(buffer.readByte());
+            gear.setup(buffer);
+            buffer.position = nextPos;
+        }
+    }
+    //drag support
+    //-------------------------------------------------------------------
+    initDrag() {
+        if (this._draggable)
+            this.on(InteractiveEvent.GAMEOBJECT_DOWN, this.__begin);
+        else
+            this.off(InteractiveEvent.GAMEOBJECT_DOWN, this.__begin);
+    }
+    dragBegin(touchID) {
+        if (GObject.draggingObject) {
+            let tmp = GObject.draggingObject;
+            tmp.stopDrag();
+            GObject.draggingObject = null;
+            Events.dispatch(Events.DRAG_END, tmp._displayObject, { touchId: touchID });
+        }
+        sGlobalDragStart.x = this.scene.input.activePointer.x; // Laya.stage.mouseX;
+        sGlobalDragStart.y = this.scene.input.activePointer.y; // Laya.stage.mouseY;
+        this.localToGlobalRect(0, 0, this.width, this.height, sGlobalRect);
+        this._dragTesting = true;
+        GObject.draggingObject = this;
+        this._displayObject.on(InteractiveEvent.GAMEOBJECT_MOVE, this.__moving);
+        this._displayObject.on(InteractiveEvent.GAMEOBJECT_UP, this.__end);
+    }
+    dragEnd() {
+        if (GObject.draggingObject == this) {
+            this.reset();
+            this._dragTesting = false;
+            GObject.draggingObject = null;
+        }
+        sDraggingQuery = false;
+    }
+    reset() {
+        this._displayObject.off(InteractiveEvent.GAMEOBJECT_MOVE, this.__moving);
+        this._displayObject.off(InteractiveEvent.GAMEOBJECT_UP, this.__end);
+    }
+    __begin() {
+        if (!this._dragStartPos)
+            this._dragStartPos = new Phaser.Geom.Point();
+        this._dragStartPos.x = this.scene.input.activePointer.x;
+        this._dragStartPos.y = this.scene.input.activePointer.y;
+        this._dragTesting = true;
+        this._displayObject.on(InteractiveEvent.GAMEOBJECT_MOVE, this.__moving);
+        this._displayObject.on(InteractiveEvent.GAMEOBJECT_UP, this.__end);
+    }
+    __moving(evt) {
+        if (GObject.draggingObject != this && this._draggable && this._dragTesting) {
+            var sensitivity = UIConfig.touchDragSensitivity;
+            if (this._dragStartPos
+                && Math.abs(this._dragStartPos.x - this.scene.input.activePointer.x) < sensitivity
+                && Math.abs(this._dragStartPos.y - this.scene.input.activePointer.y) < sensitivity)
+                return;
+            this._dragTesting = false;
+            sDraggingQuery = true;
+            Events.dispatch(Events.DRAG_START, this._displayObject, evt);
+            if (sDraggingQuery)
+                this.dragBegin();
+        }
+        if (GObject.draggingObject == this) {
+            var xx = this.scene.input.activePointer.x - sGlobalDragStart.x + sGlobalRect.x;
+            var yy = this.scene.input.activePointer.y - sGlobalDragStart.y + sGlobalRect.y;
+            if (this._dragBounds) {
+                var rect;
+                if (xx < rect.x)
+                    xx = rect.x;
+                else if (xx + sGlobalRect.width > rect.right) {
+                    xx = rect.right - sGlobalRect.width;
+                    if (xx < rect.x)
+                        xx = rect.x;
+                }
+                if (yy < rect.y)
+                    yy = rect.y;
+                else if (yy + sGlobalRect.height > rect.bottom) {
+                    yy = rect.bottom - sGlobalRect.height;
+                    if (yy < rect.y)
+                        yy = rect.y;
+                }
+            }
+            sUpdateInDragging = true;
+            var pt = this.parent.globalToLocal(xx, yy, sHelperPoint);
+            this.setXY(Math.round(pt.x), Math.round(pt.y));
+            sUpdateInDragging = false;
+            Events.dispatch(Events.DRAG_MOVE, this._displayObject, evt);
+        }
+    }
+    __end(evt) {
+        if (GObject.draggingObject == this) {
+            GObject.draggingObject = null;
+            this.reset();
+            Events.dispatch(Events.DRAG_END, this._displayObject, evt);
+        }
+        else if (this._dragTesting) {
+            this._dragTesting = false;
+            this.reset();
+        }
+    }
+    //-------------------------------------------------------------------
+    static cast(sprite) {
+        return (sprite["$owner"]);
+    }
+}
+let GearClasses = [
+    GearDisplay, GearXY, GearSize, GearLook, GearColor,
+    GearAnimation, GearText, GearIcon, GearDisplay2, GearFontSize
+];
+function createGear(owner, index) {
+    let ret = new (GearClasses[index])();
+    ret._owner = owner;
+    return ret;
+}
+const BlendMode = {
+    2: Phaser.BlendModes.LIGHTER,
+    3: Phaser.BlendModes.MULTIPLY,
+    4: Phaser.BlendModes.SCREEN
+};
+var _gInstanceCounter = 0;
+var sGlobalDragStart = new Phaser.Geom.Point();
+var sGlobalRect = new Phaser.Geom.Rectangle();
+var sHelperPoint = new Phaser.Geom.Point();
+new Phaser.Geom.Rectangle();
+var sUpdateInDragging;
+var sDraggingQuery;
+
+class GGroup extends GObject {
+    constructor() {
+        super();
+        this._layout = 0;
+        this._lineGap = 0;
+        this._columnGap = 0;
+        this._mainGridIndex = -1;
+        this._mainGridMinSize = 50;
+        this._mainChildIndex = -1;
+        this._totalSize = 0;
+        this._numChildren = 0;
+        this._updating = 0;
+    }
+    dispose() {
+        this._boundsChanged = false;
+        super.dispose();
+    }
+    get layout() {
+        return this._layout;
+    }
+    set layout(value) {
+        if (this._layout != value) {
+            this._layout = value;
+            this.setBoundsChangedFlag();
+        }
+    }
+    get lineGap() {
+        return this._lineGap;
+    }
+    set lineGap(value) {
+        if (this._lineGap != value) {
+            this._lineGap = value;
+            this.setBoundsChangedFlag(true);
+        }
+    }
+    get columnGap() {
+        return this._columnGap;
+    }
+    set columnGap(value) {
+        if (this._columnGap != value) {
+            this._columnGap = value;
+            this.setBoundsChangedFlag(true);
+        }
+    }
+    get excludeInvisibles() {
+        return this._excludeInvisibles;
+    }
+    set excludeInvisibles(value) {
+        if (this._excludeInvisibles != value) {
+            this._excludeInvisibles = value;
+            this.setBoundsChangedFlag();
+        }
+    }
+    get autoSizeDisabled() {
+        return this._autoSizeDisabled;
+    }
+    set autoSizeDisabled(value) {
+        this._autoSizeDisabled = value;
+    }
+    get mainGridMinSize() {
+        return this._mainGridMinSize;
+    }
+    set mainGridMinSize(value) {
+        if (this._mainGridMinSize != value) {
+            this._mainGridMinSize = value;
+            this.setBoundsChangedFlag();
+        }
+    }
+    get mainGridIndex() {
+        return this._mainGridIndex;
+    }
+    set mainGridIndex(value) {
+        if (this._mainGridIndex != value) {
+            this._mainGridIndex = value;
+            this.setBoundsChangedFlag();
+        }
+    }
+    setBoundsChangedFlag(positionChangedOnly) {
+        if (this._updating == 0 && this._parent) {
+            if (!positionChangedOnly)
+                this._percentReady = false;
+            if (!this._boundsChanged) {
+                this._boundsChanged = true;
+                // if (this._layout != GroupLayoutType.None)
+                //     Laya.timer.callLater(this, this.ensureBoundsCorrect);
+            }
+        }
+    }
+    ensureSizeCorrect() {
+        if (!this._parent || !this._boundsChanged || this._layout == 0)
+            return;
+        this._boundsChanged = false;
+        if (this._autoSizeDisabled)
+            this.resizeChildren(0, 0);
+        else {
+            this.handleLayout();
+            this.updateBounds();
+        }
+    }
+    ensureBoundsCorrect() {
+        if (!this._parent || !this._boundsChanged)
+            return;
+        this._boundsChanged = false;
+        if (this._layout == 0)
+            this.updateBounds();
+        else {
+            if (this._autoSizeDisabled)
+                this.resizeChildren(0, 0);
+            else {
+                this.handleLayout();
+                this.updateBounds();
+            }
+        }
+    }
+    updateBounds() {
+        // Laya.timer.clear(this, this.ensureBoundsCorrect);
+        var cnt = this._parent.numChildren;
+        var i;
+        var child;
+        var ax = Number.POSITIVE_INFINITY, ay = Number.POSITIVE_INFINITY;
+        var ar = Number.NEGATIVE_INFINITY, ab = Number.NEGATIVE_INFINITY;
+        var tmp;
+        var empty = true;
+        for (i = 0; i < cnt; i++) {
+            child = this._parent.getChildAt(i);
+            if (child.group != this || this._excludeInvisibles && !child.internalVisible3)
+                continue;
+            tmp = child.xMin;
+            if (tmp < ax)
+                ax = tmp;
+            tmp = child.yMin;
+            if (tmp < ay)
+                ay = tmp;
+            tmp = child.xMin + child.width;
+            if (tmp > ar)
+                ar = tmp;
+            tmp = child.yMin + child.height;
+            if (tmp > ab)
+                ab = tmp;
+            empty = false;
+        }
+        var w = 0, h = 0;
+        if (!empty) {
+            this._updating |= 1;
+            this.setXY(ax, ay);
+            this._updating &= 2;
+            w = ar - ax;
+            h = ab - ay;
+        }
+        if ((this._updating & 2) == 0) {
+            this._updating |= 2;
+            this.setSize(w, h);
+            this._updating &= 1;
+        }
+        else {
+            this._updating &= 1;
+            this.resizeChildren(this._width - w, this._height - h);
+        }
+    }
+    handleLayout() {
+        this._updating |= 1;
+        var child;
+        var i;
+        var cnt;
+        if (this._layout == GroupLayoutType.Horizontal) {
+            var curX = this.x;
+            cnt = this._parent.numChildren;
+            for (i = 0; i < cnt; i++) {
+                child = this._parent.getChildAt(i);
+                if (child.group != this)
+                    continue;
+                if (this._excludeInvisibles && !child.internalVisible3)
+                    continue;
+                child.xMin = curX;
+                if (child.width != 0)
+                    curX += child.width + this._columnGap;
+            }
+        }
+        else if (this._layout == GroupLayoutType.Vertical) {
+            var curY = this.y;
+            cnt = this._parent.numChildren;
+            for (i = 0; i < cnt; i++) {
+                child = this._parent.getChildAt(i);
+                if (child.group != this)
+                    continue;
+                if (this._excludeInvisibles && !child.internalVisible3)
+                    continue;
+                child.yMin = curY;
+                if (child.height != 0)
+                    curY += child.height + this._lineGap;
+            }
+        }
+        this._updating &= 2;
+    }
+    moveChildren(dx, dy) {
+        if ((this._updating & 1) != 0 || !this._parent)
+            return;
+        this._updating |= 1;
+        var cnt = this._parent.numChildren;
+        var i;
+        var child;
+        for (i = 0; i < cnt; i++) {
+            child = this._parent.getChildAt(i);
+            if (child.group == this) {
+                child.setXY(child.x + dx, child.y + dy);
+            }
+        }
+        this._updating &= 2;
+    }
+    resizeChildren(dw, dh) {
+        if (this._layout == GroupLayoutType.None || (this._updating & 2) != 0 || !this._parent)
+            return;
+        this._updating |= 2;
+        if (this._boundsChanged) {
+            this._boundsChanged = false;
+            if (!this._autoSizeDisabled) {
+                this.updateBounds();
+                return;
+            }
+        }
+        var cnt = this._parent.numChildren;
+        var i;
+        var child;
+        if (!this._percentReady) {
+            this._percentReady = true;
+            this._numChildren = 0;
+            this._totalSize = 0;
+            this._mainChildIndex = -1;
+            var j = 0;
+            for (i = 0; i < cnt; i++) {
+                child = this._parent.getChildAt(i);
+                if (child.group != this)
+                    continue;
+                if (!this._excludeInvisibles || child.internalVisible3) {
+                    if (j == this._mainGridIndex)
+                        this._mainChildIndex = i;
+                    this._numChildren++;
+                    if (this._layout == 1)
+                        this._totalSize += child.width;
+                    else
+                        this._totalSize += child.height;
+                }
+                j++;
+            }
+            if (this._mainChildIndex != -1) {
+                if (this._layout == 1) {
+                    child = this._parent.getChildAt(this._mainChildIndex);
+                    this._totalSize += this._mainGridMinSize - child.width;
+                    child._sizePercentInGroup = this._mainGridMinSize / this._totalSize;
+                }
+                else {
+                    child = this._parent.getChildAt(this._mainChildIndex);
+                    this._totalSize += this._mainGridMinSize - child.height;
+                    child._sizePercentInGroup = this._mainGridMinSize / this._totalSize;
+                }
+            }
+            for (i = 0; i < cnt; i++) {
+                child = this._parent.getChildAt(i);
+                if (child.group != this)
+                    continue;
+                if (i == this._mainChildIndex)
+                    continue;
+                if (this._totalSize > 0)
+                    child._sizePercentInGroup = (this._layout == 1 ? child.width : child.height) / this._totalSize;
+                else
+                    child._sizePercentInGroup = 0;
+            }
+        }
+        var remainSize = 0;
+        var remainPercent = 1;
+        var priorHandled = false;
+        if (this._layout == 1) {
+            remainSize = this.width - (this._numChildren - 1) * this._columnGap;
+            if (this._mainChildIndex != -1 && remainSize >= this._totalSize) {
+                child = this._parent.getChildAt(this._mainChildIndex);
+                child.setSize(remainSize - (this._totalSize - this._mainGridMinSize), child._rawHeight + dh, true);
+                remainSize -= child.width;
+                remainPercent -= child._sizePercentInGroup;
+                priorHandled = true;
+            }
+            var curX = this.x;
+            for (i = 0; i < cnt; i++) {
+                child = this._parent.getChildAt(i);
+                if (child.group != this)
+                    continue;
+                if (this._excludeInvisibles && !child.internalVisible3) {
+                    child.setSize(child._rawWidth, child._rawHeight + dh, true);
+                    continue;
+                }
+                if (!priorHandled || i != this._mainChildIndex) {
+                    child.setSize(Math.round(child._sizePercentInGroup / remainPercent * remainSize), child._rawHeight + dh, true);
+                    remainPercent -= child._sizePercentInGroup;
+                    remainSize -= child.width;
+                }
+                child.xMin = curX;
+                if (child.width != 0)
+                    curX += child.width + this._columnGap;
+            }
+        }
+        else {
+            remainSize = this.height - (this._numChildren - 1) * this._lineGap;
+            if (this._mainChildIndex != -1 && remainSize >= this._totalSize) {
+                child = this._parent.getChildAt(this._mainChildIndex);
+                child.setSize(child._rawWidth + dw, remainSize - (this._totalSize - this._mainGridMinSize), true);
+                remainSize -= child.height;
+                remainPercent -= child._sizePercentInGroup;
+                priorHandled = true;
+            }
+            var curY = this.y;
+            for (i = 0; i < cnt; i++) {
+                child = this._parent.getChildAt(i);
+                if (child.group != this)
+                    continue;
+                if (this._excludeInvisibles && !child.internalVisible3) {
+                    child.setSize(child._rawWidth + dw, child._rawHeight, true);
+                    continue;
+                }
+                if (!priorHandled || i != this._mainChildIndex) {
+                    child.setSize(child._rawWidth + dw, Math.round(child._sizePercentInGroup / remainPercent * remainSize), true);
+                    remainPercent -= child._sizePercentInGroup;
+                    remainSize -= child.height;
+                }
+                child.yMin = curY;
+                if (child.height != 0)
+                    curY += child.height + this._lineGap;
+            }
+        }
+        this._updating &= 1;
+    }
+    handleAlphaChanged() {
+        if (this._underConstruct)
+            return;
+        var cnt = this._parent.numChildren;
+        for (var i = 0; i < cnt; i++) {
+            var child = this._parent.getChildAt(i);
+            if (child.group == this)
+                child.alpha = this.alpha;
+        }
+    }
+    handleVisibleChanged() {
+        if (!this._parent)
+            var cnt = this._parent.numChildren;
+        for (var i = 0; i < cnt; i++) {
+            var child = this._parent.getChildAt(i);
+            if (child.group == this)
+                child.handleVisibleChanged();
+        }
+    }
+    setup_beforeAdd(buffer, beginPos) {
+        super.setup_beforeAdd(buffer, beginPos);
+        buffer.seek(beginPos, 5);
+        this._layout = buffer.readByte();
+        this._lineGap = buffer.readInt();
+        this._columnGap = buffer.readInt();
+        if (buffer.version >= 2) {
+            this._excludeInvisibles = buffer.readBool();
+            this._autoSizeDisabled = buffer.readBool();
+            this._mainGridIndex = buffer.readShort();
+        }
+    }
+    setup_afterAdd(buffer, beginPos) {
+        super.setup_afterAdd(buffer, beginPos);
+        if (!this.visible)
+            this.handleVisibleChanged();
+    }
+}
+
+class GGraph extends GObject {
+    constructor() {
+        super();
+        this._type = 0;
+        this._lineSize = 1;
+        this._lineColor = "#000000";
+        this._fillColor = "#FFFFFF";
+    }
+    drawRect(lineSize, lineColor, fillColor, cornerRadius) {
+        this._type = 1;
+        this._lineSize = lineSize;
+        this._lineColor = lineColor;
+        this._fillColor = fillColor;
+        this._cornerRadius = cornerRadius;
+        this.updateGraph();
+    }
+    drawEllipse(lineSize, lineColor, fillColor) {
+        this._type = 2;
+        this._lineSize = lineSize;
+        this._lineColor = lineColor;
+        this._fillColor = fillColor;
+        this.updateGraph();
+    }
+    drawRegularPolygon(lineSize, lineColor, fillColor, sides, startAngle, distances) {
+        this._type = 4;
+        this._lineSize = lineSize;
+        this._lineColor = lineColor;
+        this._fillColor = fillColor;
+        this._sides = sides;
+        this._startAngle = startAngle || 0;
+        this._distances = distances;
+        this.updateGraph();
+    }
+    drawPolygon(lineSize, lineColor, fillColor, points) {
+        this._type = 3;
+        this._lineSize = lineSize;
+        this._lineColor = lineColor;
+        this._fillColor = fillColor;
+        this._polygonPoints = points;
+        this.updateGraph();
+    }
+    get distances() {
+        return this._distances;
+    }
+    set distances(value) {
+        this._distances = value;
+        if (this._type == 3)
+            this.updateGraph();
+    }
+    get color() {
+        return this._fillColor;
+    }
+    set color(value) {
+        this._fillColor = value;
+        this.updateGear(4);
+        if (this._type != 0)
+            this.updateGraph();
+    }
+    updateGraph() {
+        // TODO
+        throw new Error("TODO");
+        // this._displayObject.mouseEnabled = this.touchable;
+        // var gr: Laya.Graphics = this._displayObject.graphics;
+        // gr.clear();
+        // var w: number = this.width;
+        // var h: number = this.height;
+        // if (w == 0 || h == 0)
+        //     return;
+        // var fillColor: string = this._fillColor;
+        // var lineColor: string = this._lineColor;
+        // if (/*Render.isWebGL &&*/ ToolSet.startsWith(fillColor, "rgba")) {
+        //     //webgl下laya未支持rgba格式
+        //     var arr: any[] = fillColor.substring(5, fillColor.lastIndexOf(")")).split(",");
+        //     var a: number = parseFloat(arr[3]);
+        //     if (a == 0)
+        //         fillColor = null;
+        //     else {
+        //         fillColor = Laya.Utils.toHexColor((parseInt(arr[0]) << 16) + (parseInt(arr[1]) << 8) + parseInt(arr[2]));
+        //         this.alpha = a;
+        //     }
+        // }
+        // if (this._type == 1) {
+        //     if (this._cornerRadius) {
+        //         var paths: any[] = [
+        //             ["moveTo", this._cornerRadius[0], 0],
+        //             ["lineTo", w - this._cornerRadius[1], 0],
+        //             ["arcTo", w, 0, w, this._cornerRadius[1], this._cornerRadius[1]],
+        //             ["lineTo", w, h - this._cornerRadius[3]],
+        //             ["arcTo", w, h, w - this._cornerRadius[3], h, this._cornerRadius[3]],
+        //             ["lineTo", this._cornerRadius[2], h],
+        //             ["arcTo", 0, h, 0, h - this._cornerRadius[2], this._cornerRadius[2]],
+        //             ["lineTo", 0, this._cornerRadius[0]],
+        //             ["arcTo", 0, 0, this._cornerRadius[0], 0, this._cornerRadius[0]],
+        //             ["closePath"]
+        //         ];
+        //         gr.drawPath(0, 0, paths, fillColor ? { fillStyle: fillColor } : null, this._lineSize > 0 ? { strokeStyle: lineColor, lineWidth: this._lineSize } : null);
+        //     }
+        //     else
+        //         gr.drawRect(0, 0, w, h, fillColor, this._lineSize > 0 ? lineColor : null, this._lineSize);
+        // } else if (this._type == 2) {
+        //     gr.drawCircle(w / 2, h / 2, w / 2, fillColor, this._lineSize > 0 ? lineColor : null, this._lineSize);
+        // }
+        // else if (this._type == 3) {
+        //     gr.drawPoly(0, 0, this._polygonPoints, fillColor, this._lineSize > 0 ? lineColor : null, this._lineSize);
+        // }
+        // else if (this._type == 4) {
+        //     if (!this._polygonPoints)
+        //         this._polygonPoints = [];
+        //     var radius: number = Math.min(this._width, this._height) / 2;
+        //     this._polygonPoints.length = 0;
+        //     var angle: number = Laya.Utils.toRadian(this._startAngle);
+        //     var deltaAngle: number = 2 * Math.PI / this._sides;
+        //     var dist: number;
+        //     for (var i: number = 0; i < this._sides; i++) {
+        //         if (this._distances) {
+        //             dist = this._distances[i];
+        //             if (isNaN(dist))
+        //                 dist = 1;
+        //         }
+        //         else
+        //             dist = 1;
+        //         var xv: number = radius + radius * dist * Math.cos(angle);
+        //         var yv: number = radius + radius * dist * Math.sin(angle);
+        //         this._polygonPoints.push(xv, yv);
+        //         angle += deltaAngle;
+        //     }
+        //     gr.drawPoly(0, 0, this._polygonPoints, fillColor, this._lineSize > 0 ? lineColor : null, this._lineSize);
+        // }
+        // this._displayObject.repaint();
+    }
+    replaceMe(target) {
+        throw new Error("TODO");
+        // if (!this._parent)
+        //     throw "parent not set";
+        // target.name = this.name;
+        // target.alpha = this.alpha;
+        // target.rotation = this.rotation;
+        // target.visible = this.visible;
+        // target.touchable = this.touchable;
+        // target.grayed = this.grayed;
+        // target.setXY(this.x, this.y);
+        // target.setSize(this.width, this.height);
+        // var index: number = this._parent.getChildIndex(this);
+        // this._parent.addChildAt(target, index);
+        // target.relations.copyFrom(this.relations);
+        // this._parent.removeChild(this, true);
+    }
+    addBeforeMe(target) {
+        throw new Error("TODO");
+        // var index: number = this._parent.getChildIndex(this);
+        // this._parent.addChildAt(target, index);
+    }
+    addAfterMe(target) {
+        throw new Error("TODO");
+        // var index: number = this._parent.getChildIndex(this);
+        // index++;
+        // this._parent.addChildAt(target, index);
+    }
+    setNativeObject(obj) {
+        this._type = 0;
+        throw new Error("TODO");
+        // this._displayObject.mouseEnabled = this.touchable;
+        // this._displayObject.graphics.clear();
+        // this._displayObject.addChild(obj);
+    }
+    createDisplayObject() {
+        throw new Error("TODO");
+        // this._displayObject.mouseEnabled = false;
+        // this._hitArea = new Laya.HitArea();
+        // this._hitArea.hit = this._displayObject.graphics;
+        // this._displayObject.hitArea = this._hitArea;
+    }
+    getProp(index) {
+        if (index == ObjectPropID.Color)
+            return this.color;
+        else
+            return super.getProp(index);
+    }
+    setProp(index, value) {
+        if (index == ObjectPropID.Color)
+            this.color = value;
+        else
+            super.setProp(index, value);
+    }
+    handleSizeChanged() {
+        super.handleSizeChanged();
+        if (this._type != 0)
+            this.updateGraph();
+    }
+    setup_beforeAdd(buffer, beginPos) {
+        super.setup_beforeAdd(buffer, beginPos);
+        buffer.seek(beginPos, 5);
+        this._type = buffer.readByte();
+        if (this._type != 0) {
+            var i;
+            var cnt;
+            this._lineSize = buffer.readInt();
+            this._lineColor = buffer.readColorS(true);
+            this._fillColor = buffer.readColorS(true);
+            if (buffer.readBool()) {
+                this._cornerRadius = [];
+                for (i = 0; i < 4; i++)
+                    this._cornerRadius[i] = buffer.readFloat();
+            }
+            if (this._type == 3) {
+                cnt = buffer.readShort();
+                this._polygonPoints = [];
+                this._polygonPoints.length = cnt;
+                for (i = 0; i < cnt; i++)
+                    this._polygonPoints[i] = buffer.readFloat();
+            }
+            else if (this._type == 4) {
+                this._sides = buffer.readShort();
+                this._startAngle = buffer.readFloat();
+                cnt = buffer.readShort();
+                if (cnt > 0) {
+                    this._distances = [];
+                    for (i = 0; i < cnt; i++)
+                        this._distances[i] = buffer.readFloat();
+                }
+            }
+            this.updateGraph();
+        }
+    }
+}
+
+function fillImage(w, h, method, origin, clockwise, amount) {
+    if (amount <= 0)
+        return null;
+    else if (amount >= 0.9999)
+        return [0, 0, w, 0, w, h, 0, h];
+    var points;
+    switch (method) {
+        case FillMethod.Horizontal:
+            points = fillHorizontal(w, h, origin, amount);
+            break;
+        case FillMethod.Vertical:
+            points = fillVertical(w, h, origin, amount);
+            break;
+        case FillMethod.Radial90:
+            points = fillRadial90(w, h, origin, clockwise, amount);
+            break;
+        case FillMethod.Radial180:
+            points = fillRadial180(w, h, origin, clockwise, amount);
+            break;
+        case FillMethod.Radial360:
+            points = fillRadial360(w, h, origin, clockwise, amount);
+            break;
+    }
+    return points;
+}
+function fillHorizontal(w, h, origin, amount) {
+    var w2 = w * amount;
+    if (origin == FillOrigin.Left || origin == FillOrigin.Top)
+        return [0, 0, w2, 0, w2, h, 0, h];
+    else
+        return [w, 0, w, h, w - w2, h, w - w2, 0];
+}
+function fillVertical(w, h, origin, amount) {
+    var h2 = h * amount;
+    if (origin == FillOrigin.Left || origin == FillOrigin.Top)
+        return [0, 0, 0, h2, w, h2, w, 0];
+    else
+        return [0, h, w, h, w, h - h2, 0, h - h2];
+}
+function fillRadial90(w, h, origin, clockwise, amount) {
+    if (clockwise && (origin == FillOrigin.TopRight || origin == FillOrigin.BottomLeft)
+        || !clockwise && (origin == FillOrigin.TopLeft || origin == FillOrigin.BottomRight)) {
+        amount = 1 - amount;
+    }
+    var v, v2, h2;
+    v = Math.tan(Math.PI / 2 * amount);
+    h2 = w * v;
+    v2 = (h2 - h) / h2;
+    var points;
+    switch (origin) {
+        case FillOrigin.TopLeft:
+            if (clockwise) {
+                if (h2 <= h)
+                    points = [0, 0, w, h2, w, 0];
+                else
+                    points = [0, 0, w * (1 - v2), h, w, h, w, 0];
+            }
+            else {
+                if (h2 <= h)
+                    points = [0, 0, w, h2, w, h, 0, h];
+                else
+                    points = [0, 0, w * (1 - v2), h, 0, h];
+            }
+            break;
+        case FillOrigin.TopRight:
+            if (clockwise) {
+                if (h2 <= h)
+                    points = [w, 0, 0, h2, 0, h, w, h];
+                else
+                    points = [w, 0, w * v2, h, w, h];
+            }
+            else {
+                if (h2 <= h)
+                    points = [w, 0, 0, h2, 0, 0];
+                else
+                    points = [w, 0, w * v2, h, 0, h, 0, 0];
+            }
+            break;
+        case FillOrigin.BottomLeft:
+            if (clockwise) {
+                if (h2 <= h)
+                    points = [0, h, w, h - h2, w, 0, 0, 0];
+                else
+                    points = [0, h, w * (1 - v2), 0, 0, 0];
+            }
+            else {
+                if (h2 <= h)
+                    points = [0, h, w, h - h2, w, h];
+                else
+                    points = [0, h, w * (1 - v2), 0, w, 0, w, h];
+            }
+            break;
+        case FillOrigin.BottomRight:
+            if (clockwise) {
+                if (h2 <= h)
+                    points = [w, h, 0, h - h2, 0, h];
+                else
+                    points = [w, h, w * v2, 0, 0, 0, 0, h];
+            }
+            else {
+                if (h2 <= h)
+                    points = [w, h, 0, h - h2, 0, 0, w, 0];
+                else
+                    points = [w, h, w * v2, 0, w, 0];
+            }
+            break;
+    }
+    return points;
+}
+function movePoints(points, offsetX, offsetY) {
+    var cnt = points.length;
+    for (var i = 0; i < cnt; i += 2) {
+        points[i] += offsetX;
+        points[i + 1] += offsetY;
+    }
+}
+function fillRadial180(w, h, origin, clockwise, amount) {
+    var points;
+    switch (origin) {
+        case FillOrigin.Top:
+            if (amount <= 0.5) {
+                amount = amount / 0.5;
+                points = fillRadial90(w / 2, h, clockwise ? FillOrigin.TopLeft : FillOrigin.TopRight, clockwise, amount);
+                if (clockwise)
+                    movePoints(points, w / 2, 0);
+            }
+            else {
+                amount = (amount - 0.5) / 0.5;
+                points = fillRadial90(w / 2, h, clockwise ? FillOrigin.TopRight : FillOrigin.TopLeft, clockwise, amount);
+                if (clockwise)
+                    points.push(w, h, w, 0);
+                else {
+                    movePoints(points, w / 2, 0);
+                    points.push(0, h, 0, 0);
+                }
+            }
+            break;
+        case FillOrigin.Bottom:
+            if (amount <= 0.5) {
+                amount = amount / 0.5;
+                points = fillRadial90(w / 2, h, clockwise ? FillOrigin.BottomRight : FillOrigin.BottomLeft, clockwise, amount);
+                if (!clockwise)
+                    movePoints(points, w / 2, 0);
+            }
+            else {
+                amount = (amount - 0.5) / 0.5;
+                points = fillRadial90(w / 2, h, clockwise ? FillOrigin.BottomLeft : FillOrigin.BottomRight, clockwise, amount);
+                if (clockwise) {
+                    movePoints(points, w / 2, 0);
+                    points.push(0, 0, 0, h);
+                }
+                else
+                    points.push(w, 0, w, h);
+            }
+            break;
+        case FillOrigin.Left:
+            if (amount <= 0.5) {
+                amount = amount / 0.5;
+                points = fillRadial90(w, h / 2, clockwise ? FillOrigin.BottomLeft : FillOrigin.TopLeft, clockwise, amount);
+                if (!clockwise)
+                    movePoints(points, 0, h / 2);
+            }
+            else {
+                amount = (amount - 0.5) / 0.5;
+                points = fillRadial90(w, h / 2, clockwise ? FillOrigin.TopLeft : FillOrigin.BottomLeft, clockwise, amount);
+                if (clockwise) {
+                    movePoints(points, 0, h / 2);
+                    points.push(w, 0, 0, 0);
+                }
+                else
+                    points.push(w, h, 0, h);
+            }
+            break;
+        case FillOrigin.Right:
+            if (amount <= 0.5) {
+                amount = amount / 0.5;
+                points = fillRadial90(w, h / 2, clockwise ? FillOrigin.TopRight : FillOrigin.BottomRight, clockwise, amount);
+                if (clockwise)
+                    movePoints(points, 0, h / 2);
+            }
+            else {
+                amount = (amount - 0.5) / 0.5;
+                points = fillRadial90(w, h / 2, clockwise ? FillOrigin.BottomRight : FillOrigin.TopRight, clockwise, amount);
+                if (clockwise)
+                    points.push(0, h, w, h);
+                else {
+                    movePoints(points, 0, h / 2);
+                    points.push(0, 0, w, 0);
+                }
+            }
+            break;
+    }
+    return points;
+}
+function fillRadial360(w, h, origin, clockwise, amount) {
+    var points;
+    switch (origin) {
+        case FillOrigin.Top:
+            if (amount <= 0.5) {
+                amount = amount / 0.5;
+                points = fillRadial180(w / 2, h, clockwise ? FillOrigin.Left : FillOrigin.Right, clockwise, amount);
+                if (clockwise)
+                    movePoints(points, w / 2, 0);
+            }
+            else {
+                amount = (amount - 0.5) / 0.5;
+                points = fillRadial180(w / 2, h, clockwise ? FillOrigin.Right : FillOrigin.Left, clockwise, amount);
+                if (clockwise)
+                    points.push(w, h, w, 0, w / 2, 0);
+                else {
+                    movePoints(points, w / 2, 0);
+                    points.push(0, h, 0, 0, w / 2, 0);
+                }
+            }
+            break;
+        case FillOrigin.Bottom:
+            if (amount <= 0.5) {
+                amount = amount / 0.5;
+                points = fillRadial180(w / 2, h, clockwise ? FillOrigin.Right : FillOrigin.Left, clockwise, amount);
+                if (!clockwise)
+                    movePoints(points, w / 2, 0);
+            }
+            else {
+                amount = (amount - 0.5) / 0.5;
+                points = fillRadial180(w / 2, h, clockwise ? FillOrigin.Left : FillOrigin.Right, clockwise, amount);
+                if (clockwise) {
+                    movePoints(points, w / 2, 0);
+                    points.push(0, 0, 0, h, w / 2, h);
+                }
+                else
+                    points.push(w, 0, w, h, w / 2, h);
+            }
+            break;
+        case FillOrigin.Left:
+            if (amount <= 0.5) {
+                amount = amount / 0.5;
+                points = fillRadial180(w, h / 2, clockwise ? FillOrigin.Bottom : FillOrigin.Top, clockwise, amount);
+                if (!clockwise)
+                    movePoints(points, 0, h / 2);
+            }
+            else {
+                amount = (amount - 0.5) / 0.5;
+                points = fillRadial180(w, h / 2, clockwise ? FillOrigin.Top : FillOrigin.Bottom, clockwise, amount);
+                if (clockwise) {
+                    movePoints(points, 0, h / 2);
+                    points.push(w, 0, 0, 0, 0, h / 2);
+                }
+                else
+                    points.push(w, h, 0, h, 0, h / 2);
+            }
+            break;
+        case FillOrigin.Right:
+            if (amount <= 0.5) {
+                amount = amount / 0.5;
+                points = fillRadial180(w, h / 2, clockwise ? FillOrigin.Top : FillOrigin.Bottom, clockwise, amount);
+                if (clockwise)
+                    movePoints(points, 0, h / 2);
+            }
+            else {
+                amount = (amount - 0.5) / 0.5;
+                points = fillRadial180(w, h / 2, clockwise ? FillOrigin.Bottom : FillOrigin.Top, clockwise, amount);
+                if (clockwise)
+                    points.push(0, h, w, h, w, h / 2);
+                else {
+                    movePoints(points, 0, h / 2);
+                    points.push(0, 0, w, 0, w, h / 2);
+                }
+            }
+            break;
+    }
+    return points;
+}
+
+var GRAPHICSTYPE;
+(function (GRAPHICSTYPE) {
+    GRAPHICSTYPE["RECTANGLE"] = "rectangle";
+    GRAPHICSTYPE["CIRCLE"] = "circle";
+    GRAPHICSTYPE["POLY"] = "POLY";
+    GRAPHICSTYPE["ELLIPSE"] = "ellipse";
+})(GRAPHICSTYPE || (GRAPHICSTYPE = {}));
+class Graphics extends Phaser.GameObjects.Graphics {
+    constructor(scene) {
+        super(scene);
+        // 默认矩形
+        this._graphicsType = GRAPHICSTYPE.RECTANGLE;
+        this._width = 0;
+        this._height = 0;
+        this._radius = 0;
+        this._points = [];
+    }
+    get width() {
+        return this._width;
+    }
+    get height() {
+        return this._height;
+    }
+    get radius() {
+        return this._radius;
+    }
+    get points() {
+        return this._points;
+    }
+    fillRect(x, y, width, height) {
+        this._graphicsType = GRAPHICSTYPE.RECTANGLE;
+        this._width = width;
+        this._height = height;
+        return super.fillRect(x, y, width, height);
+    }
+    fillCircle(x, y, radius) {
+        this._graphicsType = GRAPHICSTYPE.CIRCLE;
+        this._radius = radius;
+        return super.fillCircle(x, y, radius);
+    }
+    fillTriangle(x0, y0, x1, y1, x2, y2) {
+        // 三角形是多边形
+        // todo 扩展其他正多边形
+        this._graphicsType = GRAPHICSTYPE.POLY;
+        this._points = [new Phaser.Geom.Point(x0, y0), new Phaser.Geom.Point(x1, y1), new Phaser.Geom.Point(x2, y2)];
+        return super.fillTriangle(x0, y0, x1, y1, x2, y2);
+    }
+    fillEllipse(x, y, width, height, smoothness) {
+        this._graphicsType = GRAPHICSTYPE.ELLIPSE;
+        return super.fillEllipse(x, y, width, height, smoothness);
+    }
+    get graphicsType() {
+        return this._graphicsType;
+    }
+    set graphicsType(value) {
+        this._graphicsType = value;
+    }
+    clear() {
+        this._width = 0;
+        this._height = 0;
+        this._radius = 0;
+        this._points = [];
+        return super.clear();
+    }
+}
+
+class Image extends Phaser.GameObjects.Container {
+    constructor(scene) {
+        super(scene);
+        this._tileGridIndice = 0;
+        this._needRebuild = 0;
+        this._fillMethod = 0;
+        this._fillOrigin = 0;
+        this._fillAmount = 0;
+        // this.mouseEnabled = false;
+        this._color = "#FFFFFF";
+        this.width;
+    }
+    // public set width(value: number) {
+    //     if (this["_width"] !== value) {
+    //         super.set_width(value);
+    //         this.markChanged(1);
+    //     }
+    // }
+    // public set height(value: number) {
+    //     if (this["_height"] !== value) {
+    //         super.set_height(value);
+    //         this.markChanged(1);
+    //     }
+    // }
+    setSize(width, height) {
+        this.width = width;
+        this.height = height;
+        this.markChanged(1);
+        return this;
+    }
+    get texture() {
+        return this._source;
+    }
+    set texture(value) {
+        if (this._source != value) {
+            this._source = value;
+            if (this["_width"] == 0) {
+                if (this._source)
+                    this.setSize(this._source.source[0].width, this._source.source[0].height);
+                else
+                    this.setSize(0, 0);
+            }
+            // todo 重绘
+            // this.repaint();
+            this.markChanged(1);
+        }
+    }
+    get scale9Grid() {
+        return this._scale9Grid;
+    }
+    set scale9Grid(value) {
+        this._scale9Grid = value;
+        this._sizeGrid = null;
+        this.markChanged(1);
+    }
+    get scaleByTile() {
+        return this._scaleByTile;
+    }
+    set scaleByTile(value) {
+        if (this._scaleByTile != value) {
+            this._scaleByTile = value;
+            this.markChanged(1);
+        }
+    }
+    get tileGridIndice() {
+        return this._tileGridIndice;
+    }
+    set tileGridIndice(value) {
+        if (this._tileGridIndice != value) {
+            this._tileGridIndice = value;
+            this.markChanged(1);
+        }
+    }
+    get fillMethod() {
+        return this._fillMethod;
+    }
+    set fillMethod(value) {
+        if (this._fillMethod != value) {
+            this._fillMethod = value;
+            if (this._fillMethod != 0) {
+                if (!this._mask) {
+                    this._mask = new Graphics(this.scene);
+                    // this._mask.mouseEnabled = false;
+                }
+                this.mask = this._mask.createGeometryMask();
+                this.markChanged(2);
+            }
+            else if (this.mask) {
+                this._mask.clear();
+                this.mask = null;
+            }
+        }
+    }
+    get fillOrigin() {
+        return this._fillOrigin;
+    }
+    set fillOrigin(value) {
+        if (this._fillOrigin != value) {
+            this._fillOrigin = value;
+            if (this._fillMethod != 0)
+                this.markChanged(2);
+        }
+    }
+    get fillClockwise() {
+        return this._fillClockwise;
+    }
+    set fillClockwise(value) {
+        if (this._fillClockwise != value) {
+            this._fillClockwise = value;
+            if (this._fillMethod != 0)
+                this.markChanged(2);
+        }
+    }
+    get fillAmount() {
+        return this._fillAmount;
+    }
+    set fillAmount(value) {
+        if (this._fillAmount != value) {
+            this._fillAmount = value;
+            if (this._fillMethod != 0)
+                this.markChanged(2);
+        }
+    }
+    get color() {
+        return this._color;
+    }
+    set color(value) {
+        if (this._color != value) {
+            this._color = value;
+            ToolSet.setColorFilter(this, value);
+        }
+    }
+    markChanged(flag) {
+        if (!this._needRebuild) {
+            this._needRebuild = flag;
+            // Laya.timer.callLater(this, this.rebuild);
+        }
+        else
+            this._needRebuild |= flag;
+    }
+    rebuild() {
+        if ((this._needRebuild & 1) != 0)
+            this.doDraw();
+        if ((this._needRebuild & 2) != 0 && this._fillMethod != 0)
+            this.doFill();
+        this._needRebuild = 0;
+    }
+    doDraw() {
+        var w = this["_width"];
+        var h = this["_height"];
+        var g = new Graphics(this.scene);
+        var tex = this._source;
+        g.clear();
+        if (tex == null || w == 0 || h == 0) {
+            return;
+        }
+        if (this._scaleByTile) ;
+        else if (this._scale9Grid) {
+            if (!this._sizeGrid) {
+                var tw = tex.source[0].width;
+                var th = tex.source[0].height;
+                var left = this._scale9Grid.x;
+                var right = Math.max(tw - this._scale9Grid.right, 0);
+                var top = this._scale9Grid.y;
+                var bottom = Math.max(th - this._scale9Grid.bottom, 0);
+                this._sizeGrid = [top, right, bottom, left, this._tileGridIndice];
+            }
+            // todo draw9Grid
+            //g.draw9Grid(tex, 0, 0, w, h, this._sizeGrid);
+        }
+        else ;
+    }
+    doFill() {
+        var w = this["_width"];
+        var h = this["_height"];
+        var g = this._mask;
+        g.clear();
+        if (w == 0 || h == 0)
+            return;
+        var points = fillImage(w, h, this._fillMethod, this._fillOrigin, this._fillClockwise, this._fillAmount);
+        if (points == null) {
+            //不知道为什么，不这样操作一下空白的遮罩不能生效
+            this.mask = null;
+            this.mask = this._mask.createGeometryMask();
+            return;
+        }
+        // todo drawPoly
+        // g.drawPoly(0, 0, points, "#FFFFFF");
+    }
+}
+
+class GImage extends GObject {
+    constructor() {
+        super();
+        this._flip = 0;
+    }
+    get image() {
+        return this._image;
+    }
+    get color() {
+        return this.image.color;
+    }
+    set color(value) {
+        if (this.image.color != value) {
+            this.image.color = value;
+            this.updateGear(4);
+        }
+    }
+    get flip() {
+        return this._flip;
+    }
+    set flip(value) {
+        if (this._flip != value) {
+            this._flip = value;
+            var sx = 1, sy = 1;
+            if (this._flip == FlipType.Horizontal || this._flip == FlipType.Both)
+                sx = -1;
+            if (this._flip == FlipType.Vertical || this._flip == FlipType.Both)
+                sy = -1;
+            this.setScale(sx, sy);
+            this.handleXYChanged();
+        }
+    }
+    get fillMethod() {
+        return this.image.fillMethod;
+    }
+    set fillMethod(value) {
+        this.image.fillMethod = value;
+    }
+    get fillOrigin() {
+        return this.image.fillOrigin;
+    }
+    set fillOrigin(value) {
+        this.image.fillOrigin = value;
+    }
+    get fillClockwise() {
+        return this.image.fillClockwise;
+    }
+    set fillClockwise(value) {
+        this.image.fillClockwise = value;
+    }
+    get fillAmount() {
+        return this.image.fillAmount;
+    }
+    set fillAmount(value) {
+        this.image.fillAmount = value;
+    }
+    createDisplayObject() {
+        this._displayObject = this._image = new Image(this.scene);
+        // this.image.mouseEnabled = false;
+        this._displayObject["$owner"] = this;
+    }
+    constructFromResource() {
+        this._contentItem = this.packageItem.getBranch();
+        this.sourceWidth = this._contentItem.width;
+        this.sourceHeight = this._contentItem.height;
+        this.initWidth = this.sourceWidth;
+        this.initHeight = this.sourceHeight;
+        this._contentItem = this._contentItem.getHighResolution();
+        this._contentItem.load();
+        this.image.scale9Grid = this._contentItem.scale9Grid;
+        this.image.scaleByTile = this._contentItem.scaleByTile;
+        this.image.tileGridIndice = this._contentItem.tileGridIndice;
+        this.image.texture = this._contentItem.texture;
+        this.setSize(this.sourceWidth, this.sourceHeight);
+    }
+    handleXYChanged() {
+        super.handleXYChanged();
+        if (this._flip != FlipType.None) {
+            if (this.scaleX == -1)
+                this.image.x += this.width;
+            if (this.scaleY == -1)
+                this.image.y += this.height;
+        }
+    }
+    getProp(index) {
+        if (index == ObjectPropID.Color)
+            return this.color;
+        else
+            return super.getProp(index);
+    }
+    setProp(index, value) {
+        if (index == ObjectPropID.Color)
+            this.color = value;
+        else
+            super.setProp(index, value);
+    }
+    setup_beforeAdd(buffer, beginPos) {
+        super.setup_beforeAdd(buffer, beginPos);
+        buffer.seek(beginPos, 5);
+        if (buffer.readBool())
+            this.color = buffer.readColorS();
+        this.flip = buffer.readByte();
+        this.image.fillMethod = buffer.readByte();
+        if (this.image.fillMethod != 0) {
+            this.image.fillOrigin = buffer.readByte();
+            this.image.fillClockwise = buffer.readBool();
+            this.image.fillAmount = buffer.readFloat();
+        }
+    }
+}
+
+class GMovieClip extends GObject {
+    constructor() {
+        super();
+    }
+    get color() {
+        return this._movieClip.color;
+    }
+    set color(value) {
+        this._movieClip.color = value;
+    }
+    createDisplayObject() {
+        throw new Error("TODO");
+        // this._displayObject = this._movieClip = new MovieClip();
+        // this._movieClip.mouseEnabled = false;
+        // this._displayObject["$owner"] = this;
+    }
+    get playing() {
+        return this._movieClip.playing;
+    }
+    set playing(value) {
+        if (this._movieClip.playing != value) {
+            this._movieClip.playing = value;
+            this.updateGear(5);
+        }
+    }
+    get frame() {
+        return this._movieClip.frame;
+    }
+    set frame(value) {
+        if (this._movieClip.frame != value) {
+            this._movieClip.frame = value;
+            this.updateGear(5);
+        }
+    }
+    get timeScale() {
+        return this._movieClip.timeScale;
+    }
+    set timeScale(value) {
+        this._movieClip.timeScale = value;
+    }
+    rewind() {
+        this._movieClip.rewind();
+    }
+    syncStatus(anotherMc) {
+        this._movieClip.syncStatus(anotherMc._movieClip);
+    }
+    advance(timeInMiniseconds) {
+        this._movieClip.advance(timeInMiniseconds);
+    }
+    //从start帧开始，播放到end帧（-1表示结尾），重复times次（0表示无限循环），循环结束后，停止在endAt帧（-1表示参数end）
+    setPlaySettings(start, end, times, endAt, endHandler) {
+        this._movieClip.setPlaySettings(start, end, times, endAt, endHandler);
+    }
+    getProp(index) {
+        switch (index) {
+            case ObjectPropID.Color:
+                return this.color;
+            case ObjectPropID.Playing:
+                return this.playing;
+            case ObjectPropID.Frame:
+                return this.frame;
+            case ObjectPropID.TimeScale:
+                return this.timeScale;
+            default:
+                return super.getProp(index);
+        }
+    }
+    setProp(index, value) {
+        switch (index) {
+            case ObjectPropID.Color:
+                this.color = value;
+                break;
+            case ObjectPropID.Playing:
+                this.playing = value;
+                break;
+            case ObjectPropID.Frame:
+                this.frame = value;
+                break;
+            case ObjectPropID.TimeScale:
+                this.timeScale = value;
+                break;
+            case ObjectPropID.DeltaTime:
+                this.advance(value);
+                break;
+            default:
+                super.setProp(index, value);
+                break;
+        }
+    }
+    constructFromResource() {
+        var displayItem = this.packageItem.getBranch();
+        this.sourceWidth = displayItem.width;
+        this.sourceHeight = displayItem.height;
+        this.initWidth = this.sourceWidth;
+        this.initHeight = this.sourceHeight;
+        this.setSize(this.sourceWidth, this.sourceHeight);
+        displayItem = displayItem.getHighResolution();
+        displayItem.load();
+        this._movieClip.interval = displayItem.interval;
+        this._movieClip.swing = displayItem.swing;
+        this._movieClip.repeatDelay = displayItem.repeatDelay;
+        this._movieClip.frames = displayItem.frames;
+    }
+    setup_beforeAdd(buffer, beginPos) {
+        super.setup_beforeAdd(buffer, beginPos);
+        buffer.seek(beginPos, 5);
+        if (buffer.readBool())
+            this.color = buffer.readColorS();
+        buffer.readByte(); //flip
+        this._movieClip.frame = buffer.readInt();
+        this._movieClip.playing = buffer.readBool();
+    }
+}
+
 class DOMEventManager extends Phaser.Events.EventEmitter {
     constructor() {
         super();
@@ -3484,72 +6036,6 @@ function findChildNode(xml, name) {
         }
     }
     return null;
-}
-
-var GRAPHICSTYPE;
-(function (GRAPHICSTYPE) {
-    GRAPHICSTYPE["RECTANGLE"] = "rectangle";
-    GRAPHICSTYPE["CIRCLE"] = "circle";
-    GRAPHICSTYPE["POLY"] = "POLY";
-    GRAPHICSTYPE["ELLIPSE"] = "ellipse";
-})(GRAPHICSTYPE || (GRAPHICSTYPE = {}));
-class Graphics extends Phaser.GameObjects.Graphics {
-    constructor(scene) {
-        super(scene);
-        // 默认矩形
-        this._graphicsType = GRAPHICSTYPE.RECTANGLE;
-        this._width = 0;
-        this._height = 0;
-        this._radius = 0;
-        this._points = [];
-    }
-    get width() {
-        return this._width;
-    }
-    get height() {
-        return this._height;
-    }
-    get radius() {
-        return this._radius;
-    }
-    get points() {
-        return this._points;
-    }
-    fillRect(x, y, width, height) {
-        this._graphicsType = GRAPHICSTYPE.RECTANGLE;
-        this._width = width;
-        this._height = height;
-        return super.fillRect(x, y, width, height);
-    }
-    fillCircle(x, y, radius) {
-        this._graphicsType = GRAPHICSTYPE.CIRCLE;
-        this._radius = radius;
-        return super.fillCircle(x, y, radius);
-    }
-    fillTriangle(x0, y0, x1, y1, x2, y2) {
-        // 三角形是多边形
-        // todo 扩展其他正多边形
-        this._graphicsType = GRAPHICSTYPE.POLY;
-        this._points = [new Phaser.Geom.Point(x0, y0), new Phaser.Geom.Point(x1, y1), new Phaser.Geom.Point(x2, y2)];
-        return super.fillTriangle(x0, y0, x1, y1, x2, y2);
-    }
-    fillEllipse(x, y, width, height, smoothness) {
-        this._graphicsType = GRAPHICSTYPE.ELLIPSE;
-        return super.fillEllipse(x, y, width, height, smoothness);
-    }
-    get graphicsType() {
-        return this._graphicsType;
-    }
-    set graphicsType(value) {
-        this._graphicsType = value;
-    }
-    clear() {
-        this._width = 0;
-        this._height = 0;
-        this._radius = 0;
-        this._points = [];
-        return super.clear();
-    }
 }
 
 /**
@@ -8382,2492 +10868,6 @@ class GRoot extends GComponent {
     }
 }
 GRoot._gmStatus = new GRootMouseStatus();
-
-class DisplayStyle {
-    constructor() {
-        /**水平缩放 */
-        this.scaleX = 1;
-        /**垂直缩放 */
-        this.scaleY = 1;
-        /**水平倾斜角度 */
-        this.skewX = 0;
-        /**垂直倾斜角度 */
-        this.skewY = 0;
-        /**X轴心点 */
-        this.pivotX = 0;
-        /**Y轴心点 */
-        this.pivotY = 0;
-        /**旋转角度 */
-        this.rotation = 0;
-        /**透明度 */
-        this.alpha = 1;
-    }
-}
-DisplayStyle.EMPTY = new DisplayStyle();
-class GObject {
-    constructor() {
-        this._x = 0;
-        this._y = 0;
-        this._alpha = 1;
-        this._rotation = 0;
-        this._visible = true;
-        this._dpr = 1;
-        // 可交互默认false
-        this._touchable = false;
-        this._scaleX = 1;
-        this._scaleY = 1;
-        this._skewX = 0;
-        this._skewY = 0;
-        this._pivotX = 0;
-        this._pivotY = 0;
-        this._pivotOffsetX = 0;
-        this._pivotOffsetY = 0;
-        this._sortingOrder = 0;
-        this._internalVisible = true;
-        this._yOffset = 0;
-        this.minWidth = 0;
-        this.minHeight = 0;
-        this.maxWidth = 0;
-        this.maxHeight = 0;
-        this.sourceWidth = 0;
-        this.sourceHeight = 0;
-        this.initWidth = 0;
-        this.initHeight = 0;
-        this._width = 0;
-        this._height = 0;
-        this._rawWidth = 0;
-        this._rawHeight = 0;
-        this._sizePercentInGroup = 0;
-        this._id = "" + _gInstanceCounter++;
-        this._name = "";
-        // todo 优先传入scene在创建display
-        if (GRoot.inst.scene)
-            this.createDisplayObject();
-        this._displayStyle = new DisplayStyle();
-        this._relations = new Relations(this);
-        this._gears = new Array(10);
-    }
-    get dpr() {
-        return this._dpr;
-    }
-    set dpr(value) {
-        this._dpr = value;
-    }
-    get id() {
-        return this._id;
-    }
-    set id(value) {
-        this._id = value;
-    }
-    get name() {
-        return this._name;
-    }
-    set name(value) {
-        this._name = value;
-    }
-    get x() {
-        return this._x;
-    }
-    set x(value) {
-        this.setXY(value, this._y);
-    }
-    get y() {
-        return this._y;
-    }
-    set y(value) {
-        this.setXY(this._x, value);
-    }
-    get scene() {
-        return this._scene;
-    }
-    set scene(value) {
-        this._scene = value;
-    }
-    get timeEvent() {
-        return this._timeEvent;
-    }
-    set timeEvent(value) {
-        this._timeEvent = value;
-    }
-    setXY(xv, yv) {
-        if (this._x != xv || this._y != yv) {
-            var dx = xv - this._x;
-            var dy = yv - this._y;
-            this._x = xv;
-            this._y = yv;
-            this.handleXYChanged();
-            if (this instanceof GGroup)
-                this.moveChildren(dx, dy);
-            this.updateGear(1);
-            // if (this._parent && !(this._parent instanceof GList)) {
-            if (this._parent) {
-                this._parent.setBoundsChangedFlag();
-                if (this._group)
-                    this._group.setBoundsChangedFlag(true);
-                this.displayObject.emit(Events.XY_CHANGED);
-            }
-            if (GObject.draggingObject == this && !sUpdateInDragging)
-                this.localToGlobalRect(0, 0, this.width, this.height, sGlobalRect);
-        }
-    }
-    get xMin() {
-        return this._pivotAsAnchor ? (this._x - this._width * this._pivotX) : this._x;
-    }
-    set xMin(value) {
-        if (this._pivotAsAnchor)
-            this.setXY(value + this._width * this._pivotX, this._y);
-        else
-            this.setXY(value, this._y);
-    }
-    get yMin() {
-        return this._pivotAsAnchor ? (this._y - this._height * this._pivotY) : this._y;
-    }
-    set yMin(value) {
-        if (this._pivotAsAnchor)
-            this.setXY(this._x, value + this._height * this._pivotY);
-        else
-            this.setXY(this._x, value);
-    }
-    get pixelSnapping() {
-        return this._pixelSnapping;
-    }
-    set pixelSnapping(value) {
-        if (this._pixelSnapping != value) {
-            this._pixelSnapping = value;
-            this.handleXYChanged();
-        }
-    }
-    center(restraint) {
-        let r;
-        if (this._parent)
-            r = this.parent;
-        else
-            r = this.root;
-        this.setXY((r.width - this.width) / 2, (r.height - this.height) / 2);
-        if (restraint) {
-            this.addRelation(r, RelationType.Center_Center);
-            this.addRelation(r, RelationType.Middle_Middle);
-        }
-    }
-    get width() {
-        this.ensureSizeCorrect();
-        if (this._relations.sizeDirty)
-            this._relations.ensureRelationsSizeCorrect();
-        return this._width;
-    }
-    set width(value) {
-        this.setSize(value, this._rawHeight);
-    }
-    get height() {
-        this.ensureSizeCorrect();
-        if (this._relations.sizeDirty)
-            this._relations.ensureRelationsSizeCorrect();
-        return this._height;
-    }
-    set height(value) {
-        this.setSize(this._rawWidth, value);
-    }
-    setSize(wv, hv, ignorePivot) {
-        if (this._rawWidth != wv || this._rawHeight != hv) {
-            this._rawWidth = wv;
-            this._rawHeight = hv;
-            if (wv < this.minWidth)
-                wv = this.minWidth;
-            if (hv < this.minHeight)
-                hv = this.minHeight;
-            if (this.maxWidth > 0 && wv > this.maxWidth)
-                wv = this.maxWidth;
-            if (this.maxHeight > 0 && hv > this.maxHeight)
-                hv = this.maxHeight;
-            var dWidth = wv - this._width;
-            var dHeight = hv - this._height;
-            this._width = wv;
-            this._height = hv;
-            this.handleSizeChanged();
-            if (this._pivotX != 0 || this._pivotY != 0) {
-                if (!this._pivotAsAnchor) {
-                    if (!ignorePivot)
-                        this.setXY(this.x - this._pivotX * dWidth, this.y - this._pivotY * dHeight);
-                    this.updatePivotOffset();
-                }
-                else
-                    this.applyPivot();
-            }
-            if (this instanceof GGroup)
-                this.resizeChildren(dWidth, dHeight);
-            this.updateGear(2);
-            if (this._parent) {
-                this._relations.onOwnerSizeChanged(dWidth, dHeight, this._pivotAsAnchor || !ignorePivot);
-                this._parent.setBoundsChangedFlag();
-                if (this._group)
-                    this._group.setBoundsChangedFlag();
-            }
-            this.displayObject.emit(Events.SIZE_CHANGED);
-        }
-    }
-    ensureSizeCorrect() {
-    }
-    makeFullScreen() {
-        // this.setSize(GRoot.inst.width, GRoot.inst.height);
-    }
-    get actualWidth() {
-        return this.width * Math.abs(this._scaleX);
-    }
-    get actualHeight() {
-        return this.height * Math.abs(this._scaleY);
-    }
-    get scaleX() {
-        return this._scaleX;
-    }
-    set scaleX(value) {
-        this.setScale(value, this._scaleY);
-    }
-    get scaleY() {
-        return this._scaleY;
-    }
-    set scaleY(value) {
-        this.setScale(this._scaleX, value);
-    }
-    setScale(sx, sy) {
-        if (this._scaleX != sx || this._scaleY != sy) {
-            this._scaleX = sx;
-            this._scaleY = sy;
-            this.handleScaleChanged();
-            this.applyPivot();
-            this.updateGear(2);
-        }
-    }
-    get skewX() {
-        return this._skewX;
-    }
-    set skewX(value) {
-        this.setSkew(value, this._skewY);
-    }
-    get skewY() {
-        return this._skewY;
-    }
-    set skewY(value) {
-        this.setSkew(this._skewX, value);
-    }
-    setSkew(sx, sy) {
-        if (this._skewX != sx || this._skewY != sy) {
-            this._skewX = sx;
-            this._skewY = sy;
-            if (this._displayObject) {
-                this._displayStyle.skewX = -sx,
-                    this._displayStyle.skewY = sy;
-                this._adjustTransform();
-                // this._displayObject.skew(-sx, sy);
-                this.applyPivot();
-            }
-        }
-    }
-    _adjustTransform() {
-        var sx = this._displayStyle.scaleX, sy = this._displayStyle.scaleY;
-        var sskx = this._displayStyle.skewX;
-        var ssky = this._displayStyle.skewY;
-        var rot = this._displayStyle.rotation;
-        const m = this._displayObject.getLocalTransformMatrix();
-        // var m: Matrix = this._transform || (this._transform = this._createTransform());
-        if (rot || sx !== 1 || sy !== 1 || sskx !== 0 || ssky !== 0) {
-            // m._bTransform = true;
-            var skx = (rot - sskx) * 0.0174532922222222; //laya.CONST.PI180;
-            var sky = (rot + ssky) * 0.0174532922222222;
-            var cx = Math.cos(sky);
-            var ssx = Math.sin(sky);
-            var cy = Math.sin(skx);
-            var ssy = Math.cos(skx);
-            m.a = sx * cx;
-            m.b = sx * ssx;
-            m.c = -sy * cy;
-            m.d = sy * ssy;
-            m.tx = m.ty = 0;
-        }
-        else {
-            m.loadIdentity();
-            // this._renderType &= ~SpriteConst.TRANSFORM;
-            // this._setRenderType(this._renderType);
-        }
-        return m;
-    }
-    get pivotX() {
-        return this._pivotX;
-    }
-    set pivotX(value) {
-        this.setPivot(value, this._pivotY);
-    }
-    get pivotY() {
-        return this._pivotY;
-    }
-    set pivotY(value) {
-        this.setPivot(this._pivotX, value);
-    }
-    setPivot(xv, yv = 0, asAnchor) {
-        if (this._pivotX != xv || this._pivotY != yv || this._pivotAsAnchor != asAnchor) {
-            this._pivotX = xv;
-            this._pivotY = yv;
-            this._pivotAsAnchor = asAnchor;
-            this.updatePivotOffset();
-            this.handleXYChanged();
-        }
-    }
-    get pivotAsAnchor() {
-        return this._pivotAsAnchor;
-    }
-    internalSetPivot(xv, yv, asAnchor) {
-        this._pivotX = xv;
-        this._pivotY = yv;
-        this._pivotAsAnchor = asAnchor;
-        if (this._pivotAsAnchor)
-            this.handleXYChanged();
-    }
-    updatePivotOffset() {
-        if (this._displayObject) {
-            const transform = this._displayObject.getLocalTransformMatrix();
-            if (transform && (this._pivotX != 0 || this._pivotY != 0)) {
-                sHelperPoint.x = this._pivotX * this._width;
-                sHelperPoint.y = this._pivotY * this._height;
-                const pt = new Phaser.Geom.Point();
-                transform.transformPoint(this._pivotX * this._width, this._pivotY * this._height, pt);
-                this._pivotOffsetX = this._pivotX * this._width - pt.x;
-                this._pivotOffsetY = this._pivotY * this._height - pt.y;
-            }
-            else {
-                this._pivotOffsetX = 0;
-                this._pivotOffsetY = 0;
-            }
-        }
-    }
-    applyPivot() {
-        if (this._pivotX != 0 || this._pivotY != 0) {
-            this.updatePivotOffset();
-            this.handleXYChanged();
-        }
-    }
-    get touchable() {
-        return this._touchable;
-    }
-    set touchable(value) {
-        if (this._touchable != value) {
-            this._touchable = value;
-            this.updateGear(3);
-            // if ((this instanceof GImage) || (this instanceof GMovieClip)
-            //     || (this instanceof GTextField) && !(this instanceof GTextInput) && !(this instanceof GRichTextField))
-            //     //Touch is not supported by GImage/GMovieClip/GTextField
-            //     return;
-            if (this._displayObject)
-                if (this._touchable) {
-                    this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this._width / this.scaleX, this._height / this.scaleY), Phaser.Geom.Rectangle.Contains);
-                }
-                else {
-                    this._displayObject.disableInteractive();
-                }
-        }
-    }
-    get grayed() {
-        return this._grayed;
-    }
-    set grayed(value) {
-        if (this._grayed != value) {
-            this._grayed = value;
-            this.handleGrayedChanged();
-            this.updateGear(3);
-        }
-    }
-    get enabled() {
-        return !this._grayed && this._touchable;
-    }
-    set enabled(value) {
-        this.grayed = !value;
-        this.touchable = value;
-    }
-    get rotation() {
-        return this._rotation;
-    }
-    set rotation(value) {
-        if (this._rotation != value) {
-            this._rotation = value;
-            if (this._displayObject) {
-                this._displayObject.rotation = this.normalizeRotation;
-                this.applyPivot();
-            }
-            this.updateGear(3);
-        }
-    }
-    get normalizeRotation() {
-        var rot = this._rotation % 360;
-        if (rot > 180)
-            rot = rot - 360;
-        else if (rot < -180)
-            rot = 360 + rot;
-        return rot;
-    }
-    get alpha() {
-        return this._alpha;
-    }
-    set alpha(value) {
-        if (this._alpha != value) {
-            this._alpha = value;
-            this.handleAlphaChanged();
-            this.updateGear(3);
-        }
-    }
-    get visible() {
-        return this._visible;
-    }
-    set visible(value) {
-        if (this._visible != value) {
-            this._visible = value;
-            this.handleVisibleChanged();
-            if (this._parent)
-                this._parent.setBoundsChangedFlag();
-            if (this._group && this._group.excludeInvisibles)
-                this._group.setBoundsChangedFlag();
-        }
-    }
-    get internalVisible() {
-        return this._internalVisible && (!this._group || this._group.internalVisible)
-            && !this._displayObject._cacheStyle.maskParent;
-    }
-    get internalVisible2() {
-        return this._visible && (!this._group || this._group.internalVisible2);
-    }
-    get internalVisible3() {
-        return this._internalVisible && this._visible;
-    }
-    get sortingOrder() {
-        return this._sortingOrder;
-    }
-    set sortingOrder(value) {
-        if (value < 0)
-            value = 0;
-        if (this._sortingOrder != value) {
-            var old = this._sortingOrder;
-            this._sortingOrder = value;
-            if (this._parent)
-                this._parent.childSortingOrderChanged(this, old, this._sortingOrder);
-        }
-    }
-    get focused() {
-        return this.root.focus == this;
-    }
-    requestFocus() {
-        this.root.focus = this;
-    }
-    get tooltips() {
-        return this._tooltips;
-    }
-    set tooltips(value) {
-        if (this._tooltips) {
-            this.off(InteractiveEvent.GAMEOBJECT_OVER, this.__rollOver);
-            this.off(InteractiveEvent.GAMEOBJECT_OUT, this.__rollOut);
-        }
-        this._tooltips = value;
-        if (this._tooltips) {
-            this.on(InteractiveEvent.GAMEOBJECT_OVER, this.__rollOver);
-            this.on(InteractiveEvent.GAMEOBJECT_OUT, this.__rollOut);
-        }
-    }
-    __rollOver(evt) {
-        // this._timeEvent = GRoot.inst.addTimeEvent(new Phaser.Time.TimerEvent({ delay: 100, callback: this.__doShowTooltips }));
-        // Laya.timer.once(100, this, this.__doShowTooltips);
-    }
-    __doShowTooltips() {
-        // var r: GRoot = this.root;
-        // if (r)
-        // this.root.showTooltips(this._tooltips);
-    }
-    __rollOut(evt) {
-        // if (this._timeEvent) GRoot.inst.removeTimeEvent(this._timeEvent);
-        // Laya.timer.clear(this, this.__doShowTooltips);
-        // this.root.hideTooltips();
-    }
-    get blendMode() {
-        return this._displayObject.blendMode;
-    }
-    set blendMode(value) {
-        this._displayObject.blendMode = value;
-    }
-    get filters() {
-        return null; // this._displayObject.filters;
-    }
-    set filters(value) {
-        // this._displayObject.filters = value;
-    }
-    get inContainer() {
-        return this._displayObject != null && this._displayObject.parentContainer != null;
-    }
-    get onStage() {
-        return this._displayObject != null;
-        // return this._displayObject != null && this._displayObject.stage != null;
-    }
-    get resourceURL() {
-        if (this.packageItem)
-            return "ui://" + this.packageItem.owner.id + this.packageItem.id;
-        else
-            return null;
-    }
-    set group(value) {
-        if (this._group != value) {
-            if (this._group)
-                this._group.setBoundsChangedFlag();
-            this._group = value;
-            if (this._group)
-                this._group.setBoundsChangedFlag();
-        }
-    }
-    get group() {
-        return this._group;
-    }
-    getGear(index) {
-        var gear = this._gears[index];
-        if (!gear)
-            this._gears[index] = gear = createGear(this, index);
-        return gear;
-    }
-    updateGear(index) {
-        if (this._underConstruct || this._gearLocked)
-            return;
-        var gear = this._gears[index];
-        if (gear && gear.controller)
-            gear.updateState();
-    }
-    checkGearController(index, c) {
-        return this._gears[index] && this._gears[index].controller == c;
-    }
-    updateGearFromRelations(index, dx, dy) {
-        if (this._gears[index])
-            this._gears[index].updateFromRelations(dx, dy);
-    }
-    addDisplayLock() {
-        var gearDisplay = (this._gears[0]);
-        if (gearDisplay && gearDisplay.controller) {
-            var ret = gearDisplay.addLock();
-            this.checkGearDisplay();
-            return ret;
-        }
-        else
-            return 0;
-    }
-    releaseDisplayLock(token) {
-        var gearDisplay = (this._gears[0]);
-        if (gearDisplay && gearDisplay.controller) {
-            gearDisplay.releaseLock(token);
-            this.checkGearDisplay();
-        }
-    }
-    checkGearDisplay() {
-        if (this._handlingController)
-            return;
-        var connected = !this._gears[0] || (this._gears[0]).connected;
-        if (this._gears[8])
-            connected = this._gears[8].evaluate(connected);
-        if (connected != this._internalVisible) {
-            this._internalVisible = connected;
-            if (this._parent) {
-                this._parent.childStateChanged(this);
-                if (this._group && this._group.excludeInvisibles)
-                    this._group.setBoundsChangedFlag();
-            }
-        }
-    }
-    get relations() {
-        return this._relations;
-    }
-    addRelation(target, relationType, usePercent) {
-        this._relations.add(target, relationType, usePercent);
-    }
-    removeRelation(target, relationType) {
-        this._relations.remove(target, relationType);
-    }
-    get displayObject() {
-        return this._displayObject;
-    }
-    get parent() {
-        return this._parent;
-    }
-    set parent(val) {
-        this._parent = val;
-    }
-    removeFromParent() {
-        if (this._parent)
-            this._parent.removeChild(this);
-    }
-    get root() {
-        // if (this instanceof GRoot)
-        //     return this;
-        // let p: GObject = this._parent;
-        // while (p) {
-        //     if (p instanceof GRoot)
-        //         return p;
-        //     p = p.parent;
-        // }
-        // return GRoot.inst;
-        return null;
-    }
-    get asCom() {
-        return this;
-    }
-    // public get asButton(): GButton {
-    //     return <GButton><any>this;
-    // }
-    // public get asLabel(): GLabel {
-    //     return <GLabel><any>this;
-    // }
-    // public get asProgress(): GProgressBar {
-    //     return <GProgressBar><any>this;
-    // }
-    // public get asTextField(): GTextField {
-    //     return <GTextField><any>this;
-    // }
-    // public get asRichTextField(): GRichTextField {
-    //     return <GRichTextField><any>this;
-    // }
-    // public get asTextInput(): GTextInput {
-    //     return <GTextInput><any>this;
-    // }
-    // public get asLoader(): GLoader {
-    //     return <GLoader><any>this;
-    // }
-    // public get asList(): GList {
-    //     return <GList><any>this;
-    // }
-    get asTree() {
-        return this;
-    }
-    // public get asGraph(): GGraph {
-    //     return <GGraph><any>this;
-    // }
-    get asGroup() {
-        return this;
-    }
-    // public get asSlider(): GSlider {
-    //     return <GSlider><any>this;
-    // }
-    // public get asComboBox(): GComboBox {
-    //     return <GComboBox><any>this;
-    // }
-    // public get asImage(): GImage {
-    //     return <GImage><any>this;
-    // }
-    // public get asMovieClip(): GMovieClip {
-    //     return <GMovieClip><any>this;
-    // }
-    get text() {
-        return null;
-    }
-    set text(value) {
-    }
-    get icon() {
-        return null;
-    }
-    set icon(value) {
-    }
-    get treeNode() {
-        return this._treeNode;
-    }
-    get isDisposed() {
-        return this._displayObject == null;
-    }
-    get scrollRect() {
-        return this._displayStyle && this._displayStyle.scrollRect;
-    }
-    set scrollRect(val) {
-        this._displayStyle.scrollRect = val;
-    }
-    /**
-     * <p>可以设置一个Rectangle区域作为点击区域，或者设置一个<code>HitArea</code>实例作为点击区域，HitArea内可以设置可点击和不可点击区域。</p>
-     * <p>如果不设置hitArea，则根据宽高形成的区域进行碰撞。</p>
-    */
-    get hitArea() {
-        return this._displayStyle.hitArea;
-    }
-    set hitArea(value) {
-        this._displayStyle.hitArea = value;
-    }
-    dispose() {
-        this.removeFromParent();
-        this._relations.dispose();
-        this._displayObject.destroy();
-        this._displayObject = null;
-        for (var i = 0; i < 10; i++) {
-            var gear = this._gears[i];
-            if (gear)
-                gear.dispose();
-        }
-    }
-    onClick(listener) {
-        this.on(InteractiveEvent.GAMEOBJECT_UP, listener);
-    }
-    offClick(listener, once = false) {
-        this.off(InteractiveEvent.GAMEOBJECT_UP, listener, once);
-    }
-    hasClickListener() {
-        return this._displayObject && this._touchable; // hasListener(InteractiveEvent.CLICK);
-    }
-    on(type, listener) {
-        this._displayObject.on(type, listener, this);
-    }
-    off(type, listener, once = false) {
-        this._displayObject.off(type, listener, this, once);
-    }
-    get draggable() {
-        return this._draggable;
-    }
-    set draggable(value) {
-        if (this._draggable != value) {
-            this._draggable = value;
-            this.initDrag();
-        }
-    }
-    get dragBounds() {
-        return this._dragBounds;
-    }
-    set dragBounds(value) {
-        this._dragBounds = value;
-    }
-    startDrag(touchID) {
-        // if (this._displayObject.stage == null)
-        //     return;
-        this.dragBegin(touchID);
-    }
-    stopDrag() {
-        this.dragEnd();
-    }
-    get dragging() {
-        return GObject.draggingObject == this;
-    }
-    localToGlobal(ax, ay, result) {
-        ax = ax || 0;
-        ay = ay || 0;
-        if (this._pivotAsAnchor) {
-            ax += this._pivotX * this._width;
-            ay += this._pivotY * this._height;
-        }
-        result = result || new Phaser.Geom.Point();
-        result.x = ax;
-        result.y = ay;
-        return this._localToGlobal(result, false);
-    }
-    _localToGlobal(point, createNewPoint = false) {
-        if (createNewPoint === true) {
-            point = new Phaser.Geom.Point(point.x, point.y);
-        }
-        let ele = this._displayObject;
-        while (ele) {
-            if (!ele.parentContainer)
-                break;
-            ele = ele.parentContainer;
-        }
-        return new Phaser.Geom.Point(ele.x, ele.y);
-    }
-    globalToLocal(ax, ay, result) {
-        ax = ax || 0;
-        ay = ay || 0;
-        result = result || new Phaser.Geom.Point();
-        result.x = ax;
-        result.y = ay;
-        result = this._globalToLocal(result, false);
-        if (this._pivotAsAnchor) {
-            result.x -= this._pivotX * this._width;
-            result.y -= this._pivotY * this._height;
-        }
-        return result;
-        // let ele: Phaser.GameObjects.Container = this._displayObject;
-        // let list: any[] = [];
-        // while (ele) {
-        //     list.push(ele);
-        //     if (!ele.parentContainer) break;
-        //     ele = ele.parentContainer;
-        // }
-        // var i: number = list.length - 1;
-        // while (i >= 0) {
-        //     ele = list[i];
-        //     i--;
-        // }
-        // return new Phaser.Geom.Point(ele.x, ele.y);
-    }
-    _globalToLocal(point, createNewPoint = false) {
-        if (createNewPoint) {
-            point = new Phaser.Geom.Point(point.x, point.y);
-        }
-        let ele = this._displayObject;
-        let list = [];
-        while (ele) {
-            list.push(ele);
-            if (!ele.parentContainer)
-                break;
-            ele = ele.parentContainer;
-        }
-        var i = list.length - 1;
-        while (i >= 0) {
-            ele = list[i];
-            point = this.fromParentPoint(point);
-            i--;
-        }
-        return point;
-    }
-    /**
- * 将本地坐标系坐标转转换到父容器坐标系。
- * @param point 本地坐标点。
- * @return  转换后的点。
- */
-    toParentPoint(point) {
-        if (!point)
-            return point;
-        point.x -= this.pivotX;
-        point.y -= this.pivotY;
-        const tmpPoint = new Phaser.Geom.Point();
-        if (this._displayObject) {
-            const matrix = this._displayObject.getLocalTransformMatrix();
-            matrix.transformPoint(point.x, point.y, tmpPoint);
-        }
-        tmpPoint.x += this._displayObject.x;
-        tmpPoint.y += this._displayObject.y;
-        var scroll = this._displayStyle.scrollRect;
-        if (scroll) {
-            point.x -= scroll.x;
-            point.y -= scroll.y;
-        }
-        return point;
-    }
-    /**
-     * 将父容器坐标系坐标转换到本地坐标系。
-     * @param point 父容器坐标点。
-     * @return  转换后的点。
-     */
-    fromParentPoint(point) {
-        if (!point)
-            return point;
-        point.x -= this._displayObject.x;
-        point.y -= this._displayObject.y;
-        var scroll = this._displayStyle.scrollRect;
-        if (scroll) {
-            point.x += scroll.x;
-            point.y += scroll.y;
-        }
-        const matrix = this._displayObject.getLocalTransformMatrix();
-        if (matrix) {
-            //_transform.setTranslate(0,0);
-            this.invertTransformPoint(point);
-        }
-        point.x += this.pivotX;
-        point.y += this.pivotY;
-        return point;
-    }
-    /**
- * 对指定的点应用当前矩阵的逆转化并返回此点。
- * @param	out 待转化的点 Point 对象。
- * @return	返回out
- */
-    invertTransformPoint(out) {
-        const matrix = this._displayObject.getLocalTransformMatrix();
-        var a1 = matrix.a;
-        var b1 = matrix.b;
-        var c1 = matrix.c;
-        var d1 = matrix.d;
-        var tx1 = matrix.tx;
-        var n = a1 * d1 - b1 * c1;
-        var a2 = d1 / n;
-        var b2 = -b1 / n;
-        var c2 = -c1 / n;
-        var d2 = a1 / n;
-        var tx2 = (c1 * matrix.ty - d1 * tx1) / n;
-        var ty2 = -(a1 * matrix.ty - b1 * tx1) / n;
-        return out.setTo(a2 * out.x + c2 * out.y + tx2, b2 * out.x + d2 * out.y + ty2);
-    }
-    localToGlobalRect(ax, ay, aw, ah, result) {
-        ax = ax || 0;
-        ay = ay || 0;
-        aw = aw || 0;
-        ah = ah || 0;
-        result = result || new Phaser.Geom.Rectangle();
-        var pt = this.localToGlobal(ax, ay);
-        result.x = pt.x;
-        result.y = pt.y;
-        pt = this.localToGlobal(ax + aw, ay + ah);
-        result.width = pt.x - result.x;
-        result.height = pt.y - result.y;
-        return result;
-    }
-    globalToLocalRect(ax, ay, aw, ah, result) {
-        ax = ax || 0;
-        ay = ay || 0;
-        aw = aw || 0;
-        ah = ah || 0;
-        result = result || new Phaser.Geom.Rectangle();
-        var pt = this.globalToLocal(ax, ay);
-        result.x = pt.x;
-        result.y = pt.y;
-        pt = this.globalToLocal(ax + aw, ay + ah);
-        result.width = pt.x - result.x;
-        result.height = pt.y - result.y;
-        return result;
-    }
-    handleControllerChanged(c) {
-        this._handlingController = true;
-        for (var i = 0; i < 10; i++) {
-            var gear = this._gears[i];
-            if (gear && gear.controller == c)
-                gear.apply();
-        }
-        this._handlingController = false;
-        this.checkGearDisplay();
-    }
-    createDisplayObject() {
-        this._displayObject = new Phaser.GameObjects.Container(this.scene);
-        this._displayObject["$owner"] = this;
-    }
-    setDisplayObject(val) {
-        this._displayObject = val;
-        this._displayObject["$owner"] = this;
-    }
-    handleXYChanged() {
-        var xv = this._x;
-        var yv = this._y + this._yOffset;
-        if (this._pivotAsAnchor) {
-            xv -= this._pivotX * this._width;
-            yv -= this._pivotY * this._height;
-        }
-        if (this._pixelSnapping) {
-            xv = Math.round(xv);
-            yv = Math.round(yv);
-        }
-        this._displayObject.setPosition(xv + this._pivotOffsetX, yv + this._pivotOffsetY);
-    }
-    handleSizeChanged() {
-        this._displayObject.setSize(this._width, this._height);
-    }
-    handleScaleChanged() {
-        this._displayObject.setScale(this._scaleX, this._scaleY);
-    }
-    handleGrayedChanged() {
-        ToolSet.setColorFilter(this._displayObject, this._grayed);
-    }
-    handleAlphaChanged() {
-        this._displayObject.alpha = this._alpha;
-    }
-    handleVisibleChanged() {
-        this._displayObject.visible = this.internalVisible2;
-    }
-    getProp(index) {
-        switch (index) {
-            case ObjectPropID.Text:
-                return this.text;
-            case ObjectPropID.Icon:
-                return this.icon;
-            case ObjectPropID.Color:
-                return null;
-            case ObjectPropID.OutlineColor:
-                return null;
-            case ObjectPropID.Playing:
-                return false;
-            case ObjectPropID.Frame:
-                return 0;
-            case ObjectPropID.DeltaTime:
-                return 0;
-            case ObjectPropID.TimeScale:
-                return 1;
-            case ObjectPropID.FontSize:
-                return 0;
-            case ObjectPropID.Selected:
-                return false;
-            default:
-                return undefined;
-        }
-    }
-    setProp(index, value) {
-        switch (index) {
-            case ObjectPropID.Text:
-                this.text = value;
-                break;
-            case ObjectPropID.Icon:
-                this.icon = value;
-                break;
-        }
-    }
-    constructFromResource() {
-    }
-    setup_beforeAdd(buffer, beginPos) {
-        buffer.seek(beginPos, 0);
-        buffer.skip(5);
-        var f1;
-        var f2;
-        this._id = buffer.readS();
-        this._name = buffer.readS();
-        f1 = buffer.readInt();
-        f2 = buffer.readInt();
-        this.setXY(f1, f2);
-        if (buffer.readBool()) {
-            this.initWidth = buffer.readInt();
-            this.initHeight = buffer.readInt();
-            this.setSize(this.initWidth, this.initHeight, true);
-        }
-        if (buffer.readBool()) {
-            this.minWidth = buffer.readInt();
-            this.maxWidth = buffer.readInt();
-            this.minHeight = buffer.readInt();
-            this.maxHeight = buffer.readInt();
-        }
-        if (buffer.readBool()) {
-            f1 = buffer.readShort();
-            f2 = buffer.readShort();
-            this.setScale(f1, f2);
-        }
-        if (buffer.readBool()) {
-            f1 = buffer.readShort();
-            f2 = buffer.readShort();
-            this.setSkew(f1, f2);
-        }
-        if (buffer.readBool()) {
-            f1 = buffer.readShort();
-            f2 = buffer.readShort();
-            this.setPivot(f1, f2, buffer.readBool());
-        }
-        f1 = buffer.readShort();
-        if (f1 != 1)
-            this.alpha = f1;
-        f1 = buffer.readShort();
-        if (f1 != 0)
-            this.rotation = f1;
-        if (!buffer.readBool())
-            this.visible = false;
-        if (!buffer.readBool())
-            this.touchable = false;
-        if (buffer.readBool())
-            this.grayed = true;
-        var bm = buffer.readByte();
-        if (BlendMode[bm])
-            this.blendMode = BlendMode[bm];
-        var filter = buffer.readByte();
-        if (filter == 1) {
-            ToolSet.setColorFilter(this._displayObject, [buffer.readFloat(), buffer.readFloat(), buffer.readFloat(), buffer.readFloat()]);
-        }
-        var str = buffer.readS();
-        if (str != null)
-            this.data = str;
-    }
-    setup_afterAdd(buffer, beginPos) {
-        buffer.seek(beginPos, 1);
-        var str = buffer.readS();
-        if (str != null)
-            this.tooltips = str;
-        var groupId = buffer.readShort();
-        if (groupId >= 0)
-            this.group = this.parent.getChildAt(groupId);
-        buffer.seek(beginPos, 2);
-        var cnt = buffer.readShort();
-        for (var i = 0; i < cnt; i++) {
-            var nextPos = buffer.readShort();
-            nextPos += buffer.position;
-            var gear = this.getGear(buffer.readByte());
-            gear.setup(buffer);
-            buffer.position = nextPos;
-        }
-    }
-    //drag support
-    //-------------------------------------------------------------------
-    initDrag() {
-        if (this._draggable)
-            this.on(InteractiveEvent.GAMEOBJECT_DOWN, this.__begin);
-        else
-            this.off(InteractiveEvent.GAMEOBJECT_DOWN, this.__begin);
-    }
-    dragBegin(touchID) {
-        if (GObject.draggingObject) {
-            let tmp = GObject.draggingObject;
-            tmp.stopDrag();
-            GObject.draggingObject = null;
-            Events.dispatch(Events.DRAG_END, tmp._displayObject, { touchId: touchID });
-        }
-        sGlobalDragStart.x = this.scene.input.activePointer.x; // Laya.stage.mouseX;
-        sGlobalDragStart.y = this.scene.input.activePointer.y; // Laya.stage.mouseY;
-        this.localToGlobalRect(0, 0, this.width, this.height, sGlobalRect);
-        this._dragTesting = true;
-        GObject.draggingObject = this;
-        this._displayObject.on(InteractiveEvent.GAMEOBJECT_MOVE, this.__moving);
-        this._displayObject.on(InteractiveEvent.GAMEOBJECT_UP, this.__end);
-    }
-    dragEnd() {
-        if (GObject.draggingObject == this) {
-            this.reset();
-            this._dragTesting = false;
-            GObject.draggingObject = null;
-        }
-        sDraggingQuery = false;
-    }
-    reset() {
-        this._displayObject.off(InteractiveEvent.GAMEOBJECT_MOVE, this.__moving);
-        this._displayObject.off(InteractiveEvent.GAMEOBJECT_UP, this.__end);
-    }
-    __begin() {
-        if (!this._dragStartPos)
-            this._dragStartPos = new Phaser.Geom.Point();
-        this._dragStartPos.x = this.scene.input.activePointer.x;
-        this._dragStartPos.y = this.scene.input.activePointer.y;
-        this._dragTesting = true;
-        this._displayObject.on(InteractiveEvent.GAMEOBJECT_MOVE, this.__moving);
-        this._displayObject.on(InteractiveEvent.GAMEOBJECT_UP, this.__end);
-    }
-    __moving(evt) {
-        if (GObject.draggingObject != this && this._draggable && this._dragTesting) {
-            var sensitivity = UIConfig.touchDragSensitivity;
-            if (this._dragStartPos
-                && Math.abs(this._dragStartPos.x - this.scene.input.activePointer.x) < sensitivity
-                && Math.abs(this._dragStartPos.y - this.scene.input.activePointer.y) < sensitivity)
-                return;
-            this._dragTesting = false;
-            sDraggingQuery = true;
-            Events.dispatch(Events.DRAG_START, this._displayObject, evt);
-            if (sDraggingQuery)
-                this.dragBegin();
-        }
-        if (GObject.draggingObject == this) {
-            var xx = this.scene.input.activePointer.x - sGlobalDragStart.x + sGlobalRect.x;
-            var yy = this.scene.input.activePointer.y - sGlobalDragStart.y + sGlobalRect.y;
-            if (this._dragBounds) {
-                var rect;
-                if (xx < rect.x)
-                    xx = rect.x;
-                else if (xx + sGlobalRect.width > rect.right) {
-                    xx = rect.right - sGlobalRect.width;
-                    if (xx < rect.x)
-                        xx = rect.x;
-                }
-                if (yy < rect.y)
-                    yy = rect.y;
-                else if (yy + sGlobalRect.height > rect.bottom) {
-                    yy = rect.bottom - sGlobalRect.height;
-                    if (yy < rect.y)
-                        yy = rect.y;
-                }
-            }
-            sUpdateInDragging = true;
-            var pt = this.parent.globalToLocal(xx, yy, sHelperPoint);
-            this.setXY(Math.round(pt.x), Math.round(pt.y));
-            sUpdateInDragging = false;
-            Events.dispatch(Events.DRAG_MOVE, this._displayObject, evt);
-        }
-    }
-    __end(evt) {
-        if (GObject.draggingObject == this) {
-            GObject.draggingObject = null;
-            this.reset();
-            Events.dispatch(Events.DRAG_END, this._displayObject, evt);
-        }
-        else if (this._dragTesting) {
-            this._dragTesting = false;
-            this.reset();
-        }
-    }
-    //-------------------------------------------------------------------
-    static cast(sprite) {
-        return (sprite["$owner"]);
-    }
-}
-let GearClasses = [
-    GearDisplay, GearXY, GearSize, GearLook, GearColor,
-    GearAnimation, GearText, GearIcon, GearDisplay2, GearFontSize
-];
-function createGear(owner, index) {
-    let ret = new (GearClasses[index])();
-    ret._owner = owner;
-    return ret;
-}
-const BlendMode = {
-    2: Phaser.BlendModes.LIGHTER,
-    3: Phaser.BlendModes.MULTIPLY,
-    4: Phaser.BlendModes.SCREEN
-};
-var _gInstanceCounter = 0;
-var sGlobalDragStart = new Phaser.Geom.Point();
-var sGlobalRect = new Phaser.Geom.Rectangle();
-var sHelperPoint = new Phaser.Geom.Point();
-new Phaser.Geom.Rectangle();
-var sUpdateInDragging;
-var sDraggingQuery;
-
-class GGroup extends GObject {
-    constructor() {
-        super();
-        this._layout = 0;
-        this._lineGap = 0;
-        this._columnGap = 0;
-        this._mainGridIndex = -1;
-        this._mainGridMinSize = 50;
-        this._mainChildIndex = -1;
-        this._totalSize = 0;
-        this._numChildren = 0;
-        this._updating = 0;
-    }
-    dispose() {
-        this._boundsChanged = false;
-        super.dispose();
-    }
-    get layout() {
-        return this._layout;
-    }
-    set layout(value) {
-        if (this._layout != value) {
-            this._layout = value;
-            this.setBoundsChangedFlag();
-        }
-    }
-    get lineGap() {
-        return this._lineGap;
-    }
-    set lineGap(value) {
-        if (this._lineGap != value) {
-            this._lineGap = value;
-            this.setBoundsChangedFlag(true);
-        }
-    }
-    get columnGap() {
-        return this._columnGap;
-    }
-    set columnGap(value) {
-        if (this._columnGap != value) {
-            this._columnGap = value;
-            this.setBoundsChangedFlag(true);
-        }
-    }
-    get excludeInvisibles() {
-        return this._excludeInvisibles;
-    }
-    set excludeInvisibles(value) {
-        if (this._excludeInvisibles != value) {
-            this._excludeInvisibles = value;
-            this.setBoundsChangedFlag();
-        }
-    }
-    get autoSizeDisabled() {
-        return this._autoSizeDisabled;
-    }
-    set autoSizeDisabled(value) {
-        this._autoSizeDisabled = value;
-    }
-    get mainGridMinSize() {
-        return this._mainGridMinSize;
-    }
-    set mainGridMinSize(value) {
-        if (this._mainGridMinSize != value) {
-            this._mainGridMinSize = value;
-            this.setBoundsChangedFlag();
-        }
-    }
-    get mainGridIndex() {
-        return this._mainGridIndex;
-    }
-    set mainGridIndex(value) {
-        if (this._mainGridIndex != value) {
-            this._mainGridIndex = value;
-            this.setBoundsChangedFlag();
-        }
-    }
-    setBoundsChangedFlag(positionChangedOnly) {
-        if (this._updating == 0 && this._parent) {
-            if (!positionChangedOnly)
-                this._percentReady = false;
-            if (!this._boundsChanged) {
-                this._boundsChanged = true;
-                // if (this._layout != GroupLayoutType.None)
-                //     Laya.timer.callLater(this, this.ensureBoundsCorrect);
-            }
-        }
-    }
-    ensureSizeCorrect() {
-        if (!this._parent || !this._boundsChanged || this._layout == 0)
-            return;
-        this._boundsChanged = false;
-        if (this._autoSizeDisabled)
-            this.resizeChildren(0, 0);
-        else {
-            this.handleLayout();
-            this.updateBounds();
-        }
-    }
-    ensureBoundsCorrect() {
-        if (!this._parent || !this._boundsChanged)
-            return;
-        this._boundsChanged = false;
-        if (this._layout == 0)
-            this.updateBounds();
-        else {
-            if (this._autoSizeDisabled)
-                this.resizeChildren(0, 0);
-            else {
-                this.handleLayout();
-                this.updateBounds();
-            }
-        }
-    }
-    updateBounds() {
-        // Laya.timer.clear(this, this.ensureBoundsCorrect);
-        var cnt = this._parent.numChildren;
-        var i;
-        var child;
-        var ax = Number.POSITIVE_INFINITY, ay = Number.POSITIVE_INFINITY;
-        var ar = Number.NEGATIVE_INFINITY, ab = Number.NEGATIVE_INFINITY;
-        var tmp;
-        var empty = true;
-        for (i = 0; i < cnt; i++) {
-            child = this._parent.getChildAt(i);
-            if (child.group != this || this._excludeInvisibles && !child.internalVisible3)
-                continue;
-            tmp = child.xMin;
-            if (tmp < ax)
-                ax = tmp;
-            tmp = child.yMin;
-            if (tmp < ay)
-                ay = tmp;
-            tmp = child.xMin + child.width;
-            if (tmp > ar)
-                ar = tmp;
-            tmp = child.yMin + child.height;
-            if (tmp > ab)
-                ab = tmp;
-            empty = false;
-        }
-        var w = 0, h = 0;
-        if (!empty) {
-            this._updating |= 1;
-            this.setXY(ax, ay);
-            this._updating &= 2;
-            w = ar - ax;
-            h = ab - ay;
-        }
-        if ((this._updating & 2) == 0) {
-            this._updating |= 2;
-            this.setSize(w, h);
-            this._updating &= 1;
-        }
-        else {
-            this._updating &= 1;
-            this.resizeChildren(this._width - w, this._height - h);
-        }
-    }
-    handleLayout() {
-        this._updating |= 1;
-        var child;
-        var i;
-        var cnt;
-        if (this._layout == GroupLayoutType.Horizontal) {
-            var curX = this.x;
-            cnt = this._parent.numChildren;
-            for (i = 0; i < cnt; i++) {
-                child = this._parent.getChildAt(i);
-                if (child.group != this)
-                    continue;
-                if (this._excludeInvisibles && !child.internalVisible3)
-                    continue;
-                child.xMin = curX;
-                if (child.width != 0)
-                    curX += child.width + this._columnGap;
-            }
-        }
-        else if (this._layout == GroupLayoutType.Vertical) {
-            var curY = this.y;
-            cnt = this._parent.numChildren;
-            for (i = 0; i < cnt; i++) {
-                child = this._parent.getChildAt(i);
-                if (child.group != this)
-                    continue;
-                if (this._excludeInvisibles && !child.internalVisible3)
-                    continue;
-                child.yMin = curY;
-                if (child.height != 0)
-                    curY += child.height + this._lineGap;
-            }
-        }
-        this._updating &= 2;
-    }
-    moveChildren(dx, dy) {
-        if ((this._updating & 1) != 0 || !this._parent)
-            return;
-        this._updating |= 1;
-        var cnt = this._parent.numChildren;
-        var i;
-        var child;
-        for (i = 0; i < cnt; i++) {
-            child = this._parent.getChildAt(i);
-            if (child.group == this) {
-                child.setXY(child.x + dx, child.y + dy);
-            }
-        }
-        this._updating &= 2;
-    }
-    resizeChildren(dw, dh) {
-        if (this._layout == GroupLayoutType.None || (this._updating & 2) != 0 || !this._parent)
-            return;
-        this._updating |= 2;
-        if (this._boundsChanged) {
-            this._boundsChanged = false;
-            if (!this._autoSizeDisabled) {
-                this.updateBounds();
-                return;
-            }
-        }
-        var cnt = this._parent.numChildren;
-        var i;
-        var child;
-        if (!this._percentReady) {
-            this._percentReady = true;
-            this._numChildren = 0;
-            this._totalSize = 0;
-            this._mainChildIndex = -1;
-            var j = 0;
-            for (i = 0; i < cnt; i++) {
-                child = this._parent.getChildAt(i);
-                if (child.group != this)
-                    continue;
-                if (!this._excludeInvisibles || child.internalVisible3) {
-                    if (j == this._mainGridIndex)
-                        this._mainChildIndex = i;
-                    this._numChildren++;
-                    if (this._layout == 1)
-                        this._totalSize += child.width;
-                    else
-                        this._totalSize += child.height;
-                }
-                j++;
-            }
-            if (this._mainChildIndex != -1) {
-                if (this._layout == 1) {
-                    child = this._parent.getChildAt(this._mainChildIndex);
-                    this._totalSize += this._mainGridMinSize - child.width;
-                    child._sizePercentInGroup = this._mainGridMinSize / this._totalSize;
-                }
-                else {
-                    child = this._parent.getChildAt(this._mainChildIndex);
-                    this._totalSize += this._mainGridMinSize - child.height;
-                    child._sizePercentInGroup = this._mainGridMinSize / this._totalSize;
-                }
-            }
-            for (i = 0; i < cnt; i++) {
-                child = this._parent.getChildAt(i);
-                if (child.group != this)
-                    continue;
-                if (i == this._mainChildIndex)
-                    continue;
-                if (this._totalSize > 0)
-                    child._sizePercentInGroup = (this._layout == 1 ? child.width : child.height) / this._totalSize;
-                else
-                    child._sizePercentInGroup = 0;
-            }
-        }
-        var remainSize = 0;
-        var remainPercent = 1;
-        var priorHandled = false;
-        if (this._layout == 1) {
-            remainSize = this.width - (this._numChildren - 1) * this._columnGap;
-            if (this._mainChildIndex != -1 && remainSize >= this._totalSize) {
-                child = this._parent.getChildAt(this._mainChildIndex);
-                child.setSize(remainSize - (this._totalSize - this._mainGridMinSize), child._rawHeight + dh, true);
-                remainSize -= child.width;
-                remainPercent -= child._sizePercentInGroup;
-                priorHandled = true;
-            }
-            var curX = this.x;
-            for (i = 0; i < cnt; i++) {
-                child = this._parent.getChildAt(i);
-                if (child.group != this)
-                    continue;
-                if (this._excludeInvisibles && !child.internalVisible3) {
-                    child.setSize(child._rawWidth, child._rawHeight + dh, true);
-                    continue;
-                }
-                if (!priorHandled || i != this._mainChildIndex) {
-                    child.setSize(Math.round(child._sizePercentInGroup / remainPercent * remainSize), child._rawHeight + dh, true);
-                    remainPercent -= child._sizePercentInGroup;
-                    remainSize -= child.width;
-                }
-                child.xMin = curX;
-                if (child.width != 0)
-                    curX += child.width + this._columnGap;
-            }
-        }
-        else {
-            remainSize = this.height - (this._numChildren - 1) * this._lineGap;
-            if (this._mainChildIndex != -1 && remainSize >= this._totalSize) {
-                child = this._parent.getChildAt(this._mainChildIndex);
-                child.setSize(child._rawWidth + dw, remainSize - (this._totalSize - this._mainGridMinSize), true);
-                remainSize -= child.height;
-                remainPercent -= child._sizePercentInGroup;
-                priorHandled = true;
-            }
-            var curY = this.y;
-            for (i = 0; i < cnt; i++) {
-                child = this._parent.getChildAt(i);
-                if (child.group != this)
-                    continue;
-                if (this._excludeInvisibles && !child.internalVisible3) {
-                    child.setSize(child._rawWidth + dw, child._rawHeight, true);
-                    continue;
-                }
-                if (!priorHandled || i != this._mainChildIndex) {
-                    child.setSize(child._rawWidth + dw, Math.round(child._sizePercentInGroup / remainPercent * remainSize), true);
-                    remainPercent -= child._sizePercentInGroup;
-                    remainSize -= child.height;
-                }
-                child.yMin = curY;
-                if (child.height != 0)
-                    curY += child.height + this._lineGap;
-            }
-        }
-        this._updating &= 1;
-    }
-    handleAlphaChanged() {
-        if (this._underConstruct)
-            return;
-        var cnt = this._parent.numChildren;
-        for (var i = 0; i < cnt; i++) {
-            var child = this._parent.getChildAt(i);
-            if (child.group == this)
-                child.alpha = this.alpha;
-        }
-    }
-    handleVisibleChanged() {
-        if (!this._parent)
-            var cnt = this._parent.numChildren;
-        for (var i = 0; i < cnt; i++) {
-            var child = this._parent.getChildAt(i);
-            if (child.group == this)
-                child.handleVisibleChanged();
-        }
-    }
-    setup_beforeAdd(buffer, beginPos) {
-        super.setup_beforeAdd(buffer, beginPos);
-        buffer.seek(beginPos, 5);
-        this._layout = buffer.readByte();
-        this._lineGap = buffer.readInt();
-        this._columnGap = buffer.readInt();
-        if (buffer.version >= 2) {
-            this._excludeInvisibles = buffer.readBool();
-            this._autoSizeDisabled = buffer.readBool();
-            this._mainGridIndex = buffer.readShort();
-        }
-    }
-    setup_afterAdd(buffer, beginPos) {
-        super.setup_afterAdd(buffer, beginPos);
-        if (!this.visible)
-            this.handleVisibleChanged();
-    }
-}
-
-class GGraph extends GObject {
-    constructor() {
-        super();
-        this._type = 0;
-        this._lineSize = 1;
-        this._lineColor = "#000000";
-        this._fillColor = "#FFFFFF";
-    }
-    drawRect(lineSize, lineColor, fillColor, cornerRadius) {
-        this._type = 1;
-        this._lineSize = lineSize;
-        this._lineColor = lineColor;
-        this._fillColor = fillColor;
-        this._cornerRadius = cornerRadius;
-        this.updateGraph();
-    }
-    drawEllipse(lineSize, lineColor, fillColor) {
-        this._type = 2;
-        this._lineSize = lineSize;
-        this._lineColor = lineColor;
-        this._fillColor = fillColor;
-        this.updateGraph();
-    }
-    drawRegularPolygon(lineSize, lineColor, fillColor, sides, startAngle, distances) {
-        this._type = 4;
-        this._lineSize = lineSize;
-        this._lineColor = lineColor;
-        this._fillColor = fillColor;
-        this._sides = sides;
-        this._startAngle = startAngle || 0;
-        this._distances = distances;
-        this.updateGraph();
-    }
-    drawPolygon(lineSize, lineColor, fillColor, points) {
-        this._type = 3;
-        this._lineSize = lineSize;
-        this._lineColor = lineColor;
-        this._fillColor = fillColor;
-        this._polygonPoints = points;
-        this.updateGraph();
-    }
-    get distances() {
-        return this._distances;
-    }
-    set distances(value) {
-        this._distances = value;
-        if (this._type == 3)
-            this.updateGraph();
-    }
-    get color() {
-        return this._fillColor;
-    }
-    set color(value) {
-        this._fillColor = value;
-        this.updateGear(4);
-        if (this._type != 0)
-            this.updateGraph();
-    }
-    updateGraph() {
-        // TODO
-        throw new Error("TODO");
-        // this._displayObject.mouseEnabled = this.touchable;
-        // var gr: Laya.Graphics = this._displayObject.graphics;
-        // gr.clear();
-        // var w: number = this.width;
-        // var h: number = this.height;
-        // if (w == 0 || h == 0)
-        //     return;
-        // var fillColor: string = this._fillColor;
-        // var lineColor: string = this._lineColor;
-        // if (/*Render.isWebGL &&*/ ToolSet.startsWith(fillColor, "rgba")) {
-        //     //webgl下laya未支持rgba格式
-        //     var arr: any[] = fillColor.substring(5, fillColor.lastIndexOf(")")).split(",");
-        //     var a: number = parseFloat(arr[3]);
-        //     if (a == 0)
-        //         fillColor = null;
-        //     else {
-        //         fillColor = Laya.Utils.toHexColor((parseInt(arr[0]) << 16) + (parseInt(arr[1]) << 8) + parseInt(arr[2]));
-        //         this.alpha = a;
-        //     }
-        // }
-        // if (this._type == 1) {
-        //     if (this._cornerRadius) {
-        //         var paths: any[] = [
-        //             ["moveTo", this._cornerRadius[0], 0],
-        //             ["lineTo", w - this._cornerRadius[1], 0],
-        //             ["arcTo", w, 0, w, this._cornerRadius[1], this._cornerRadius[1]],
-        //             ["lineTo", w, h - this._cornerRadius[3]],
-        //             ["arcTo", w, h, w - this._cornerRadius[3], h, this._cornerRadius[3]],
-        //             ["lineTo", this._cornerRadius[2], h],
-        //             ["arcTo", 0, h, 0, h - this._cornerRadius[2], this._cornerRadius[2]],
-        //             ["lineTo", 0, this._cornerRadius[0]],
-        //             ["arcTo", 0, 0, this._cornerRadius[0], 0, this._cornerRadius[0]],
-        //             ["closePath"]
-        //         ];
-        //         gr.drawPath(0, 0, paths, fillColor ? { fillStyle: fillColor } : null, this._lineSize > 0 ? { strokeStyle: lineColor, lineWidth: this._lineSize } : null);
-        //     }
-        //     else
-        //         gr.drawRect(0, 0, w, h, fillColor, this._lineSize > 0 ? lineColor : null, this._lineSize);
-        // } else if (this._type == 2) {
-        //     gr.drawCircle(w / 2, h / 2, w / 2, fillColor, this._lineSize > 0 ? lineColor : null, this._lineSize);
-        // }
-        // else if (this._type == 3) {
-        //     gr.drawPoly(0, 0, this._polygonPoints, fillColor, this._lineSize > 0 ? lineColor : null, this._lineSize);
-        // }
-        // else if (this._type == 4) {
-        //     if (!this._polygonPoints)
-        //         this._polygonPoints = [];
-        //     var radius: number = Math.min(this._width, this._height) / 2;
-        //     this._polygonPoints.length = 0;
-        //     var angle: number = Laya.Utils.toRadian(this._startAngle);
-        //     var deltaAngle: number = 2 * Math.PI / this._sides;
-        //     var dist: number;
-        //     for (var i: number = 0; i < this._sides; i++) {
-        //         if (this._distances) {
-        //             dist = this._distances[i];
-        //             if (isNaN(dist))
-        //                 dist = 1;
-        //         }
-        //         else
-        //             dist = 1;
-        //         var xv: number = radius + radius * dist * Math.cos(angle);
-        //         var yv: number = radius + radius * dist * Math.sin(angle);
-        //         this._polygonPoints.push(xv, yv);
-        //         angle += deltaAngle;
-        //     }
-        //     gr.drawPoly(0, 0, this._polygonPoints, fillColor, this._lineSize > 0 ? lineColor : null, this._lineSize);
-        // }
-        // this._displayObject.repaint();
-    }
-    replaceMe(target) {
-        throw new Error("TODO");
-        // if (!this._parent)
-        //     throw "parent not set";
-        // target.name = this.name;
-        // target.alpha = this.alpha;
-        // target.rotation = this.rotation;
-        // target.visible = this.visible;
-        // target.touchable = this.touchable;
-        // target.grayed = this.grayed;
-        // target.setXY(this.x, this.y);
-        // target.setSize(this.width, this.height);
-        // var index: number = this._parent.getChildIndex(this);
-        // this._parent.addChildAt(target, index);
-        // target.relations.copyFrom(this.relations);
-        // this._parent.removeChild(this, true);
-    }
-    addBeforeMe(target) {
-        throw new Error("TODO");
-        // var index: number = this._parent.getChildIndex(this);
-        // this._parent.addChildAt(target, index);
-    }
-    addAfterMe(target) {
-        throw new Error("TODO");
-        // var index: number = this._parent.getChildIndex(this);
-        // index++;
-        // this._parent.addChildAt(target, index);
-    }
-    setNativeObject(obj) {
-        this._type = 0;
-        throw new Error("TODO");
-        // this._displayObject.mouseEnabled = this.touchable;
-        // this._displayObject.graphics.clear();
-        // this._displayObject.addChild(obj);
-    }
-    createDisplayObject() {
-        throw new Error("TODO");
-        // this._displayObject.mouseEnabled = false;
-        // this._hitArea = new Laya.HitArea();
-        // this._hitArea.hit = this._displayObject.graphics;
-        // this._displayObject.hitArea = this._hitArea;
-    }
-    getProp(index) {
-        if (index == ObjectPropID.Color)
-            return this.color;
-        else
-            return super.getProp(index);
-    }
-    setProp(index, value) {
-        if (index == ObjectPropID.Color)
-            this.color = value;
-        else
-            super.setProp(index, value);
-    }
-    handleSizeChanged() {
-        super.handleSizeChanged();
-        if (this._type != 0)
-            this.updateGraph();
-    }
-    setup_beforeAdd(buffer, beginPos) {
-        super.setup_beforeAdd(buffer, beginPos);
-        buffer.seek(beginPos, 5);
-        this._type = buffer.readByte();
-        if (this._type != 0) {
-            var i;
-            var cnt;
-            this._lineSize = buffer.readInt();
-            this._lineColor = buffer.readColorS(true);
-            this._fillColor = buffer.readColorS(true);
-            if (buffer.readBool()) {
-                this._cornerRadius = [];
-                for (i = 0; i < 4; i++)
-                    this._cornerRadius[i] = buffer.readFloat();
-            }
-            if (this._type == 3) {
-                cnt = buffer.readShort();
-                this._polygonPoints = [];
-                this._polygonPoints.length = cnt;
-                for (i = 0; i < cnt; i++)
-                    this._polygonPoints[i] = buffer.readFloat();
-            }
-            else if (this._type == 4) {
-                this._sides = buffer.readShort();
-                this._startAngle = buffer.readFloat();
-                cnt = buffer.readShort();
-                if (cnt > 0) {
-                    this._distances = [];
-                    for (i = 0; i < cnt; i++)
-                        this._distances[i] = buffer.readFloat();
-                }
-            }
-            this.updateGraph();
-        }
-    }
-}
-
-function fillImage(w, h, method, origin, clockwise, amount) {
-    if (amount <= 0)
-        return null;
-    else if (amount >= 0.9999)
-        return [0, 0, w, 0, w, h, 0, h];
-    var points;
-    switch (method) {
-        case FillMethod.Horizontal:
-            points = fillHorizontal(w, h, origin, amount);
-            break;
-        case FillMethod.Vertical:
-            points = fillVertical(w, h, origin, amount);
-            break;
-        case FillMethod.Radial90:
-            points = fillRadial90(w, h, origin, clockwise, amount);
-            break;
-        case FillMethod.Radial180:
-            points = fillRadial180(w, h, origin, clockwise, amount);
-            break;
-        case FillMethod.Radial360:
-            points = fillRadial360(w, h, origin, clockwise, amount);
-            break;
-    }
-    return points;
-}
-function fillHorizontal(w, h, origin, amount) {
-    var w2 = w * amount;
-    if (origin == FillOrigin.Left || origin == FillOrigin.Top)
-        return [0, 0, w2, 0, w2, h, 0, h];
-    else
-        return [w, 0, w, h, w - w2, h, w - w2, 0];
-}
-function fillVertical(w, h, origin, amount) {
-    var h2 = h * amount;
-    if (origin == FillOrigin.Left || origin == FillOrigin.Top)
-        return [0, 0, 0, h2, w, h2, w, 0];
-    else
-        return [0, h, w, h, w, h - h2, 0, h - h2];
-}
-function fillRadial90(w, h, origin, clockwise, amount) {
-    if (clockwise && (origin == FillOrigin.TopRight || origin == FillOrigin.BottomLeft)
-        || !clockwise && (origin == FillOrigin.TopLeft || origin == FillOrigin.BottomRight)) {
-        amount = 1 - amount;
-    }
-    var v, v2, h2;
-    v = Math.tan(Math.PI / 2 * amount);
-    h2 = w * v;
-    v2 = (h2 - h) / h2;
-    var points;
-    switch (origin) {
-        case FillOrigin.TopLeft:
-            if (clockwise) {
-                if (h2 <= h)
-                    points = [0, 0, w, h2, w, 0];
-                else
-                    points = [0, 0, w * (1 - v2), h, w, h, w, 0];
-            }
-            else {
-                if (h2 <= h)
-                    points = [0, 0, w, h2, w, h, 0, h];
-                else
-                    points = [0, 0, w * (1 - v2), h, 0, h];
-            }
-            break;
-        case FillOrigin.TopRight:
-            if (clockwise) {
-                if (h2 <= h)
-                    points = [w, 0, 0, h2, 0, h, w, h];
-                else
-                    points = [w, 0, w * v2, h, w, h];
-            }
-            else {
-                if (h2 <= h)
-                    points = [w, 0, 0, h2, 0, 0];
-                else
-                    points = [w, 0, w * v2, h, 0, h, 0, 0];
-            }
-            break;
-        case FillOrigin.BottomLeft:
-            if (clockwise) {
-                if (h2 <= h)
-                    points = [0, h, w, h - h2, w, 0, 0, 0];
-                else
-                    points = [0, h, w * (1 - v2), 0, 0, 0];
-            }
-            else {
-                if (h2 <= h)
-                    points = [0, h, w, h - h2, w, h];
-                else
-                    points = [0, h, w * (1 - v2), 0, w, 0, w, h];
-            }
-            break;
-        case FillOrigin.BottomRight:
-            if (clockwise) {
-                if (h2 <= h)
-                    points = [w, h, 0, h - h2, 0, h];
-                else
-                    points = [w, h, w * v2, 0, 0, 0, 0, h];
-            }
-            else {
-                if (h2 <= h)
-                    points = [w, h, 0, h - h2, 0, 0, w, 0];
-                else
-                    points = [w, h, w * v2, 0, w, 0];
-            }
-            break;
-    }
-    return points;
-}
-function movePoints(points, offsetX, offsetY) {
-    var cnt = points.length;
-    for (var i = 0; i < cnt; i += 2) {
-        points[i] += offsetX;
-        points[i + 1] += offsetY;
-    }
-}
-function fillRadial180(w, h, origin, clockwise, amount) {
-    var points;
-    switch (origin) {
-        case FillOrigin.Top:
-            if (amount <= 0.5) {
-                amount = amount / 0.5;
-                points = fillRadial90(w / 2, h, clockwise ? FillOrigin.TopLeft : FillOrigin.TopRight, clockwise, amount);
-                if (clockwise)
-                    movePoints(points, w / 2, 0);
-            }
-            else {
-                amount = (amount - 0.5) / 0.5;
-                points = fillRadial90(w / 2, h, clockwise ? FillOrigin.TopRight : FillOrigin.TopLeft, clockwise, amount);
-                if (clockwise)
-                    points.push(w, h, w, 0);
-                else {
-                    movePoints(points, w / 2, 0);
-                    points.push(0, h, 0, 0);
-                }
-            }
-            break;
-        case FillOrigin.Bottom:
-            if (amount <= 0.5) {
-                amount = amount / 0.5;
-                points = fillRadial90(w / 2, h, clockwise ? FillOrigin.BottomRight : FillOrigin.BottomLeft, clockwise, amount);
-                if (!clockwise)
-                    movePoints(points, w / 2, 0);
-            }
-            else {
-                amount = (amount - 0.5) / 0.5;
-                points = fillRadial90(w / 2, h, clockwise ? FillOrigin.BottomLeft : FillOrigin.BottomRight, clockwise, amount);
-                if (clockwise) {
-                    movePoints(points, w / 2, 0);
-                    points.push(0, 0, 0, h);
-                }
-                else
-                    points.push(w, 0, w, h);
-            }
-            break;
-        case FillOrigin.Left:
-            if (amount <= 0.5) {
-                amount = amount / 0.5;
-                points = fillRadial90(w, h / 2, clockwise ? FillOrigin.BottomLeft : FillOrigin.TopLeft, clockwise, amount);
-                if (!clockwise)
-                    movePoints(points, 0, h / 2);
-            }
-            else {
-                amount = (amount - 0.5) / 0.5;
-                points = fillRadial90(w, h / 2, clockwise ? FillOrigin.TopLeft : FillOrigin.BottomLeft, clockwise, amount);
-                if (clockwise) {
-                    movePoints(points, 0, h / 2);
-                    points.push(w, 0, 0, 0);
-                }
-                else
-                    points.push(w, h, 0, h);
-            }
-            break;
-        case FillOrigin.Right:
-            if (amount <= 0.5) {
-                amount = amount / 0.5;
-                points = fillRadial90(w, h / 2, clockwise ? FillOrigin.TopRight : FillOrigin.BottomRight, clockwise, amount);
-                if (clockwise)
-                    movePoints(points, 0, h / 2);
-            }
-            else {
-                amount = (amount - 0.5) / 0.5;
-                points = fillRadial90(w, h / 2, clockwise ? FillOrigin.BottomRight : FillOrigin.TopRight, clockwise, amount);
-                if (clockwise)
-                    points.push(0, h, w, h);
-                else {
-                    movePoints(points, 0, h / 2);
-                    points.push(0, 0, w, 0);
-                }
-            }
-            break;
-    }
-    return points;
-}
-function fillRadial360(w, h, origin, clockwise, amount) {
-    var points;
-    switch (origin) {
-        case FillOrigin.Top:
-            if (amount <= 0.5) {
-                amount = amount / 0.5;
-                points = fillRadial180(w / 2, h, clockwise ? FillOrigin.Left : FillOrigin.Right, clockwise, amount);
-                if (clockwise)
-                    movePoints(points, w / 2, 0);
-            }
-            else {
-                amount = (amount - 0.5) / 0.5;
-                points = fillRadial180(w / 2, h, clockwise ? FillOrigin.Right : FillOrigin.Left, clockwise, amount);
-                if (clockwise)
-                    points.push(w, h, w, 0, w / 2, 0);
-                else {
-                    movePoints(points, w / 2, 0);
-                    points.push(0, h, 0, 0, w / 2, 0);
-                }
-            }
-            break;
-        case FillOrigin.Bottom:
-            if (amount <= 0.5) {
-                amount = amount / 0.5;
-                points = fillRadial180(w / 2, h, clockwise ? FillOrigin.Right : FillOrigin.Left, clockwise, amount);
-                if (!clockwise)
-                    movePoints(points, w / 2, 0);
-            }
-            else {
-                amount = (amount - 0.5) / 0.5;
-                points = fillRadial180(w / 2, h, clockwise ? FillOrigin.Left : FillOrigin.Right, clockwise, amount);
-                if (clockwise) {
-                    movePoints(points, w / 2, 0);
-                    points.push(0, 0, 0, h, w / 2, h);
-                }
-                else
-                    points.push(w, 0, w, h, w / 2, h);
-            }
-            break;
-        case FillOrigin.Left:
-            if (amount <= 0.5) {
-                amount = amount / 0.5;
-                points = fillRadial180(w, h / 2, clockwise ? FillOrigin.Bottom : FillOrigin.Top, clockwise, amount);
-                if (!clockwise)
-                    movePoints(points, 0, h / 2);
-            }
-            else {
-                amount = (amount - 0.5) / 0.5;
-                points = fillRadial180(w, h / 2, clockwise ? FillOrigin.Top : FillOrigin.Bottom, clockwise, amount);
-                if (clockwise) {
-                    movePoints(points, 0, h / 2);
-                    points.push(w, 0, 0, 0, 0, h / 2);
-                }
-                else
-                    points.push(w, h, 0, h, 0, h / 2);
-            }
-            break;
-        case FillOrigin.Right:
-            if (amount <= 0.5) {
-                amount = amount / 0.5;
-                points = fillRadial180(w, h / 2, clockwise ? FillOrigin.Top : FillOrigin.Bottom, clockwise, amount);
-                if (clockwise)
-                    movePoints(points, 0, h / 2);
-            }
-            else {
-                amount = (amount - 0.5) / 0.5;
-                points = fillRadial180(w, h / 2, clockwise ? FillOrigin.Bottom : FillOrigin.Top, clockwise, amount);
-                if (clockwise)
-                    points.push(0, h, w, h, w, h / 2);
-                else {
-                    movePoints(points, 0, h / 2);
-                    points.push(0, 0, w, 0, w, h / 2);
-                }
-            }
-            break;
-    }
-    return points;
-}
-
-class Image extends Phaser.GameObjects.Container {
-    constructor(scene) {
-        super(scene);
-        this._tileGridIndice = 0;
-        this._needRebuild = 0;
-        this._fillMethod = 0;
-        this._fillOrigin = 0;
-        this._fillAmount = 0;
-        // this.mouseEnabled = false;
-        this._color = "#FFFFFF";
-        this.width;
-    }
-    // public set width(value: number) {
-    //     if (this["_width"] !== value) {
-    //         super.set_width(value);
-    //         this.markChanged(1);
-    //     }
-    // }
-    // public set height(value: number) {
-    //     if (this["_height"] !== value) {
-    //         super.set_height(value);
-    //         this.markChanged(1);
-    //     }
-    // }
-    setSize(width, height) {
-        this.width = width;
-        this.height = height;
-        this.markChanged(1);
-        return this;
-    }
-    get texture() {
-        return this._source;
-    }
-    set texture(value) {
-        if (this._source != value) {
-            this._source = value;
-            if (this["_width"] == 0) {
-                if (this._source)
-                    this.setSize(this._source.source[0].width, this._source.source[0].height);
-                else
-                    this.setSize(0, 0);
-            }
-            // todo 重绘
-            // this.repaint();
-            this.markChanged(1);
-        }
-    }
-    get scale9Grid() {
-        return this._scale9Grid;
-    }
-    set scale9Grid(value) {
-        this._scale9Grid = value;
-        this._sizeGrid = null;
-        this.markChanged(1);
-    }
-    get scaleByTile() {
-        return this._scaleByTile;
-    }
-    set scaleByTile(value) {
-        if (this._scaleByTile != value) {
-            this._scaleByTile = value;
-            this.markChanged(1);
-        }
-    }
-    get tileGridIndice() {
-        return this._tileGridIndice;
-    }
-    set tileGridIndice(value) {
-        if (this._tileGridIndice != value) {
-            this._tileGridIndice = value;
-            this.markChanged(1);
-        }
-    }
-    get fillMethod() {
-        return this._fillMethod;
-    }
-    set fillMethod(value) {
-        if (this._fillMethod != value) {
-            this._fillMethod = value;
-            if (this._fillMethod != 0) {
-                if (!this._mask) {
-                    this._mask = new Graphics(this.scene);
-                    // this._mask.mouseEnabled = false;
-                }
-                this.mask = this._mask.createGeometryMask();
-                this.markChanged(2);
-            }
-            else if (this.mask) {
-                this._mask.clear();
-                this.mask = null;
-            }
-        }
-    }
-    get fillOrigin() {
-        return this._fillOrigin;
-    }
-    set fillOrigin(value) {
-        if (this._fillOrigin != value) {
-            this._fillOrigin = value;
-            if (this._fillMethod != 0)
-                this.markChanged(2);
-        }
-    }
-    get fillClockwise() {
-        return this._fillClockwise;
-    }
-    set fillClockwise(value) {
-        if (this._fillClockwise != value) {
-            this._fillClockwise = value;
-            if (this._fillMethod != 0)
-                this.markChanged(2);
-        }
-    }
-    get fillAmount() {
-        return this._fillAmount;
-    }
-    set fillAmount(value) {
-        if (this._fillAmount != value) {
-            this._fillAmount = value;
-            if (this._fillMethod != 0)
-                this.markChanged(2);
-        }
-    }
-    get color() {
-        return this._color;
-    }
-    set color(value) {
-        if (this._color != value) {
-            this._color = value;
-            ToolSet.setColorFilter(this, value);
-        }
-    }
-    markChanged(flag) {
-        if (!this._needRebuild) {
-            this._needRebuild = flag;
-            // Laya.timer.callLater(this, this.rebuild);
-        }
-        else
-            this._needRebuild |= flag;
-    }
-    rebuild() {
-        if ((this._needRebuild & 1) != 0)
-            this.doDraw();
-        if ((this._needRebuild & 2) != 0 && this._fillMethod != 0)
-            this.doFill();
-        this._needRebuild = 0;
-    }
-    doDraw() {
-        var w = this["_width"];
-        var h = this["_height"];
-        var g = new Graphics(this.scene);
-        var tex = this._source;
-        g.clear();
-        if (tex == null || w == 0 || h == 0) {
-            return;
-        }
-        if (this._scaleByTile) ;
-        else if (this._scale9Grid) {
-            if (!this._sizeGrid) {
-                var tw = tex.source[0].width;
-                var th = tex.source[0].height;
-                var left = this._scale9Grid.x;
-                var right = Math.max(tw - this._scale9Grid.right, 0);
-                var top = this._scale9Grid.y;
-                var bottom = Math.max(th - this._scale9Grid.bottom, 0);
-                this._sizeGrid = [top, right, bottom, left, this._tileGridIndice];
-            }
-            // todo draw9Grid
-            //g.draw9Grid(tex, 0, 0, w, h, this._sizeGrid);
-        }
-        else ;
-    }
-    doFill() {
-        var w = this["_width"];
-        var h = this["_height"];
-        var g = this._mask;
-        g.clear();
-        if (w == 0 || h == 0)
-            return;
-        var points = fillImage(w, h, this._fillMethod, this._fillOrigin, this._fillClockwise, this._fillAmount);
-        if (points == null) {
-            //不知道为什么，不这样操作一下空白的遮罩不能生效
-            this.mask = null;
-            this.mask = this._mask.createGeometryMask();
-            return;
-        }
-        // todo drawPoly
-        // g.drawPoly(0, 0, points, "#FFFFFF");
-    }
-}
-
-class GImage extends GObject {
-    constructor() {
-        super();
-        this._flip = 0;
-    }
-    get image() {
-        return this._image;
-    }
-    get color() {
-        return this.image.color;
-    }
-    set color(value) {
-        if (this.image.color != value) {
-            this.image.color = value;
-            this.updateGear(4);
-        }
-    }
-    get flip() {
-        return this._flip;
-    }
-    set flip(value) {
-        if (this._flip != value) {
-            this._flip = value;
-            var sx = 1, sy = 1;
-            if (this._flip == FlipType.Horizontal || this._flip == FlipType.Both)
-                sx = -1;
-            if (this._flip == FlipType.Vertical || this._flip == FlipType.Both)
-                sy = -1;
-            this.setScale(sx, sy);
-            this.handleXYChanged();
-        }
-    }
-    get fillMethod() {
-        return this.image.fillMethod;
-    }
-    set fillMethod(value) {
-        this.image.fillMethod = value;
-    }
-    get fillOrigin() {
-        return this.image.fillOrigin;
-    }
-    set fillOrigin(value) {
-        this.image.fillOrigin = value;
-    }
-    get fillClockwise() {
-        return this.image.fillClockwise;
-    }
-    set fillClockwise(value) {
-        this.image.fillClockwise = value;
-    }
-    get fillAmount() {
-        return this.image.fillAmount;
-    }
-    set fillAmount(value) {
-        this.image.fillAmount = value;
-    }
-    createDisplayObject() {
-        this._displayObject = this._image = new Image(this.scene);
-        // this.image.mouseEnabled = false;
-        this._displayObject["$owner"] = this;
-    }
-    constructFromResource() {
-        this._contentItem = this.packageItem.getBranch();
-        this.sourceWidth = this._contentItem.width;
-        this.sourceHeight = this._contentItem.height;
-        this.initWidth = this.sourceWidth;
-        this.initHeight = this.sourceHeight;
-        this._contentItem = this._contentItem.getHighResolution();
-        this._contentItem.load();
-        this.image.scale9Grid = this._contentItem.scale9Grid;
-        this.image.scaleByTile = this._contentItem.scaleByTile;
-        this.image.tileGridIndice = this._contentItem.tileGridIndice;
-        this.image.texture = this._contentItem.texture;
-        this.setSize(this.sourceWidth, this.sourceHeight);
-    }
-    handleXYChanged() {
-        super.handleXYChanged();
-        if (this._flip != FlipType.None) {
-            if (this.scaleX == -1)
-                this.image.x += this.width;
-            if (this.scaleY == -1)
-                this.image.y += this.height;
-        }
-    }
-    getProp(index) {
-        if (index == ObjectPropID.Color)
-            return this.color;
-        else
-            return super.getProp(index);
-    }
-    setProp(index, value) {
-        if (index == ObjectPropID.Color)
-            this.color = value;
-        else
-            super.setProp(index, value);
-    }
-    setup_beforeAdd(buffer, beginPos) {
-        super.setup_beforeAdd(buffer, beginPos);
-        buffer.seek(beginPos, 5);
-        if (buffer.readBool())
-            this.color = buffer.readColorS();
-        this.flip = buffer.readByte();
-        this.image.fillMethod = buffer.readByte();
-        if (this.image.fillMethod != 0) {
-            this.image.fillOrigin = buffer.readByte();
-            this.image.fillClockwise = buffer.readBool();
-            this.image.fillAmount = buffer.readFloat();
-        }
-    }
-}
-
-class GMovieClip extends GObject {
-    constructor() {
-        super();
-    }
-    get color() {
-        return this._movieClip.color;
-    }
-    set color(value) {
-        this._movieClip.color = value;
-    }
-    createDisplayObject() {
-        throw new Error("TODO");
-        // this._displayObject = this._movieClip = new MovieClip();
-        // this._movieClip.mouseEnabled = false;
-        // this._displayObject["$owner"] = this;
-    }
-    get playing() {
-        return this._movieClip.playing;
-    }
-    set playing(value) {
-        if (this._movieClip.playing != value) {
-            this._movieClip.playing = value;
-            this.updateGear(5);
-        }
-    }
-    get frame() {
-        return this._movieClip.frame;
-    }
-    set frame(value) {
-        if (this._movieClip.frame != value) {
-            this._movieClip.frame = value;
-            this.updateGear(5);
-        }
-    }
-    get timeScale() {
-        return this._movieClip.timeScale;
-    }
-    set timeScale(value) {
-        this._movieClip.timeScale = value;
-    }
-    rewind() {
-        this._movieClip.rewind();
-    }
-    syncStatus(anotherMc) {
-        this._movieClip.syncStatus(anotherMc._movieClip);
-    }
-    advance(timeInMiniseconds) {
-        this._movieClip.advance(timeInMiniseconds);
-    }
-    //从start帧开始，播放到end帧（-1表示结尾），重复times次（0表示无限循环），循环结束后，停止在endAt帧（-1表示参数end）
-    setPlaySettings(start, end, times, endAt, endHandler) {
-        this._movieClip.setPlaySettings(start, end, times, endAt, endHandler);
-    }
-    getProp(index) {
-        switch (index) {
-            case ObjectPropID.Color:
-                return this.color;
-            case ObjectPropID.Playing:
-                return this.playing;
-            case ObjectPropID.Frame:
-                return this.frame;
-            case ObjectPropID.TimeScale:
-                return this.timeScale;
-            default:
-                return super.getProp(index);
-        }
-    }
-    setProp(index, value) {
-        switch (index) {
-            case ObjectPropID.Color:
-                this.color = value;
-                break;
-            case ObjectPropID.Playing:
-                this.playing = value;
-                break;
-            case ObjectPropID.Frame:
-                this.frame = value;
-                break;
-            case ObjectPropID.TimeScale:
-                this.timeScale = value;
-                break;
-            case ObjectPropID.DeltaTime:
-                this.advance(value);
-                break;
-            default:
-                super.setProp(index, value);
-                break;
-        }
-    }
-    constructFromResource() {
-        var displayItem = this.packageItem.getBranch();
-        this.sourceWidth = displayItem.width;
-        this.sourceHeight = displayItem.height;
-        this.initWidth = this.sourceWidth;
-        this.initHeight = this.sourceHeight;
-        this.setSize(this.sourceWidth, this.sourceHeight);
-        displayItem = displayItem.getHighResolution();
-        displayItem.load();
-        this._movieClip.interval = displayItem.interval;
-        this._movieClip.swing = displayItem.swing;
-        this._movieClip.repeatDelay = displayItem.repeatDelay;
-        this._movieClip.frames = displayItem.frames;
-    }
-    setup_beforeAdd(buffer, beginPos) {
-        super.setup_beforeAdd(buffer, beginPos);
-        buffer.seek(beginPos, 5);
-        if (buffer.readBool())
-            this.color = buffer.readColorS();
-        buffer.readByte(); //flip
-        this._movieClip.frame = buffer.readInt();
-        this._movieClip.playing = buffer.readBool();
-    }
-}
 
 class GTextField extends GObject {
     constructor() {
