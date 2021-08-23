@@ -23,7 +23,7 @@ export declare class GComponent extends GObject {
     _container: Phaser.GameObjects.Container;
     _scrollPane?: ScrollPane;
     _alignOffset: Phaser.Geom.Point;
-    constructor();
+    constructor(scene?: Phaser.Scene);
     createDisplayObject(): void;
     dispose(): void;
     get displayListContainer(): Phaser.GameObjects.Container;

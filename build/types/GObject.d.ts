@@ -89,7 +89,7 @@ export declare class GObject {
     _gearLocked?: boolean;
     _sizePercentInGroup: number;
     _treeNode?: GTreeNode;
-    constructor();
+    constructor(scene?: Phaser.Scene);
     get dpr(): number;
     set dpr(value: number);
     get id(): string;

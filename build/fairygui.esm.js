@@ -2975,7 +2975,7 @@ class DisplayStyle {
 }
 DisplayStyle.EMPTY = new DisplayStyle();
 class GObject {
-    constructor() {
+    constructor(scene) {
         this._x = 0;
         this._y = 0;
         this._alpha = 1;
@@ -3011,6 +3011,8 @@ class GObject {
         this._id = "" + _gInstanceCounter++;
         this._name = "";
         // todo 优先传入scene在创建display
+        if (scene)
+            this.scene = scene;
         if (this.scene)
             this.createDisplayObject();
         this._displayStyle = new DisplayStyle();
@@ -9691,8 +9693,8 @@ function createAction(type) {
 
 // import { UIObjectFactory } from './UIObjectFactory';
 class GComponent extends GObject {
-    constructor() {
-        super();
+    constructor(scene) {
+        super(scene);
         this._sortingChildCount = 0;
         this._children = [];
         this._controllers = [];
@@ -16599,7 +16601,7 @@ class UIObjectFactory {
                 case ObjectType.MovieClip:
                 // return new GMovieClip();
                 case ObjectType.Component:
-                    return new GComponent();
+                    return new GComponent(GRoot.inst.scene);
                 case ObjectType.Text:
                 // return new GBasicTextField();
                 case ObjectType.RichText:

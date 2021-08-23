@@ -35,8 +35,8 @@ export class GComponent extends GObject {
     public _scrollPane?: ScrollPane;
     public _alignOffset: Phaser.Geom.Point;
 
-    constructor() {
-        super();
+    constructor(scene?: Phaser.Scene) {
+        super(scene);
         this._children = [];
         this._controllers = [];
         this._transitions = [];

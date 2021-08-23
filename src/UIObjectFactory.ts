@@ -14,6 +14,7 @@ import { PackageItem } from './PackageItem';
 import { Decls, UIPackage } from './UIPackage';
 import { GLoader } from './GLoader';
 import { GTree } from './GTree';
+import { GRoot } from "./GRoot";
 
 export class UIObjectFactory {
     public static extensions: { [index: string]: new () => GComponent } = {};
@@ -61,7 +62,7 @@ export class UIObjectFactory {
                 // return new GMovieClip();
 
                 case ObjectType.Component:
-                    return new GComponent();
+                    return new GComponent(GRoot.inst.scene);
 
                 case ObjectType.Text:
                 // return new GBasicTextField();

@@ -106,10 +106,11 @@ export class GObject {
     public _sizePercentInGroup: number = 0;
     public _treeNode?: GTreeNode;
 
-    constructor() {
+    constructor(scene?: Phaser.Scene) {
         this._id = "" + _gInstanceCounter++;
         this._name = "";
         // todo 优先传入scene在创建display
+        if (scene) this.scene = scene;
         if (this.scene) this.createDisplayObject();
         this._displayStyle = new DisplayStyle();
 
