@@ -10,8 +10,8 @@ export class GLabel extends GComponent {
     protected _titleObject: GObject;
     protected _iconObject: GObject;
 
-    constructor() {
-        super();
+    constructor(scene?: Phaser.Scene) {
+        super(scene);
     }
 
     public get icon(): string {

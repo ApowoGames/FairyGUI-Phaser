@@ -43,8 +43,8 @@ export class GButton extends GComponent {
     public static DISABLED: string = "disabled";
     public static SELECTED_DISABLED: string = "selectedDisabled";
 
-    constructor() {
-        super();
+    constructor(scene?: Phaser.Scene) {
+        super(scene);
 
         this._mode = ButtonMode.Common;
         this._title = "";

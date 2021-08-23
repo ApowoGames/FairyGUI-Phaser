@@ -4160,8 +4160,8 @@ var sUpdateInDragging;
 var sDraggingQuery;
 
 class GGroup extends GObject {
-    constructor() {
-        super();
+    constructor(scene) {
+        super(scene);
         this._layout = 0;
         this._lineGap = 0;
         this._columnGap = 0;
@@ -9691,7 +9691,6 @@ function createAction(type) {
     return null;
 }
 
-// import { UIObjectFactory } from './UIObjectFactory';
 class GComponent extends GObject {
     constructor(scene) {
         super(scene);
@@ -12133,8 +12132,8 @@ class GLoader extends GObject {
 GLoader._errorSignPool = new GObjectPool();
 
 class GButton extends GComponent {
-    constructor() {
-        super();
+    constructor(scene) {
+        super(scene);
         this._soundVolumeScale = 0;
         this._downEffect = 0;
         this._mode = ButtonMode.Common;
@@ -12571,8 +12570,8 @@ GButton.DISABLED = "disabled";
 GButton.SELECTED_DISABLED = "selectedDisabled";
 
 class GLabel extends GComponent {
-    constructor() {
-        super();
+    constructor(scene) {
+        super(scene);
     }
     get icon() {
         if (this._iconObject)
@@ -12734,8 +12733,8 @@ class GLabel extends GComponent {
 }
 
 class GComboBox extends GComponent {
-    constructor() {
-        super();
+    constructor(scene) {
+        super(scene);
         this._visibleItemCount = UIConfig.defaultComboBoxVisibleItemCount;
         this._itemsUpdated = true;
         this._selectedIndex = -1;
@@ -13119,8 +13118,8 @@ class GComboBox extends GComponent {
 }
 
 class GSlider extends GComponent {
-    constructor() {
-        super();
+    constructor(scene) {
+        super(scene);
         this._min = 0;
         this._max = 0;
         this._value = 0;
@@ -13306,8 +13305,8 @@ class GSlider extends GComponent {
 new Phaser.Geom.Point();
 
 class GProgressBar extends GComponent {
-    constructor() {
-        super();
+    constructor(scene) {
+        super(scene);
         this._min = 0;
         this._max = 0;
         this._value = 0;
@@ -13472,8 +13471,8 @@ class GProgressBar extends GComponent {
 }
 
 class GScrollBar extends GComponent {
-    constructor() {
-        super();
+    constructor(scene) {
+        super(scene);
         this._dragOffset = new Phaser.Geom.Point();
         this._scrollPerc = 0;
     }
@@ -13603,8 +13602,8 @@ class GScrollBar extends GComponent {
 new Phaser.Geom.Point();
 
 class GList extends GComponent {
-    constructor() {
-        super();
+    constructor(scene) {
+        super(scene);
         this._lineCount = 0;
         this._columnCount = 0;
         this._lineGap = 0;
@@ -15895,8 +15894,8 @@ class GTreeNode {
 }
 
 class GTree extends GList {
-    constructor() {
-        super();
+    constructor(scene) {
+        super(scene);
         this._indent = 15;
         this._rootNode = new GTreeNode(true);
         this._rootNode._setTree(this);
@@ -16616,9 +16615,9 @@ class UIObjectFactory {
                 case ObjectType.InputText:
                 // return new GTextInput();
                 case ObjectType.Group:
-                    return new GGroup();
+                    return new GGroup(GRoot.inst.scene);
                 case ObjectType.List:
-                    return new GList();
+                    return new GList(GRoot.inst.scene);
                 case ObjectType.Graph:
                 // return new GGraph();
                 case ObjectType.Loader:
@@ -16628,19 +16627,19 @@ class UIObjectFactory {
                     // return new GLoader();
                     return;
                 case ObjectType.Button:
-                    return new GButton();
+                    return new GButton(GRoot.inst.scene);
                 case ObjectType.Label:
-                    return new GLabel();
+                    return new GLabel(GRoot.inst.scene);
                 case ObjectType.ProgressBar:
-                    return new GProgressBar();
+                    return new GProgressBar(GRoot.inst.scene);
                 case ObjectType.Slider:
-                    return new GSlider();
+                    return new GSlider(GRoot.inst.scene);
                 case ObjectType.ScrollBar:
-                    return new GScrollBar();
+                    return new GScrollBar(GRoot.inst.scene);
                 case ObjectType.ComboBox:
-                    return new GComboBox();
+                    return new GComboBox(GRoot.inst.scene);
                 case ObjectType.Tree:
-                    return new GTree();
+                    return new GTree(GRoot.inst.scene);
                 default:
                     return null;
             }

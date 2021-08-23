@@ -16,7 +16,7 @@ export declare class GTree extends GList {
     private _clickToExpand;
     private _rootNode;
     private _expandedStatusInEvt;
-    constructor();
+    constructor(scene?: Phaser.Scene);
     get rootNode(): GTreeNode;
     get indent(): number;
     set indent(value: number);

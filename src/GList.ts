@@ -50,8 +50,8 @@ export class GList extends GComponent {
     private _eventLocked?: boolean;
     private itemInfoVer: number = 0; //用来标志item是否在本次处理中已经被重用了
 
-    constructor() {
-        super();
+    constructor(scene?: Phaser.Scene) {
+        super(scene);
         throw new Error("TODO");
 
         // this._trackBounds = true;

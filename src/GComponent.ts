@@ -1,6 +1,4 @@
 import { HitArea } from './utils/HitArea';
-// import { UIObjectFactory } from './UIObjectFactory';
-// import { UIPackage } from './UIPackage';
 import { TranslationHelper } from './TranslationHelper';
 import { PackageItem } from './PackageItem';
 import { PixelHitTest } from './utils/PixelHitTest';

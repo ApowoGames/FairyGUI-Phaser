@@ -18,8 +18,8 @@ export class GGroup extends GObject {
 
     public _updating: number = 0;
 
-    constructor() {
-        super();
+    constructor(scene?: Phaser.Scene) {
+        super(scene);
     }
 
     public dispose(): void {
@@ -414,9 +414,9 @@ export class GGroup extends GObject {
     }
 
     public handleVisibleChanged(): void {
-        if (!this._parent) 
+        if (!this._parent)
 
-        var cnt: number = this._parent.numChildren;
+            var cnt: number = this._parent.numChildren;
         for (var i: number = 0; i < cnt; i++) {
             var child: GObject = this._parent.getChildAt(i);
             if (child.group == this)

@@ -39,7 +39,7 @@ export declare class GList extends GComponent {
     private _virtualItems?;
     private _eventLocked?;
     private itemInfoVer;
-    constructor();
+    constructor(scene?: Phaser.Scene);
     dispose(): void;
     get layout(): number;
     set layout(value: number);

@@ -20,8 +20,8 @@ export class GTree extends GList {
     private _rootNode: GTreeNode;
     private _expandedStatusInEvt: boolean;
 
-    constructor() {
-        super();
+    constructor(scene?: Phaser.Scene) {
+        super(scene);
 
         this._indent = 15;
 

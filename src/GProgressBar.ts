@@ -27,8 +27,8 @@ export class GProgressBar extends GComponent {
     private _barStartX: number = 0;
     private _barStartY: number = 0;
 
-    constructor() {
-        super();
+    constructor(scene?: Phaser.Scene) {
+        super(scene);
 
         this._titleType = ProgressTitleType.Percent;
         this._value = 50;

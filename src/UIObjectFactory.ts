@@ -74,10 +74,10 @@ export class UIObjectFactory {
                 // return new GTextInput();
 
                 case ObjectType.Group:
-                    return new GGroup();
+                    return new GGroup(GRoot.inst.scene);
 
                 case ObjectType.List:
-                    return new GList();
+                    return new GList(GRoot.inst.scene);
 
                 case ObjectType.Graph:
                 // return new GGraph();
@@ -90,19 +90,19 @@ export class UIObjectFactory {
                     return;
 
                 case ObjectType.Button:
-                    return new GButton();
+                    return new GButton(GRoot.inst.scene);
                 case ObjectType.Label:
-                    return new GLabel();
+                    return new GLabel(GRoot.inst.scene);
                 case ObjectType.ProgressBar:
-                    return new GProgressBar();
+                    return new GProgressBar(GRoot.inst.scene);
                 case ObjectType.Slider:
-                    return new GSlider();
+                    return new GSlider(GRoot.inst.scene);
                 case ObjectType.ScrollBar:
-                    return new GScrollBar();
+                    return new GScrollBar(GRoot.inst.scene);
                 case ObjectType.ComboBox:
-                    return new GComboBox();
+                    return new GComboBox(GRoot.inst.scene);
                 case ObjectType.Tree:
-                    return new GTree();
+                    return new GTree(GRoot.inst.scene);
 
                 default:
                     return null;
