@@ -27,6 +27,7 @@ export enum UISceneDisplay {
 export class GRoot extends GComponent {
 
     private static _inst: GRoot;
+    public static contentScaleLevel: number = 0;
     private static _gmStatus = new GRootMouseStatus();
     private _uiStage: UIStage;
     private _modalLayer: GGraph;
@@ -185,5 +186,20 @@ export class GRoot extends GComponent {
 
     private $winResize(stage: UIStage): void {
         this._container.setSize(stage.stageWidth, stage.stageHeight);
+        this.updateContentScaleLevel();
+    }
+
+    private updateContentScaleLevel(): void {
+        GRoot.contentScaleLevel = (<any>this.scene).render.scaleRatio;
+        // var mat: Phaser.GameObjects.Components.TransformMatrix = <Phaser.GameObjects.Components.TransformMatrix>(<any>Laya.stage)._canvasTransform;
+        // var ss: number = Math.max(mat.getScaleX(), mat.getScaleY());
+        // if (ss >= 3.5)
+        //     GRoot.contentScaleLevel = 3; //x4
+        // else if (ss >= 2.5)
+        //     GRoot.contentScaleLevel = 2; //x3
+        // else if (ss >= 1.5)
+        //     GRoot.contentScaleLevel = 1; //x2
+        // else
+        //     GRoot.contentScaleLevel = 0;
     }
 }

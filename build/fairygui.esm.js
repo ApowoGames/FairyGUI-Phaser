@@ -7808,12 +7808,12 @@ class PackageItem {
         return this;
     }
     getHighResolution() {
-        // if (this.highResolution && GRoot.contentScaleLevel > 0) {
-        //     var itemId: string = this.highResolution[GRoot.contentScaleLevel - 1];
-        //     if (itemId)
-        //         return this.owner.getItemById(itemId);
-        // }
-        throw new Error("TODO");
+        if (this.highResolution && GRoot.contentScaleLevel > 0) {
+            var itemId = this.highResolution[GRoot.contentScaleLevel - 1];
+            if (itemId)
+                return this.owner.getItemById(itemId);
+        }
+        return this;
     }
     toString() {
         return this.name;
@@ -10875,8 +10875,23 @@ class GRoot extends GComponent {
     }
     $winResize(stage) {
         this._container.setSize(stage.stageWidth, stage.stageHeight);
+        this.updateContentScaleLevel();
+    }
+    updateContentScaleLevel() {
+        GRoot.contentScaleLevel = this.scene.render.scaleRatio;
+        // var mat: Phaser.GameObjects.Components.TransformMatrix = <Phaser.GameObjects.Components.TransformMatrix>(<any>Laya.stage)._canvasTransform;
+        // var ss: number = Math.max(mat.getScaleX(), mat.getScaleY());
+        // if (ss >= 3.5)
+        //     GRoot.contentScaleLevel = 3; //x4
+        // else if (ss >= 2.5)
+        //     GRoot.contentScaleLevel = 2; //x3
+        // else if (ss >= 1.5)
+        //     GRoot.contentScaleLevel = 1; //x2
+        // else
+        //     GRoot.contentScaleLevel = 0;
     }
 }
+GRoot.contentScaleLevel = 0;
 GRoot._gmStatus = new GRootMouseStatus();
 
 class GTextField extends GObject {

@@ -18,6 +18,7 @@ export declare enum UISceneDisplay {
  */
 export declare class GRoot extends GComponent {
     private static _inst;
+    static contentScaleLevel: number;
     private static _gmStatus;
     private _uiStage;
     private _modalLayer;
@@ -55,4 +56,5 @@ export declare class GRoot extends GComponent {
     private onStageUp;
     private onStageMove;
     private $winResize;
+    private updateContentScaleLevel;
 }

@@ -3,6 +3,7 @@ import { Frame } from './display/MovieClip';
 import { PixelHitTestData } from './utils/PixelHitTest';
 import { ByteBuffer } from './utils/ByteBuffer';
 import { UIPackage } from './UIPackage';
+import { GRoot } from './GRoot';
 export class PackageItem {
     public owner: UIPackage;
 
@@ -59,13 +60,11 @@ export class PackageItem {
     }
 
     public getHighResolution(): PackageItem {
-        // if (this.highResolution && GRoot.contentScaleLevel > 0) {
-        //     var itemId: string = this.highResolution[GRoot.contentScaleLevel - 1];
-        //     if (itemId)
-        //         return this.owner.getItemById(itemId);
-        // }
-        throw new Error("TODO");
-
+        if (this.highResolution && GRoot.contentScaleLevel > 0) {
+            var itemId: string = this.highResolution[GRoot.contentScaleLevel - 1];
+            if (itemId)
+                return this.owner.getItemById(itemId);
+        }
         return this;
     }
 
