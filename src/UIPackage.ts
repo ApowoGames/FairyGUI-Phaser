@@ -311,21 +311,21 @@ export class UIPackage {
             switch (pi.type) {
                 case PackageItemType.Image:
                     {
-                        // pi.objectType = ObjectType.Image;
-                        // var scaleOption: number = buffer.readByte();
-                        // if (scaleOption == 1) {
-                        // pi.scale9Grid = new Laya.Rectangle();
-                        // pi.scale9Grid.x = buffer.getInt32();
-                        // pi.scale9Grid.y = buffer.getInt32();
-                        // pi.scale9Grid.width = buffer.getInt32();
-                        // pi.scale9Grid.height = buffer.getInt32();
+                        pi.objectType = ObjectType.Image;
+                        var scaleOption: number = buffer.readByte();
+                        if (scaleOption == 1) {
+                        pi.scale9Grid = new Phaser.Geom.Rectangle();
+                        pi.scale9Grid.x = buffer.readInt();
+                        pi.scale9Grid.y = buffer.readInt();
+                        pi.scale9Grid.width = buffer.readInt();
+                        pi.scale9Grid.height = buffer.readInt();
 
-                        // pi.tileGridIndice = buffer.getInt32();
-                        // }
-                        // else if (scaleOption == 2)
-                        //     pi.scaleByTile = true;
+                        pi.tileGridIndice = buffer.readInt();
+                        }
+                        else if (scaleOption == 2)
+                            pi.scaleByTile = true;
 
-                        // pi.smoothing = buffer.readBool();
+                        pi.smoothing = buffer.readBool();
                         break;
                     }
 
