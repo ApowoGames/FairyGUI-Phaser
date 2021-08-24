@@ -96,6 +96,7 @@ export class UIPackage {
             url = GRoot.inst.getResUrl(url);
             const scene = GRoot.inst.scene;
             // scene preload bytearray
+
             const buf = scene.cache.binary.get(resKey);
             if (!buf) {
                 scene.load.binary(resKey, url);
@@ -565,67 +566,77 @@ export class UIPackage {
         return this.getItemAsset(pi);
     }
 
-    public getItemAsset(item: PackageItem): Object {
-        switch (item.type) {
-            case PackageItemType.Image:
-                if (!item.decoded) {
-                    item.decoded = true;
-                    var sprite: AtlasSprite = this._sprites[item.id];
-                    if (sprite) {
-                        var atlasTexture: Phaser.Textures.Texture = <Phaser.Textures.Texture>(this.getItemAsset(sprite.atlas));
-                        if (atlasTexture) {
-                            item.texture = atlasTexture;
-                            // Laya.Texture.create(atlasTexture,
-                            //     sprite.rect.x, sprite.rect.y, sprite.rect.width, sprite.rect.height,
-                            //     sprite.offset.x, sprite.offset.y,
-                            //     sprite.originalSize.x, sprite.originalSize.y);
-                        } else {
-                            item.texture = null;
-                        }
-                    }
-                    else
-                        item.texture = null;
-                }
-                return item.texture;
-
-            case PackageItemType.Atlas:
-                if (!item.decoded) {
-
-                    AssetProxy.inst.getRes(item.file, LoaderType.IMAGE).then((texturePath) => {
+    public getItemAsset(item: PackageItem): Promise<Object> {
+        return new Promise((reslove, reject) => {
+            switch (item.type) {
+                case PackageItemType.Image:
+                    if (!item.decoded) {
                         item.decoded = true;
-                        const texture = GRoot.inst.scene.textures.get(texturePath);
-                        item.texture = texture;
-                    });
-                    //     if(!fgui.UIConfig.textureLinearSampling)
-                    //     item.texture.isLinearSampling = false;
-                }
-                return item.texture;
+                        const sprite: AtlasSprite = this._sprites[item.id];
+                        if (sprite) {
+                            this.getItemAsset(sprite.atlas).then((texture) => {
+                                const atlasTexture: Phaser.Textures.Texture = <Phaser.Textures.Texture>texture;
+                                if (atlasTexture) {
+                                    item.texture = atlasTexture;
+                                    // Laya.Texture.create(atlasTexture,
+                                    //     sprite.rect.x, sprite.rect.y, sprite.rect.width, sprite.rect.height,
+                                    //     sprite.offset.x, sprite.offset.y,
+                                    //     sprite.originalSize.x, sprite.originalSize.y);
+                                } else {
+                                    item.texture = null;
+                                }
+                                return reslove(item.texture);
+                            });
+                        }
+                        else {
+                            item.texture = null;
+                            return reslove(item.texture);
+                        }
+                    } else {
+                        item.texture = null;
+                        return reslove(item.texture);
+                    }
 
-            case PackageItemType.Font:
-            // if (!item.decoded) {
-            //     item.decoded = true;
-            // this.loadFont(item);
-            // }
-            // return item.bitmapFont;
+                case PackageItemType.Atlas:
+                    if (!item.decoded) {
 
-            case PackageItemType.MovieClip:
-            // if (!item.decoded) {
-            //     item.decoded = true;
-            //     this.loadMovieClip(item);
-            // }
-            // return item.frames;
+                        AssetProxy.inst.getRes(item.file, LoaderType.IMAGE).then((texturePath) => {
+                            item.decoded = true;
+                            const texture = GRoot.inst.scene.textures.get(texturePath);
+                            item.texture = texture;
+                            return reslove(item.texture);
+                        });
+                        //     if(!fgui.UIConfig.textureLinearSampling)
+                        //     item.texture.isLinearSampling = false;
+                    } else {
+                        return reslove(item.texture);
+                    }
+                case PackageItemType.Font:
+                // if (!item.decoded) {
+                //     item.decoded = true;
+                // this.loadFont(item);
+                // }
+                // return item.bitmapFont;
 
-            case PackageItemType.Component:
-                return item.rawData;
+                case PackageItemType.MovieClip:
+                // if (!item.decoded) {
+                //     item.decoded = true;
+                //     this.loadMovieClip(item);
+                // }
+                // return item.frames;
 
-            case PackageItemType.Misc:
-            // if (item.file)
-            //     return AssetProxy.inst.getRes(item.file);
-            // else
-            //     return null;
-            default:
-                return null;
-        }
+                case PackageItemType.Component:
+                    return reslove(item.rawData);
+
+                case PackageItemType.Misc:
+                // if (item.file)
+                //     return AssetProxy.inst.getRes(item.file);
+                // else
+                //     return null;
+                default:
+                    return reslove(null);
+            }
+        })
     }
 
     public getItemAssetAsync(item: PackageItem, onComplete?: (err: any, item: PackageItem) => void): void {

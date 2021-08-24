@@ -8428,61 +8428,74 @@
             return this.getItemAsset(pi);
         }
         getItemAsset(item) {
-            switch (item.type) {
-                case exports.PackageItemType.Image:
-                    if (!item.decoded) {
-                        item.decoded = true;
-                        var sprite = this._sprites[item.id];
-                        if (sprite) {
-                            var atlasTexture = (this.getItemAsset(sprite.atlas));
-                            if (atlasTexture) {
-                                item.texture = atlasTexture;
-                                // Laya.Texture.create(atlasTexture,
-                                //     sprite.rect.x, sprite.rect.y, sprite.rect.width, sprite.rect.height,
-                                //     sprite.offset.x, sprite.offset.y,
-                                //     sprite.originalSize.x, sprite.originalSize.y);
+            return new Promise((reslove, reject) => {
+                switch (item.type) {
+                    case exports.PackageItemType.Image:
+                        if (!item.decoded) {
+                            item.decoded = true;
+                            const sprite = this._sprites[item.id];
+                            if (sprite) {
+                                this.getItemAsset(sprite.atlas).then((texture) => {
+                                    const atlasTexture = texture;
+                                    if (atlasTexture) {
+                                        item.texture = atlasTexture;
+                                        // Laya.Texture.create(atlasTexture,
+                                        //     sprite.rect.x, sprite.rect.y, sprite.rect.width, sprite.rect.height,
+                                        //     sprite.offset.x, sprite.offset.y,
+                                        //     sprite.originalSize.x, sprite.originalSize.y);
+                                    }
+                                    else {
+                                        item.texture = null;
+                                    }
+                                    return reslove(item.texture);
+                                });
                             }
                             else {
                                 item.texture = null;
+                                return reslove(item.texture);
                             }
                         }
-                        else
+                        else {
                             item.texture = null;
-                    }
-                    return item.texture;
-                case exports.PackageItemType.Atlas:
-                    if (!item.decoded) {
-                        AssetProxy.inst.getRes(item.file, LoaderType.IMAGE).then((texturePath) => {
-                            item.decoded = true;
-                            const texture = GRoot.inst.scene.textures.get(texturePath);
-                            item.texture = texture;
-                        });
-                        //     if(!fgui.UIConfig.textureLinearSampling)
-                        //     item.texture.isLinearSampling = false;
-                    }
-                    return item.texture;
-                case exports.PackageItemType.Font:
-                // if (!item.decoded) {
-                //     item.decoded = true;
-                // this.loadFont(item);
-                // }
-                // return item.bitmapFont;
-                case exports.PackageItemType.MovieClip:
-                // if (!item.decoded) {
-                //     item.decoded = true;
-                //     this.loadMovieClip(item);
-                // }
-                // return item.frames;
-                case exports.PackageItemType.Component:
-                    return item.rawData;
-                case exports.PackageItemType.Misc:
-                // if (item.file)
-                //     return AssetProxy.inst.getRes(item.file);
-                // else
-                //     return null;
-                default:
-                    return null;
-            }
+                            return reslove(item.texture);
+                        }
+                    case exports.PackageItemType.Atlas:
+                        if (!item.decoded) {
+                            AssetProxy.inst.getRes(item.file, LoaderType.IMAGE).then((texturePath) => {
+                                item.decoded = true;
+                                const texture = GRoot.inst.scene.textures.get(texturePath);
+                                item.texture = texture;
+                                return reslove(item.texture);
+                            });
+                            //     if(!fgui.UIConfig.textureLinearSampling)
+                            //     item.texture.isLinearSampling = false;
+                        }
+                        else {
+                            return reslove(item.texture);
+                        }
+                    case exports.PackageItemType.Font:
+                    // if (!item.decoded) {
+                    //     item.decoded = true;
+                    // this.loadFont(item);
+                    // }
+                    // return item.bitmapFont;
+                    case exports.PackageItemType.MovieClip:
+                    // if (!item.decoded) {
+                    //     item.decoded = true;
+                    //     this.loadMovieClip(item);
+                    // }
+                    // return item.frames;
+                    case exports.PackageItemType.Component:
+                        return reslove(item.rawData);
+                    case exports.PackageItemType.Misc:
+                    // if (item.file)
+                    //     return AssetProxy.inst.getRes(item.file);
+                    // else
+                    //     return null;
+                    default:
+                        return reslove(null);
+                }
+            });
         }
         getItemAssetAsync(item, onComplete) {
             if (item.decoded) {

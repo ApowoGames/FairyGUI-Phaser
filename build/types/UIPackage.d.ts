@@ -47,7 +47,7 @@ export declare class UIPackage {
     getItemById(itemId: string): PackageItem;
     getItemByName(resName: string): PackageItem;
     getItemAssetByName(resName: string): Object;
-    getItemAsset(item: PackageItem): Object;
+    getItemAsset(item: PackageItem): Promise<Object>;
     getItemAssetAsync(item: PackageItem, onComplete?: (err: any, item: PackageItem) => void): void;
     private loadMovieClip;
     private loadFont;
