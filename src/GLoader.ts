@@ -281,7 +281,7 @@ export class GLoader extends GObject {
 
     protected loadExternal(): void {
         AssetProxy.inst.load(this._url, this._url, LoaderType.IMAGE, this.__getResCompleted);
-        AssetProxy.inst.addListen();
+        AssetProxy.inst.addListen(LoaderType.IMAGE, this._url);
         AssetProxy.inst.startLoad();
         // AssetProxy.inst.load(this._url, Laya.Handler.create(this, this.__getResCompleted), null, Laya.Loader.IMAGE);
     }

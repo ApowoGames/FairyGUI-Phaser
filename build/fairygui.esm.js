@@ -7885,7 +7885,6 @@ var LoaderType;
 class AssetProxy {
     constructor() {
         this._resMap = new Map();
-        this.addListen();
     }
     static get inst() {
         if (!AssetProxy._inst)
@@ -7895,8 +7894,8 @@ class AssetProxy {
     getRes(key, type) {
         return new Promise((resolve, reject) => {
             if (!this._resMap.get(key)) {
-                this.load(key, GRoot.inst.getResUIUrl(key), type, (loader) => {
-                    resolve(loader);
+                this.load(key, GRoot.inst.getResUIUrl(key), type, (file) => {
+                    resolve(file);
                 }, () => {
                     reject();
                 });
@@ -7915,6 +7914,7 @@ class AssetProxy {
                 return this._completeCallBack();
             }
         }
+        this.addListen(type, key);
         switch (type) {
             case LoaderType.IMAGE:
                 GRoot.inst.scene.load.image(key, url);
@@ -7949,18 +7949,26 @@ class AssetProxy {
         }
         GRoot.inst.scene.load.start();
     }
-    addListen() {
-        GRoot.inst.scene.load.on(Phaser.Loader.Events.COMPLETE, this.onLoadComplete, this);
-        GRoot.inst.scene.load.on(Phaser.Loader.Events.FILE_LOAD_ERROR, this.onLoadError, this);
+    addListen(type, key) {
+        GRoot.inst.scene.load.off(Phaser.Loader.Events.FILE_COMPLETE + "-" + type + "-" + key, this.onLoadComplete, this);
+        GRoot.inst.scene.load.off(Phaser.Loader.Events.FILE_LOAD_ERROR + "-" + type + "-" + key, this.onLoadError, this);
+        GRoot.inst.scene.load.on(Phaser.Loader.Events.FILE_COMPLETE + "-" + type + "-" + key, this.onLoadComplete, this);
+        GRoot.inst.scene.load.on(Phaser.Loader.Events.FILE_LOAD_ERROR + "-" + type + "-" + key, this.onLoadError, this);
+        GRoot.inst.scene.load.on(Phaser.Loader.Events.COMPLETE, this.totalComplete, this);
+    }
+    removeListen() {
+        GRoot.inst.scene.load.off(Phaser.Loader.Events.COMPLETE, this.totalComplete, this);
     }
     startLoad() {
         GRoot.inst.scene.load.start();
     }
-    onLoadComplete(loader) {
-        if (this._completeCallBack)
-            this._completeCallBack(loader);
+    totalComplete(loader, totalComplete, totalFailed) {
     }
-    onLoadError() {
+    onLoadComplete(key, file) {
+        if (this._completeCallBack)
+            this._completeCallBack(key);
+    }
+    onLoadError(key) {
         if (this._errorCallBack)
             this._errorCallBack();
     }
@@ -12047,7 +12055,7 @@ class GLoader extends GObject {
     }
     loadExternal() {
         AssetProxy.inst.load(this._url, this._url, LoaderType.IMAGE, this.__getResCompleted);
-        AssetProxy.inst.addListen();
+        AssetProxy.inst.addListen(LoaderType.IMAGE, this._url);
         AssetProxy.inst.startLoad();
         // AssetProxy.inst.load(this._url, Laya.Handler.create(this, this.__getResCompleted), null, Laya.Loader.IMAGE);
     }

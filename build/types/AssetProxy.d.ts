@@ -18,8 +18,10 @@ export declare class AssetProxy {
     static get inst(): AssetProxy;
     getRes(key: string, type: string): Promise<any>;
     load(key: string, url: any, type: string, completeCallBack: Function, _errorCallBack?: Function): void;
-    addListen(): void;
+    addListen(type: string, key: string): void;
+    removeListen(): void;
     startLoad(): void;
+    private totalComplete;
     private onLoadComplete;
     private onLoadError;
 }
