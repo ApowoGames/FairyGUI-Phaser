@@ -7895,8 +7895,8 @@ class AssetProxy {
     getRes(key, type) {
         return new Promise((resolve, reject) => {
             if (!this._resMap.get(key)) {
-                this.load(key, GRoot.inst.getResUIUrl(key), type, (file) => {
-                    resolve(file);
+                this.load(key, GRoot.inst.getResUIUrl(key), type, (loader) => {
+                    resolve(loader);
                 }, () => {
                     reject();
                 });
@@ -7947,17 +7947,18 @@ class AssetProxy {
                 GRoot.inst.scene.load.image(key, url);
                 break;
         }
+        GRoot.inst.scene.load.start();
     }
     addListen() {
-        GRoot.inst.scene.load.on(Phaser.Loader.Events.FILE_COMPLETE, this.onLoadComplete, this);
+        GRoot.inst.scene.load.on(Phaser.Loader.Events.COMPLETE, this.onLoadComplete, this);
         GRoot.inst.scene.load.on(Phaser.Loader.Events.FILE_LOAD_ERROR, this.onLoadError, this);
     }
     startLoad() {
         GRoot.inst.scene.load.start();
     }
-    onLoadComplete(file) {
+    onLoadComplete(loader) {
         if (this._completeCallBack)
-            this._completeCallBack(file);
+            this._completeCallBack(loader);
     }
     onLoadError() {
         if (this._errorCallBack)
@@ -8022,6 +8023,7 @@ class UIPackage {
             }
             url = GRoot.inst.getResUrl(url);
             const scene = GRoot.inst.scene;
+            // scene preload bytearray
             const buf = scene.cache.binary.get(resKey);
             if (!buf) {
                 scene.load.binary(resKey, url);

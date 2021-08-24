@@ -31,8 +31,8 @@ export class AssetProxy {
     public getRes(key: string, type: string): Promise<any> {
         return new Promise((resolve, reject) => {
             if (!this._resMap.get(key)) {
-                this.load(key, GRoot.inst.getResUIUrl(key), type, (file) => {
-                    resolve(file);
+                this.load(key, GRoot.inst.getResUIUrl(key), type, (loader) => {
+                    resolve(loader);
                 }, () => {
                     reject();
                 });
@@ -83,19 +83,20 @@ export class AssetProxy {
                 GRoot.inst.scene.load.image(key, url);
                 break;
         }
-    }
-
-    public addListen() {
-        GRoot.inst.scene.load.on(Phaser.Loader.Events.FILE_COMPLETE, this.onLoadComplete, this);
-        GRoot.inst.scene.load.on(Phaser.Loader.Events.FILE_LOAD_ERROR, this.onLoadError, this);
-    }
-
-    public startLoad(){
         GRoot.inst.scene.load.start();
     }
 
-    private onLoadComplete(file?: string) {
-        if (this._completeCallBack) this._completeCallBack(file);
+    public addListen() {
+        GRoot.inst.scene.load.on(Phaser.Loader.Events.COMPLETE, this.onLoadComplete, this);
+        GRoot.inst.scene.load.on(Phaser.Loader.Events.FILE_LOAD_ERROR, this.onLoadError, this);
+    }
+
+    public startLoad() {
+        GRoot.inst.scene.load.start();
+    }
+
+    private onLoadComplete(loader: Phaser.Loader.LoaderPlugin) {
+        if (this._completeCallBack) this._completeCallBack(loader);
     }
 
     private onLoadError() {

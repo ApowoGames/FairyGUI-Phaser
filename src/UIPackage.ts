@@ -95,6 +95,7 @@ export class UIPackage {
             }
             url = GRoot.inst.getResUrl(url);
             const scene = GRoot.inst.scene;
+            // scene preload bytearray
             const buf = scene.cache.binary.get(resKey);
             if (!buf) {
                 scene.load.binary(resKey, url);
