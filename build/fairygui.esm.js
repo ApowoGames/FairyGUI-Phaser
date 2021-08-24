@@ -7972,7 +7972,7 @@ class UIPackage {
             if (!resKey.endsWith(extension)) {
                 url += extension;
             }
-            url = GRoot.inst.getResUIUrl(url);
+            url = GRoot.inst.getResUrl(url);
             const scene = GRoot.inst.scene;
             scene.load.binary(resKey);
             scene.load.once("complete", () => {
