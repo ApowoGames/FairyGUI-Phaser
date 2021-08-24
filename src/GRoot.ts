@@ -76,7 +76,7 @@ export class GRoot extends GComponent {
      * @param scene 
      * @param stageOptions 
      */
-    public attachTo(scene: Phaser.Scene, stageOptions?: UIStageOptions): void {
+    public attachTo(scene: Phaser.Scene, stageOptions?: any): void {
 
         this._scene = scene;
         this.createDisplayObject();

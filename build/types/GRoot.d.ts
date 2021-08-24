@@ -1,5 +1,4 @@
 import { GObject } from './GObject';
-import { UIStageOptions } from './display/UIStage';
 import { GComponent } from "./GComponent";
 export declare class GRootMouseStatus {
     touchDown: boolean;
@@ -44,7 +43,7 @@ export declare class GRoot extends GComponent {
      * @param scene
      * @param stageOptions
      */
-    attachTo(scene: Phaser.Scene, stageOptions?: UIStageOptions): void;
+    attachTo(scene: Phaser.Scene, stageOptions?: any): void;
     getResUrl(key: string): string;
     getResUIUrl(key: string): string;
     getOsdRes(value: string): string;
