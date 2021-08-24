@@ -35,7 +35,6 @@ export interface UIStageOptions {
     alignH?: StageAlign;
     fallbackWidth?: number;
     fallbackHeight?: number;
-    [key: string]: string | number;
 }
 export declare class DefaultUIStageOptions implements UIStageOptions {
     scaleMode?: StageScaleMode;
@@ -51,7 +50,6 @@ export declare class DefaultUIStageOptions implements UIStageOptions {
     res: string;
     resUI: string;
     dpr: number;
-    [key: string]: string | number;
 }
 export declare class UIStage extends Phaser.Events.EventEmitter {
     private scene;

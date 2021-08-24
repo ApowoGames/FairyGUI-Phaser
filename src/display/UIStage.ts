@@ -40,7 +40,7 @@ export interface UIStageOptions {
     alignH?: StageAlign,
     fallbackWidth?: number,
     fallbackHeight?: number
-    [key: string]: string | number;
+    // [key: string]: string | number;
 }
 
 export class DefaultUIStageOptions implements UIStageOptions {
@@ -57,7 +57,7 @@ export class DefaultUIStageOptions implements UIStageOptions {
     res: string = "resources/";
     resUI: string = "resources/ui";
     dpr: number = 1;
-    [key: string]: string | number;
+    // [key: string]: string | number;
 }
 
 type BoundingRect = {
