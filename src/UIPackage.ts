@@ -95,8 +95,39 @@ export class UIPackage {
             }
             url = GRoot.inst.getResUrl(url);
             const scene = GRoot.inst.scene;
-            scene.load.binary(resKey, url);
-            scene.load.once("complete", () => {
+            const buf = scene.cache.binary.get(resKey);
+            if (!buf) {
+                scene.load.binary(resKey, url);
+                scene.load.once("complete", () => {
+                    pkg = new UIPackage();
+                    pkg._resKey = resKey;
+                    pkg.loadPackage(new ByteBuffer(<ArrayBuffer>scene.cache.binary.get(resKey)));
+                    const promises = [];
+                    for (const item of pkg._items) {
+                        if (item.type === PackageItemType.Atlas) {
+                            // TODO loadTexture
+                            promises.push()
+                        } else if (item.type === PackageItemType.Sound) {
+                            // TODO loadSound
+                            promises.push()
+                        }
+                    }
+
+                    let resolve2 = () => {
+                        UIPackage._instById[pkg.id] = pkg;
+                        UIPackage._instByName[pkg.name] = pkg;
+                        UIPackage._instById[pkg._resKey] = pkg;
+
+                        resolve(pkg);
+                    };
+
+                    if (promises.length > 0)
+                        Promise.all(promises).then(resolve2);
+                    else
+                        resolve2();
+                });
+                scene.load.start();
+            } else {
                 pkg = new UIPackage();
                 pkg._resKey = resKey;
                 pkg.loadPackage(new ByteBuffer(<ArrayBuffer>scene.cache.binary.get(resKey)));
@@ -123,8 +154,7 @@ export class UIPackage {
                     Promise.all(promises).then(resolve2);
                 else
                     resolve2();
-            });
-            scene.load.start();
+            }
         });
     }
 
