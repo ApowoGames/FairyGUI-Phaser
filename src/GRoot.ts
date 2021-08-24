@@ -99,7 +99,7 @@ export class GRoot extends GComponent {
     }
 
     public getResUIUrl(key: string): string {
-        return this._stageOptions.resUI + KeyboardEvent;
+        return key;
     }
 
     public getOsdRes(value: string): string {

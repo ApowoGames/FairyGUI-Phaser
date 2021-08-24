@@ -10899,7 +10899,7 @@ class GRoot extends GComponent {
         return this._stageOptions.res + key;
     }
     getResUIUrl(key) {
-        return this._stageOptions.resUI + KeyboardEvent;
+        return key;
     }
     getOsdRes(value) {
         if (this._stageOptions.osd) {
