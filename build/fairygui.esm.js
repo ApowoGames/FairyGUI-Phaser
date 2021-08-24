@@ -7901,6 +7901,7 @@ class AssetProxy {
                 GRoot.inst.scene.load.image(key, url);
                 break;
         }
+        this.startLoad();
     }
     startLoad() {
         GRoot.inst.scene.load.on(Phaser.Loader.Events.FILE_COMPLETE, this.onLoadComplete, this);

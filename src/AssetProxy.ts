@@ -82,6 +82,7 @@ export class AssetProxy {
                 GRoot.inst.scene.load.image(key, url);
                 break;
         }
+        this.startLoad();
     }
 
     public startLoad() {
