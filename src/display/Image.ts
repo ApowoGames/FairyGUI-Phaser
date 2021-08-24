@@ -22,7 +22,6 @@ export class Image extends Phaser.GameObjects.Container {
 
         // this.mouseEnabled = false;
         this._color = "#FFFFFF";
-        this.width
     }
 
     // public set width(value: number) {

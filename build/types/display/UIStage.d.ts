@@ -53,6 +53,11 @@ export declare class DefaultUIStageOptions implements UIStageOptions {
 }
 export declare class UIStage extends Phaser.Events.EventEmitter {
     private scene;
+    protected rootContainer: Phaser.GameObjects.Container;
+    protected uiContainer: Phaser.GameObjects.Container;
+    protected dialogContainer: Phaser.GameObjects.Container;
+    protected tipsContainer: Phaser.GameObjects.Container;
+    protected maskContainer: Phaser.GameObjects.Container;
     protected $options: UIStageOptions;
     protected $width: number;
     protected $height: number;

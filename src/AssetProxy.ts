@@ -17,6 +17,7 @@ export class AssetProxy {
     private _errorCallBack: Function;
     constructor() {
         this._resMap = new Map();
+        this.addListen();
     }
 
     private static _inst: AssetProxy;
@@ -82,12 +83,14 @@ export class AssetProxy {
                 GRoot.inst.scene.load.image(key, url);
                 break;
         }
-        this.startLoad();
     }
 
-    public startLoad() {
+    public addListen() {
         GRoot.inst.scene.load.on(Phaser.Loader.Events.FILE_COMPLETE, this.onLoadComplete, this);
         GRoot.inst.scene.load.on(Phaser.Loader.Events.FILE_LOAD_ERROR, this.onLoadError, this);
+    }
+
+    public startLoad(){
         GRoot.inst.scene.load.start();
     }
 

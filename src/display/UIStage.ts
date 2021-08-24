@@ -110,6 +110,11 @@ class DefaultBoudingRectCalculator implements IBoundingRectCalculator {
 }
 
 export class UIStage extends Phaser.Events.EventEmitter {
+    protected rootContainer: Phaser.GameObjects.Container;
+    protected uiContainer: Phaser.GameObjects.Container;
+    protected dialogContainer: Phaser.GameObjects.Container;
+    protected tipsContainer: Phaser.GameObjects.Container;
+    protected maskContainer: Phaser.GameObjects.Container;
 
     protected $options: UIStageOptions;
     protected $width: number = 0;
@@ -127,6 +132,16 @@ export class UIStage extends Phaser.Events.EventEmitter {
     constructor(private scene: Phaser.Scene) {
         super();
         UIStageInst.push(this);
+        this.rootContainer = this.scene.add.container(0, 0);
+        this.uiContainer = this.scene.add.container(0, 0);
+        this.dialogContainer = this.scene.add.container(0, 0);
+        this.tipsContainer = this.scene.add.container(0, 0);
+        this.maskContainer = this.scene.add.container(0, 0);
+        this.scene.sys.displayList.add(this.rootContainer);
+        this.scene.sys.displayList.add(this.uiContainer);
+        this.scene.sys.displayList.add(this.dialogContainer);
+        this.scene.sys.displayList.add(this.tipsContainer);
+        this.scene.sys.displayList.add(this.maskContainer);
     }
 
     public get nativeStage(): Phaser.Input.InputPlugin {
@@ -142,10 +157,42 @@ export class UIStage extends Phaser.Events.EventEmitter {
     }
 
     addChild(child: Phaser.GameObjects.GameObject, type: UISceneDisplay, index: number = -1) {
-        if (index < 0) {
-            (<any>this.scene).layerManager.addToLayer(type, child);
-        } else {
-            (<any>this.scene).layerManager.addToLayer(type, child, index);
+        switch (type) {
+            case UISceneDisplay.LAYER_ROOT:
+                if (index < 0) {
+                    this.rootContainer.add(child);
+                } else {
+                    this.rootContainer.addAt(child, index);
+                }
+                break;
+            case UISceneDisplay.LAYER_UI:
+                if (index < 0) {
+                    this.uiContainer.add(child);
+                } else {
+                    this.uiContainer.addAt(child, index);
+                }
+                break;
+            case UISceneDisplay.LAYER_DIALOG:
+                if (index < 0) {
+                    this.dialogContainer.add(child);
+                } else {
+                    this.dialogContainer.addAt(child, index);
+                }
+                break;
+            case UISceneDisplay.LAYER_TOOLTIPS:
+                if (index < 0) {
+                    this.tipsContainer.add(child);
+                } else {
+                    this.tipsContainer.addAt(child, index);
+                }
+                break;
+            case UISceneDisplay.LAYER_MASK:
+                if (index < 0) {
+                    this.maskContainer.add(child);
+                } else {
+                    this.maskContainer.addAt(child, index);
+                }
+                break;
         }
     }
 

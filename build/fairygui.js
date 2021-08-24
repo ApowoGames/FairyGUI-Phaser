@@ -5107,7 +5107,6 @@
             this._fillAmount = 0;
             // this.mouseEnabled = false;
             this._color = "#FFFFFF";
-            this.width;
         }
         // public set width(value: number) {
         //     if (this["_width"] !== value) {
@@ -5719,6 +5718,16 @@
             this.offsetY = 0;
             this.$sizeCalcer = new DefaultBoudingRectCalculator();
             UIStageInst.push(this);
+            this.rootContainer = this.scene.add.container(0, 0);
+            this.uiContainer = this.scene.add.container(0, 0);
+            this.dialogContainer = this.scene.add.container(0, 0);
+            this.tipsContainer = this.scene.add.container(0, 0);
+            this.maskContainer = this.scene.add.container(0, 0);
+            this.scene.sys.displayList.add(this.rootContainer);
+            this.scene.sys.displayList.add(this.uiContainer);
+            this.scene.sys.displayList.add(this.dialogContainer);
+            this.scene.sys.displayList.add(this.tipsContainer);
+            this.scene.sys.displayList.add(this.maskContainer);
         }
         get nativeStage() {
             return this.scene.input;
@@ -5730,11 +5739,47 @@
             return this.$height;
         }
         addChild(child, type, index = -1) {
-            if (index < 0) {
-                this.scene.layerManager.addToLayer(type, child);
-            }
-            else {
-                this.scene.layerManager.addToLayer(type, child, index);
+            switch (type) {
+                case UISceneDisplay.LAYER_ROOT:
+                    if (index < 0) {
+                        this.rootContainer.add(child);
+                    }
+                    else {
+                        this.rootContainer.addAt(child, index);
+                    }
+                    break;
+                case UISceneDisplay.LAYER_UI:
+                    if (index < 0) {
+                        this.uiContainer.add(child);
+                    }
+                    else {
+                        this.uiContainer.addAt(child, index);
+                    }
+                    break;
+                case UISceneDisplay.LAYER_DIALOG:
+                    if (index < 0) {
+                        this.dialogContainer.add(child);
+                    }
+                    else {
+                        this.dialogContainer.addAt(child, index);
+                    }
+                    break;
+                case UISceneDisplay.LAYER_TOOLTIPS:
+                    if (index < 0) {
+                        this.tipsContainer.add(child);
+                    }
+                    else {
+                        this.tipsContainer.addAt(child, index);
+                    }
+                    break;
+                case UISceneDisplay.LAYER_MASK:
+                    if (index < 0) {
+                        this.maskContainer.add(child);
+                    }
+                    else {
+                        this.maskContainer.addAt(child, index);
+                    }
+                    break;
             }
         }
         removeChild(child, type) {
@@ -7844,6 +7889,7 @@
     class AssetProxy {
         constructor() {
             this._resMap = new Map();
+            this.addListen();
         }
         static get inst() {
             if (!AssetProxy._inst)
@@ -7905,11 +7951,12 @@
                     GRoot.inst.scene.load.image(key, url);
                     break;
             }
-            this.startLoad();
         }
-        startLoad() {
+        addListen() {
             GRoot.inst.scene.load.on(Phaser.Loader.Events.FILE_COMPLETE, this.onLoadComplete, this);
             GRoot.inst.scene.load.on(Phaser.Loader.Events.FILE_LOAD_ERROR, this.onLoadError, this);
+        }
+        startLoad() {
             GRoot.inst.scene.load.start();
         }
         onLoadComplete(file) {
@@ -11973,6 +12020,7 @@
         }
         loadExternal() {
             AssetProxy.inst.load(this._url, this._url, LoaderType.IMAGE, this.__getResCompleted);
+            AssetProxy.inst.addListen();
             AssetProxy.inst.startLoad();
             // AssetProxy.inst.load(this._url, Laya.Handler.create(this, this.__getResCompleted), null, Laya.Loader.IMAGE);
         }
