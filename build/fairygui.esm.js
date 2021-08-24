@@ -7972,8 +7972,9 @@ class UIPackage {
             if (!resKey.endsWith(extension)) {
                 url += extension;
             }
+            url = GRoot.inst.getResUIUrl(url);
             const scene = GRoot.inst.scene;
-            scene.load.binary(resKey, url);
+            scene.load.binary(resKey);
             scene.load.once("complete", () => {
                 pkg = new UIPackage();
                 pkg._resKey = resKey;
@@ -10899,7 +10900,7 @@ class GRoot extends GComponent {
         return this._stageOptions.res + key;
     }
     getResUIUrl(key) {
-        return key;
+        return this._stageOptions.resUI + KeyboardEvent;
     }
     getOsdRes(value) {
         if (this._stageOptions.osd) {
