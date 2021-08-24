@@ -7974,7 +7974,7 @@ class UIPackage {
             }
             url = GRoot.inst.getResUrl(url);
             const scene = GRoot.inst.scene;
-            scene.load.binary(resKey);
+            scene.load.binary(resKey, url);
             scene.load.once("complete", () => {
                 pkg = new UIPackage();
                 pkg._resKey = resKey;
