@@ -27,6 +27,17 @@ export class GImage extends GObject {
         }
     }
 
+    public set visible(value: boolean) {
+        // if (this._visible != value) {
+        //     this._visible = value;
+        //     this.handleVisibleChanged();
+        //     if (this._parent)
+        //         this._parent.setBoundsChangedFlag();
+        //     if (this._group && this._group.excludeInvisibles)
+        //         this._group.setBoundsChangedFlag();
+        // }
+    }
+
     public get flip(): number {
         return this._flip;
     }

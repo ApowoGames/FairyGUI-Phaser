@@ -1892,7 +1892,7 @@ class RelationItem {
         }
     }
     copyFrom(source) {
-        this._target = source.target;
+        this.target = source.target;
         this._defs.length = 0;
         var cnt = source._defs.length;
         for (var i = 0; i < cnt; i++) {
@@ -2286,26 +2286,22 @@ class RelationItem {
         }
     }
     addRefTarget() {
-        throw new Error("TODO");
-        // if (this._target != this._owner.parent)
-        //     this._target.on(Events.XY_CHANGED, this, this.__targetXYChanged);
-        // this._target.on(Events.SIZE_CHANGED, this, this.__targetSizeChanged);
-        // this._target.on(Events.SIZE_DELAY_CHANGE, this, this.__targetSizeWillChange);
-        // this._targetX = this._target.x;
-        // this._targetY = this._target.y;
-        // this._targetWidth = this._target._width;
-        // this._targetHeight = this._target._height;
+        if (this._target != this._owner.parent)
+            this._target.on("pos_changed", this.__targetXYChanged);
+        this._target.on("size_changed", this.__targetSizeChanged);
+        this._targetX = this._target.x;
+        this._targetY = this._target.y;
+        this._targetWidth = this._target._width;
+        this._targetHeight = this._target._height;
     }
     releaseRefTarget() {
-        throw new Error("TODO");
-        // if (this._target.displayObject == null)
-        //     return;
-        // this._target.off(Events.XY_CHANGED, this, this.__targetXYChanged);
-        // this._target.off(Events.SIZE_CHANGED, this, this.__targetSizeChanged);
-        // this._target.off(Events.SIZE_DELAY_CHANGE, this, this.__targetSizeWillChange);
+        if (this._target.displayObject == null)
+            return;
+        this._target.off("pos_changed", this.__targetXYChanged);
+        this._target.off("size_changed", this.__targetSizeChanged);
     }
     __targetXYChanged() {
-        if (this._owner.relations.handling != null || this._owner.group != null && this._owner.group._updating) {
+        if (this._owner.relations.handling || this._owner.group && this._owner.group._updating) {
             this._targetX = this._target.x;
             this._targetY = this._target.y;
             return;
@@ -2336,9 +2332,7 @@ class RelationItem {
         this._owner.relations.handling = null;
     }
     __targetSizeChanged() {
-        if (this._owner.relations.sizeDirty)
-            this._owner.relations.ensureRelationsSizeCorrect();
-        if (this._owner.relations.handling != null) {
+        if (this._owner.relations.handling) {
             this._targetWidth = this._target._width;
             this._targetHeight = this._target._height;
             return;
@@ -2372,9 +2366,6 @@ class RelationItem {
             this._owner.updateGearFromRelations(2, ow, oh);
         }
         this._owner.relations.handling = null;
-    }
-    __targetSizeWillChange() {
-        this._owner.relations.sizeDirty = true;
     }
 }
 class RelationDef {
@@ -5312,6 +5303,16 @@ class GImage extends GObject {
             this.image.color = value;
             this.updateGear(4);
         }
+    }
+    set visible(value) {
+        // if (this._visible != value) {
+        //     this._visible = value;
+        //     this.handleVisibleChanged();
+        //     if (this._parent)
+        //         this._parent.setBoundsChangedFlag();
+        //     if (this._group && this._group.excludeInvisibles)
+        //         this._group.setBoundsChangedFlag();
+        // }
     }
     get flip() {
         return this._flip;

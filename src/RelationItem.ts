@@ -1,6 +1,7 @@
-import { Transition } from './Transition';
-import { RelationType } from './FieldTypes';
-import { GObject } from './GObject';
+import { RelationType } from "./FieldTypes";
+import { GObject } from "./GObject";
+import { Transition } from "./Transition";
+
 export class RelationItem {
     private _owner: GObject;
     private _target: GObject;
@@ -80,7 +81,7 @@ export class RelationItem {
     }
 
     public copyFrom(source: RelationItem): void {
-        this._target = source.target;
+        this.target = source.target;
 
         this._defs.length = 0;
         var cnt: number = source._defs.length;
@@ -502,30 +503,26 @@ export class RelationItem {
     }
 
     private addRefTarget(): void {
-        throw new Error("TODO");
-        // if (this._target != this._owner.parent)
-        //     this._target.on(Events.XY_CHANGED, this, this.__targetXYChanged);
-        // this._target.on(Events.SIZE_CHANGED, this, this.__targetSizeChanged);
-        // this._target.on(Events.SIZE_DELAY_CHANGE, this, this.__targetSizeWillChange);
+        if (this._target != this._owner.parent)
+            this._target.on("pos_changed", this.__targetXYChanged);
+        this._target.on("size_changed", this.__targetSizeChanged);
 
-        // this._targetX = this._target.x;
-        // this._targetY = this._target.y;
-        // this._targetWidth = this._target._width;
-        // this._targetHeight = this._target._height;
+        this._targetX = this._target.x;
+        this._targetY = this._target.y;
+        this._targetWidth = this._target._width;
+        this._targetHeight = this._target._height;
     }
 
     private releaseRefTarget(): void {
-        throw new Error("TODO");
-        // if (this._target.displayObject == null)
-        //     return;
+        if (this._target.displayObject == null)
+            return;
 
-        // this._target.off(Events.XY_CHANGED, this, this.__targetXYChanged);
-        // this._target.off(Events.SIZE_CHANGED, this, this.__targetSizeChanged);
-        // this._target.off(Events.SIZE_DELAY_CHANGE, this, this.__targetSizeWillChange);
+        this._target.off("pos_changed", this.__targetXYChanged);
+        this._target.off("size_changed", this.__targetSizeChanged);
     }
 
     private __targetXYChanged(): void {
-        if (this._owner.relations.handling != null || this._owner.group != null && this._owner.group._updating) {
+        if (this._owner.relations.handling || this._owner.group && this._owner.group._updating) {
             this._targetX = this._target.x;
             this._targetY = this._target.y;
             return;
@@ -563,10 +560,7 @@ export class RelationItem {
     }
 
     private __targetSizeChanged(): void {
-        if (this._owner.relations.sizeDirty)
-            this._owner.relations.ensureRelationsSizeCorrect();
-
-        if (this._owner.relations.handling != null) {
+        if (this._owner.relations.handling) {
             this._targetWidth = this._target._width;
             this._targetHeight = this._target._height;
             return;
@@ -609,12 +603,7 @@ export class RelationItem {
 
         this._owner.relations.handling = null;
     }
-
-    private __targetSizeWillChange(): void {
-        this._owner.relations.sizeDirty = true;
-    }
 }
-
 
 class RelationDef {
     public percent: boolean;
@@ -630,3 +619,4 @@ class RelationDef {
         this.axis = source.axis;
     }
 }
+

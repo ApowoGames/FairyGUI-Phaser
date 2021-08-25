@@ -9,6 +9,7 @@ export declare class GImage extends GObject {
     get image(): Image;
     get color(): string;
     set color(value: string);
+    set visible(value: boolean);
     get flip(): number;
     set flip(value: number);
     get fillMethod(): number;

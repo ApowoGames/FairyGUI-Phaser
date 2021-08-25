@@ -1,4 +1,4 @@
-import { GObject } from './GObject';
+import { GObject } from "./GObject";
 export declare class RelationItem {
     private _owner;
     private _target;
@@ -24,5 +24,4 @@ export declare class RelationItem {
     private releaseRefTarget;
     private __targetXYChanged;
     private __targetSizeChanged;
-    private __targetSizeWillChange;
 }
