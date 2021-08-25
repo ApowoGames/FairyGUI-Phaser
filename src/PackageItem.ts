@@ -12,6 +12,10 @@ export class PackageItem {
 
     public id: string;
     public name: string;
+    public x: number = 0;
+    public y: number = 0;
+    public tx: number = 0;
+    public ty: number = 0;
     public width: number = 0;
     public height: number = 0;
     public file: string;

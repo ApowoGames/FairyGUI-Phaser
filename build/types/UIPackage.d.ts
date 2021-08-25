@@ -31,7 +31,7 @@ export declare class UIPackage {
     static createObjectFromURL(url: string, userClass?: new () => GObject): Promise<GObject>;
     static getItemURL(pkgName: string, resName: string): string;
     static getItemByURL(url: string): PackageItem;
-    static getItemAssetByURL(url: string): Object;
+    static getItemAssetByURL(url: string): Promise<Object>;
     static normalizeURL(url: string): string;
     static setStringsSource(source: string): void;
     private loadPackage;
@@ -52,7 +52,7 @@ export declare class UIPackage {
     internalCreateObject(item: PackageItem, userClass?: new () => GObject): Promise<GObject>;
     getItemById(itemId: string): PackageItem;
     getItemByName(resName: string): PackageItem;
-    getItemAssetByName(resName: string): Object;
+    getItemAssetByName(resName: string): Promise<Object>;
     getItemAsset(item: PackageItem): Promise<Object>;
     getItemAssetAsync(item: PackageItem, onComplete?: (err: any, item: PackageItem) => void): void;
     private loadMovieClip;

@@ -81,6 +81,7 @@ export class GImage extends GObject {
         this._displayObject = this._image = new Image(this.scene);
         // this.image.mouseEnabled = false;
         this._displayObject["$owner"] = this;
+
     }
 
     public constructFromResource(): Promise<void> {
@@ -94,11 +95,16 @@ export class GImage extends GObject {
             this.initHeight = this.sourceHeight;
 
             this._contentItem = this._contentItem.getHighResolution();
-            this._contentItem.load().then(() => {
+            this._contentItem.load().then((packageItem: PackageItem) => {
                 this.image.scale9Grid = this._contentItem.scale9Grid;
                 this.image.scaleByTile = this._contentItem.scaleByTile;
                 this.image.tileGridIndice = this._contentItem.tileGridIndice;
                 this.image.texture = this._contentItem.texture;
+                this.x = packageItem.x;
+                this.y = packageItem.y;
+                this._xOffset = packageItem.tx;
+                this._yOffset = packageItem.ty;
+                this.setSize(packageItem.width, packageItem.height);
 
                 this.setSize(this.sourceWidth, this.sourceHeight);
                 reslove();

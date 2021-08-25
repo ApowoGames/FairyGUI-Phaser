@@ -9,6 +9,10 @@ export declare class PackageItem {
     objectType?: number;
     id: string;
     name: string;
+    x: number;
+    y: number;
+    tx: number;
+    ty: number;
     width: number;
     height: number;
     file: string;

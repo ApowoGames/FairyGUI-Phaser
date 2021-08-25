@@ -82,6 +82,7 @@ export class GObject {
     private _timeEvent: Phaser.Time.TimerEvent;
 
     protected _displayObject: Phaser.GameObjects.Container;
+    protected _xOffset: number = 0;
     protected _yOffset: number = 0;
     protected _scene: Phaser.Scene;
 
@@ -1163,7 +1164,7 @@ export class GObject {
     }
 
     protected handleXYChanged(): void {
-        var xv: number = this._x;
+        var xv: number = this._x + this._xOffset;
         var yv: number = this._y + this._yOffset;
         if (this._pivotAsAnchor) {
             xv -= this._pivotX * this._width;

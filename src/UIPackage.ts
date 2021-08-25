@@ -237,11 +237,10 @@ export class UIPackage {
         return null;
     }
 
-    public static getItemAssetByURL(url: string): Object {
+    public static getItemAssetByURL(url: string): Promise<Object> {
         var item: PackageItem = UIPackage.getItemByURL(url);
         if (item == null)
             return null;
-
         return item.owner.getItemAsset(item);
     }
 
@@ -574,7 +573,7 @@ export class UIPackage {
         return this._itemsByName[resName];
     }
 
-    public getItemAssetByName(resName: string): Object {
+    public getItemAssetByName(resName: string): Promise<Object> {
         var pi: PackageItem = this._itemsByName[resName];
         if (pi == null) {
             throw "Resource not found -" + resName;
@@ -595,6 +594,12 @@ export class UIPackage {
                                 const atlasTexture: Phaser.Textures.Texture = <Phaser.Textures.Texture>texture;
                                 if (atlasTexture) {
                                     item.texture = atlasTexture;
+                                    item.x = sprite.rect.x;
+                                    item.y = sprite.rect.y;
+                                    item.tx = sprite.offset.x;
+                                    item.ty = sprite.offset.y;
+                                    item.width = sprite.rect.width;
+                                    item.height = sprite.rect.height;
                                     // Laya.Texture.create(atlasTexture,
                                     //     sprite.rect.x, sprite.rect.y, sprite.rect.width, sprite.rect.height,
                                     //     sprite.offset.x, sprite.offset.y,
@@ -602,7 +607,7 @@ export class UIPackage {
                                 } else {
                                     item.texture = null;
                                 }
-                                reslove(item.texture);
+                                reslove(item);
                             });
                         }
                         else {
@@ -674,8 +679,9 @@ export class UIPackage {
             case PackageItemType.DragonBones:
             // 
             default:
-                this.getItemAsset(item);
-                onComplete(null, item);
+                this.getItemAsset(item).then(() => {
+                    onComplete(null, item);
+                });
                 break;
         }
     }

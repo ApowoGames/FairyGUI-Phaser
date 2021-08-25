@@ -16,10 +16,13 @@ export class Image extends Phaser.GameObjects.Container {
     private _fillClockwise?: boolean;
     private _mask?: Graphics;
     private _color: string;
+    private _img: Phaser.GameObjects.Image;
 
     constructor(scene: Phaser.Scene) {
         super(scene);
-
+        this._img = this.scene.make.image(undefined, false);
+        this._img.setPosition(0, 0);
+        this.add(this._img);
         // this.mouseEnabled = false;
         this._color = "#FFFFFF";
     }
@@ -58,7 +61,8 @@ export class Image extends Phaser.GameObjects.Container {
                     this.setSize(0, 0);
             }
             // todo 重绘
-            this.scene.add.image(0, 0, this._source);
+            // this.scene.add.image(0, 0, this._source);
+            this._img.setTexture(value.key);
             // this.repaint();
             this.markChanged(1);
         }

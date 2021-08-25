@@ -68,6 +68,7 @@ export declare class GObject {
     private _displayStyle;
     private _timeEvent;
     protected _displayObject: Phaser.GameObjects.Container;
+    protected _xOffset: number;
     protected _yOffset: number;
     protected _scene: Phaser.Scene;
     minWidth: number;

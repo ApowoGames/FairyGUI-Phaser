@@ -11,6 +11,7 @@ export declare class Image extends Phaser.GameObjects.Container {
     private _fillClockwise?;
     private _mask?;
     private _color;
+    private _img;
     constructor(scene: Phaser.Scene);
     setSize(width: number, height: number): this;
     get texture(): Phaser.Textures.Texture;

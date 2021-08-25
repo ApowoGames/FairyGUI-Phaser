@@ -2995,6 +2995,7 @@ class GObject {
         this._pivotOffsetY = 0;
         this._sortingOrder = 0;
         this._internalVisible = true;
+        this._xOffset = 0;
         this._yOffset = 0;
         this.minWidth = 0;
         this.minHeight = 0;
@@ -3895,7 +3896,7 @@ class GObject {
         this._displayObject["$owner"] = this;
     }
     handleXYChanged() {
-        var xv = this._x;
+        var xv = this._x + this._xOffset;
         var yv = this._y + this._yOffset;
         if (this._pivotAsAnchor) {
             xv -= this._pivotX * this._width;
@@ -5104,6 +5105,9 @@ class Image extends Phaser.GameObjects.Container {
         this._fillMethod = 0;
         this._fillOrigin = 0;
         this._fillAmount = 0;
+        this._img = this.scene.make.image(undefined, false);
+        this._img.setPosition(0, 0);
+        this.add(this._img);
         // this.mouseEnabled = false;
         this._color = "#FFFFFF";
     }
@@ -5138,7 +5142,8 @@ class Image extends Phaser.GameObjects.Container {
                     this.setSize(0, 0);
             }
             // todo 重绘
-            this.scene.add.image(0, 0, this._source);
+            // this.scene.add.image(0, 0, this._source);
+            this._img.setTexture(value.key);
             // this.repaint();
             this.markChanged(1);
         }
@@ -5356,11 +5361,16 @@ class GImage extends GObject {
             this.initWidth = this.sourceWidth;
             this.initHeight = this.sourceHeight;
             this._contentItem = this._contentItem.getHighResolution();
-            this._contentItem.load().then(() => {
+            this._contentItem.load().then((packageItem) => {
                 this.image.scale9Grid = this._contentItem.scale9Grid;
                 this.image.scaleByTile = this._contentItem.scaleByTile;
                 this.image.tileGridIndice = this._contentItem.tileGridIndice;
                 this.image.texture = this._contentItem.texture;
+                this.x = packageItem.x;
+                this.y = packageItem.y;
+                this._xOffset = packageItem.tx;
+                this._yOffset = packageItem.ty;
+                this.setSize(packageItem.width, packageItem.height);
                 this.setSize(this.sourceWidth, this.sourceHeight);
                 reslove();
             });
@@ -7854,6 +7864,10 @@ class ByteBuffer {
 
 class PackageItem {
     constructor() {
+        this.x = 0;
+        this.y = 0;
+        this.tx = 0;
+        this.ty = 0;
         this.width = 0;
         this.height = 0;
     }
@@ -8465,6 +8479,12 @@ class UIPackage {
                                 const atlasTexture = texture;
                                 if (atlasTexture) {
                                     item.texture = atlasTexture;
+                                    item.x = sprite.rect.x;
+                                    item.y = sprite.rect.y;
+                                    item.tx = sprite.offset.x;
+                                    item.ty = sprite.offset.y;
+                                    item.width = sprite.rect.width;
+                                    item.height = sprite.rect.height;
                                     // Laya.Texture.create(atlasTexture,
                                     //     sprite.rect.x, sprite.rect.y, sprite.rect.width, sprite.rect.height,
                                     //     sprite.offset.x, sprite.offset.y,
@@ -8473,7 +8493,7 @@ class UIPackage {
                                 else {
                                     item.texture = null;
                                 }
-                                reslove(item.texture);
+                                reslove(item);
                             });
                         }
                         else {
@@ -8544,8 +8564,9 @@ class UIPackage {
             case PackageItemType.DragonBones:
             // 
             default:
-                this.getItemAsset(item);
-                onComplete(null, item);
+                this.getItemAsset(item).then(() => {
+                    onComplete(null, item);
+                });
                 break;
         }
     }
