@@ -87,6 +87,7 @@ export class GImage extends GObject {
         return new Promise((reslove, reject) => {
             this._contentItem = this.packageItem.getBranch();
 
+
             this.sourceWidth = this._contentItem.width;
             this.sourceHeight = this._contentItem.height;
             this.initWidth = this.sourceWidth;
@@ -100,6 +101,7 @@ export class GImage extends GObject {
                 this.image.texture = this._contentItem.texture;
 
                 this.setSize(this.sourceWidth, this.sourceHeight);
+                reslove();
             });
         });
 

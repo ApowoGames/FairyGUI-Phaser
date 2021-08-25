@@ -58,6 +58,7 @@ export class Image extends Phaser.GameObjects.Container {
                     this.setSize(0, 0);
             }
             // todo 重绘
+            this.scene.add.image(0, 0, this._source);
             // this.repaint();
             this.markChanged(1);
         }
