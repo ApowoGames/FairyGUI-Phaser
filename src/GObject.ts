@@ -559,6 +559,7 @@ export class GObject {
     }
 
     public set visible(value: boolean) {
+        return;
         if (this._visible != value) {
             this._visible = value;
             this.handleVisibleChanged();
@@ -1289,8 +1290,10 @@ export class GObject {
         }
 
         f1 = buffer.readShort();
-        if (f1 != 1)
+        if (f1 != 1) {
+            if (f1 > 1) f1 = 1;
             this.alpha = f1;
+        }
 
         f1 = buffer.readShort();
         if (f1 != 0)

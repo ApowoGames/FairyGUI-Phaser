@@ -3394,14 +3394,7 @@
             return this._visible;
         }
         set visible(value) {
-            if (this._visible != value) {
-                this._visible = value;
-                this.handleVisibleChanged();
-                if (this._parent)
-                    this._parent.setBoundsChangedFlag();
-                if (this._group && this._group.excludeInvisibles)
-                    this._group.setBoundsChangedFlag();
-            }
+            return;
         }
         get internalVisible() {
             return this._internalVisible && (!this._group || this._group.internalVisible);
@@ -4007,8 +4000,11 @@
                 this.setPivot(f1, f2, buffer.readBool());
             }
             f1 = buffer.readShort();
-            if (f1 != 1)
+            if (f1 != 1) {
+                if (f1 > 1)
+                    f1 = 1;
                 this.alpha = f1;
+            }
             f1 = buffer.readShort();
             if (f1 != 0)
                 this.rotation = f1;
