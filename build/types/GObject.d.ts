@@ -255,7 +255,7 @@ export declare class GObject {
     handleVisibleChanged(): void;
     getProp(index: number): any;
     setProp(index: number, value: any): void;
-    constructFromResource(): void;
+    constructFromResource(): Promise<void>;
     setup_beforeAdd(buffer: ByteBuffer, beginPos: number): void;
     setup_afterAdd(buffer: ByteBuffer, beginPos: number): void;
     private initDrag;

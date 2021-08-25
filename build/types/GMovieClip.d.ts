@@ -18,6 +18,6 @@ export declare class GMovieClip extends GObject {
     setPlaySettings(start?: number, end?: number, times?: number, endAt?: number, endHandler?: () => void): void;
     getProp(index: number): any;
     setProp(index: number, value: any): void;
-    constructFromResource(): void;
+    constructFromResource(): Promise<void>;
     setup_beforeAdd(buffer: ByteBuffer, beginPos: number): void;
 }

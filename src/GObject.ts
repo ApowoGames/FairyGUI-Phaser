@@ -791,7 +791,7 @@ export class GObject {
     }
 
     public get asCom(): GComponent {
-        return <GComponent><any>this;
+        return <any>this;
     }
 
     // public get asButton(): GButton {
@@ -1237,8 +1237,10 @@ export class GObject {
         }
     }
 
-    public constructFromResource(): void {
-
+    public constructFromResource(): Promise<void> {
+        return new Promise((reslove, reject) => {
+            reslove();
+        });
     }
 
     public setup_beforeAdd(buffer: ByteBuffer, beginPos: number): void {

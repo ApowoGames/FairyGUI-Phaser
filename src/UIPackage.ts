@@ -96,7 +96,6 @@ export class UIPackage {
             url = GRoot.inst.getResUrl(url);
             const scene = GRoot.inst.scene;
             // scene preload bytearray
-
             const buf = scene.cache.binary.get(resKey);
             if (!buf) {
                 scene.load.binary(resKey, url);
@@ -177,7 +176,7 @@ export class UIPackage {
         }
     }
 
-    public static createObject(pkgName: string, resName: string, userClass?: new () => GObject): GObject {
+    public static createObject(pkgName: string, resName: string, userClass?: new () => GObject): Promise<GObject> {
         const pkg: UIPackage = UIPackage.getByName(pkgName);
         if (pkg) {
             return pkg.createObject(resName, userClass);
@@ -185,12 +184,17 @@ export class UIPackage {
         return null;
     }
 
-    public static createObjectFromURL(url: string, userClass?: new () => GObject): GObject {
-        var pi: PackageItem = UIPackage.getItemByURL(url);
-        if (pi) {
-            return pi.owner.internalCreateObject(pi, userClass);
-        }
-        return null;
+    public static createObjectFromURL(url: string, userClass?: new () => GObject): Promise<GObject> {
+        return new Promise((reslove, reject) => {
+            var pi: PackageItem = UIPackage.getItemByURL(url);
+            if (pi) {
+                pi.owner.internalCreateObject(pi, userClass).then((g) => {
+                    return reslove(g);
+                });
+            } else {
+                return reslove(null);
+            }
+        });
     }
 
     public static getItemURL(pkgName: string, resName: string): string {
@@ -529,24 +533,37 @@ export class UIPackage {
         }
     }
 
-    public createObject(resName: string, userClass?: new () => GObject): GObject {
-        const pi = this._itemsByName[resName];
-        if (pi) {
-            return this.internalCreateObject(pi, userClass);
-        } else {
-            return null;
-        }
+    public createObject(resName: string, userClass?: new () => GObject): Promise<GObject> {
+        return new Promise((reslove, reject) => {
+            const pi = this._itemsByName[resName];
+            if (pi) {
+                this.internalCreateObject(pi, userClass).then((g) => {
+                    return reslove(g);
+                });
+            } else {
+                return reslove(null);
+            }
+        });
     }
 
-    public internalCreateObject(item: PackageItem, userClass?: new () => GObject): GObject {
-        const g = Decls.UIObjectFactory.newObject(item, userClass);
-        if (g == null) {
-            return null;
-        }
-        UIPackage._constructing++;
-        g.constructFromResource();
-        UIPackage._constructing--;
-        return g;
+    /**
+     * 创建内部子对象
+     * @param item
+     * @param userClass
+     * @returns
+     */
+    public internalCreateObject(item: PackageItem, userClass?: new () => GObject): Promise<GObject> {
+        return new Promise((reslove, reject) => {
+            const g = Decls.UIObjectFactory.newObject(item, userClass);
+            if (g == null) {
+                return reslove(null);
+            }
+            UIPackage._constructing++;
+            g.constructFromResource().then(() => {
+                UIPackage._constructing--;
+                return reslove(g);
+            });
+        });
     }
 
     public getItemById(itemId: string): PackageItem {

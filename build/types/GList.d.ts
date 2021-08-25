@@ -66,7 +66,7 @@ export declare class GList extends GComponent {
     get selectionController(): Controller;
     set selectionController(value: Controller);
     get itemPool(): GObjectPool;
-    getFromPool(url?: string): GObject;
+    getFromPool(url?: string): Promise<GObject>;
     returnToPool(obj: GObject): void;
     addChildAt(child: GObject, index: number): GObject;
     addItem(url?: string): GObject;

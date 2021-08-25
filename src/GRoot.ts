@@ -147,11 +147,15 @@ export class GRoot extends GComponent {
                 return;
             }
 
-            this._defaultTooltipWin = UIPackage.createObjectFromURL(resourceURL);
+            UIPackage.createObjectFromURL(resourceURL).then((obj) => {
+                this._defaultTooltipWin = obj;
+                this._defaultTooltipWin.text = msg;
+                this.showTooltipsWin(this._defaultTooltipWin);
+            });
+        } else {
+            this._defaultTooltipWin.text = msg;
+            this.showTooltipsWin(this._defaultTooltipWin);
         }
-
-        this._defaultTooltipWin.text = msg;
-        this.showTooltipsWin(this._defaultTooltipWin);
     }
 
     public showTooltipsWin(tooltipWin: GObject, xx?: number, yy?: number): void {

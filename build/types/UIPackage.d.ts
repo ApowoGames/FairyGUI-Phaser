@@ -27,8 +27,8 @@ export declare class UIPackage {
     static addPackage(resKey: string, descData?: ArrayBuffer): UIPackage;
     static loadPackage(resKey: string, onProgress?: (event: ProgressEvent) => void): Promise<UIPackage>;
     static removePackage(packageIdOrName: string): void;
-    static createObject(pkgName: string, resName: string, userClass?: new () => GObject): GObject;
-    static createObjectFromURL(url: string, userClass?: new () => GObject): GObject;
+    static createObject(pkgName: string, resName: string, userClass?: new () => GObject): Promise<GObject>;
+    static createObjectFromURL(url: string, userClass?: new () => GObject): Promise<GObject>;
     static getItemURL(pkgName: string, resName: string): string;
     static getItemByURL(url: string): PackageItem;
     static getItemAssetByURL(url: string): Object;
@@ -42,8 +42,14 @@ export declare class UIPackage {
     get name(): string;
     get customId(): string;
     set customId(value: string);
-    createObject(resName: string, userClass?: new () => GObject): GObject;
-    internalCreateObject(item: PackageItem, userClass?: new () => GObject): GObject;
+    createObject(resName: string, userClass?: new () => GObject): Promise<GObject>;
+    /**
+     * 创建内部子对象
+     * @param item
+     * @param userClass
+     * @returns
+     */
+    internalCreateObject(item: PackageItem, userClass?: new () => GObject): Promise<GObject>;
     getItemById(itemId: string): PackageItem;
     getItemByName(resName: string): PackageItem;
     getItemAssetByName(resName: string): Object;

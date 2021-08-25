@@ -5,6 +5,6 @@ export declare class GObjectPool {
     constructor();
     clear(): void;
     get count(): number;
-    getObject(url: string): GObject;
+    getObject(url: string): Promise<GObject>;
     returnObject(obj: GObject): void;
 }

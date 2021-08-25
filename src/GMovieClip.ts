@@ -110,23 +110,26 @@ export class GMovieClip extends GObject {
         }
     }
 
-    public constructFromResource(): void {
-        var displayItem: PackageItem = this.packageItem.getBranch();
+    public constructFromResource(): Promise<void> {
+        return new Promise((reslove, reject) => {
+            var displayItem: PackageItem = this.packageItem.getBranch();
 
-        this.sourceWidth = displayItem.width;
-        this.sourceHeight = displayItem.height;
-        this.initWidth = this.sourceWidth;
-        this.initHeight = this.sourceHeight;
-
-        this.setSize(this.sourceWidth, this.sourceHeight);
-
-        displayItem = displayItem.getHighResolution();
-        displayItem.load();
-
-        this._movieClip.interval = displayItem.interval;
-        this._movieClip.swing = displayItem.swing;
-        this._movieClip.repeatDelay = displayItem.repeatDelay;
-        this._movieClip.frames = displayItem.frames;
+            this.sourceWidth = displayItem.width;
+            this.sourceHeight = displayItem.height;
+            this.initWidth = this.sourceWidth;
+            this.initHeight = this.sourceHeight;
+    
+            this.setSize(this.sourceWidth, this.sourceHeight);
+    
+            displayItem = displayItem.getHighResolution();
+            displayItem.load();
+    
+            this._movieClip.interval = displayItem.interval;
+            this._movieClip.swing = displayItem.swing;
+            this._movieClip.repeatDelay = displayItem.repeatDelay;
+            this._movieClip.frames = displayItem.frames;
+            reslove();
+        });
     }
 
     public setup_beforeAdd(buffer: ByteBuffer, beginPos: number): void {

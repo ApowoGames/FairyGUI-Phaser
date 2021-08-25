@@ -96,8 +96,8 @@ export declare class GComponent extends GObject {
      */
     getSnappingPositionWithDir(xValue: number, yValue: number, xDir: number, yDir: number, result?: Phaser.Geom.Point): Phaser.Geom.Point;
     childSortingOrderChanged(child: GObject, oldValue: number, newValue: number): void;
-    constructFromResource(): void;
-    constructFromResource2(objectPool: GObject[], poolIndex: number): void;
+    constructFromResource(): Promise<void>;
+    constructFromResource2(objectPool: GObject[], poolIndex: number): Promise<void>;
     protected constructExtension(buffer: ByteBuffer): void;
     protected onConstruct(): void;
     protected constructFromXML(xml: Object): void;

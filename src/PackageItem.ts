@@ -72,7 +72,7 @@ export class PackageItem {
         return this.name;
     }
 
-    public load(): Object {
+    public load(): Promise<Object> {
         return this.owner.getItemAsset(this);
     }
 }

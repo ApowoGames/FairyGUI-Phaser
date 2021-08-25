@@ -1004,224 +1004,231 @@ export class GComponent extends GObject {
         }
     }
 
-    public constructFromResource(): void {
-        this.constructFromResource2(null, 0);
+    public constructFromResource(): Promise<void> {
+        return new Promise((reslove, reject) => {
+            this.constructFromResource2(null, 0).then(() => {
+                reslove();
+            });
+        });
     }
 
-    public constructFromResource2(objectPool: GObject[], poolIndex: number): void {
-        var contentItem: PackageItem = this.packageItem.getBranch();
+    public constructFromResource2(objectPool: GObject[], poolIndex: number): Promise<void> {
+        return new Promise((reslove, reject) => {
+            var contentItem: PackageItem = this.packageItem.getBranch();
 
-        if (!contentItem.decoded) {
-            contentItem.decoded = true;
-            TranslationHelper.translateComponent(contentItem);
-        }
-
-        var i: number;
-        var dataLen: number;
-        var curPos: number;
-        var nextPos: number;
-        var f1: number;
-        var f2: number;
-        var i1: number;
-        var i2: number;
-
-        var buffer: ByteBuffer = contentItem.rawData;
-        buffer.seek(0, 0);
-
-        this._underConstruct = true;
-
-        this.sourceWidth = buffer.readInt();
-        this.sourceHeight = buffer.readInt();
-        this.initWidth = this.sourceWidth;
-        this.initHeight = this.sourceHeight;
-
-        if (!this.displayObject) this.createDisplayObject();
-        this.setSize(this.sourceWidth, this.sourceHeight);
-
-        if (buffer.readBool()) {
-            this.minWidth = buffer.readInt();
-            this.maxWidth = buffer.readInt();
-            this.minHeight = buffer.readInt();
-            this.maxHeight = buffer.readInt();
-        }
-
-        if (buffer.readBool()) {
-            f1 = buffer.readFloat();
-            f2 = buffer.readFloat();
-            this.internalSetPivot(f1, f2, buffer.readBool());
-        }
-
-        if (buffer.readBool()) {
-            this._margin.top = buffer.readInt();
-            this._margin.bottom = buffer.readInt();
-            this._margin.left = buffer.readInt();
-            this._margin.right = buffer.readInt();
-        }
-
-        var overflow: number = buffer.readByte();
-        if (overflow == OverflowType.Scroll) {
-            var savedPos: number = buffer.position;
-            buffer.seek(0, 7);
-            this.setupScroll(buffer);
-            buffer.position = savedPos;
-        }
-        else
-            this.setupOverflow(overflow);
-
-        if (buffer.readBool())
-            buffer.skip(8);
-
-        this._buildingDisplayList = true;
-
-        buffer.seek(0, 1);
-
-        var controllerCount: number = buffer.readShort();
-        for (i = 0; i < controllerCount; i++) {
-            nextPos = buffer.readShort();
-            nextPos += buffer.position;
-
-            var controller: Controller = new Controller();
-            this._controllers.push(controller);
-            controller.parent = this;
-            controller.setup(buffer);
-
-            buffer.position = nextPos;
-        }
-
-        buffer.seek(0, 2);
-
-        var child: GObject;
-        var childCount: number = buffer.readShort();
-        for (i = 0; i < childCount; i++) {
-            dataLen = buffer.readShort();
-            curPos = buffer.position;
-
-            if (objectPool)
-                child = objectPool[poolIndex + i];
-            else {
-                buffer.seek(curPos, 0);
-
-                var type: number = buffer.readByte();
-                var src: string = buffer.readS();
-                var pkgId: string = buffer.readS();
-
-                var pi: PackageItem = null;
-                if (src != null) {
-                    var pkg: UIPackage;
-                    if (pkgId != null)
-                        pkg = UIPackage.getById(pkgId);
-                    else
-                        pkg = contentItem.owner;
-
-                    pi = pkg ? pkg.getItemById(src) : null;
-                }
-                if (pi) {
-                    child = Decls.UIObjectFactory.newObject(pi);
-                    child.constructFromResource();
-                }
-                else
-                    child = Decls.UIObjectFactory.newObject(type);
+            if (!contentItem.decoded) {
+                contentItem.decoded = true;
+                TranslationHelper.translateComponent(contentItem);
             }
 
-            child._underConstruct = true;
-            child.setup_beforeAdd(buffer, curPos);
-            child.parent = this;
-            this._children.push(child);
+            var i: number;
+            var dataLen: number;
+            var curPos: number;
+            var nextPos: number;
+            var f1: number;
+            var f2: number;
+            var i1: number;
+            var i2: number;
 
-            buffer.position = curPos + dataLen;
-        }
+            var buffer: ByteBuffer = contentItem.rawData;
+            buffer.seek(0, 0);
 
-        buffer.seek(0, 3);
-        this.relations.setup(buffer, true);
+            this._underConstruct = true;
 
-        buffer.seek(0, 2);
-        buffer.skip(2);
+            this.sourceWidth = buffer.readInt();
+            this.sourceHeight = buffer.readInt();
+            this.initWidth = this.sourceWidth;
+            this.initHeight = this.sourceHeight;
 
-        for (i = 0; i < childCount; i++) {
-            nextPos = buffer.readShort();
-            nextPos += buffer.position;
+            if (!this.displayObject) this.createDisplayObject();
+            this.setSize(this.sourceWidth, this.sourceHeight);
 
-            buffer.seek(buffer.position, 3);
-            this._children[i].relations.setup(buffer, false);
+            if (buffer.readBool()) {
+                this.minWidth = buffer.readInt();
+                this.maxWidth = buffer.readInt();
+                this.minHeight = buffer.readInt();
+                this.maxHeight = buffer.readInt();
+            }
 
-            buffer.position = nextPos;
-        }
+            if (buffer.readBool()) {
+                f1 = buffer.readFloat();
+                f2 = buffer.readFloat();
+                this.internalSetPivot(f1, f2, buffer.readBool());
+            }
 
-        buffer.seek(0, 2);
-        buffer.skip(2);
+            if (buffer.readBool()) {
+                this._margin.top = buffer.readInt();
+                this._margin.bottom = buffer.readInt();
+                this._margin.left = buffer.readInt();
+                this._margin.right = buffer.readInt();
+            }
 
-        for (i = 0; i < childCount; i++) {
-            nextPos = buffer.readShort();
-            nextPos += buffer.position;
+            var overflow: number = buffer.readByte();
+            if (overflow == OverflowType.Scroll) {
+                var savedPos: number = buffer.position;
+                buffer.seek(0, 7);
+                this.setupScroll(buffer);
+                buffer.position = savedPos;
+            }
+            else
+                this.setupOverflow(overflow);
 
-            child = this._children[i];
-            child.setup_afterAdd(buffer, buffer.position);
-            child._underConstruct = false;
+            if (buffer.readBool())
+                buffer.skip(8);
 
-            buffer.position = nextPos;
-        }
+            this._buildingDisplayList = true;
 
-        buffer.seek(0, 4);
+            buffer.seek(0, 1);
 
-        buffer.skip(2); //customData
-        this.opaque = buffer.readBool();
-        var maskId: number = buffer.readShort();
-        if (maskId != -1) {
-            this.setMask((<Graphics>this.getChildAt(maskId).displayObject), buffer.readBool());
-        }
+            var controllerCount: number = buffer.readShort();
+            for (i = 0; i < controllerCount; i++) {
+                nextPos = buffer.readShort();
+                nextPos += buffer.position;
 
-        var hitTestId: string = buffer.readS();
-        i1 = buffer.readInt();
-        i2 = buffer.readInt();
-        var hitArea: HitArea;
+                var controller: Controller = new Controller();
+                this._controllers.push(controller);
+                controller.parent = this;
+                controller.setup(buffer);
 
-        if (hitTestId) {
-            pi = contentItem.owner.getItemById(hitTestId);
-            if (pi && pi.pixelHitTestData)
-                hitArea = new PixelHitTest(pi.pixelHitTestData, i1, i2);
-        }
-        else if (i1 != 0 && i2 != -1) {
-            // hitArea = new ChildHitArea(this.getChildAt(i2));
-        }
+                buffer.position = nextPos;
+            }
 
-        if (hitArea) {
-            // this._displayObject.setInteractive(hitArea,Phaser.Geom.Rectangle.Contains);
-            this.hitArea = hitArea;
-            // this._displayObject.mouseThrough = false;
-            // this._displayObject.hitTestPrior = true;
-        }
+            buffer.seek(0, 2);
 
-        buffer.seek(0, 5);
+            var child: GObject;
+            var childCount: number = buffer.readShort();
+            for (i = 0; i < childCount; i++) {
+                dataLen = buffer.readShort();
+                curPos = buffer.position;
 
-        var transitionCount: number = buffer.readShort();
-        for (i = 0; i < transitionCount; i++) {
-            nextPos = buffer.readShort();
-            nextPos += buffer.position;
+                if (objectPool)
+                    child = objectPool[poolIndex + i];
+                else {
+                    buffer.seek(curPos, 0);
 
-            var trans: Transition = new Transition(this);
-            trans.setup(buffer);
-            this._transitions.push(trans);
+                    var type: number = buffer.readByte();
+                    var src: string = buffer.readS();
+                    var pkgId: string = buffer.readS();
 
-            buffer.position = nextPos;
-        }
+                    var pi: PackageItem = null;
+                    if (src != null) {
+                        var pkg: UIPackage;
+                        if (pkgId != null)
+                            pkg = UIPackage.getById(pkgId);
+                        else
+                            pkg = contentItem.owner;
 
-        if (this._transitions.length > 0) {
-            this.displayObject.on(Phaser.GameObjects.Events.ADDED_TO_SCENE, this.___added);
-            this.displayObject.on(Phaser.GameObjects.Events.REMOVED_FROM_SCENE, this.___removed);
-        }
+                        pi = pkg ? pkg.getItemById(src) : null;
+                    }
+                    if (pi) {
+                        child = Decls.UIObjectFactory.newObject(pi);
+                        child.constructFromResource();
+                    }
+                    else
+                        child = Decls.UIObjectFactory.newObject(type);
+                }
 
-        this.applyAllControllers();
+                child._underConstruct = true;
+                child.setup_beforeAdd(buffer, curPos);
+                child.parent = this;
+                this._children.push(child);
 
-        this._buildingDisplayList = false;
-        this._underConstruct = false;
+                buffer.position = curPos + dataLen;
+            }
 
-        this.buildNativeDisplayList();
-        this.setBoundsChangedFlag();
+            buffer.seek(0, 3);
+            this.relations.setup(buffer, true);
 
-        if (contentItem.objectType != ObjectType.Component)
-            this.constructExtension(buffer);
+            buffer.seek(0, 2);
+            buffer.skip(2);
 
-        this.onConstruct();
+            for (i = 0; i < childCount; i++) {
+                nextPos = buffer.readShort();
+                nextPos += buffer.position;
+
+                buffer.seek(buffer.position, 3);
+                this._children[i].relations.setup(buffer, false);
+
+                buffer.position = nextPos;
+            }
+
+            buffer.seek(0, 2);
+            buffer.skip(2);
+
+            for (i = 0; i < childCount; i++) {
+                nextPos = buffer.readShort();
+                nextPos += buffer.position;
+
+                child = this._children[i];
+                child.setup_afterAdd(buffer, buffer.position);
+                child._underConstruct = false;
+
+                buffer.position = nextPos;
+            }
+
+            buffer.seek(0, 4);
+
+            buffer.skip(2); //customData
+            this.opaque = buffer.readBool();
+            var maskId: number = buffer.readShort();
+            if (maskId != -1) {
+                this.setMask((<Graphics>this.getChildAt(maskId).displayObject), buffer.readBool());
+            }
+
+            var hitTestId: string = buffer.readS();
+            i1 = buffer.readInt();
+            i2 = buffer.readInt();
+            var hitArea: HitArea;
+
+            if (hitTestId) {
+                pi = contentItem.owner.getItemById(hitTestId);
+                if (pi && pi.pixelHitTestData)
+                    hitArea = new PixelHitTest(pi.pixelHitTestData, i1, i2);
+            }
+            else if (i1 != 0 && i2 != -1) {
+                // hitArea = new ChildHitArea(this.getChildAt(i2));
+            }
+
+            if (hitArea) {
+                // this._displayObject.setInteractive(hitArea,Phaser.Geom.Rectangle.Contains);
+                this.hitArea = hitArea;
+                // this._displayObject.mouseThrough = false;
+                // this._displayObject.hitTestPrior = true;
+            }
+
+            buffer.seek(0, 5);
+
+            var transitionCount: number = buffer.readShort();
+            for (i = 0; i < transitionCount; i++) {
+                nextPos = buffer.readShort();
+                nextPos += buffer.position;
+
+                var trans: Transition = new Transition(this);
+                trans.setup(buffer);
+                this._transitions.push(trans);
+
+                buffer.position = nextPos;
+            }
+
+            if (this._transitions.length > 0) {
+                this.displayObject.on(Phaser.GameObjects.Events.ADDED_TO_SCENE, this.___added);
+                this.displayObject.on(Phaser.GameObjects.Events.REMOVED_FROM_SCENE, this.___removed);
+            }
+
+            this.applyAllControllers();
+
+            this._buildingDisplayList = false;
+            this._underConstruct = false;
+
+            this.buildNativeDisplayList();
+            this.setBoundsChangedFlag();
+
+            if (contentItem.objectType != ObjectType.Component)
+                this.constructExtension(buffer);
+
+            this.onConstruct();
+            reslove();
+        });
     }
 
     protected constructExtension(buffer: ByteBuffer): void {

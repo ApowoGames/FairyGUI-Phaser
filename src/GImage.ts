@@ -83,23 +83,26 @@ export class GImage extends GObject {
         this._displayObject["$owner"] = this;
     }
 
-    public constructFromResource(): void {
-        this._contentItem = this.packageItem.getBranch();
+    public constructFromResource(): Promise<void> {
+        return new Promise((reslove, reject) => {
+            this._contentItem = this.packageItem.getBranch();
 
-        this.sourceWidth = this._contentItem.width;
-        this.sourceHeight = this._contentItem.height;
-        this.initWidth = this.sourceWidth;
-        this.initHeight = this.sourceHeight;
+            this.sourceWidth = this._contentItem.width;
+            this.sourceHeight = this._contentItem.height;
+            this.initWidth = this.sourceWidth;
+            this.initHeight = this.sourceHeight;
 
-        this._contentItem = this._contentItem.getHighResolution();
-        this._contentItem.load();
+            this._contentItem = this._contentItem.getHighResolution();
+            this._contentItem.load().then(() => {
+                this.image.scale9Grid = this._contentItem.scale9Grid;
+                this.image.scaleByTile = this._contentItem.scaleByTile;
+                this.image.tileGridIndice = this._contentItem.tileGridIndice;
+                this.image.texture = this._contentItem.texture;
 
-        this.image.scale9Grid = this._contentItem.scale9Grid;
-        this.image.scaleByTile = this._contentItem.scaleByTile;
-        this.image.tileGridIndice = this._contentItem.tileGridIndice;
-        this.image.texture = this._contentItem.texture;
+                this.setSize(this.sourceWidth, this.sourceHeight);
+            });
+        });
 
-        this.setSize(this.sourceWidth, this.sourceHeight);
     }
 
     protected handleXYChanged(): void {

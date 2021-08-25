@@ -169,10 +169,12 @@ export class Window extends GComponent {
 
         if (UIConfig.windowModalWaiting) {
             if (!this._modalWaitPane)
-                this._modalWaitPane = UIPackage.createObjectFromURL(UIConfig.windowModalWaiting);
+                UIPackage.createObjectFromURL(UIConfig.windowModalWaiting).then((obj) => {
+                    this._modalWaitPane = obj;
+                    this.layoutModalWaitPane();
+                });
 
-            this.layoutModalWaitPane();
-
+           
             // this.addChild(this._modalWaitPane);
         }
     }

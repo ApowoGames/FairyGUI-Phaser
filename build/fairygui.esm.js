@@ -3960,6 +3960,9 @@ class GObject {
         }
     }
     constructFromResource() {
+        return new Promise((reslove, reject) => {
+            reslove();
+        });
     }
     setup_beforeAdd(buffer, beginPos) {
         buffer.seek(beginPos, 0);
@@ -5345,18 +5348,21 @@ class GImage extends GObject {
         this._displayObject["$owner"] = this;
     }
     constructFromResource() {
-        this._contentItem = this.packageItem.getBranch();
-        this.sourceWidth = this._contentItem.width;
-        this.sourceHeight = this._contentItem.height;
-        this.initWidth = this.sourceWidth;
-        this.initHeight = this.sourceHeight;
-        this._contentItem = this._contentItem.getHighResolution();
-        this._contentItem.load();
-        this.image.scale9Grid = this._contentItem.scale9Grid;
-        this.image.scaleByTile = this._contentItem.scaleByTile;
-        this.image.tileGridIndice = this._contentItem.tileGridIndice;
-        this.image.texture = this._contentItem.texture;
-        this.setSize(this.sourceWidth, this.sourceHeight);
+        return new Promise((reslove, reject) => {
+            this._contentItem = this.packageItem.getBranch();
+            this.sourceWidth = this._contentItem.width;
+            this.sourceHeight = this._contentItem.height;
+            this.initWidth = this.sourceWidth;
+            this.initHeight = this.sourceHeight;
+            this._contentItem = this._contentItem.getHighResolution();
+            this._contentItem.load().then(() => {
+                this.image.scale9Grid = this._contentItem.scale9Grid;
+                this.image.scaleByTile = this._contentItem.scaleByTile;
+                this.image.tileGridIndice = this._contentItem.tileGridIndice;
+                this.image.texture = this._contentItem.texture;
+                this.setSize(this.sourceWidth, this.sourceHeight);
+            });
+        });
     }
     handleXYChanged() {
         super.handleXYChanged();
@@ -5484,18 +5490,21 @@ class GMovieClip extends GObject {
         }
     }
     constructFromResource() {
-        var displayItem = this.packageItem.getBranch();
-        this.sourceWidth = displayItem.width;
-        this.sourceHeight = displayItem.height;
-        this.initWidth = this.sourceWidth;
-        this.initHeight = this.sourceHeight;
-        this.setSize(this.sourceWidth, this.sourceHeight);
-        displayItem = displayItem.getHighResolution();
-        displayItem.load();
-        this._movieClip.interval = displayItem.interval;
-        this._movieClip.swing = displayItem.swing;
-        this._movieClip.repeatDelay = displayItem.repeatDelay;
-        this._movieClip.frames = displayItem.frames;
+        return new Promise((reslove, reject) => {
+            var displayItem = this.packageItem.getBranch();
+            this.sourceWidth = displayItem.width;
+            this.sourceHeight = displayItem.height;
+            this.initWidth = this.sourceWidth;
+            this.initHeight = this.sourceHeight;
+            this.setSize(this.sourceWidth, this.sourceHeight);
+            displayItem = displayItem.getHighResolution();
+            displayItem.load();
+            this._movieClip.interval = displayItem.interval;
+            this._movieClip.swing = displayItem.swing;
+            this._movieClip.repeatDelay = displayItem.repeatDelay;
+            this._movieClip.frames = displayItem.frames;
+            reslove();
+        });
     }
     setup_beforeAdd(buffer, beginPos) {
         super.setup_beforeAdd(buffer, beginPos);
@@ -8115,11 +8124,17 @@ class UIPackage {
         return null;
     }
     static createObjectFromURL(url, userClass) {
-        var pi = UIPackage.getItemByURL(url);
-        if (pi) {
-            return pi.owner.internalCreateObject(pi, userClass);
-        }
-        return null;
+        return new Promise((reslove, reject) => {
+            var pi = UIPackage.getItemByURL(url);
+            if (pi) {
+                pi.owner.internalCreateObject(pi, userClass).then((g) => {
+                    return reslove(g);
+                });
+            }
+            else {
+                return reslove(null);
+            }
+        });
     }
     static getItemURL(pkgName, resName) {
         var pkg = UIPackage.getByName(pkgName);
@@ -8392,23 +8407,36 @@ class UIPackage {
         }
     }
     createObject(resName, userClass) {
-        const pi = this._itemsByName[resName];
-        if (pi) {
-            return this.internalCreateObject(pi, userClass);
-        }
-        else {
-            return null;
-        }
+        return new Promise((reslove, reject) => {
+            const pi = this._itemsByName[resName];
+            if (pi) {
+                this.internalCreateObject(pi, userClass).then((g) => {
+                    return reslove(g);
+                });
+            }
+            else {
+                return reslove(null);
+            }
+        });
     }
+    /**
+     * 创建内部子对象
+     * @param item
+     * @param userClass
+     * @returns
+     */
     internalCreateObject(item, userClass) {
-        const g = Decls.UIObjectFactory.newObject(item, userClass);
-        if (g == null) {
-            return null;
-        }
-        UIPackage._constructing++;
-        g.constructFromResource();
-        UIPackage._constructing--;
-        return g;
+        return new Promise((reslove, reject) => {
+            const g = Decls.UIObjectFactory.newObject(item, userClass);
+            if (g == null) {
+                return reslove(null);
+            }
+            UIPackage._constructing++;
+            g.constructFromResource().then(() => {
+                UIPackage._constructing--;
+                return reslove(g);
+            });
+        });
     }
     getItemById(itemId) {
         return this._itemsById[itemId];
@@ -10718,172 +10746,179 @@ class GComponent extends GObject {
         }
     }
     constructFromResource() {
-        this.constructFromResource2(null, 0);
+        return new Promise((reslove, reject) => {
+            this.constructFromResource2(null, 0).then(() => {
+                reslove();
+            });
+        });
     }
     constructFromResource2(objectPool, poolIndex) {
-        var contentItem = this.packageItem.getBranch();
-        if (!contentItem.decoded) {
-            contentItem.decoded = true;
-            TranslationHelper.translateComponent(contentItem);
-        }
-        var i;
-        var dataLen;
-        var curPos;
-        var nextPos;
-        var f1;
-        var f2;
-        var i1;
-        var i2;
-        var buffer = contentItem.rawData;
-        buffer.seek(0, 0);
-        this._underConstruct = true;
-        this.sourceWidth = buffer.readInt();
-        this.sourceHeight = buffer.readInt();
-        this.initWidth = this.sourceWidth;
-        this.initHeight = this.sourceHeight;
-        if (!this.displayObject)
-            this.createDisplayObject();
-        this.setSize(this.sourceWidth, this.sourceHeight);
-        if (buffer.readBool()) {
-            this.minWidth = buffer.readInt();
-            this.maxWidth = buffer.readInt();
-            this.minHeight = buffer.readInt();
-            this.maxHeight = buffer.readInt();
-        }
-        if (buffer.readBool()) {
-            f1 = buffer.readFloat();
-            f2 = buffer.readFloat();
-            this.internalSetPivot(f1, f2, buffer.readBool());
-        }
-        if (buffer.readBool()) {
-            this._margin.top = buffer.readInt();
-            this._margin.bottom = buffer.readInt();
-            this._margin.left = buffer.readInt();
-            this._margin.right = buffer.readInt();
-        }
-        var overflow = buffer.readByte();
-        if (overflow == OverflowType.Scroll) {
-            var savedPos = buffer.position;
-            buffer.seek(0, 7);
-            this.setupScroll(buffer);
-            buffer.position = savedPos;
-        }
-        else
-            this.setupOverflow(overflow);
-        if (buffer.readBool())
-            buffer.skip(8);
-        this._buildingDisplayList = true;
-        buffer.seek(0, 1);
-        var controllerCount = buffer.readShort();
-        for (i = 0; i < controllerCount; i++) {
-            nextPos = buffer.readShort();
-            nextPos += buffer.position;
-            var controller = new Controller();
-            this._controllers.push(controller);
-            controller.parent = this;
-            controller.setup(buffer);
-            buffer.position = nextPos;
-        }
-        buffer.seek(0, 2);
-        var child;
-        var childCount = buffer.readShort();
-        for (i = 0; i < childCount; i++) {
-            dataLen = buffer.readShort();
-            curPos = buffer.position;
-            if (objectPool)
-                child = objectPool[poolIndex + i];
-            else {
-                buffer.seek(curPos, 0);
-                var type = buffer.readByte();
-                var src = buffer.readS();
-                var pkgId = buffer.readS();
-                var pi = null;
-                if (src != null) {
-                    var pkg;
-                    if (pkgId != null)
-                        pkg = UIPackage.getById(pkgId);
-                    else
-                        pkg = contentItem.owner;
-                    pi = pkg ? pkg.getItemById(src) : null;
-                }
-                if (pi) {
-                    child = Decls.UIObjectFactory.newObject(pi);
-                    child.constructFromResource();
-                }
-                else
-                    child = Decls.UIObjectFactory.newObject(type);
+        return new Promise((reslove, reject) => {
+            var contentItem = this.packageItem.getBranch();
+            if (!contentItem.decoded) {
+                contentItem.decoded = true;
+                TranslationHelper.translateComponent(contentItem);
             }
-            child._underConstruct = true;
-            child.setup_beforeAdd(buffer, curPos);
-            child.parent = this;
-            this._children.push(child);
-            buffer.position = curPos + dataLen;
-        }
-        buffer.seek(0, 3);
-        this.relations.setup(buffer, true);
-        buffer.seek(0, 2);
-        buffer.skip(2);
-        for (i = 0; i < childCount; i++) {
-            nextPos = buffer.readShort();
-            nextPos += buffer.position;
-            buffer.seek(buffer.position, 3);
-            this._children[i].relations.setup(buffer, false);
-            buffer.position = nextPos;
-        }
-        buffer.seek(0, 2);
-        buffer.skip(2);
-        for (i = 0; i < childCount; i++) {
-            nextPos = buffer.readShort();
-            nextPos += buffer.position;
-            child = this._children[i];
-            child.setup_afterAdd(buffer, buffer.position);
-            child._underConstruct = false;
-            buffer.position = nextPos;
-        }
-        buffer.seek(0, 4);
-        buffer.skip(2); //customData
-        this.opaque = buffer.readBool();
-        var maskId = buffer.readShort();
-        if (maskId != -1) {
-            this.setMask(this.getChildAt(maskId).displayObject, buffer.readBool());
-        }
-        var hitTestId = buffer.readS();
-        i1 = buffer.readInt();
-        i2 = buffer.readInt();
-        var hitArea;
-        if (hitTestId) {
-            pi = contentItem.owner.getItemById(hitTestId);
-            if (pi && pi.pixelHitTestData)
-                hitArea = new PixelHitTest(pi.pixelHitTestData, i1, i2);
-        }
-        if (hitArea) {
-            // this._displayObject.setInteractive(hitArea,Phaser.Geom.Rectangle.Contains);
-            this.hitArea = hitArea;
-            // this._displayObject.mouseThrough = false;
-            // this._displayObject.hitTestPrior = true;
-        }
-        buffer.seek(0, 5);
-        var transitionCount = buffer.readShort();
-        for (i = 0; i < transitionCount; i++) {
-            nextPos = buffer.readShort();
-            nextPos += buffer.position;
-            var trans = new Transition(this);
-            trans.setup(buffer);
-            this._transitions.push(trans);
-            buffer.position = nextPos;
-        }
-        if (this._transitions.length > 0) {
-            this.displayObject.on(Phaser.GameObjects.Events.ADDED_TO_SCENE, this.___added);
-            this.displayObject.on(Phaser.GameObjects.Events.REMOVED_FROM_SCENE, this.___removed);
-        }
-        this.applyAllControllers();
-        this._buildingDisplayList = false;
-        this._underConstruct = false;
-        this.buildNativeDisplayList();
-        this.setBoundsChangedFlag();
-        if (contentItem.objectType != ObjectType.Component)
-            this.constructExtension(buffer);
-        this.onConstruct();
+            var i;
+            var dataLen;
+            var curPos;
+            var nextPos;
+            var f1;
+            var f2;
+            var i1;
+            var i2;
+            var buffer = contentItem.rawData;
+            buffer.seek(0, 0);
+            this._underConstruct = true;
+            this.sourceWidth = buffer.readInt();
+            this.sourceHeight = buffer.readInt();
+            this.initWidth = this.sourceWidth;
+            this.initHeight = this.sourceHeight;
+            if (!this.displayObject)
+                this.createDisplayObject();
+            this.setSize(this.sourceWidth, this.sourceHeight);
+            if (buffer.readBool()) {
+                this.minWidth = buffer.readInt();
+                this.maxWidth = buffer.readInt();
+                this.minHeight = buffer.readInt();
+                this.maxHeight = buffer.readInt();
+            }
+            if (buffer.readBool()) {
+                f1 = buffer.readFloat();
+                f2 = buffer.readFloat();
+                this.internalSetPivot(f1, f2, buffer.readBool());
+            }
+            if (buffer.readBool()) {
+                this._margin.top = buffer.readInt();
+                this._margin.bottom = buffer.readInt();
+                this._margin.left = buffer.readInt();
+                this._margin.right = buffer.readInt();
+            }
+            var overflow = buffer.readByte();
+            if (overflow == OverflowType.Scroll) {
+                var savedPos = buffer.position;
+                buffer.seek(0, 7);
+                this.setupScroll(buffer);
+                buffer.position = savedPos;
+            }
+            else
+                this.setupOverflow(overflow);
+            if (buffer.readBool())
+                buffer.skip(8);
+            this._buildingDisplayList = true;
+            buffer.seek(0, 1);
+            var controllerCount = buffer.readShort();
+            for (i = 0; i < controllerCount; i++) {
+                nextPos = buffer.readShort();
+                nextPos += buffer.position;
+                var controller = new Controller();
+                this._controllers.push(controller);
+                controller.parent = this;
+                controller.setup(buffer);
+                buffer.position = nextPos;
+            }
+            buffer.seek(0, 2);
+            var child;
+            var childCount = buffer.readShort();
+            for (i = 0; i < childCount; i++) {
+                dataLen = buffer.readShort();
+                curPos = buffer.position;
+                if (objectPool)
+                    child = objectPool[poolIndex + i];
+                else {
+                    buffer.seek(curPos, 0);
+                    var type = buffer.readByte();
+                    var src = buffer.readS();
+                    var pkgId = buffer.readS();
+                    var pi = null;
+                    if (src != null) {
+                        var pkg;
+                        if (pkgId != null)
+                            pkg = UIPackage.getById(pkgId);
+                        else
+                            pkg = contentItem.owner;
+                        pi = pkg ? pkg.getItemById(src) : null;
+                    }
+                    if (pi) {
+                        child = Decls.UIObjectFactory.newObject(pi);
+                        child.constructFromResource();
+                    }
+                    else
+                        child = Decls.UIObjectFactory.newObject(type);
+                }
+                child._underConstruct = true;
+                child.setup_beforeAdd(buffer, curPos);
+                child.parent = this;
+                this._children.push(child);
+                buffer.position = curPos + dataLen;
+            }
+            buffer.seek(0, 3);
+            this.relations.setup(buffer, true);
+            buffer.seek(0, 2);
+            buffer.skip(2);
+            for (i = 0; i < childCount; i++) {
+                nextPos = buffer.readShort();
+                nextPos += buffer.position;
+                buffer.seek(buffer.position, 3);
+                this._children[i].relations.setup(buffer, false);
+                buffer.position = nextPos;
+            }
+            buffer.seek(0, 2);
+            buffer.skip(2);
+            for (i = 0; i < childCount; i++) {
+                nextPos = buffer.readShort();
+                nextPos += buffer.position;
+                child = this._children[i];
+                child.setup_afterAdd(buffer, buffer.position);
+                child._underConstruct = false;
+                buffer.position = nextPos;
+            }
+            buffer.seek(0, 4);
+            buffer.skip(2); //customData
+            this.opaque = buffer.readBool();
+            var maskId = buffer.readShort();
+            if (maskId != -1) {
+                this.setMask(this.getChildAt(maskId).displayObject, buffer.readBool());
+            }
+            var hitTestId = buffer.readS();
+            i1 = buffer.readInt();
+            i2 = buffer.readInt();
+            var hitArea;
+            if (hitTestId) {
+                pi = contentItem.owner.getItemById(hitTestId);
+                if (pi && pi.pixelHitTestData)
+                    hitArea = new PixelHitTest(pi.pixelHitTestData, i1, i2);
+            }
+            if (hitArea) {
+                // this._displayObject.setInteractive(hitArea,Phaser.Geom.Rectangle.Contains);
+                this.hitArea = hitArea;
+                // this._displayObject.mouseThrough = false;
+                // this._displayObject.hitTestPrior = true;
+            }
+            buffer.seek(0, 5);
+            var transitionCount = buffer.readShort();
+            for (i = 0; i < transitionCount; i++) {
+                nextPos = buffer.readShort();
+                nextPos += buffer.position;
+                var trans = new Transition(this);
+                trans.setup(buffer);
+                this._transitions.push(trans);
+                buffer.position = nextPos;
+            }
+            if (this._transitions.length > 0) {
+                this.displayObject.on(Phaser.GameObjects.Events.ADDED_TO_SCENE, this.___added);
+                this.displayObject.on(Phaser.GameObjects.Events.REMOVED_FROM_SCENE, this.___removed);
+            }
+            this.applyAllControllers();
+            this._buildingDisplayList = false;
+            this._underConstruct = false;
+            this.buildNativeDisplayList();
+            this.setBoundsChangedFlag();
+            if (contentItem.objectType != ObjectType.Component)
+                this.constructExtension(buffer);
+            this.onConstruct();
+            reslove();
+        });
     }
     constructExtension(buffer) {
     }
@@ -11040,10 +11075,16 @@ class GRoot extends GComponent {
                 console.warn("UIConfig.tooltipsWin not defined");
                 return;
             }
-            this._defaultTooltipWin = UIPackage.createObjectFromURL(resourceURL);
+            UIPackage.createObjectFromURL(resourceURL).then((obj) => {
+                this._defaultTooltipWin = obj;
+                this._defaultTooltipWin.text = msg;
+                this.showTooltipsWin(this._defaultTooltipWin);
+            });
         }
-        this._defaultTooltipWin.text = msg;
-        this.showTooltipsWin(this._defaultTooltipWin);
+        else {
+            this._defaultTooltipWin.text = msg;
+            this.showTooltipsWin(this._defaultTooltipWin);
+        }
     }
     showTooltipsWin(tooltipWin, xx, yy) {
         // this.hideTooltips();
@@ -11831,16 +11872,19 @@ class GObjectPool {
         return this._count;
     }
     getObject(url) {
-        url = UIPackage.normalizeURL(url);
-        if (url == null)
-            return null;
-        var arr = this._pool[url];
-        if (arr && arr.length > 0) {
-            this._count--;
-            return arr.shift();
-        }
-        var child = UIPackage.createObjectFromURL(url);
-        return child;
+        return new Promise((reslove, reject) => {
+            url = UIPackage.normalizeURL(url);
+            if (url == null)
+                return reslove(null);
+            var arr = this._pool[url];
+            if (arr && arr.length > 0) {
+                this._count--;
+                return reslove(arr.shift());
+            }
+            UIPackage.createObjectFromURL(url).then((obj) => {
+                return reslove(obj);
+            });
+        });
     }
     returnObject(obj) {
         var url = obj.resourceURL;
@@ -12014,57 +12058,73 @@ class GLoader extends GObject {
             this.loadExternal();
     }
     loadFromPackage(itemURL) {
-        this._contentItem = UIPackage.getItemByURL(itemURL);
-        if (this._contentItem) {
-            this._contentItem = this._contentItem.getBranch();
-            this.sourceWidth = this._contentItem.width;
-            this.sourceHeight = this._contentItem.height;
-            this._contentItem = this._contentItem.getHighResolution();
-            this._contentItem.load();
-            if (this._autoSize)
-                this.setSize(this.sourceWidth, this.sourceHeight);
-            if (this._contentItem.type == PackageItemType.Image) {
-                if (!this._contentItem.texture) {
-                    this.setErrorState();
-                }
-                else {
-                    this._content.texture = this._contentItem.texture;
-                    this._content.scale9Grid = this._contentItem.scale9Grid;
-                    this._content.scaleByTile = this._contentItem.scaleByTile;
-                    this._content.tileGridIndice = this._contentItem.tileGridIndice;
-                    this.sourceWidth = this._contentItem.width;
-                    this.sourceHeight = this._contentItem.height;
-                    this.updateLayout();
-                }
-            }
-            else if (this._contentItem.type == PackageItemType.MovieClip) {
+        return new Promise((reslove, reject) => {
+            this._contentItem = UIPackage.getItemByURL(itemURL);
+            if (this._contentItem) {
+                this._contentItem = this._contentItem.getBranch();
                 this.sourceWidth = this._contentItem.width;
                 this.sourceHeight = this._contentItem.height;
-                this._content.interval = this._contentItem.interval;
-                this._content.swing = this._contentItem.swing;
-                this._content.repeatDelay = this._contentItem.repeatDelay;
-                this._content.frames = this._contentItem.frames;
-                this.updateLayout();
+                this._contentItem = this._contentItem.getHighResolution();
+                this._contentItem.load().then(() => {
+                    if (this._autoSize) {
+                        this.setSize(this.sourceWidth, this.sourceHeight);
+                    }
+                    if (this._contentItem.type == PackageItemType.Image) {
+                        if (!this._contentItem.texture) {
+                            this.setErrorState();
+                            return reject();
+                        }
+                        else {
+                            this._content.texture = this._contentItem.texture;
+                            this._content.scale9Grid = this._contentItem.scale9Grid;
+                            this._content.scaleByTile = this._contentItem.scaleByTile;
+                            this._content.tileGridIndice = this._contentItem.tileGridIndice;
+                            this.sourceWidth = this._contentItem.width;
+                            this.sourceHeight = this._contentItem.height;
+                            this.updateLayout();
+                            return reslove();
+                        }
+                    }
+                    else if (this._contentItem.type == PackageItemType.MovieClip) {
+                        this.sourceWidth = this._contentItem.width;
+                        this.sourceHeight = this._contentItem.height;
+                        this._content.interval = this._contentItem.interval;
+                        this._content.swing = this._contentItem.swing;
+                        this._content.repeatDelay = this._contentItem.repeatDelay;
+                        this._content.frames = this._contentItem.frames;
+                        this.updateLayout();
+                        return reslove();
+                    }
+                    else if (this._contentItem.type == PackageItemType.Component) {
+                        UIPackage.createObjectFromURL(itemURL).then((obj) => {
+                            if (!obj) {
+                                this.setErrorState();
+                                return reject();
+                            }
+                            else if (!(obj instanceof GComponent)) {
+                                obj.dispose();
+                                this.setErrorState();
+                                return reject();
+                            }
+                            else {
+                                this._content2 = obj.asCom;
+                                this._displayObject.add(this._content2.displayObject);
+                                this.updateLayout();
+                                return reslove();
+                            }
+                        });
+                    }
+                    else {
+                        this.setErrorState();
+                        return reject();
+                    }
+                });
             }
-            else if (this._contentItem.type == PackageItemType.Component) {
-                var obj = UIPackage.createObjectFromURL(itemURL);
-                if (!obj)
-                    this.setErrorState();
-                else if (!(obj instanceof GComponent)) {
-                    obj.dispose();
-                    this.setErrorState();
-                }
-                else {
-                    this._content2 = obj.asCom;
-                    this._displayObject.add(this._content2.displayObject);
-                    this.updateLayout();
-                }
-            }
-            else
+            else {
                 this.setErrorState();
-        }
-        else
-            this.setErrorState();
+                return reject();
+            }
+        });
     }
     loadExternal() {
         AssetProxy.inst.load(this._url, this._url, LoaderType.IMAGE, this.__getResCompleted);
@@ -12097,13 +12157,15 @@ class GLoader extends GObject {
             return;
         if (!this._errorSign) {
             if (UIConfig.loaderErrorSign != null) {
-                this._errorSign = GLoader._errorSignPool.getObject(UIConfig.loaderErrorSign);
+                GLoader._errorSignPool.getObject(UIConfig.loaderErrorSign).then((obj) => {
+                    this._errorSign = obj;
+                    if (this._errorSign) {
+                        this._errorSign.setSize(this.width, this.height);
+                        throw new Error("TODO");
+                        // this._displayObject.addChild(this._errorSign.displayObject);
+                    }
+                });
             }
-        }
-        if (this._errorSign) {
-            this._errorSign.setSize(this.width, this.height);
-            throw new Error("TODO");
-            // this._displayObject.addChild(this._errorSign.displayObject);
         }
     }
     clearErrorState() {
@@ -13905,12 +13967,15 @@ class GList extends GComponent {
         return this._pool;
     }
     getFromPool(url) {
-        if (!url)
-            url = this._defaultItem;
-        var obj = this._pool.getObject(url);
-        if (obj)
-            obj.visible = true;
-        return obj;
+        return new Promise((reslove, rejcet) => {
+            if (!url)
+                url = this._defaultItem;
+            this._pool.getObject(url).then((obj) => {
+                if (obj)
+                    obj.visible = true;
+                return reslove(obj);
+            });
+        });
     }
     returnToPool(obj) {
         throw new Error("TODO");
@@ -15780,11 +15845,12 @@ class GList extends GComponent {
                     continue;
                 }
             }
-            var obj = this.getFromPool(str);
-            if (obj) {
-                throw new Error("TODO");
-            }
-            buffer.position = nextPos;
+            this.getFromPool(str).then((obj) => {
+                if (obj) {
+                    throw new Error("TODO");
+                }
+                buffer.position = nextPos;
+            });
         }
     }
     setupItem(buffer, obj) {
@@ -16463,8 +16529,10 @@ class Window extends GComponent {
             this._requestingCmd = requestingCmd;
         if (UIConfig.windowModalWaiting) {
             if (!this._modalWaitPane)
-                this._modalWaitPane = UIPackage.createObjectFromURL(UIConfig.windowModalWaiting);
-            this.layoutModalWaitPane();
+                UIPackage.createObjectFromURL(UIConfig.windowModalWaiting).then((obj) => {
+                    this._modalWaitPane = obj;
+                    this.layoutModalWaitPane();
+                });
             // this.addChild(this._modalWaitPane);
         }
     }

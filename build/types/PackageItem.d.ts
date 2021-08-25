@@ -34,5 +34,5 @@ export declare class PackageItem {
     getBranch(): PackageItem;
     getHighResolution(): PackageItem;
     toString(): string;
-    load(): Object;
+    load(): Promise<Object>;
 }

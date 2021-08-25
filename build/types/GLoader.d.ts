@@ -52,7 +52,7 @@ export declare class GLoader extends GObject {
     get content(): MovieClip;
     get component(): GComponent;
     protected loadContent(): void;
-    protected loadFromPackage(itemURL: string): void;
+    protected loadFromPackage(itemURL: string): Promise<void>;
     protected loadExternal(): void;
     protected freeExternal(texture: Phaser.Textures.Texture): void;
     protected onExternalLoadSuccess(texture: Phaser.Textures.Texture): void;

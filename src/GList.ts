@@ -223,14 +223,17 @@ export class GList extends GComponent {
         return this._pool;
     }
 
-    public getFromPool(url?: string): GObject {
-        if (!url)
-            url = this._defaultItem;
+    public getFromPool(url?: string): Promise<GObject> {
+        return new Promise((reslove, rejcet) => {
+            if (!url)
+                url = this._defaultItem;
 
-        var obj: GObject = this._pool.getObject(url);
-        if (obj)
-            obj.visible = true;
-        return obj;
+            this._pool.getObject(url).then((obj) => {
+                if (obj)
+                    obj.visible = true;
+                return reslove(obj);
+            });
+        });
     }
 
     public returnToPool(obj: GObject): void {
@@ -2339,14 +2342,15 @@ export class GList extends GComponent {
                 }
             }
 
-            var obj: GObject = this.getFromPool(str);
-            if (obj) {
-                throw new Error("TODO");
-                // this.addChild(obj);
-                this.setupItem(buffer, obj);
-            }
+            this.getFromPool(str).then((obj) => {
+                if (obj) {
+                    throw new Error("TODO");
+                    // this.addChild(obj);
+                    this.setupItem(buffer, obj);
+                }
+                buffer.position = nextPos;
+            });
 
-            buffer.position = nextPos;
         }
     }
 

@@ -23,19 +23,22 @@ export class GObjectPool {
         return this._count;
     }
 
-    public getObject(url: string): GObject {
-        url = UIPackage.normalizeURL(url);
-        if (url == null)
-            return null;
+    public getObject(url: string): Promise<GObject> {
+        return new Promise((reslove, reject) => {
+            url = UIPackage.normalizeURL(url);
+            if (url == null)
+                return reslove(null);
 
-        var arr: Array<GObject> = this._pool[url];
-        if (arr && arr.length > 0) {
-            this._count--;
-            return arr.shift();
-        }
+            var arr: Array<GObject> = this._pool[url];
+            if (arr && arr.length > 0) {
+                this._count--;
+                return reslove(arr.shift());
+            }
 
-        var child: GObject = UIPackage.createObjectFromURL(url);
-        return child;
+            UIPackage.createObjectFromURL(url).then((obj) => {
+                return reslove(obj);
+            });
+        });
     }
 
     public returnObject(obj: GObject): void {

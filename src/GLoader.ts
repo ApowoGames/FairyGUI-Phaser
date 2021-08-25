@@ -223,60 +223,75 @@ export class GLoader extends GObject {
             this.loadExternal();
     }
 
-    protected loadFromPackage(itemURL: string): void {
-        this._contentItem = UIPackage.getItemByURL(itemURL);
-        if (this._contentItem) {
-            this._contentItem = this._contentItem.getBranch();
-            this.sourceWidth = this._contentItem.width;
-            this.sourceHeight = this._contentItem.height;
-            this._contentItem = this._contentItem.getHighResolution();
-            this._contentItem.load();
-
-            if (this._autoSize)
-                this.setSize(this.sourceWidth, this.sourceHeight);
-
-            if (this._contentItem.type == PackageItemType.Image) {
-                if (!this._contentItem.texture) {
-                    this.setErrorState();
-                }
-                else {
-                    this._content.texture = this._contentItem.texture;
-                    this._content.scale9Grid = this._contentItem.scale9Grid;
-                    this._content.scaleByTile = this._contentItem.scaleByTile;
-                    this._content.tileGridIndice = this._contentItem.tileGridIndice;
-                    this.sourceWidth = this._contentItem.width;
-                    this.sourceHeight = this._contentItem.height;
-                    this.updateLayout();
-                }
-            }
-            else if (this._contentItem.type == PackageItemType.MovieClip) {
+    protected loadFromPackage(itemURL: string): Promise<void> {
+        return new Promise((reslove, reject) => {
+            this._contentItem = UIPackage.getItemByURL(itemURL);
+            if (this._contentItem) {
+                this._contentItem = this._contentItem.getBranch();
                 this.sourceWidth = this._contentItem.width;
                 this.sourceHeight = this._contentItem.height;
-                this._content.interval = this._contentItem.interval;
-                this._content.swing = this._contentItem.swing;
-                this._content.repeatDelay = this._contentItem.repeatDelay;
-                this._content.frames = this._contentItem.frames;
-                this.updateLayout();
+                this._contentItem = this._contentItem.getHighResolution();
+                this._contentItem.load().then(() => {
+                    if (this._autoSize) {
+                        this.setSize(this.sourceWidth, this.sourceHeight);
+                    }
+
+                    if (this._contentItem.type == PackageItemType.Image) {
+                        if (!this._contentItem.texture) {
+                            this.setErrorState();
+                            return reject();
+                        }
+                        else {
+                            this._content.texture = this._contentItem.texture;
+                            this._content.scale9Grid = this._contentItem.scale9Grid;
+                            this._content.scaleByTile = this._contentItem.scaleByTile;
+                            this._content.tileGridIndice = this._contentItem.tileGridIndice;
+                            this.sourceWidth = this._contentItem.width;
+                            this.sourceHeight = this._contentItem.height;
+                            this.updateLayout();
+                            return reslove();
+                        }
+                    }
+                    else if (this._contentItem.type == PackageItemType.MovieClip) {
+                        this.sourceWidth = this._contentItem.width;
+                        this.sourceHeight = this._contentItem.height;
+                        this._content.interval = this._contentItem.interval;
+                        this._content.swing = this._contentItem.swing;
+                        this._content.repeatDelay = this._contentItem.repeatDelay;
+                        this._content.frames = this._contentItem.frames;
+                        this.updateLayout();
+                        return reslove();
+                    }
+                    else if (this._contentItem.type == PackageItemType.Component) {
+                        UIPackage.createObjectFromURL(itemURL).then((obj) => {
+                            if (!obj) {
+                                this.setErrorState();
+                                return reject();
+                            }
+                            else if (!(obj instanceof GComponent)) {
+                                obj.dispose();
+                                this.setErrorState();
+                                return reject();
+                            }
+                            else {
+                                this._content2 = obj.asCom;
+                                this._displayObject.add(this._content2.displayObject);
+                                this.updateLayout();
+                                return reslove();
+                            }
+                        });
+                    }
+                    else {
+                        this.setErrorState();
+                        return reject();
+                    }
+                });
             }
-            else if (this._contentItem.type == PackageItemType.Component) {
-                var obj: GObject = UIPackage.createObjectFromURL(itemURL);
-                if (!obj)
-                    this.setErrorState();
-                else if (!(obj instanceof GComponent)) {
-                    obj.dispose();
-                    this.setErrorState();
-                }
-                else {
-                    this._content2 = obj.asCom;
-                    this._displayObject.add(this._content2.displayObject);
-                    this.updateLayout();
-                }
-            }
-            else
+            else {
                 this.setErrorState();
-        }
-        else
-            this.setErrorState();
+                return reject();
+            }
+        });
     }
 
     protected loadExternal(): void {
@@ -316,15 +331,16 @@ export class GLoader extends GObject {
 
         if (!this._errorSign) {
             if (UIConfig.loaderErrorSign != null) {
-                this._errorSign = GLoader._errorSignPool.getObject(UIConfig.loaderErrorSign);
+                GLoader._errorSignPool.getObject(UIConfig.loaderErrorSign).then((obj) => {
+                    this._errorSign = obj;
+                    if (this._errorSign) {
+                        this._errorSign.setSize(this.width, this.height);
+                        throw new Error("TODO");
+                        // this._displayObject.addChild(this._errorSign.displayObject);
+                    }
+                });
             }
-        }
-
-        if (this._errorSign) {
-            this._errorSign.setSize(this.width, this.height);
-            throw new Error("TODO");
-            // this._displayObject.addChild(this._errorSign.displayObject);
-        }
+        }        
     }
 
     private clearErrorState(): void {
