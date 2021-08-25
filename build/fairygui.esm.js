@@ -4003,7 +4003,8 @@ class GObject {
         if (f1 != 0)
             this.rotation = f1;
         if (!buffer.readBool())
-            this.visible = false;
+            // ===todo false
+            this.visible = true;
         if (!buffer.readBool())
             this.touchable = false;
         if (buffer.readBool())
@@ -5303,16 +5304,6 @@ class GImage extends GObject {
             this.image.color = value;
             this.updateGear(4);
         }
-    }
-    set visible(value) {
-        // if (this._visible != value) {
-        //     this._visible = value;
-        //     this.handleVisibleChanged();
-        //     if (this._parent)
-        //         this._parent.setBoundsChangedFlag();
-        //     if (this._group && this._group.excludeInvisibles)
-        //         this._group.setBoundsChangedFlag();
-        // }
     }
     get flip() {
         return this._flip;

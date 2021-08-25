@@ -1299,7 +1299,8 @@ export class GObject {
             this.rotation = f1;
 
         if (!buffer.readBool())
-            this.visible = false;
+        // ===todo false
+            this.visible = true;
         if (!buffer.readBool())
             this.touchable = false;
         if (buffer.readBool())
