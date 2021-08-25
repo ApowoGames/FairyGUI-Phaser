@@ -3983,27 +3983,27 @@
                 this.maxHeight = buffer.readInt();
             }
             if (buffer.readBool()) {
-                f1 = buffer.readShort();
-                f2 = buffer.readShort();
+                f1 = buffer.readFloat();
+                f2 = buffer.readFloat();
                 this.setScale(f1, f2);
             }
             if (buffer.readBool()) {
-                f1 = buffer.readShort();
-                f2 = buffer.readShort();
+                f1 = buffer.readFloat();
+                f2 = buffer.readFloat();
                 this.setSkew(f1, f2);
             }
             if (buffer.readBool()) {
-                f1 = buffer.readShort();
-                f2 = buffer.readShort();
+                f1 = buffer.readFloat();
+                f2 = buffer.readFloat();
                 this.setPivot(f1, f2, buffer.readBool());
             }
-            f1 = buffer.readShort();
+            f1 = buffer.readFloat();
             if (f1 != 1) {
                 if (f1 > 1)
                     f1 = 1;
                 this.alpha = f1;
             }
-            f1 = buffer.readShort();
+            f1 = buffer.readFloat();
             if (f1 != 0)
                 this.rotation = f1;
             if (!buffer.readBool())
