@@ -8477,53 +8477,60 @@
                                     else {
                                         item.texture = null;
                                     }
-                                    return reslove(item.texture);
+                                    reslove(item.texture);
                                 });
                             }
                             else {
                                 item.texture = null;
-                                return reslove(item.texture);
+                                reslove(item.texture);
                             }
                         }
                         else {
                             item.texture = null;
-                            return reslove(item.texture);
+                            reslove(item.texture);
                         }
+                        break;
                     case exports.PackageItemType.Atlas:
                         if (!item.decoded) {
                             AssetProxy.inst.getRes(item.file, LoaderType.IMAGE).then((texturePath) => {
                                 item.decoded = true;
                                 const texture = GRoot.inst.scene.textures.get(texturePath);
                                 item.texture = texture;
-                                return reslove(item.texture);
+                                reslove(item.texture);
                             });
                             //     if(!fgui.UIConfig.textureLinearSampling)
                             //     item.texture.isLinearSampling = false;
                         }
                         else {
-                            return reslove(item.texture);
+                            reslove(item.texture);
                         }
+                        break;
                     case exports.PackageItemType.Font:
-                    // if (!item.decoded) {
-                    //     item.decoded = true;
-                    // this.loadFont(item);
-                    // }
-                    // return item.bitmapFont;
+                        // if (!item.decoded) {
+                        //     item.decoded = true;
+                        // this.loadFont(item);
+                        // }
+                        // return item.bitmapFont;
+                        break;
                     case exports.PackageItemType.MovieClip:
-                    // if (!item.decoded) {
-                    //     item.decoded = true;
-                    //     this.loadMovieClip(item);
-                    // }
-                    // return item.frames;
+                        // if (!item.decoded) {
+                        //     item.decoded = true;
+                        //     this.loadMovieClip(item);
+                        // }
+                        // return item.frames;
+                        break;
                     case exports.PackageItemType.Component:
-                        return reslove(item.rawData);
+                        reslove(item.rawData);
+                        break;
                     case exports.PackageItemType.Misc:
-                    // if (item.file)
-                    //     return AssetProxy.inst.getRes(item.file);
-                    // else
-                    //     return null;
+                        // if (item.file)
+                        //     return AssetProxy.inst.getRes(item.file);
+                        // else
+                        //     return null;
+                        break;
                     default:
-                        return reslove(null);
+                        reslove(null);
+                        break;
                 }
             });
         }
