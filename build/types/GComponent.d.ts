@@ -27,7 +27,7 @@ export declare class GComponent extends GObject {
     createDisplayObject(): void;
     dispose(): void;
     get displayListContainer(): Phaser.GameObjects.Container;
-    add(child: GObject): GObject;
+    addChild(child: GObject): GObject;
     addChildAt(child: GObject, index: number): GObject;
     private getInsertPosForSortingChild;
     removeChild(child: GObject, dispose?: boolean): GObject;

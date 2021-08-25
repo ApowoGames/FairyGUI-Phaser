@@ -3892,7 +3892,8 @@
             this.checkGearDisplay();
         }
         createDisplayObject() {
-            this._displayObject = this.scene.add.container(0, 0);
+            this._displayObject = this.scene.make.container(undefined, false);
+            this._scene.stage.addChild(this._displayObject, 1);
             this._displayObject["$owner"] = this;
         }
         setDisplayObject(val) {
@@ -5354,7 +5355,7 @@
         }
         createDisplayObject() {
             this._displayObject = this._image = new Image(this.scene);
-            // this.image.mouseEnabled = false;
+            this._scene.stage.addChild(this._displayObject, 1);
             this._displayObject["$owner"] = this;
         }
         constructFromResource() {
@@ -5374,7 +5375,6 @@
                     this.y = packageItem.y;
                     this._xOffset = packageItem.tx;
                     this._yOffset = packageItem.ty;
-                    this.setSize(packageItem.width, packageItem.height);
                     this.setSize(this.sourceWidth, this.sourceHeight);
                     reslove();
                 });
@@ -9998,7 +9998,7 @@
         get displayListContainer() {
             return this._container;
         }
-        add(child) {
+        addChild(child) {
             this.addChildAt(child, this._children.length);
             return child;
         }
@@ -11024,9 +11024,9 @@
         constructor() {
             super();
         }
-        get displayObject() {
-            return this._container;
-        }
+        // public get displayObject(): Phaser.GameObjects.Container {
+        //     return this._uiStage.dis;
+        // }
         static get inst() {
             if (GRoot._inst == null)
                 GRoot._inst = new GRoot();
@@ -11053,17 +11053,28 @@
          */
         attachTo(scene, stageOptions) {
             this._scene = scene;
-            this.createDisplayObject();
+            //this.createDisplayObject();
             // todo deal stageoptions
             if (this._uiStage) {
                 this.removeListen();
-                this._uiStage.removeChild(this._container, UISceneDisplay.LAYER_ROOT);
+                // this._uiStage.removeChild(this._container, UISceneDisplay.LAYER_ROOT);
                 this._uiStage.destroy();
             }
             this._stageOptions = stageOptions;
             this._uiStage = new UIStage(scene);
-            this._uiStage.addChild(this._container, UISceneDisplay.LAYER_ROOT);
+            this._scene.stage = this._uiStage;
+            // this._uiStage.addChild(this._container, UISceneDisplay.LAYER_ROOT);
             this.addListen();
+        }
+        addToStage(child, type, index = -1) {
+            if (!this._uiStage)
+                return;
+            this._uiStage.addChild(child, type, index);
+        }
+        removeFromStage(child, type) {
+            if (!this._uiStage)
+                return;
+            this._uiStage.removeChild(child, type);
         }
         getResUrl(key) {
             return this._stageOptions.res + key;
@@ -11147,7 +11158,7 @@
             // this.addChild(this._tooltipWin);
         }
         createDisplayObject() {
-            this._container = this._scene.add.container(0, 0);
+            // this._container = this._scene.add.container(0, 0);
         }
         onStageDown(pointer) {
             GRoot._gmStatus.mouseX = pointer.worldX;
@@ -11162,7 +11173,7 @@
             GRoot._gmStatus.mouseY = pointer.worldY;
         }
         $winResize(stage) {
-            this._container.setSize(stage.stageWidth, stage.stageHeight);
+            // this._container.setSize(stage.stageWidth, stage.stageHeight);
             this.updateContentScaleLevel();
         }
         updateContentScaleLevel() {

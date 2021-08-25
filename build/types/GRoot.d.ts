@@ -28,7 +28,6 @@ export declare class GRoot extends GComponent {
     private _defaultTooltipWin;
     private _checkPopups;
     constructor();
-    get displayObject(): Phaser.GameObjects.Container;
     static get inst(): GRoot;
     /**
     * the current mouse/pointer data
@@ -44,6 +43,8 @@ export declare class GRoot extends GComponent {
      * @param stageOptions
      */
     attachTo(scene: Phaser.Scene, stageOptions?: any): void;
+    addToStage(child: Phaser.GameObjects.GameObject, type: UISceneDisplay, index?: number): void;
+    removeFromStage(child: Phaser.GameObjects.GameObject, type: UISceneDisplay): void;
     getResUrl(key: string): string;
     getResUIUrl(key: string): string;
     getOsdRes(value: string): string;

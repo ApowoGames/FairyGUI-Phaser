@@ -41,9 +41,9 @@ export class GRoot extends GComponent {
         super();
     }
 
-    public get displayObject(): Phaser.GameObjects.Container {
-        return this._container;
-    }
+    // public get displayObject(): Phaser.GameObjects.Container {
+    //     return this._uiStage.dis;
+    // }
 
     public static get inst(): GRoot {
         if (GRoot._inst == null)
@@ -79,19 +79,30 @@ export class GRoot extends GComponent {
     public attachTo(scene: Phaser.Scene, stageOptions?: any): void {
 
         this._scene = scene;
-        this.createDisplayObject();
+        //this.createDisplayObject();
         // todo deal stageoptions
         if (this._uiStage) {
             this.removeListen();
-            this._uiStage.removeChild(this._container, UISceneDisplay.LAYER_ROOT);
+            // this._uiStage.removeChild(this._container, UISceneDisplay.LAYER_ROOT);
             this._uiStage.destroy();
         }
 
         this._stageOptions = stageOptions;
 
         this._uiStage = new UIStage(scene);
-        this._uiStage.addChild(this._container, UISceneDisplay.LAYER_ROOT);
+        (<any>this._scene).stage = this._uiStage;
+        // this._uiStage.addChild(this._container, UISceneDisplay.LAYER_ROOT);
         this.addListen();
+    }
+
+    public addToStage(child: Phaser.GameObjects.GameObject, type: UISceneDisplay, index: number = -1) {
+        if (!this._uiStage) return;
+        this._uiStage.addChild(child, type, index);
+    }
+
+    public removeFromStage(child: Phaser.GameObjects.GameObject, type: UISceneDisplay) {
+        if (!this._uiStage) return;
+        this._uiStage.removeChild(child, type);
     }
 
     public getResUrl(key: string): string {
@@ -189,7 +200,7 @@ export class GRoot extends GComponent {
     }
 
     public createDisplayObject() {
-        this._container = this._scene.add.container(0, 0);
+        // this._container = this._scene.add.container(0, 0);
     }
 
     private onStageDown(pointer: Phaser.Input.Pointer) {
@@ -208,7 +219,7 @@ export class GRoot extends GComponent {
     }
 
     private $winResize(stage: UIStage): void {
-        this._container.setSize(stage.stageWidth, stage.stageHeight);
+        // this._container.setSize(stage.stageWidth, stage.stageHeight);
         this.updateContentScaleLevel();
     }
 

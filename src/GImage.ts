@@ -79,7 +79,7 @@ export class GImage extends GObject {
 
     public createDisplayObject(): void {
         this._displayObject = this._image = new Image(this.scene);
-        // this.image.mouseEnabled = false;
+        (<any>this._scene).stage.addChild(this._displayObject, 1);
         this._displayObject["$owner"] = this;
 
     }
@@ -104,7 +104,6 @@ export class GImage extends GObject {
                 this.y = packageItem.y;
                 this._xOffset = packageItem.tx;
                 this._yOffset = packageItem.ty;
-                this.setSize(packageItem.width, packageItem.height);
 
                 this.setSize(this.sourceWidth, this.sourceHeight);
                 reslove();

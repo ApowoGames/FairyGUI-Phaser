@@ -5,7 +5,6 @@ import { Controller } from './Controller';
 import { UIConfig } from './UIConfig';
 import { ByteBuffer } from './utils/ByteBuffer';
 import { ToolSet } from './utils/ToolSet';
-// import { GRoot } from './GRoot';
 import { RelationType, ObjectPropID } from './FieldTypes';
 import { Events } from './Events';
 import { GTreeNode } from './GTreeNode';
@@ -1154,7 +1153,8 @@ export class GObject {
     }
 
     public createDisplayObject(): void {
-        this._displayObject = this.scene.add.container(0, 0);
+        this._displayObject = this.scene.make.container(undefined, false);
+        (<any>this._scene).stage.addChild(this._displayObject, 1);
         this._displayObject["$owner"] = this;
     }
 

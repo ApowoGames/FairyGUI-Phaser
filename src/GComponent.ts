@@ -86,7 +86,7 @@ export class GComponent extends GObject {
         return this._container;
     }
 
-    public add(child: GObject): GObject {
+    public addChild(child: GObject): GObject {
         this.addChildAt(child, this._children.length);
         return child;
     }
