@@ -3390,7 +3390,14 @@ class GObject {
         return this._visible;
     }
     set visible(value) {
-        return;
+        if (this._visible != value) {
+            this._visible = value;
+            this.handleVisibleChanged();
+            if (this._parent)
+                this._parent.setBoundsChangedFlag();
+            if (this._group && this._group.excludeInvisibles)
+                this._group.setBoundsChangedFlag();
+        }
     }
     get internalVisible() {
         return this._internalVisible && (!this._group || this._group.internalVisible);

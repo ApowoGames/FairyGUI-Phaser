@@ -559,7 +559,6 @@ export class GObject {
     }
 
     public set visible(value: boolean) {
-        return;
         if (this._visible != value) {
             this._visible = value;
             this.handleVisibleChanged();
