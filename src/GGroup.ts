@@ -20,6 +20,7 @@ export class GGroup extends GObject {
 
     constructor(scene?: Phaser.Scene) {
         super(scene);
+        console.log("group create", this);
     }
 
     public dispose(): void {

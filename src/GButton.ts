@@ -53,6 +53,7 @@ export class GButton extends GComponent {
         this._soundVolumeScale = UIConfig.buttonSoundVolumeScale;
         this._changeStateOnClick = true;
         this._downEffectValue = 0.8;
+        console.log("button create===>", this);
     }
 
     public get icon(): string {

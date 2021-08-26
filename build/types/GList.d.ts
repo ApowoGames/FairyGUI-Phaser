@@ -69,9 +69,9 @@ export declare class GList extends GComponent {
     getFromPool(url?: string): Promise<GObject>;
     returnToPool(obj: GObject): void;
     addChildAt(child: GObject, index: number): GObject;
-    addItem(url?: string): GObject;
-    addItemFromPool(url?: string): GObject;
-    removeChildAt(index: number, dispose?: boolean): GObject;
+    addItem(url?: string): Promise<GObject>;
+    addItemFromPool(url?: string): Promise<GObject>;
+    removeChildAt(index: number, dispose?: boolean): Promise<GObject>;
     removeChildToPoolAt(index: number): void;
     removeChildToPool(child: GObject): void;
     removeChildrenToPool(beginIndex?: number, endIndex?: number): void;
@@ -127,6 +127,7 @@ export declare class GList extends GComponent {
     private handleScroll3;
     private handleArchOrder1;
     private handleArchOrder2;
+    private handleAlign;
     protected updateBounds(): void;
     setup_beforeAdd(buffer: ByteBuffer, beginPos: number): void;
     protected readItems(buffer: ByteBuffer): void;

@@ -42,6 +42,7 @@ export class ByteBuffer {
     public readByte(): number {
         this.validate(1);
         return this._view.getInt8(this._pos++);
+        
     }
 
     public readUbyte(): number {

@@ -1,5 +1,10 @@
 import { ByteBuffer } from './utils/ByteBuffer';
 import { GObject } from './GObject';
+export declare enum TextType {
+    BASIC = 0,
+    RICH = 1,
+    INPUT = 2
+}
 export declare class GTextField extends GObject {
     protected _templateVars: {
         [index: string]: string;
@@ -10,7 +15,7 @@ export declare class GTextField extends GObject {
     protected _heightAutoSize: boolean;
     protected _ubbEnabled: boolean;
     protected _updatingSize: boolean;
-    constructor();
+    constructor(scene: Phaser.Scene);
     get font(): string;
     set font(value: string);
     get fontSize(): number;

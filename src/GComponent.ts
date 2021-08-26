@@ -143,40 +143,45 @@ export class GComponent extends GObject {
         return i;
     }
 
-    public removeChild(child: GObject, dispose?: boolean): GObject {
-        var childIndex: number = this._children.indexOf(child);
-        if (childIndex != -1) {
-            this.removeChildAt(childIndex, dispose);
-        }
-        return child;
+    public removeChild(child: GObject, dispose?: boolean): Promise<GObject> {
+        return new Promise((reslove, reject) => {
+            var childIndex: number = this._children.indexOf(child);
+            if (childIndex != -1) {
+                this.removeChildAt(childIndex, dispose);
+            }
+            reslove(child);
+        });
+
     }
 
-    public removeChildAt(index: number, dispose?: boolean): GObject {
-        if (index >= 0 && index < this._children.length) {
-            var child: GObject = this._children[index];
-            child.parent = null;
+    public removeChildAt(index: number, dispose?: boolean): Promise<GObject> {
+        return new Promise((reslove, reject) => {
+            if (index >= 0 && index < this._children.length) {
+                var child: GObject = this._children[index];
+                child.parent = null;
 
-            if (child.sortingOrder != 0)
-                this._sortingChildCount--;
+                if (child.sortingOrder != 0)
+                    this._sortingChildCount--;
 
-            this._children.splice(index, 1);
-            child.group = null;
-            if (child.inContainer) {
-                this._container.remove(child.displayObject);
-                // if (this._childrenRenderOrder == ChildrenRenderOrder.Arch)
-                //     Laya.timer.callLater(this, this.buildNativeDisplayList);
+                this._children.splice(index, 1);
+                child.group = null;
+                if (child.inContainer) {
+                    this._container.remove(child.displayObject);
+                    // if (this._childrenRenderOrder == ChildrenRenderOrder.Arch)
+                    //     Laya.timer.callLater(this, this.buildNativeDisplayList);
+                }
+
+                if (dispose)
+                    child.dispose();
+
+                this.setBoundsChangedFlag();
+
+                reslove(child);
             }
-
-            if (dispose)
-                child.dispose();
-
-            this.setBoundsChangedFlag();
-
-            return child;
-        }
-        else {
-            throw "Invalid child index";
-        }
+            else {
+                throw "Invalid child index";
+            }
+        });
     }
 
     public removeChildren(beginIndex?: number, endIndex?: number, dispose?: boolean): void {
@@ -1008,6 +1013,9 @@ export class GComponent extends GObject {
         return new Promise((reslove, reject) => {
             this.constructFromResource2(null, 0).then(() => {
                 reslove();
+            }).catch((error) => {
+                console.log(error);
+                reject();
             });
         });
     }
@@ -1027,8 +1035,8 @@ export class GComponent extends GObject {
             var nextPos: number;
             var f1: number;
             var f2: number;
-            var i1: number;
-            var i2: number;
+            let i1: number;
+            let i2: number;
 
             var buffer: ByteBuffer = contentItem.rawData;
             buffer.seek(0, 0);
@@ -1122,12 +1130,29 @@ export class GComponent extends GObject {
                     }
                     if (pi) {
                         child = Decls.UIObjectFactory.newObject(pi);
-                        child.constructFromResource();
+                        child.constructFromResource().then(() => {
+                            // child._underConstruct = true;
+                            // child.setup_beforeAdd(buffer, curPos);
+                            // child.parent = this;
+                            // this._children.push(child);
+                            // buffer.position = curPos + dataLen;
+                            // this._constructFromResource2(buffer, contentItem, childCount, nextPos);
+                            // reslove();
+                        }).catch((err) => {
+                            console.log(err);
+                        });
                     }
-                    else
+                    else {
                         child = Decls.UIObjectFactory.newObject(type);
+                        // child._underConstruct = true;
+                        // child.setup_beforeAdd(buffer, curPos);
+                        // child.parent = this;
+                        // this._children.push(child);
+                        // buffer.position = curPos + dataLen;
+                        // this._constructFromResource2(buffer, contentItem, childCount, nextPos);
+                        // reslove();
+                    }
                 }
-
                 child._underConstruct = true;
                 child.setup_beforeAdd(buffer, curPos);
                 child.parent = this;
@@ -1229,6 +1254,105 @@ export class GComponent extends GObject {
             this.onConstruct();
             reslove();
         });
+    }
+
+    protected _constructFromResource2(buffer: ByteBuffer, contentItem: PackageItem, childCount: number, nextPos: number) {
+        let i1: number;
+        let i2: number;
+        let child: GObject;
+        let pi: PackageItem;
+        buffer.seek(0, 3);
+        this.relations.setup(buffer, true);
+
+        buffer.seek(0, 2);
+        buffer.skip(2);
+
+        let i: number = 0;
+        for (i = 0; i < childCount; i++) {
+            nextPos = buffer.readShort();
+            nextPos += buffer.position;
+
+            buffer.seek(buffer.position, 3);
+            this._children[i].relations.setup(buffer, false);
+
+            buffer.position = nextPos;
+        }
+
+        buffer.seek(0, 2);
+        buffer.skip(2);
+
+        for (i = 0; i < childCount; i++) {
+            nextPos = buffer.readShort();
+            nextPos += buffer.position;
+
+            child = this._children[i];
+            child.setup_afterAdd(buffer, buffer.position);
+            child._underConstruct = false;
+
+            buffer.position = nextPos;
+        }
+
+        buffer.seek(0, 4);
+
+        buffer.skip(2); //customData
+        this.opaque = buffer.readBool();
+        var maskId: number = buffer.readShort();
+        if (maskId != -1) {
+            this.setMask((<Graphics>this.getChildAt(maskId).displayObject), buffer.readBool());
+        }
+
+        var hitTestId: string = buffer.readS();
+        i1 = buffer.readInt();
+        i2 = buffer.readInt();
+        var hitArea: HitArea;
+
+        if (hitTestId) {
+            pi = contentItem.owner.getItemById(hitTestId);
+            if (pi && pi.pixelHitTestData)
+                hitArea = new PixelHitTest(pi.pixelHitTestData, i1, i2);
+        }
+        else if (i1 != 0 && i2 != -1) {
+            // hitArea = new ChildHitArea(this.getChildAt(i2));
+        }
+
+        if (hitArea) {
+            // this._displayObject.setInteractive(hitArea,Phaser.Geom.Rectangle.Contains);
+            this.hitArea = hitArea;
+            // this._displayObject.mouseThrough = false;
+            // this._displayObject.hitTestPrior = true;
+        }
+
+        buffer.seek(0, 5);
+
+        var transitionCount: number = buffer.readShort();
+        for (i = 0; i < transitionCount; i++) {
+            nextPos = buffer.readShort();
+            nextPos += buffer.position;
+
+            var trans: Transition = new Transition(this);
+            trans.setup(buffer);
+            this._transitions.push(trans);
+
+            buffer.position = nextPos;
+        }
+
+        if (this._transitions.length > 0) {
+            this.displayObject.on(Phaser.GameObjects.Events.ADDED_TO_SCENE, this.___added);
+            this.displayObject.on(Phaser.GameObjects.Events.REMOVED_FROM_SCENE, this.___removed);
+        }
+
+        this.applyAllControllers();
+
+        this._buildingDisplayList = false;
+        this._underConstruct = false;
+
+        this.buildNativeDisplayList();
+        this.setBoundsChangedFlag();
+
+        if (contentItem.objectType != ObjectType.Component)
+            this.constructExtension(buffer);
+
+        this.onConstruct();
     }
 
     protected constructExtension(buffer: ByteBuffer): void {

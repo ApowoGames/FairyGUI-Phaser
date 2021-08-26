@@ -15,6 +15,8 @@ import { Decls, UIPackage } from './UIPackage';
 import { GLoader } from './GLoader';
 import { GTree } from './GTree';
 import { GRoot } from "./GRoot";
+import { GBasicTextField } from "./GBasicTextField";
+import { GGraph } from "./GGraph";
 
 export class UIObjectFactory {
     public static extensions: { [index: string]: new () => GComponent } = {};
@@ -65,13 +67,13 @@ export class UIObjectFactory {
                     return new GComponent(GRoot.inst.scene);
 
                 case ObjectType.Text:
-                // return new GBasicTextField();
+                    return new GBasicTextField(GRoot.inst.scene);
 
                 case ObjectType.RichText:
-                // return new GRichTextField();
+                // return new GRichTextField(GRoot.inst.scene);
 
                 case ObjectType.InputText:
-                // return new GTextInput();
+                // return new GTextInput(GRoot.inst.scene);
 
                 case ObjectType.Group:
                     return new GGroup(GRoot.inst.scene);
@@ -80,8 +82,7 @@ export class UIObjectFactory {
                     return new GList(GRoot.inst.scene);
 
                 case ObjectType.Graph:
-                // return new GGraph();
-
+                    return new GGraph(GRoot.inst.scene);
                 case ObjectType.Loader:
                     // if (UIObjectFactory.loaderType)
                     // return new UIObjectFactory.loaderType();

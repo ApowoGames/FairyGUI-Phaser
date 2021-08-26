@@ -11,7 +11,7 @@ export declare class GGraph extends GObject {
     private _startAngle?;
     private _polygonPoints?;
     private _distances?;
-    constructor();
+    constructor(scene?: Phaser.Scene);
     drawRect(lineSize: number, lineColor: string, fillColor: string, cornerRadius?: number[]): void;
     drawEllipse(lineSize: number, lineColor: string, fillColor: string): void;
     drawRegularPolygon(lineSize: number, lineColor: string, fillColor: string, sides: number, startAngle?: number, distances?: number[]): void;

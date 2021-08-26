@@ -67,7 +67,7 @@ export declare class GObject {
     private _dragStartPos?;
     private _displayStyle;
     private _timeEvent;
-    protected _displayObject: Phaser.GameObjects.Container;
+    protected _displayObject: any;
     protected _xOffset: number;
     protected _yOffset: number;
     protected _scene: Phaser.Scene;

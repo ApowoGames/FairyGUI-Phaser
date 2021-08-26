@@ -1,12 +1,17 @@
 import { UBBParser } from './utils/UBBParser';
 import { AutoSizeType } from './FieldTypes';
-import { BitmapFont } from './display/BitmapFont';
+import { BitmapFont, BMGlyph } from './display/BitmapFont';
 import { GTextField } from './GTextField';
+import { ToolSet } from './utils';
 export class GBasicTextField extends GTextField {
     private _textField: Phaser.GameObjects.Text;
 
     private _font: string;
     private _color: string;
+    /**
+     * 描边颜色，默认黑色
+     */
+    private _strokeColor: string = "#000000";
     private _singleLine: boolean;
     private _letterSpacing: number = 0;
     private _textWidth: number = 0;
@@ -15,12 +20,11 @@ export class GBasicTextField extends GTextField {
     private _bitmapFont?: BitmapFont;
     private _lines?: Array<LineInfo>;
 
-    constructor() {
-        super();
+    constructor(scene?: Phaser.Scene) {
+        super(scene);
 
         this._text = "";
         this._color = "#000000";
-        throw new Error("TODO");
         // this._textField.align = "left";
         // this._textField.font = fgui.UIConfig.defaultFont;
         this._autoSize = AutoSizeType.Both;
@@ -29,9 +33,9 @@ export class GBasicTextField extends GTextField {
     }
 
     public createDisplayObject(): void {
-        // this._displayObject = this._textField = new TextExt(this);
-        // this._displayObject["$owner"] = this;
-        // this._displayObject.mouseEnabled = false;
+        this._displayObject = this._textField = new TextExt(this);
+        this._displayObject["$owner"] = this;
+        this._displayObject.mouseEnabled = false;
     }
 
     public get nativeText(): Phaser.GameObjects.Text {
@@ -59,7 +63,6 @@ export class GBasicTextField extends GTextField {
             this._textField["setChanged"]();
         }
 
-        throw new Error("TODO");
         // if (this.parent && this.parent._underConstruct)
         //     this._textField.typeset();
     }
@@ -69,13 +72,13 @@ export class GBasicTextField extends GTextField {
     }
 
     public get font(): string {
-        throw new Error("TODO");
-        // return this._textField.font;
+        // todo
+        return "";
     }
 
     public set font(value: string) {
         this._font = value;
-        throw new Error("TODO");
+        this._textField.setFont(this._font);
 
         // if (ToolSet.startsWith(this._font, "ui://"))
         //     this._bitmapFont = <BitmapFont>UIPackage.getItemAssetByURL(this._font);
@@ -94,13 +97,11 @@ export class GBasicTextField extends GTextField {
     }
 
     public get fontSize(): number {
-        throw new Error("TODO");
-        // return this._textField.fontSize;
+        return Number(this._textField.style.fontSize);
     }
 
     public set fontSize(value: number) {
-        throw new Error("TODO");
-        // this._textField.fontSize = value;
+        this._textField.style.setFontSize(value);
     }
 
     public get color(): string {
@@ -108,46 +109,43 @@ export class GBasicTextField extends GTextField {
     }
 
     public set color(value: string) {
-        throw new Error("TODO");
-        // if (this._color != value) {
-        //     this._color = value;
-        //     this.updateGear(4);
+        //todo
 
-        //     if (this.grayed)
-        //         this._textField.color = "#AAAAAA";
-        //     else
-        //         this._textField.color = this._color;
-        // }
+        if (this._color != value) {
+            this._color = value;
+            this.updateGear(4);
+
+            if (this.grayed)
+                this._textField.setFill("#AAAAAA");
+            else
+                this._textField.setFill(this._color);
+        }
     }
 
     public get align(): string {
-        throw new Error("TODO");
-        // return this._textField.align;
+        return this._textField.style.align;
     }
 
     public set align(value: string) {
-        throw new Error("TODO");
-        // this._textField.align = value;
+        this._textField.setAlign(value);
     }
 
     public get valign(): string {
-        throw new Error("TODO");
-        // return this._textField.valign;
+        return "";//this._textField.valign;
     }
 
     public set valign(value: string) {
-        throw new Error("TODO");
         // this._textField.valign = value;
     }
 
     public get leading(): number {
-        throw new Error("TODO");
+        return this._textField.lineSpacing;
         // return this._textField.leading;
     }
 
     public set leading(value: number) {
+        this._textField.setLineSpacing(value);
         // this._textField.leading = value;
-        throw new Error("TODO");
     }
 
     public get letterSpacing(): number {
@@ -159,32 +157,30 @@ export class GBasicTextField extends GTextField {
     }
 
     public get bold(): boolean {
-        throw new Error("TODO");
-        // return this._textField.bold;
+        return false;
     }
 
     public set bold(value: boolean) {
-        throw new Error("TODO");
+        // todo bold
         // this._textField.bold = value;
     }
 
     public get italic(): boolean {
-        throw new Error("TODO");
-        // return this._textField.italic;
+        return false;
     }
 
     public set italic(value: boolean) {
-        throw new Error("TODO");
+        // todo italic
         // this._textField.italic = value;
     }
 
     public get underline(): boolean {
-        throw new Error("TODO");
+        return false;
         // return this._textField.underline;
     }
 
     public set underline(value: boolean) {
-        throw new Error("TODO");
+        // todo underline
         // this._textField.underline = value;
     }
 
@@ -193,65 +189,54 @@ export class GBasicTextField extends GTextField {
     }
 
     public set singleLine(value: boolean) {
-        throw new Error("TODO");
+        // todo singleline
         // this._singleLine = value;
         // this._textField.wordWrap = !this._widthAutoSize && !this._singleLine;
     }
 
     public get stroke(): number {
-        throw new Error("TODO");
-
-        // return this._textField.stroke;
+        return this._textField.style.strokeThickness;
     }
 
     public set stroke(value: number) {
-        throw new Error("TODO");
-
-        // this._textField.stroke = value;
+        this._textField.setStroke(this._strokeColor, value);
     }
 
     public get strokeColor(): string {
-        throw new Error("TODO");
-
-        // return this._textField.strokeColor;
+        return this._strokeColor;
     }
 
     public set strokeColor(value: string) {
-        throw new Error("TODO");
-
-        // if (this._textField.strokeColor != value) {
-        //     this._textField.strokeColor = value;
-        //     this.updateGear(4);
-        // }
+        if (this._strokeColor != value) {
+            this._strokeColor = value;
+            this._textField.setStroke(this._strokeColor, this.stroke);
+            this.updateGear(4);
+        }
     }
 
     protected updateAutoSize(): void {
-        throw new Error("TODO");
-
         /*一般没有剪裁文字的需要，感觉HIDDEN有消耗，所以不用了
         if(this._heightAutoSize)
         this._textField.overflow = Text.VISIBLE;
         else
         this._textField.overflow = Text.HIDDEN;*/
+        // todo phaser默认自动换行
         // this._textField.wordWrap = !this._widthAutoSize && !this._singleLine;
-        // if (!this._underConstruct) {
-        //     if (!this._heightAutoSize)
-        //         this._textField.size(this.width, this.height);
-        //     else if (!this._widthAutoSize)
-        //         this._textField.width = this.width;
-        // }
+        if (!this._underConstruct) {
+            if (!this._heightAutoSize)
+                this._textField.setSize(this.width, this.height);
+            else if (!this._widthAutoSize)
+                this._textField.width = this.width;
+        }
     }
 
     public get textWidth(): number {
-        throw new Error("TODO");
-
         // if (this._textField["_isChanged"])
         //     this._textField.typeset();
-        // return this._textWidth;
+        return this._textWidth;
     }
 
     public ensureSizeCorrect(): void {
-        throw new Error("TODO");
         // if (!this._underConstruct && this._textField["_isChanged"])
         //     this._textField.typeset();
     }
@@ -264,46 +249,44 @@ export class GBasicTextField extends GTextField {
     }
 
     private updateSize(): void {
-        throw new Error("TODO");
-        // this._textWidth = Math.ceil(this._textField.textWidth);
-        // this._textHeight = Math.ceil(this._textField.textHeight);
+        this._textWidth = Math.ceil(this._textField.width);
+        this._textHeight = Math.ceil(this._textField.height);
 
-        // var w: number, h: number = 0;
-        // if (this._widthAutoSize) {
-        //     w = this._textWidth;
-        //     if (this._textField.width != w) {
-        //         this._textField.width = w;
-        //         if (this._textField.align != "left")
-        //             this._textField["baseTypeset"]();
-        //     }
-        // }
-        // else
-        //     w = this.width;
+        var w: number, h: number = 0;
+        if (this._widthAutoSize) {
+            w = this._textWidth;
+            if (this._textField.width != w) {
+                this._textField.width = w;
+                if (this._textField.style.align != "left")
+                    this._textField["baseTypeset"]();
+            }
+        }
+        else
+            w = this.width;
 
-        // if (this._heightAutoSize) {
-        //     h = this._textHeight;
-        //     if (!this._widthAutoSize) {
-        //         if (this._textField.height != this._textHeight)
-        //             this._textField.height = this._textHeight;
-        //     }
-        // }
-        // else {
-        //     h = this.height;
-        //     if (this._textHeight > h)
-        //         this._textHeight = h;
-        //     if (this._textField.height != this._textHeight)
-        //         this._textField.height = this._textHeight;
-        // }
+        if (this._heightAutoSize) {
+            h = this._textHeight;
+            if (!this._widthAutoSize) {
+                if (this._textField.height != this._textHeight)
+                    this._textField.height = this._textHeight;
+            }
+        }
+        else {
+            h = this.height;
+            if (this._textHeight > h)
+                this._textHeight = h;
+            if (this._textField.height != this._textHeight)
+                this._textField.height = this._textHeight;
+        }
 
-        // this._updatingSize = true;
-        // this.setSize(w, h);
-        // this._updatingSize = false;
+        this._updatingSize = true;
+        this.setSize(w, h);
+        this._updatingSize = false;
     }
 
     private renderWithBitmapFont(): void {
-        throw new Error("TODO");
 
-        // var gr: Laya.Graphics = this._displayObject.graphics;
+        // var gr: Phaser.GameObjects.Graphics = this._displayObject.graphics;
         // gr.clear();
 
         // if (!this._lines)
@@ -320,7 +303,7 @@ export class GBasicTextField extends GTextField {
         // var lineBuffer: string = "";
         // var lineY: number = GUTTER_Y;
         // var line: LineInfo;
-        // var wordWrap: boolean = !this._widthAutoSize && !this._singleLine;
+        // var wordWrap: boolean = true; // ===========!this._widthAutoSize && !this._singleLine;
         // var fontSize: number = this.fontSize;
         // var fontScale: number = this._bitmapFont.resizable ? fontSize / this._bitmapFont.size : 1;
         // this._textWidth = 0;
@@ -546,29 +529,27 @@ export class GBasicTextField extends GTextField {
     }
 
     protected handleSizeChanged(): void {
-        throw new Error("TODO");
+        if (this._updatingSize)
+            return;
 
-        // if (this._updatingSize)
-        //     return;
-
-        // if (this._underConstruct)
-        //     this._textField.size(this._width, this._height);
-        // else {
-        //     if (this._bitmapFont) {
-        //         if (!this._widthAutoSize)
-        //             this._textField["setChanged"]();
-        //         else
-        //             this.doAlign();
-        //     }
-        //     else {
-        //         if (!this._widthAutoSize) {
-        //             if (!this._heightAutoSize)
-        //                 this._textField.size(this._width, this._height);
-        //             else
-        //                 this._textField.width = this._width;
-        //         }
-        //     }
-        // }
+        if (this._underConstruct)
+            this._textField.setSize(this._width, this._height);
+        else {
+            if (this._bitmapFont) {
+                if (!this._widthAutoSize)
+                    this._textField["setChanged"]();
+                else
+                    this.doAlign();
+            }
+            else {
+                if (!this._widthAutoSize) {
+                    if (!this._heightAutoSize)
+                        this._textField.setSize(this._width, this._height);
+                    else
+                        this._textField.width = this._width;
+                }
+            }
+        }
     }
 
     protected handleGrayedChanged(): void {
@@ -604,9 +585,8 @@ class TextExt extends Phaser.GameObjects.Text {
     private _owner: GBasicTextField;
 
     constructor(owner: GBasicTextField) {
-        super(undefined, 0, 0, "", undefined);
-        throw new Error("TODO");
-        // this._owner = owner;
+        super(owner.scene, 0, 0, "", undefined);
+        this._owner = owner;
     }
 
     private _lock: boolean;
@@ -618,7 +598,6 @@ class TextExt extends Phaser.GameObjects.Text {
     }
 
     public typeset(): void {
-        throw new Error("TODO");
         // this._sizeDirty = true; //阻止SIZE_DELAY_CHANGE的触发
         // super.typeset();
         // if (!this._lock)
@@ -635,7 +614,6 @@ class TextExt extends Phaser.GameObjects.Text {
     }
 
     protected set isChanged(value: boolean) {
-        throw new Error("TODO");
         // if (value && !this._sizeDirty) {
         //     if (this._owner.autoSize != AutoSizeType.None && this._owner.parent) {
         //         this._sizeDirty = true;

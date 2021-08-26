@@ -1,6 +1,12 @@
 import { ByteBuffer } from './utils/ByteBuffer';
 import { AutoSizeType, ObjectPropID } from './FieldTypes';
 import { GObject } from './GObject';
+
+export enum TextType {
+    BASIC,
+    RICH,
+    INPUT
+}
 export class GTextField extends GObject {
     protected _templateVars: { [index: string]: string };
     protected _text: string;
@@ -10,8 +16,9 @@ export class GTextField extends GObject {
     protected _ubbEnabled: boolean;
     protected _updatingSize: boolean;
 
-    constructor() {
-        super();
+    constructor(scene: Phaser.Scene) {
+        super(scene);
+        console.log("text create", this);
     }
 
     public get font(): string {

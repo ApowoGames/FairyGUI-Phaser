@@ -1,3 +1,4 @@
+import { PackageItem } from './PackageItem';
 import { ByteBuffer } from './utils/ByteBuffer';
 import { GGroup } from './GGroup';
 import { ScrollPane } from './ScrollPane';
@@ -30,8 +31,8 @@ export declare class GComponent extends GObject {
     addChild(child: GObject): GObject;
     addChildAt(child: GObject, index: number): GObject;
     private getInsertPosForSortingChild;
-    removeChild(child: GObject, dispose?: boolean): GObject;
-    removeChildAt(index: number, dispose?: boolean): GObject;
+    removeChild(child: GObject, dispose?: boolean): Promise<GObject>;
+    removeChildAt(index: number, dispose?: boolean): Promise<GObject>;
     removeChildren(beginIndex?: number, endIndex?: number, dispose?: boolean): void;
     getChildAt(index: number): GObject;
     getChild(name: string): GObject;
@@ -98,6 +99,7 @@ export declare class GComponent extends GObject {
     childSortingOrderChanged(child: GObject, oldValue: number, newValue: number): void;
     constructFromResource(): Promise<void>;
     constructFromResource2(objectPool: GObject[], poolIndex: number): Promise<void>;
+    protected _constructFromResource2(buffer: ByteBuffer, contentItem: PackageItem, childCount: number, nextPos: number): void;
     protected constructExtension(buffer: ByteBuffer): void;
     protected onConstruct(): void;
     protected constructFromXML(xml: Object): void;

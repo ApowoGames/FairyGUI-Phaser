@@ -1,7 +1,7 @@
 import { GTextField } from './GTextField';
 export declare class GRichTextField extends GTextField {
     private _div;
-    constructor();
+    constructor(scene: Phaser.Scene);
     createDisplayObject(): void;
     get div(): any;
     set text(value: string);

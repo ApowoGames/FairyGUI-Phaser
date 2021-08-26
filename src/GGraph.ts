@@ -13,8 +13,8 @@ export class GGraph extends GObject {
     private _polygonPoints?: number[];
     private _distances?: number[];
 
-    constructor() {
-        super();
+    constructor(scene?: Phaser.Scene) {
+        super(scene);
 
         this._type = 0;
         this._lineSize = 1;
@@ -81,8 +81,6 @@ export class GGraph extends GObject {
     }
 
     private updateGraph(): void {
-        // TODO
-        throw new Error("TODO");
         // this._displayObject.mouseEnabled = this.touchable;
         // var gr: Laya.Graphics = this._displayObject.graphics;
         // gr.clear();
@@ -160,7 +158,6 @@ export class GGraph extends GObject {
     }
 
     public replaceMe(target: GObject): void {
-        throw new Error("TODO");
         // if (!this._parent)
         //     throw "parent not set";
 
@@ -181,8 +178,6 @@ export class GGraph extends GObject {
     }
 
     public addBeforeMe(target: GObject): void {
-        throw new Error("TODO");
-
         if (!this._parent)
             throw "parent not set";
 
@@ -191,7 +186,6 @@ export class GGraph extends GObject {
     }
 
     public addAfterMe(target: GObject): void {
-        throw new Error("TODO");
         if (!this._parent)
             throw "parent not set";
 
@@ -202,14 +196,12 @@ export class GGraph extends GObject {
 
     public setNativeObject(obj: any): void {
         this._type = 0;
-        throw new Error("TODO");
         // this._displayObject.mouseEnabled = this.touchable;
         // this._displayObject.graphics.clear();
         // this._displayObject.addChild(obj);
     }
 
     public createDisplayObject(): void {
-        throw new Error("TODO");
         super.createDisplayObject();
         // this._displayObject.mouseEnabled = false;
 

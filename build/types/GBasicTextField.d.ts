@@ -3,13 +3,17 @@ export declare class GBasicTextField extends GTextField {
     private _textField;
     private _font;
     private _color;
+    /**
+     * 描边颜色，默认黑色
+     */
+    private _strokeColor;
     private _singleLine;
     private _letterSpacing;
     private _textWidth;
     private _textHeight;
     private _bitmapFont?;
     private _lines?;
-    constructor();
+    constructor(scene?: Phaser.Scene);
     createDisplayObject(): void;
     get nativeText(): Phaser.GameObjects.Text;
     set text(value: string);

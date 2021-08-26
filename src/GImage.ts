@@ -100,10 +100,11 @@ export class GImage extends GObject {
                 this.image.scaleByTile = this._contentItem.scaleByTile;
                 this.image.tileGridIndice = this._contentItem.tileGridIndice;
                 this.image.texture = this._contentItem.texture;
-                this.x = packageItem.x;
-                this.y = packageItem.y;
-                this._xOffset = packageItem.tx;
-                this._yOffset = packageItem.ty;
+                console.log("image pos", this);
+                // this.x = packageItem.x;
+                // this.y = packageItem.y;
+                // this._xOffset = packageItem.tx;
+                // this._yOffset = packageItem.ty;
 
                 this.setSize(this.sourceWidth, this.sourceHeight);
                 reslove();

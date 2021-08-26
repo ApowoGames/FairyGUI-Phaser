@@ -11,9 +11,9 @@ import { GComponent } from "./GComponent";
 
 export class ScrollPane {
     private _owner: GComponent;
-    private _container: Phaser.GameObjects.Sprite;
-    private _maskContainer: Phaser.GameObjects.Sprite;
-    private _alignContainer?: Phaser.GameObjects.Sprite;
+    private _container: Phaser.GameObjects.Container;
+    private _maskContainer: Phaser.GameObjects.Container;
+    private _alignContainer?: Phaser.GameObjects.Container;
 
     private _scrollType: number;
     private _scrollStep: number;
@@ -76,14 +76,12 @@ export class ScrollPane {
 
     constructor(owner: GComponent) {
         this._owner = owner;
-        throw new Error("TODO");
+        this._maskContainer = owner.scene.make.container(undefined, false);
+        (<Phaser.GameObjects.Container>this._owner.displayObject).add(this._maskContainer);
 
-        // this._maskContainer = new Laya.Sprite();
-        // this._owner.displayObject.addChild(this._maskContainer);
-
-        // this._container = this._owner._container;
-        // this._container.pos(0, 0);
-        // this._maskContainer.addChild(this._container);
+        this._container = this._owner.displayListContainer;
+        this._container.setPosition(0, 0);
+        this._maskContainer.add(this._container);
 
         this._mouseWheelEnabled = true;
         this._xPos = 0;
@@ -116,43 +114,42 @@ export class ScrollPane {
     }
 
     public setup(buffer: ByteBuffer): void {
-        throw new Error("TODO");
-        // this._scrollType = buffer.readByte();
-        // var scrollBarDisplay: number = buffer.readByte();
-        // var flags: number = buffer.readInt();
+        this._scrollType = buffer.readByte();
+        var scrollBarDisplay: number = buffer.readByte();
+        var flags: number = buffer.readInt();
 
-        // if (buffer.readBool()) {
-        //     this._scrollBarMargin.top = buffer.readInt();
-        //     this._scrollBarMargin.bottom = buffer.readInt();
-        //     this._scrollBarMargin.left = buffer.readInt();
-        //     this._scrollBarMargin.right = buffer.readInt();
-        // }
+        if (buffer.readBool()) {
+            this._scrollBarMargin.top = buffer.readInt();
+            this._scrollBarMargin.bottom = buffer.readInt();
+            this._scrollBarMargin.left = buffer.readInt();
+            this._scrollBarMargin.right = buffer.readInt();
+        }
 
-        // var vtScrollBarRes: string = buffer.readS();
-        // var hzScrollBarRes: string = buffer.readS();
-        // var headerRes: string = buffer.readS();
-        // var footerRes: string = buffer.readS();
+        var vtScrollBarRes: string = buffer.readS();
+        var hzScrollBarRes: string = buffer.readS();
+        var headerRes: string = buffer.readS();
+        var footerRes: string = buffer.readS();
 
-        // if ((flags & 1) != 0) this._displayOnLeft = true;
-        // if ((flags & 2) != 0) this._snapToItem = true;
-        // if ((flags & 4) != 0) this._displayInDemand = true;
-        // if ((flags & 8) != 0) this._pageMode = true;
-        // if (flags & 16)
-        //     this._touchEffect = true;
-        // else if (flags & 32)
-        //     this._touchEffect = false;
-        // else
-        //     this._touchEffect = UIConfig.defaultScrollTouchEffect;
-        // if (flags & 64)
-        //     this._bouncebackEffect = true;
-        // else if (flags & 128)
-        //     this._bouncebackEffect = false;
-        // else
-        //     this._bouncebackEffect = UIConfig.defaultScrollBounceEffect;
-        // if ((flags & 256) != 0) this._inertiaDisabled = true;
-        // if ((flags & 512) == 0) this._maskContainer.scrollRect = new Laya.Rectangle();
-        // if ((flags & 1024) != 0) this._floating = true;
-        // if ((flags & 2048) != 0) this._dontClipMargin = true;
+        if ((flags & 1) != 0) this._displayOnLeft = true;
+        if ((flags & 2) != 0) this._snapToItem = true;
+        if ((flags & 4) != 0) this._displayInDemand = true;
+        if ((flags & 8) != 0) this._pageMode = true;
+        if (flags & 16)
+            this._touchEffect = true;
+        else if (flags & 32)
+            this._touchEffect = false;
+        else
+            this._touchEffect = UIConfig.defaultScrollTouchEffect;
+        if (flags & 64)
+            this._bouncebackEffect = true;
+        else if (flags & 128)
+            this._bouncebackEffect = false;
+        else
+            this._bouncebackEffect = UIConfig.defaultScrollBounceEffect;
+        if ((flags & 256) != 0) this._inertiaDisabled = true;
+        if ((flags & 512) == 0) //this._maskContainer.scrollRect = new Laya.Rectangle();
+            if ((flags & 1024) != 0) this._floating = true;
+        if ((flags & 2048) != 0) this._dontClipMargin = true;
 
         // if (scrollBarDisplay == ScrollBarDisplayType.Default)
         //     scrollBarDisplay = UIConfig.defaultScrollBarDisplay;
@@ -165,7 +162,7 @@ export class ScrollPane {
         //             if (!this._vtScrollBar)
         //                 throw "cannot create scrollbar from " + res;
         //             this._vtScrollBar.setScrollPane(this, true);
-        //             this._owner.displayObject.addChild(this._vtScrollBar.displayObject);
+        //             this._owner.displayObject.add(this._vtScrollBar.displayObject);
         //         }
         //     }
         //     if (this._scrollType == ScrollType.Both || this._scrollType == ScrollType.Horizontal) {
@@ -183,7 +180,7 @@ export class ScrollPane {
         //         this._scrollBarDisplayAuto = true;
         //     if (this._scrollBarDisplayAuto) {
         //         if (this._vtScrollBar)
-        //             this._vtScrollBar.displayObject.visible = false;
+        //             (<Phaser.GameObjects.Container>this._vtScrollBar.displayObject).visible = false;
         //         if (this._hzScrollBar)
         //             this._hzScrollBar.displayObject.visible = false;
         //     }
@@ -206,7 +203,7 @@ export class ScrollPane {
         // if (this._header || this._footer)
         //     this._refreshBarAxis = (this._scrollType == ScrollType.Both || this._scrollType == ScrollType.Vertical) ? "y" : "x";
 
-        // this.setSize(this.owner.width, this.owner.height);
+        this.setSize(this.owner.width, this.owner.height);
     }
 
     public dispose(): void {
@@ -214,7 +211,6 @@ export class ScrollPane {
             ScrollPane.draggingPane = null;
         }
         if (this._tweening != 0)
-            throw new Error("TODO");
         // Laya.timer.clear(this, this.tweenUpdate);
 
         this._pageController = null;
@@ -591,7 +587,6 @@ export class ScrollPane {
     }
 
     public cancelDragging(): void {
-        throw new Error("TODO");
         // this._owner.displayObject.stage.off(Laya.Event.MOUSE_MOVE, this, this.__mouseMove);
         // this._owner.displayObject.stage.off(Laya.Event.MOUSE_UP, this, this.__mouseUp);
         // this._owner.displayObject.stage.off(Laya.Event.CLICK, this, this.__click);
@@ -670,7 +665,6 @@ export class ScrollPane {
     }
 
     public adjustMaskContainer(): void {
-        throw new Error("TODO");
         // var mx: number = 0, my: number = 0;
         // if (this._dontClipMargin) {
         //     if (this._displayOnLeft && this._vtScrollBar && !this._floating)
@@ -824,7 +818,6 @@ export class ScrollPane {
     }
 
     private handleSizeChanged(): void {
-        throw new Error("TODO");
         // if (this._displayInDemand) {
         //     this._vScrollNone = this._contentSize.y <= this._viewSize.y;
         //     this._hScrollNone = this._contentSize.x <= this._viewSize.x;
@@ -880,11 +873,11 @@ export class ScrollPane {
         //         max += this._footerLockedSize;
 
         //     if (this._refreshBarAxis == "x") {
-        //         this._container.pos(ToolSet.clamp(this._container.x, -max, this._headerLockedSize),
+        //         this._container.setPosition(ToolSet.clamp(this._container.x, -max, this._headerLockedSize),
         //             ToolSet.clamp(this._container.y, -this._overlapSize.y, 0));
         //     }
         //     else {
-        //         this._container.pos(ToolSet.clamp(this._container.x, -this._overlapSize.x, 0),
+        //         this._container.setPosition(ToolSet.clamp(this._container.x, -this._overlapSize.x, 0),
         //             ToolSet.clamp(this._container.y, -max, this._headerLockedSize));
         //     }
 
@@ -903,7 +896,7 @@ export class ScrollPane {
         //     }
         // }
         // else {
-        //     this._container.pos(ToolSet.clamp(this._container.x, -this._overlapSize.x, 0),
+        //     this._container.setPosition(ToolSet.clamp(this._container.x, -this._overlapSize.x, 0),
         //         ToolSet.clamp(this._container.y, -this._overlapSize.y, 0));
         // }
 
@@ -913,7 +906,6 @@ export class ScrollPane {
     }
 
     private posChanged(ani: boolean): void {
-        throw new Error("TODO");
         // if (this._aniFlag == 0)
         //     this._aniFlag = ani ? 1 : -1;
         // else if (this._aniFlag == 1 && !ani)
@@ -924,7 +916,6 @@ export class ScrollPane {
     }
 
     private refresh(): void {
-        throw new Error("TODO");
         // if (!this._owner.displayObject) {
         //     return;
         // }
@@ -954,7 +945,6 @@ export class ScrollPane {
     }
 
     private refresh2(): void {
-        throw new Error("TODO");
         // if (this._aniFlag == 1 && !this._dragged) {
         //     var posX: number;
         //     var posY: number;
@@ -997,7 +987,6 @@ export class ScrollPane {
     }
 
     private __mouseDown(): void {
-        throw new Error("TODO");
         // if (!this._touchEffect)
         //     return;
 
@@ -1348,7 +1337,6 @@ export class ScrollPane {
     }
 
     public updateScrollBarVisible(): void {
-        throw new Error("TODO");
         // if (this._vtScrollBar) {
         //     if (this._viewSize.y <= this._vtScrollBar.minSize || this._vScrollNone)
         //         this._vtScrollBar.displayObject.visible = false;
@@ -1575,7 +1563,6 @@ export class ScrollPane {
         else if (pos < -this._overlapSize[axis])
             pos = -this._overlapSize[axis];
         else {
-            throw new Error("TODO");
             // //以屏幕像素为基准
             // var v2: number = Math.abs(v) * this._velocityScale;
             // //在移动设备上，需要对不同分辨率做一个适配，我们的速度判断以1136分辨率为基准
@@ -1629,7 +1616,6 @@ export class ScrollPane {
     }
 
     private startTween(type: number): void {
-        throw new Error("TODO");
         // this._tweenTime.setTo(0, 0);
         // this._tweening = type;
         // Laya.timer.frameLoop(1, this, this.tweenUpdate);
@@ -1654,7 +1640,6 @@ export class ScrollPane {
     }
 
     private checkRefreshBar(): void {
-        throw new Error("TODO");
         // if (!this._header && !this._footer)
         //     return;
 
@@ -1742,7 +1727,6 @@ export class ScrollPane {
     private runTween(axis: string): number {
         var newValue: number;
         if (this._tweenChange[axis] != 0) {
-            throw new Error("TODO")
             // this._tweenTime[axis] += Laya.timer.delta / 1000;
             if (this._tweenTime[axis] >= this._tweenDuration[axis]) {
                 newValue = this._tweenStart[axis] + this._tweenChange[axis];

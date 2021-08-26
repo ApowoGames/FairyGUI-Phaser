@@ -52,21 +52,19 @@ export class GList extends GComponent {
 
     constructor(scene?: Phaser.Scene) {
         super(scene);
-        throw new Error("TODO");
+        this._trackBounds = true;
+        this._pool = new GObjectPool();
+        this._layout = ListLayoutType.SingleColumn;
+        this._autoResizeItem = true;
+        this._lastSelectedIndex = -1;
+        this._selectionMode = ListSelectionMode.Single;
+        this.opaque = true;
+        this.scrollItemToViewOnClick = true;
+        this._align = "left";
+        this._verticalAlign = "top";
 
-        // this._trackBounds = true;
-        // this._pool = new GObjectPool();
-        // this._layout = ListLayoutType.SingleColumn;
-        // this._autoResizeItem = true;
-        // this._lastSelectedIndex = -1;
-        // this._selectionMode = ListSelectionMode.Single;
-        // this.opaque = true;
-        // this.scrollItemToViewOnClick = true;
-        // this._align = "left";
-        // this._verticalAlign = "top";
-
-        // this._container = new Laya.Sprite();
-        // this._displayObject.addChild(this._container);
+        this._container = scene.make.container(undefined, false);
+        this._displayObject.add(this._container);
     }
 
     public dispose(): void {
@@ -237,50 +235,63 @@ export class GList extends GComponent {
     }
 
     public returnToPool(obj: GObject): void {
-        throw new Error("TODO");
         // obj.displayObject.cacheAs = "none";
-        // this._pool.returnObject(obj);
+        this._pool.returnObject(obj);
     }
 
     public addChildAt(child: GObject, index: number): GObject {
         super.addChildAt(child, index);
-        throw new Error("TODO");
-        // if (child instanceof GButton) {
-        //     child.selected = false;
-        //     child.changeStateOnClick = false;
-        // }
+        if (child instanceof GButton) {
+            child.selected = false;
+            child.changeStateOnClick = false;
+        }
+        // todo click
         // child.on(Laya.Event.CLICK, this, this.__clickItem);
 
-        // return child;
+        return child;
     }
 
-    public addItem(url?: string): GObject {
-        // if (!url)
-        //     url = this._defaultItem;
+    public addItem(url?: string): Promise<GObject> {
+        return new Promise((reslove, reject) => {
+            if (!url)
+                url = this._defaultItem;
 
-        // return this.addChild(UIPackage.createObjectFromURL(url));
-        throw new Error("TODO");
+            UIPackage.createObjectFromURL(url).then((obj) => {
+                this.addChild(obj);
+                reslove(obj);
+            });
+        });
+
+        // throw new Error("TODO");
     }
 
-    public addItemFromPool(url?: string): GObject {
-        throw new Error("TODO");
-        // return this.addChild(this.getFromPool(url));
+    public addItemFromPool(url?: string): Promise<GObject> {
+        return new Promise((reslove, reject) => {
+            this.getFromPool(url).then((obj) => {
+                this.addChild(obj);
+                reslove(obj);
+            });
+        });
     }
 
-    public removeChildAt(index: number, dispose?: boolean): GObject {
-        throw new Error("TODO");
-        // var child: GObject = super.removeChildAt(index);
-        // if (dispose)
-        //     child.dispose();
-        // else
-        //     child.off(Laya.Event.CLICK, this, this.__clickItem);
+    public removeChildAt(index: number, dispose?: boolean): Promise<GObject> {
+        return new Promise((reslove, reject) => {
+            super.removeChildAt(index).then((obj) => {
+                if (dispose) {
+                    obj.dispose();
+                } else {
+                    // child.off(Laya.Event.CLICK, this, this.__clickItem);    
+                }
+                reslove(obj);
+            });
 
-        // return child;
+        });
     }
 
     public removeChildToPoolAt(index: number): void {
-        var child: GObject = super.removeChildAt(index);
-        this.returnToPool(child);
+        super.removeChildAt(index).then((obj) => {
+            this.returnToPool(obj);
+        });
     }
 
     public removeChildToPool(child: GObject): void {
@@ -650,7 +661,6 @@ export class GList extends GComponent {
     }
 
     private __clickItem(evt: any): void {
-        throw new Error("TODO");
         // if (this._scrollPane && this._scrollPane.isDragged)
         //     return;
 
@@ -664,12 +674,10 @@ export class GList extends GComponent {
     }
 
     protected dispatchItemEvent(item: GObject, evt: any): void {
-        throw new Error("TODO");
         // this.displayObject.event(Events.CLICK_ITEM, [item, evt]);
     }
 
     private setSelectionOnEvent(item: GObject, evt: any): void {
-        throw new Error("TODO");
         // if (!(item instanceof GButton) || this._selectionMode == ListSelectionMode.None)
         //     return;
 
@@ -881,50 +889,49 @@ export class GList extends GComponent {
     }
 
     public scrollToView(index: number, ani?: boolean, setFirst?: boolean): void {
-        throw new Error("TODO");
-        // if (this._virtual) {
-        //     if (this._numItems == 0)
-        //         return;
+        if (this._virtual) {
+            if (this._numItems == 0)
+                return;
 
-        //     this.checkVirtualList();
+            this.checkVirtualList();
 
-        //     if (index >= this._virtualItems.length)
-        //         throw new Error("Invalid child index: " + index + ">" + this._virtualItems.length);
+            if (index >= this._virtualItems.length)
+                throw new Error("Invalid child index: " + index + ">" + this._virtualItems.length);
 
-        //     if (this._loop)
-        //         index = Math.floor(this._firstIndex / this._numItems) * this._numItems + index;
+            if (this._loop)
+                index = Math.floor(this._firstIndex / this._numItems) * this._numItems + index;
 
-        //     var rect: Laya.Rectangle;
-        //     var ii: ItemInfo = this._virtualItems[index];
-        //     var pos: number = 0;
-        //     var i: number;
-        //     if (this._layout == ListLayoutType.SingleColumn || this._layout == ListLayoutType.FlowHorizontal) {
-        //         for (i = this._curLineItemCount - 1; i < index; i += this._curLineItemCount)
-        //             pos += this._virtualItems[i].height + this._lineGap;
-        //         rect = new Laya.Rectangle(0, pos, this._itemSize.x, ii.height);
-        //     }
-        //     else if (this._layout == ListLayoutType.SingleRow || this._layout == ListLayoutType.FlowVertical) {
-        //         for (i = this._curLineItemCount - 1; i < index; i += this._curLineItemCount)
-        //             pos += this._virtualItems[i].width + this._columnGap;
-        //         rect = new Laya.Rectangle(pos, 0, ii.width, this._itemSize.y);
-        //     }
-        //     else {
-        //         var page: number = index / (this._curLineItemCount * this._curLineItemCount2);
-        //         rect = new Laya.Rectangle(page * this.viewWidth + (index % this._curLineItemCount) * (ii.width + this._columnGap),
-        //             (index / this._curLineItemCount) % this._curLineItemCount2 * (ii.height + this._lineGap),
-        //             ii.width, ii.height);
-        //     }
+            var rect: Phaser.Geom.Rectangle;
+            var ii: ItemInfo = this._virtualItems[index];
+            var pos: number = 0;
+            var i: number;
+            if (this._layout == ListLayoutType.SingleColumn || this._layout == ListLayoutType.FlowHorizontal) {
+                for (i = this._curLineItemCount - 1; i < index; i += this._curLineItemCount)
+                    pos += this._virtualItems[i].height + this._lineGap;
+                rect = new Phaser.Geom.Rectangle(0, pos, this._itemSize.x, ii.height);
+            }
+            else if (this._layout == ListLayoutType.SingleRow || this._layout == ListLayoutType.FlowVertical) {
+                for (i = this._curLineItemCount - 1; i < index; i += this._curLineItemCount)
+                    pos += this._virtualItems[i].width + this._columnGap;
+                rect = new Phaser.Geom.Rectangle(pos, 0, ii.width, this._itemSize.y);
+            }
+            else {
+                var page: number = index / (this._curLineItemCount * this._curLineItemCount2);
+                rect = new Phaser.Geom.Rectangle(page * this.viewWidth + (index % this._curLineItemCount) * (ii.width + this._columnGap),
+                    (index / this._curLineItemCount) % this._curLineItemCount2 * (ii.height + this._lineGap),
+                    ii.width, ii.height);
+            }
 
-        //     if (this._scrollPane)
-        //         this._scrollPane.scrollToView(rect, ani, setFirst);
-        // }
-        // else {
-        //     var obj: GObject = this.getChildAt(index);
-        //     if (this._scrollPane)
-        //         this._scrollPane.scrollToView(obj, ani, setFirst);
-        //     else if (this._parent && this._parent.scrollPane)
-        //         this._parent.scrollPane.scrollToView(obj, ani, setFirst);
-        // }
+            if (this._scrollPane)
+                this._scrollPane.scrollToView(rect, ani, setFirst);
+        }
+        else {
+            var obj: GObject = this.getChildAt(index);
+            if (this._scrollPane)
+                this._scrollPane.scrollToView(obj, ani, setFirst);
+            else if (this._parent && this._parent.scrollPane)
+                this._parent.scrollPane.scrollToView(obj, ani, setFirst);
+        }
     }
 
     public getFirstChildInView(): number {
@@ -989,7 +996,6 @@ export class GList extends GComponent {
     }
 
     private _setVirtual(loop: boolean): void {
-        throw new Error("TODO");
         // if (!this._virtual) {
         //     if (this._scrollPane == null)
         //         throw new Error("Virtual list must be scrollable!");
@@ -1048,7 +1054,6 @@ export class GList extends GComponent {
     }
 
     public set numItems(value: number) {
-        throw new Error("TODO");
         // var i: number;
 
         // if (this._virtual) {
@@ -1111,7 +1116,6 @@ export class GList extends GComponent {
     }
 
     private checkVirtualList(): void {
-        throw new Error("TODO");
         // if (this._virtualListChanged != 0) {
         //     this._refreshVirtualList();
         //     Laya.timer.clear(this, this._refreshVirtualList);
@@ -1119,7 +1123,6 @@ export class GList extends GComponent {
     }
 
     private setVirtualListChangedFlag(layoutChanged?: boolean): void {
-        throw new Error("TODO");
         // if (layoutChanged)
         //     this._virtualListChanged = 2;
         // else if (this._virtualListChanged == 0)
@@ -1129,7 +1132,6 @@ export class GList extends GComponent {
     }
 
     private _refreshVirtualList(): void {
-        throw new Error("TODO");
         // if (!this._displayObject)
         //     return;
 
@@ -1229,12 +1231,11 @@ export class GList extends GComponent {
     }
 
     private __scrolled(evt: any): void {
-        throw new Error("TODO");
         // this.handleScroll(false);
     }
 
     private getIndexOnPos1(forceUpdate: boolean): number {
-        throw new Error("TODO");
+        return 0;
         // if (this._realNumItems < this._curLineItemCount) {
         //     s_n = 0;
         //     return 0;
@@ -1289,7 +1290,7 @@ export class GList extends GComponent {
     }
 
     private getIndexOnPos2(forceUpdate: boolean): number {
-        throw new Error("TODO");
+        return 0;
         // if (this._realNumItems < this._curLineItemCount) {
         //     s_n = 0;
         //     return 0;
@@ -1344,7 +1345,8 @@ export class GList extends GComponent {
     }
 
     private getIndexOnPos3(forceUpdate: boolean): number {
-        throw new Error("TODO");
+        return 0;
+        // throw new Error("TODO");
         // if (this._realNumItems < this._curLineItemCount) {
         //     s_n = 0;
         //     return 0;
@@ -1405,7 +1407,8 @@ export class GList extends GComponent {
     }
 
     private handleScroll1(forceUpdate: boolean): boolean {
-        throw new Error("TODO");
+        return true;
+        // throw new Error("TODO");
         // var pos: number = this._scrollPane.scrollingPosY;
         // var max: number = pos + this._scrollPane.viewHeight;
         // var end: boolean = max == this._scrollPane.contentHeight;//这个标志表示当前需要滚动到最末，无论内容变化大小
@@ -1560,7 +1563,8 @@ export class GList extends GComponent {
     }
 
     private handleScroll2(forceUpdate: boolean): boolean {
-        throw new Error("TODO");
+        return true;
+        // throw new Error("TODO");
         // var pos: number = this._scrollPane.scrollingPosX;
         // var max: number = pos + this._scrollPane.viewWidth;
         // var end: boolean = pos == this._scrollPane.contentWidth;//这个标志表示当前需要滚动到最末，无论内容变化大小
@@ -1714,7 +1718,6 @@ export class GList extends GComponent {
     }
 
     private handleScroll3(forceUpdate: boolean): void {
-        throw new Error("TODO")
         // var pos: number = this._scrollPane.scrollingPosX;
 
         // //寻找当前位置的第一条项目
@@ -1820,20 +1823,20 @@ export class GList extends GComponent {
         //         lastObj = ii.obj;
         //     }
 
-        //     if (needRender) {
-        //         if (this._autoResizeItem) {
-        //             if (this._curLineItemCount == this._columnCount && this._curLineItemCount2 == this._lineCount)
-        //                 ii.obj.setSize(partWidth, partHeight, true);
-        //             else if (this._curLineItemCount == this._columnCount)
-        //                 ii.obj.setSize(partWidth, ii.obj.height, true);
-        //             else if (this._curLineItemCount2 == this._lineCount)
-        //                 ii.obj.setSize(ii.obj.width, partHeight, true);
-        //         }
-
-        //         this.itemRenderer.runWith([i % this._numItems, ii.obj]);
-        //         ii.width = Math.ceil(ii.obj.width);
-        //         ii.height = Math.ceil(ii.obj.height);
+        // if (needRender) {
+        //     if (this._autoResizeItem) {
+        //         if (this._curLineItemCount == this._columnCount && this._curLineItemCount2 == this._lineCount)
+        //             ii.obj.setSize(partWidth, partHeight, true);
+        //         else if (this._curLineItemCount == this._columnCount)
+        //             ii.obj.setSize(partWidth, ii.obj.height, true);
+        //         else if (this._curLineItemCount2 == this._lineCount)
+        //             ii.obj.setSize(ii.obj.width, partHeight, true);
         //     }
+
+        //     this.itemRenderer.runWith([i % this._numItems, ii.obj]);
+        //     ii.width = Math.ceil(ii.obj.width);
+        //     ii.height = Math.ceil(ii.obj.height);
+        // }
         // }
 
         // //排列item
@@ -1900,52 +1903,51 @@ export class GList extends GComponent {
     }
 
     private handleArchOrder2(): void {
-        throw new Error("TODO");
-        //     if (this.childrenRenderOrder == ChildrenRenderOrder.Arch) {
-        //         var mid: number = this._scrollPane.posX + this.viewWidth / 2;
-        //         var minDist: number = Number.POSITIVE_INFINITY;
-        //         var dist: number = 0;
-        //         var apexIndex: number = 0;
-        //         var cnt: number = this.numChildren;
-        //         for (var i: number = 0; i < cnt; i++) {
-        //             var obj: GObject = this.getChildAt(i);
-        //             if (!this.foldInvisibleItems || obj.visible) {
-        //                 dist = Math.abs(mid - obj.x - obj.width / 2);
-        //                 if (dist < minDist) {
-        //                     minDist = dist;
-        //                     apexIndex = i;
-        //                 }
-        //             }
-        //         }
-        //         this.apexIndex = apexIndex;
-        //     }
-        // }
+        if (this.childrenRenderOrder == ChildrenRenderOrder.Arch) {
+            var mid: number = this._scrollPane.posX + this.viewWidth / 2;
+            var minDist: number = Number.POSITIVE_INFINITY;
+            var dist: number = 0;
+            var apexIndex: number = 0;
+            var cnt: number = this.numChildren;
+            for (var i: number = 0; i < cnt; i++) {
+                var obj: GObject = this.getChildAt(i);
+                if (!this.foldInvisibleItems || obj.visible) {
+                    dist = Math.abs(mid - obj.x - obj.width / 2);
+                    if (dist < minDist) {
+                        minDist = dist;
+                        apexIndex = i;
+                    }
+                }
+            }
+            this.apexIndex = apexIndex;
+        }
+    }
 
-        // private handleAlign(contentWidth: number, contentHeight: number): void {
-        //     var newOffsetX: number = 0;
-        //     var newOffsetY: number = 0;
+    private handleAlign(contentWidth: number, contentHeight: number): void {
+        var newOffsetX: number = 0;
+        var newOffsetY: number = 0;
 
-        //     if (contentHeight < this.viewHeight) {
-        //         if (this._verticalAlign == "middle")
-        //             newOffsetY = Math.floor((this.viewHeight - contentHeight) / 2);
-        //         else if (this._verticalAlign == "bottom")
-        //             newOffsetY = this.viewHeight - contentHeight;
-        //     }
+        if (contentHeight < this.viewHeight) {
+            if (this._verticalAlign == "middle")
+                newOffsetY = Math.floor((this.viewHeight - contentHeight) / 2);
+            else if (this._verticalAlign == "bottom")
+                newOffsetY = this.viewHeight - contentHeight;
+        }
 
-        //     if (contentWidth < this.viewWidth) {
-        //         if (this._align == "center")
-        //             newOffsetX = Math.floor((this.viewWidth - contentWidth) / 2);
-        //         else if (this._align == "right")
-        //             newOffsetX = this.viewWidth - contentWidth;
-        //     }
+        if (contentWidth < this.viewWidth) {
+            if (this._align == "center")
+                newOffsetX = Math.floor((this.viewWidth - contentWidth) / 2);
+            else if (this._align == "right")
+                newOffsetX = this.viewWidth - contentWidth;
+        }
 
-        //     if (newOffsetX != this._alignOffset.x || newOffsetY != this._alignOffset.y) {
-        //         this._alignOffset.setTo(newOffsetX, newOffsetY);
-        //         if (this._scrollPane)
-        //             this._scrollPane.adjustMaskContainer();
-        //         else
-        //             this._container.pos(this._margin.left + this._alignOffset.x, this._margin.top + this._alignOffset.y);
-        //     }
+        if (newOffsetX != this._alignOffset.x || newOffsetY != this._alignOffset.y) {
+            this._alignOffset.setTo(newOffsetX, newOffsetY);
+            if (this._scrollPane)
+                this._scrollPane.adjustMaskContainer();
+            else
+                this._container.setPosition(this._margin.left + this._alignOffset.x, this._margin.top + this._alignOffset.y);
+        }
     }
 
     protected updateBounds(): void {
@@ -2344,8 +2346,7 @@ export class GList extends GComponent {
 
             this.getFromPool(str).then((obj) => {
                 if (obj) {
-                    throw new Error("TODO");
-                    // this.addChild(obj);
+                    this.addChild(obj);
                     this.setupItem(buffer, obj);
                 }
                 buffer.position = nextPos;

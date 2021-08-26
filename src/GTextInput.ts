@@ -5,8 +5,8 @@ export class GTextInput extends GTextField {
     private _input: any;
     private _prompt: string;
 
-    constructor() {
-        super();
+    constructor(scene: Phaser.Scene) {
+        super(scene);
     }
 
     public createDisplayObject(): void {

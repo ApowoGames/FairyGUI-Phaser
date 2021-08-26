@@ -3,7 +3,7 @@ import { GTextField } from './GTextField';
 export declare class GTextInput extends GTextField {
     private _input;
     private _prompt;
-    constructor();
+    constructor(scene: Phaser.Scene);
     createDisplayObject(): void;
     get nativeInput(): any;
     set text(value: string);

@@ -80,7 +80,7 @@ export class GObject {
     private _displayStyle: DisplayStyle;
     private _timeEvent: Phaser.Time.TimerEvent;
 
-    protected _displayObject: Phaser.GameObjects.Container;
+    protected _displayObject: any;
     protected _xOffset: number = 0;
     protected _yOffset: number = 0;
     protected _scene: Phaser.Scene;
@@ -1299,8 +1299,8 @@ export class GObject {
             this.rotation = f1;
 
         if (!buffer.readBool())
-        // ===todo false
-            this.visible = true;
+            this.visible = false;
+        console.log("visible object ===>", this);
         if (!buffer.readBool())
             this.touchable = false;
         if (buffer.readBool())

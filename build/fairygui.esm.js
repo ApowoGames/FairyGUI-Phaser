@@ -4003,8 +4003,8 @@ class GObject {
         if (f1 != 0)
             this.rotation = f1;
         if (!buffer.readBool())
-            // ===todo false
-            this.visible = true;
+            this.visible = false;
+        console.log("visible object ===>", this);
         if (!buffer.readBool())
             this.touchable = false;
         if (buffer.readBool())
@@ -4172,6 +4172,7 @@ class GGroup extends GObject {
         this._totalSize = 0;
         this._numChildren = 0;
         this._updating = 0;
+        console.log("group create", this);
     }
     dispose() {
         this._boundsChanged = false;
@@ -4529,8 +4530,8 @@ class GGroup extends GObject {
 }
 
 class GGraph extends GObject {
-    constructor() {
-        super();
+    constructor(scene) {
+        super(scene);
         this._type = 0;
         this._lineSize = 1;
         this._lineColor = "#000000";
@@ -4587,8 +4588,6 @@ class GGraph extends GObject {
             this.updateGraph();
     }
     updateGraph() {
-        // TODO
-        throw new Error("TODO");
         // this._displayObject.mouseEnabled = this.touchable;
         // var gr: Laya.Graphics = this._displayObject.graphics;
         // gr.clear();
@@ -4659,7 +4658,6 @@ class GGraph extends GObject {
         // this._displayObject.repaint();
     }
     replaceMe(target) {
-        throw new Error("TODO");
         // if (!this._parent)
         //     throw "parent not set";
         // target.name = this.name;
@@ -4676,25 +4674,26 @@ class GGraph extends GObject {
         // this._parent.removeChild(this, true);
     }
     addBeforeMe(target) {
-        throw new Error("TODO");
+        if (!this._parent)
+            throw "parent not set";
         // var index: number = this._parent.getChildIndex(this);
         // this._parent.addChildAt(target, index);
     }
     addAfterMe(target) {
-        throw new Error("TODO");
+        if (!this._parent)
+            throw "parent not set";
         // var index: number = this._parent.getChildIndex(this);
         // index++;
         // this._parent.addChildAt(target, index);
     }
     setNativeObject(obj) {
         this._type = 0;
-        throw new Error("TODO");
         // this._displayObject.mouseEnabled = this.touchable;
         // this._displayObject.graphics.clear();
         // this._displayObject.addChild(obj);
     }
     createDisplayObject() {
-        throw new Error("TODO");
+        super.createDisplayObject();
         // this._displayObject.mouseEnabled = false;
         // this._hitArea = new Laya.HitArea();
         // this._hitArea.hit = this._displayObject.graphics;
@@ -5362,10 +5361,11 @@ class GImage extends GObject {
                 this.image.scaleByTile = this._contentItem.scaleByTile;
                 this.image.tileGridIndice = this._contentItem.tileGridIndice;
                 this.image.texture = this._contentItem.texture;
-                this.x = packageItem.x;
-                this.y = packageItem.y;
-                this._xOffset = packageItem.tx;
-                this._yOffset = packageItem.ty;
+                console.log("image pos", this);
+                // this.x = packageItem.x;
+                // this.y = packageItem.y;
+                // this._xOffset = packageItem.tx;
+                // this._yOffset = packageItem.ty;
                 this.setSize(this.sourceWidth, this.sourceHeight);
                 reslove();
             });
@@ -6287,45 +6287,80 @@ class Margin {
 class ScrollPane {
     constructor(owner) {
         this._owner = owner;
-        throw new Error("TODO");
+        this._maskContainer = owner.scene.make.container(undefined, false);
+        this._owner.displayObject.add(this._maskContainer);
+        this._container = this._owner.displayListContainer;
+        this._container.setPosition(0, 0);
+        this._maskContainer.add(this._container);
+        this._mouseWheelEnabled = true;
+        this._xPos = 0;
+        this._yPos = 0;
+        this._aniFlag = 0;
+        this._tweening = 0;
+        this._loop = 0;
+        this._footerLockedSize = 0;
+        this._headerLockedSize = 0;
+        this._scrollBarMargin = new Margin();
+        this._viewSize = new Phaser.Geom.Point();
+        this._contentSize = new Phaser.Geom.Point();
+        this._pageSize = new Phaser.Geom.Point(1, 1);
+        this._overlapSize = new Phaser.Geom.Point();
+        this._tweenTime = new Phaser.Geom.Point();
+        this._tweenStart = new Phaser.Geom.Point();
+        this._tweenDuration = new Phaser.Geom.Point();
+        this._tweenChange = new Phaser.Geom.Point();
+        this._velocity = new Phaser.Geom.Point();
+        this._containerPos = new Phaser.Geom.Point();
+        this._beginTouchPos = new Phaser.Geom.Point();
+        this._lastTouchPos = new Phaser.Geom.Point();
+        this._lastTouchGlobalPos = new Phaser.Geom.Point();
+        this._scrollStep = UIConfig.defaultScrollStep;
+        this._mouseWheelStep = this._scrollStep * 2;
+        this._decelerationRate = UIConfig.defaultScrollDecelerationRate;
         // this._owner.on(Laya.Event.MOUSE_DOWN, this, this.__mouseDown);
         // this._owner.on(Laya.Event.MOUSE_WHEEL, this, this.__mouseWheel);
     }
     setup(buffer) {
-        throw new Error("TODO");
-        // this._scrollType = buffer.readByte();
-        // var scrollBarDisplay: number = buffer.readByte();
-        // var flags: number = buffer.readInt();
-        // if (buffer.readBool()) {
-        //     this._scrollBarMargin.top = buffer.readInt();
-        //     this._scrollBarMargin.bottom = buffer.readInt();
-        //     this._scrollBarMargin.left = buffer.readInt();
-        //     this._scrollBarMargin.right = buffer.readInt();
-        // }
-        // var vtScrollBarRes: string = buffer.readS();
-        // var hzScrollBarRes: string = buffer.readS();
-        // var headerRes: string = buffer.readS();
-        // var footerRes: string = buffer.readS();
-        // if ((flags & 1) != 0) this._displayOnLeft = true;
-        // if ((flags & 2) != 0) this._snapToItem = true;
-        // if ((flags & 4) != 0) this._displayInDemand = true;
-        // if ((flags & 8) != 0) this._pageMode = true;
-        // if (flags & 16)
-        //     this._touchEffect = true;
-        // else if (flags & 32)
-        //     this._touchEffect = false;
-        // else
-        //     this._touchEffect = UIConfig.defaultScrollTouchEffect;
-        // if (flags & 64)
-        //     this._bouncebackEffect = true;
-        // else if (flags & 128)
-        //     this._bouncebackEffect = false;
-        // else
-        //     this._bouncebackEffect = UIConfig.defaultScrollBounceEffect;
-        // if ((flags & 256) != 0) this._inertiaDisabled = true;
-        // if ((flags & 512) == 0) this._maskContainer.scrollRect = new Laya.Rectangle();
-        // if ((flags & 1024) != 0) this._floating = true;
-        // if ((flags & 2048) != 0) this._dontClipMargin = true;
+        this._scrollType = buffer.readByte();
+        buffer.readByte();
+        var flags = buffer.readInt();
+        if (buffer.readBool()) {
+            this._scrollBarMargin.top = buffer.readInt();
+            this._scrollBarMargin.bottom = buffer.readInt();
+            this._scrollBarMargin.left = buffer.readInt();
+            this._scrollBarMargin.right = buffer.readInt();
+        }
+        buffer.readS();
+        buffer.readS();
+        buffer.readS();
+        buffer.readS();
+        if ((flags & 1) != 0)
+            this._displayOnLeft = true;
+        if ((flags & 2) != 0)
+            this._snapToItem = true;
+        if ((flags & 4) != 0)
+            this._displayInDemand = true;
+        if ((flags & 8) != 0)
+            this._pageMode = true;
+        if (flags & 16)
+            this._touchEffect = true;
+        else if (flags & 32)
+            this._touchEffect = false;
+        else
+            this._touchEffect = UIConfig.defaultScrollTouchEffect;
+        if (flags & 64)
+            this._bouncebackEffect = true;
+        else if (flags & 128)
+            this._bouncebackEffect = false;
+        else
+            this._bouncebackEffect = UIConfig.defaultScrollBounceEffect;
+        if ((flags & 256) != 0)
+            this._inertiaDisabled = true;
+        if ((flags & 512) == 0) //this._maskContainer.scrollRect = new Laya.Rectangle();
+            if ((flags & 1024) != 0)
+                this._floating = true;
+        if ((flags & 2048) != 0)
+            this._dontClipMargin = true;
         // if (scrollBarDisplay == ScrollBarDisplayType.Default)
         //     scrollBarDisplay = UIConfig.defaultScrollBarDisplay;
         // if (scrollBarDisplay != ScrollBarDisplayType.Hidden) {
@@ -6336,7 +6371,7 @@ class ScrollPane {
         //             if (!this._vtScrollBar)
         //                 throw "cannot create scrollbar from " + res;
         //             this._vtScrollBar.setScrollPane(this, true);
-        //             this._owner.displayObject.addChild(this._vtScrollBar.displayObject);
+        //             this._owner.displayObject.add(this._vtScrollBar.displayObject);
         //         }
         //     }
         //     if (this._scrollType == ScrollType.Both || this._scrollType == ScrollType.Horizontal) {
@@ -6353,7 +6388,7 @@ class ScrollPane {
         //         this._scrollBarDisplayAuto = true;
         //     if (this._scrollBarDisplayAuto) {
         //         if (this._vtScrollBar)
-        //             this._vtScrollBar.displayObject.visible = false;
+        //             (<Phaser.GameObjects.Container>this._vtScrollBar.displayObject).visible = false;
         //         if (this._hzScrollBar)
         //             this._hzScrollBar.displayObject.visible = false;
         //     }
@@ -6372,16 +6407,15 @@ class ScrollPane {
         // }
         // if (this._header || this._footer)
         //     this._refreshBarAxis = (this._scrollType == ScrollType.Both || this._scrollType == ScrollType.Vertical) ? "y" : "x";
-        // this.setSize(this.owner.width, this.owner.height);
+        this.setSize(this.owner.width, this.owner.height);
     }
     dispose() {
         if (ScrollPane.draggingPane == this) {
             ScrollPane.draggingPane = null;
         }
         if (this._tweening != 0)
-            throw new Error("TODO");
-        // Laya.timer.clear(this, this.tweenUpdate);
-        this._pageController = null;
+            // Laya.timer.clear(this, this.tweenUpdate);
+            this._pageController = null;
         if (this._hzScrollBar)
             this._hzScrollBar.dispose();
         if (this._vtScrollBar)
@@ -6680,7 +6714,6 @@ class ScrollPane {
         return true;
     }
     cancelDragging() {
-        throw new Error("TODO");
         // this._owner.displayObject.stage.off(Laya.Event.MOUSE_MOVE, this, this.__mouseMove);
         // this._owner.displayObject.stage.off(Laya.Event.MOUSE_UP, this, this.__mouseUp);
         // this._owner.displayObject.stage.off(Laya.Event.CLICK, this, this.__click);
@@ -6747,7 +6780,6 @@ class ScrollPane {
         }
     }
     adjustMaskContainer() {
-        throw new Error("TODO");
         // var mx: number = 0, my: number = 0;
         // if (this._dontClipMargin) {
         //     if (this._displayOnLeft && this._vtScrollBar && !this._floating)
@@ -6882,7 +6914,6 @@ class ScrollPane {
             this.updatePageController();
     }
     handleSizeChanged() {
-        throw new Error("TODO");
         // if (this._displayInDemand) {
         //     this._vScrollNone = this._contentSize.y <= this._viewSize.y;
         //     this._hScrollNone = this._contentSize.x <= this._viewSize.x;
@@ -6932,11 +6963,11 @@ class ScrollPane {
         //     else
         //         max += this._footerLockedSize;
         //     if (this._refreshBarAxis == "x") {
-        //         this._container.pos(ToolSet.clamp(this._container.x, -max, this._headerLockedSize),
+        //         this._container.setPosition(ToolSet.clamp(this._container.x, -max, this._headerLockedSize),
         //             ToolSet.clamp(this._container.y, -this._overlapSize.y, 0));
         //     }
         //     else {
-        //         this._container.pos(ToolSet.clamp(this._container.x, -this._overlapSize.x, 0),
+        //         this._container.setPosition(ToolSet.clamp(this._container.x, -this._overlapSize.x, 0),
         //             ToolSet.clamp(this._container.y, -max, this._headerLockedSize));
         //     }
         //     if (this._header) {
@@ -6953,7 +6984,7 @@ class ScrollPane {
         //     }
         // }
         // else {
-        //     this._container.pos(ToolSet.clamp(this._container.x, -this._overlapSize.x, 0),
+        //     this._container.setPosition(ToolSet.clamp(this._container.x, -this._overlapSize.x, 0),
         //         ToolSet.clamp(this._container.y, -this._overlapSize.y, 0));
         // }
         // this.updateScrollBarPos();
@@ -6961,7 +6992,6 @@ class ScrollPane {
         //     this.updatePageController();
     }
     posChanged(ani) {
-        throw new Error("TODO");
         // if (this._aniFlag == 0)
         //     this._aniFlag = ani ? 1 : -1;
         // else if (this._aniFlag == 1 && !ani)
@@ -6970,7 +7000,6 @@ class ScrollPane {
         // Laya.timer.callLater(this, this.refresh);
     }
     refresh() {
-        throw new Error("TODO");
         // if (!this._owner.displayObject) {
         //     return;
         // }
@@ -6994,7 +7023,6 @@ class ScrollPane {
         // this._aniFlag = 0;
     }
     refresh2() {
-        throw new Error("TODO");
         // if (this._aniFlag == 1 && !this._dragged) {
         //     var posX: number;
         //     var posY: number;
@@ -7031,7 +7059,6 @@ class ScrollPane {
         //     this.updatePageController();
     }
     __mouseDown() {
-        throw new Error("TODO");
         // if (!this._touchEffect)
         //     return;
         // if (this._tweening != 0) {
@@ -7315,7 +7342,6 @@ class ScrollPane {
         this.checkRefreshBar();
     }
     updateScrollBarVisible() {
-        throw new Error("TODO");
         // if (this._vtScrollBar) {
         //     if (this._viewSize.y <= this._vtScrollBar.minSize || this._vScrollNone)
         //         this._vtScrollBar.displayObject.visible = false;
@@ -7515,38 +7541,7 @@ class ScrollPane {
             pos = 0;
         else if (pos < -this._overlapSize[axis])
             pos = -this._overlapSize[axis];
-        else {
-            throw new Error("TODO");
-            // //以屏幕像素为基准
-            // var v2: number = Math.abs(v) * this._velocityScale;
-            // //在移动设备上，需要对不同分辨率做一个适配，我们的速度判断以1136分辨率为基准
-            // if (Laya.Browser.onMobile)
-            //     v2 *= 1136 / Math.max(Laya.stage.width, Laya.stage.height);
-            // //这里有一些阈值的处理，因为在低速内，不希望产生较大的滚动（甚至不滚动）
-            // var ratio: number = 0;
-            // if (this._pageMode || !Laya.Browser.onMobile) {
-            //     if (v2 > 500)
-            //         ratio = Math.pow((v2 - 500) / 500, 2);
-            // }
-            // else {
-            //     if (v2 > 1000)
-            //         ratio = Math.pow((v2 - 1000) / 1000, 2);
-            // }
-            // if (ratio != 0) {
-            //     if (ratio > 1)
-            //         ratio = 1;
-            //     v2 *= ratio;
-            //     v *= ratio;
-            //     this._velocity[axis] = v;
-            //     //算法：v*（_decelerationRate的n次幂）= 60，即在n帧后速度降为60（假设每秒60帧）。
-            //     duration = Math.log(60 / v2) / Math.log(this._decelerationRate) / 60;
-            //     //计算距离要使用本地速度
-            //     //理论公式貌似滚动的距离不够，改为经验公式
-            //     //var change:number = (v/ 60 - 1) / (1 - this._decelerationRate);
-            //     var change: number = Math.floor(v * duration * 0.4);
-            //     pos += change;
-            // }
-        }
+        else ;
         if (duration < TWEEN_TIME_DEFAULT)
             duration = TWEEN_TIME_DEFAULT;
         this._tweenDuration[axis] = duration;
@@ -7561,7 +7556,6 @@ class ScrollPane {
         this._tweenDuration[axis] = newDuration;
     }
     startTween(type) {
-        throw new Error("TODO");
         // this._tweenTime.setTo(0, 0);
         // this._tweening = type;
         // Laya.timer.frameLoop(1, this, this.tweenUpdate);
@@ -7580,7 +7574,6 @@ class ScrollPane {
         // Events.dispatch(Events.SCROLL_END, this._owner.displayObject);
     }
     checkRefreshBar() {
-        throw new Error("TODO");
         // if (!this._header && !this._footer)
         //     return;
         // var pos: number = this._container[this._refreshBarAxis];
@@ -7655,7 +7648,55 @@ class ScrollPane {
     runTween(axis) {
         var newValue;
         if (this._tweenChange[axis] != 0) {
-            throw new Error("TODO");
+            // this._tweenTime[axis] += Laya.timer.delta / 1000;
+            if (this._tweenTime[axis] >= this._tweenDuration[axis]) {
+                newValue = this._tweenStart[axis] + this._tweenChange[axis];
+                this._tweenChange[axis] = 0;
+            }
+            else {
+                var ratio = easeFunc(this._tweenTime[axis], this._tweenDuration[axis]);
+                newValue = this._tweenStart[axis] + Math.floor(this._tweenChange[axis] * ratio);
+            }
+            var threshold1 = 0;
+            var threshold2 = -this._overlapSize[axis];
+            if (this._headerLockedSize > 0 && this._refreshBarAxis == axis)
+                threshold1 = this._headerLockedSize;
+            if (this._footerLockedSize > 0 && this._refreshBarAxis == axis) {
+                var max = this._overlapSize[this._refreshBarAxis];
+                if (max == 0)
+                    max = Math.max(this._contentSize[this._refreshBarAxis] + this._footerLockedSize - this._viewSize[this._refreshBarAxis], 0);
+                else
+                    max += this._footerLockedSize;
+                threshold2 = -max;
+            }
+            if (this._tweening == 2 && this._bouncebackEffect) {
+                if (newValue > 20 + threshold1 && this._tweenChange[axis] > 0
+                    || newValue > threshold1 && this._tweenChange[axis] == 0) //开始回弹
+                 {
+                    this._tweenTime[axis] = 0;
+                    this._tweenDuration[axis] = TWEEN_TIME_DEFAULT;
+                    this._tweenChange[axis] = -newValue + threshold1;
+                    this._tweenStart[axis] = newValue;
+                }
+                else if (newValue < threshold2 - 20 && this._tweenChange[axis] < 0
+                    || newValue < threshold2 && this._tweenChange[axis] == 0) //开始回弹
+                 {
+                    this._tweenTime[axis] = 0;
+                    this._tweenDuration[axis] = TWEEN_TIME_DEFAULT;
+                    this._tweenChange[axis] = threshold2 - newValue;
+                    this._tweenStart[axis] = newValue;
+                }
+            }
+            else {
+                if (newValue > threshold1) {
+                    newValue = threshold1;
+                    this._tweenChange[axis] = 0;
+                }
+                else if (newValue < threshold2) {
+                    newValue = threshold2;
+                    this._tweenChange[axis] = 0;
+                }
+            }
         }
         else
             newValue = this._container[axis];
@@ -7667,6 +7708,9 @@ var s_vec2 = new Phaser.Geom.Point();
 var s_rect = new Phaser.Geom.Rectangle();
 new Phaser.Geom.Point();
 new Phaser.Geom.Point();
+function easeFunc(t, d) {
+    return (t = t / d - 1) * t * t + 1; //cubicOut
+}
 
 class ByteBuffer {
     constructor(buffer, offset = 0, length = -1) {
@@ -9718,8 +9762,7 @@ class Controller extends Phaser.Events.EventEmitter {
         this._previousIndex = -1;
     }
     dispose() {
-        throw new Error("TODO");
-        // this.offAll();
+        this.removeAllListeners();
     }
     get selectedIndex() {
         return this._selectedIndex;
@@ -10038,33 +10081,37 @@ class GComponent extends GObject {
         return i;
     }
     removeChild(child, dispose) {
-        var childIndex = this._children.indexOf(child);
-        if (childIndex != -1) {
-            this.removeChildAt(childIndex, dispose);
-        }
-        return child;
+        return new Promise((reslove, reject) => {
+            var childIndex = this._children.indexOf(child);
+            if (childIndex != -1) {
+                this.removeChildAt(childIndex, dispose);
+            }
+            reslove(child);
+        });
     }
     removeChildAt(index, dispose) {
-        if (index >= 0 && index < this._children.length) {
-            var child = this._children[index];
-            child.parent = null;
-            if (child.sortingOrder != 0)
-                this._sortingChildCount--;
-            this._children.splice(index, 1);
-            child.group = null;
-            if (child.inContainer) {
-                this._container.remove(child.displayObject);
-                // if (this._childrenRenderOrder == ChildrenRenderOrder.Arch)
-                //     Laya.timer.callLater(this, this.buildNativeDisplayList);
+        return new Promise((reslove, reject) => {
+            if (index >= 0 && index < this._children.length) {
+                var child = this._children[index];
+                child.parent = null;
+                if (child.sortingOrder != 0)
+                    this._sortingChildCount--;
+                this._children.splice(index, 1);
+                child.group = null;
+                if (child.inContainer) {
+                    this._container.remove(child.displayObject);
+                    // if (this._childrenRenderOrder == ChildrenRenderOrder.Arch)
+                    //     Laya.timer.callLater(this, this.buildNativeDisplayList);
+                }
+                if (dispose)
+                    child.dispose();
+                this.setBoundsChangedFlag();
+                reslove(child);
             }
-            if (dispose)
-                child.dispose();
-            this.setBoundsChangedFlag();
-            return child;
-        }
-        else {
-            throw "Invalid child index";
-        }
+            else {
+                throw "Invalid child index";
+            }
+        });
     }
     removeChildren(beginIndex, endIndex, dispose) {
         if (beginIndex == undefined)
@@ -10774,6 +10821,9 @@ class GComponent extends GObject {
         return new Promise((reslove, reject) => {
             this.constructFromResource2(null, 0).then(() => {
                 reslove();
+            }).catch((error) => {
+                console.log(error);
+                reject();
             });
         });
     }
@@ -10790,8 +10840,8 @@ class GComponent extends GObject {
             var nextPos;
             var f1;
             var f2;
-            var i1;
-            var i2;
+            let i1;
+            let i2;
             var buffer = contentItem.rawData;
             buffer.seek(0, 0);
             this._underConstruct = true;
@@ -10866,10 +10916,28 @@ class GComponent extends GObject {
                     }
                     if (pi) {
                         child = Decls.UIObjectFactory.newObject(pi);
-                        child.constructFromResource();
+                        child.constructFromResource().then(() => {
+                            // child._underConstruct = true;
+                            // child.setup_beforeAdd(buffer, curPos);
+                            // child.parent = this;
+                            // this._children.push(child);
+                            // buffer.position = curPos + dataLen;
+                            // this._constructFromResource2(buffer, contentItem, childCount, nextPos);
+                            // reslove();
+                        }).catch((err) => {
+                            console.log(err);
+                        });
                     }
-                    else
+                    else {
                         child = Decls.UIObjectFactory.newObject(type);
+                        // child._underConstruct = true;
+                        // child.setup_beforeAdd(buffer, curPos);
+                        // child.parent = this;
+                        // this._children.push(child);
+                        // buffer.position = curPos + dataLen;
+                        // this._constructFromResource2(buffer, contentItem, childCount, nextPos);
+                        // reslove();
+                    }
                 }
                 child._underConstruct = true;
                 child.setup_beforeAdd(buffer, curPos);
@@ -10944,6 +11012,78 @@ class GComponent extends GObject {
             this.onConstruct();
             reslove();
         });
+    }
+    _constructFromResource2(buffer, contentItem, childCount, nextPos) {
+        let i1;
+        let i2;
+        let child;
+        let pi;
+        buffer.seek(0, 3);
+        this.relations.setup(buffer, true);
+        buffer.seek(0, 2);
+        buffer.skip(2);
+        let i = 0;
+        for (i = 0; i < childCount; i++) {
+            nextPos = buffer.readShort();
+            nextPos += buffer.position;
+            buffer.seek(buffer.position, 3);
+            this._children[i].relations.setup(buffer, false);
+            buffer.position = nextPos;
+        }
+        buffer.seek(0, 2);
+        buffer.skip(2);
+        for (i = 0; i < childCount; i++) {
+            nextPos = buffer.readShort();
+            nextPos += buffer.position;
+            child = this._children[i];
+            child.setup_afterAdd(buffer, buffer.position);
+            child._underConstruct = false;
+            buffer.position = nextPos;
+        }
+        buffer.seek(0, 4);
+        buffer.skip(2); //customData
+        this.opaque = buffer.readBool();
+        var maskId = buffer.readShort();
+        if (maskId != -1) {
+            this.setMask(this.getChildAt(maskId).displayObject, buffer.readBool());
+        }
+        var hitTestId = buffer.readS();
+        i1 = buffer.readInt();
+        i2 = buffer.readInt();
+        var hitArea;
+        if (hitTestId) {
+            pi = contentItem.owner.getItemById(hitTestId);
+            if (pi && pi.pixelHitTestData)
+                hitArea = new PixelHitTest(pi.pixelHitTestData, i1, i2);
+        }
+        if (hitArea) {
+            // this._displayObject.setInteractive(hitArea,Phaser.Geom.Rectangle.Contains);
+            this.hitArea = hitArea;
+            // this._displayObject.mouseThrough = false;
+            // this._displayObject.hitTestPrior = true;
+        }
+        buffer.seek(0, 5);
+        var transitionCount = buffer.readShort();
+        for (i = 0; i < transitionCount; i++) {
+            nextPos = buffer.readShort();
+            nextPos += buffer.position;
+            var trans = new Transition(this);
+            trans.setup(buffer);
+            this._transitions.push(trans);
+            buffer.position = nextPos;
+        }
+        if (this._transitions.length > 0) {
+            this.displayObject.on(Phaser.GameObjects.Events.ADDED_TO_SCENE, this.___added);
+            this.displayObject.on(Phaser.GameObjects.Events.REMOVED_FROM_SCENE, this.___removed);
+        }
+        this.applyAllControllers();
+        this._buildingDisplayList = false;
+        this._underConstruct = false;
+        this.buildNativeDisplayList();
+        this.setBoundsChangedFlag();
+        if (contentItem.objectType != ObjectType.Component)
+            this.constructExtension(buffer);
+        this.onConstruct();
     }
     constructExtension(buffer) {
     }
@@ -11184,9 +11324,16 @@ class GRoot extends GComponent {
 GRoot.contentScaleLevel = 0;
 GRoot._gmStatus = new GRootMouseStatus();
 
+var TextType;
+(function (TextType) {
+    TextType[TextType["BASIC"] = 0] = "BASIC";
+    TextType[TextType["RICH"] = 1] = "RICH";
+    TextType[TextType["INPUT"] = 2] = "INPUT";
+})(TextType || (TextType = {}));
 class GTextField extends GObject {
-    constructor() {
-        super();
+    constructor(scene) {
+        super(scene);
+        console.log("text create", this);
     }
     get font() {
         return null;
@@ -11554,8 +11701,8 @@ class UBBParser {
 UBBParser.inst = new UBBParser();
 
 class GRichTextField extends GTextField {
-    constructor() {
-        super();
+    constructor(scene) {
+        super(scene);
         this._text = "";
     }
     createDisplayObject() {
@@ -11721,8 +11868,8 @@ class GRichTextField extends GTextField {
 }
 
 class GTextInput extends GTextField {
-    constructor() {
-        super();
+    constructor(scene) {
+        super(scene);
     }
     createDisplayObject() {
         throw new Error("TODO");
@@ -12389,6 +12536,7 @@ class GButton extends GComponent {
         this._soundVolumeScale = UIConfig.buttonSoundVolumeScale;
         this._changeStateOnClick = true;
         this._downEffectValue = 0.8;
+        console.log("button create===>", this);
     }
     get icon() {
         return this._icon;
@@ -13860,19 +14008,18 @@ class GList extends GComponent {
         this._curLineItemCount = 0; //item count in one line
         this._virtualListChanged = 0; //1-content changed, 2-size changed
         this.itemInfoVer = 0; //用来标志item是否在本次处理中已经被重用了
-        throw new Error("TODO");
-        // this._trackBounds = true;
-        // this._pool = new GObjectPool();
-        // this._layout = ListLayoutType.SingleColumn;
-        // this._autoResizeItem = true;
-        // this._lastSelectedIndex = -1;
-        // this._selectionMode = ListSelectionMode.Single;
-        // this.opaque = true;
-        // this.scrollItemToViewOnClick = true;
-        // this._align = "left";
-        // this._verticalAlign = "top";
-        // this._container = new Laya.Sprite();
-        // this._displayObject.addChild(this._container);
+        this._trackBounds = true;
+        this._pool = new GObjectPool();
+        this._layout = ListLayoutType.SingleColumn;
+        this._autoResizeItem = true;
+        this._lastSelectedIndex = -1;
+        this._selectionMode = ListSelectionMode.Single;
+        this.opaque = true;
+        this.scrollItemToViewOnClick = true;
+        this._align = "left";
+        this._verticalAlign = "top";
+        this._container = scene.make.container(undefined, false);
+        this._displayObject.add(this._container);
     }
     dispose() {
         this._pool.clear();
@@ -14014,42 +14161,52 @@ class GList extends GComponent {
         });
     }
     returnToPool(obj) {
-        throw new Error("TODO");
         // obj.displayObject.cacheAs = "none";
-        // this._pool.returnObject(obj);
+        this._pool.returnObject(obj);
     }
     addChildAt(child, index) {
         super.addChildAt(child, index);
-        throw new Error("TODO");
-        // if (child instanceof GButton) {
-        //     child.selected = false;
-        //     child.changeStateOnClick = false;
-        // }
+        if (child instanceof GButton) {
+            child.selected = false;
+            child.changeStateOnClick = false;
+        }
+        // todo click
         // child.on(Laya.Event.CLICK, this, this.__clickItem);
-        // return child;
+        return child;
     }
     addItem(url) {
-        // if (!url)
-        //     url = this._defaultItem;
-        // return this.addChild(UIPackage.createObjectFromURL(url));
-        throw new Error("TODO");
+        return new Promise((reslove, reject) => {
+            if (!url)
+                url = this._defaultItem;
+            UIPackage.createObjectFromURL(url).then((obj) => {
+                this.addChild(obj);
+                reslove(obj);
+            });
+        });
+        // throw new Error("TODO");
     }
     addItemFromPool(url) {
-        throw new Error("TODO");
-        // return this.addChild(this.getFromPool(url));
+        return new Promise((reslove, reject) => {
+            this.getFromPool(url).then((obj) => {
+                this.addChild(obj);
+                reslove(obj);
+            });
+        });
     }
     removeChildAt(index, dispose) {
-        throw new Error("TODO");
-        // var child: GObject = super.removeChildAt(index);
-        // if (dispose)
-        //     child.dispose();
-        // else
-        //     child.off(Laya.Event.CLICK, this, this.__clickItem);
-        // return child;
+        return new Promise((reslove, reject) => {
+            super.removeChildAt(index).then((obj) => {
+                if (dispose) {
+                    obj.dispose();
+                }
+                reslove(obj);
+            });
+        });
     }
     removeChildToPoolAt(index) {
-        var child = super.removeChildAt(index);
-        this.returnToPool(child);
+        super.removeChildAt(index).then((obj) => {
+            this.returnToPool(obj);
+        });
     }
     removeChildToPool(child) {
         super.removeChild(child);
@@ -14390,7 +14547,6 @@ class GList extends GComponent {
         }
     }
     __clickItem(evt) {
-        throw new Error("TODO");
         // if (this._scrollPane && this._scrollPane.isDragged)
         //     return;
         // var item: GObject = GObject.cast(evt.currentTarget);
@@ -14400,11 +14556,9 @@ class GList extends GComponent {
         // this.dispatchItemEvent(item, Events.createEvent(Events.CLICK_ITEM, this.displayObject, evt));
     }
     dispatchItemEvent(item, evt) {
-        throw new Error("TODO");
         // this.displayObject.event(Events.CLICK_ITEM, [item, evt]);
     }
     setSelectionOnEvent(item, evt) {
-        throw new Error("TODO");
         // if (!(item instanceof GButton) || this._selectionMode == ListSelectionMode.None)
         //     return;
         // var dontChangeLastIndex: boolean = false;
@@ -14598,45 +14752,42 @@ class GList extends GComponent {
             return super.getSnappingPositionWithDir(xValue, yValue, xDir, yDir, result);
     }
     scrollToView(index, ani, setFirst) {
-        throw new Error("TODO");
-        // if (this._virtual) {
-        //     if (this._numItems == 0)
-        //         return;
-        //     this.checkVirtualList();
-        //     if (index >= this._virtualItems.length)
-        //         throw new Error("Invalid child index: " + index + ">" + this._virtualItems.length);
-        //     if (this._loop)
-        //         index = Math.floor(this._firstIndex / this._numItems) * this._numItems + index;
-        //     var rect: Laya.Rectangle;
-        //     var ii: ItemInfo = this._virtualItems[index];
-        //     var pos: number = 0;
-        //     var i: number;
-        //     if (this._layout == ListLayoutType.SingleColumn || this._layout == ListLayoutType.FlowHorizontal) {
-        //         for (i = this._curLineItemCount - 1; i < index; i += this._curLineItemCount)
-        //             pos += this._virtualItems[i].height + this._lineGap;
-        //         rect = new Laya.Rectangle(0, pos, this._itemSize.x, ii.height);
-        //     }
-        //     else if (this._layout == ListLayoutType.SingleRow || this._layout == ListLayoutType.FlowVertical) {
-        //         for (i = this._curLineItemCount - 1; i < index; i += this._curLineItemCount)
-        //             pos += this._virtualItems[i].width + this._columnGap;
-        //         rect = new Laya.Rectangle(pos, 0, ii.width, this._itemSize.y);
-        //     }
-        //     else {
-        //         var page: number = index / (this._curLineItemCount * this._curLineItemCount2);
-        //         rect = new Laya.Rectangle(page * this.viewWidth + (index % this._curLineItemCount) * (ii.width + this._columnGap),
-        //             (index / this._curLineItemCount) % this._curLineItemCount2 * (ii.height + this._lineGap),
-        //             ii.width, ii.height);
-        //     }
-        //     if (this._scrollPane)
-        //         this._scrollPane.scrollToView(rect, ani, setFirst);
-        // }
-        // else {
-        //     var obj: GObject = this.getChildAt(index);
-        //     if (this._scrollPane)
-        //         this._scrollPane.scrollToView(obj, ani, setFirst);
-        //     else if (this._parent && this._parent.scrollPane)
-        //         this._parent.scrollPane.scrollToView(obj, ani, setFirst);
-        // }
+        if (this._virtual) {
+            if (this._numItems == 0)
+                return;
+            this.checkVirtualList();
+            if (index >= this._virtualItems.length)
+                throw new Error("Invalid child index: " + index + ">" + this._virtualItems.length);
+            if (this._loop)
+                index = Math.floor(this._firstIndex / this._numItems) * this._numItems + index;
+            var rect;
+            var ii = this._virtualItems[index];
+            var pos = 0;
+            var i;
+            if (this._layout == ListLayoutType.SingleColumn || this._layout == ListLayoutType.FlowHorizontal) {
+                for (i = this._curLineItemCount - 1; i < index; i += this._curLineItemCount)
+                    pos += this._virtualItems[i].height + this._lineGap;
+                rect = new Phaser.Geom.Rectangle(0, pos, this._itemSize.x, ii.height);
+            }
+            else if (this._layout == ListLayoutType.SingleRow || this._layout == ListLayoutType.FlowVertical) {
+                for (i = this._curLineItemCount - 1; i < index; i += this._curLineItemCount)
+                    pos += this._virtualItems[i].width + this._columnGap;
+                rect = new Phaser.Geom.Rectangle(pos, 0, ii.width, this._itemSize.y);
+            }
+            else {
+                var page = index / (this._curLineItemCount * this._curLineItemCount2);
+                rect = new Phaser.Geom.Rectangle(page * this.viewWidth + (index % this._curLineItemCount) * (ii.width + this._columnGap), (index / this._curLineItemCount) % this._curLineItemCount2 * (ii.height + this._lineGap), ii.width, ii.height);
+            }
+            if (this._scrollPane)
+                this._scrollPane.scrollToView(rect, ani, setFirst);
+        }
+        else {
+            var obj = this.getChildAt(index);
+            if (this._scrollPane)
+                this._scrollPane.scrollToView(obj, ani, setFirst);
+            else if (this._parent && this._parent.scrollPane)
+                this._parent.scrollPane.scrollToView(obj, ani, setFirst);
+        }
     }
     getFirstChildInView() {
         return this.childIndexToItemIndex(super.getFirstChildInView());
@@ -14690,7 +14841,6 @@ class GList extends GComponent {
         this._setVirtual(true);
     }
     _setVirtual(loop) {
-        throw new Error("TODO");
         // if (!this._virtual) {
         //     if (this._scrollPane == null)
         //         throw new Error("Virtual list must be scrollable!");
@@ -14741,7 +14891,6 @@ class GList extends GComponent {
             return this._children.length;
     }
     set numItems(value) {
-        throw new Error("TODO");
         // var i: number;
         // if (this._virtual) {
         //     if (this.itemRenderer == null)
@@ -14795,14 +14944,12 @@ class GList extends GComponent {
         this.setVirtualListChangedFlag(false);
     }
     checkVirtualList() {
-        throw new Error("TODO");
         // if (this._virtualListChanged != 0) {
         //     this._refreshVirtualList();
         //     Laya.timer.clear(this, this._refreshVirtualList);
         // }
     }
     setVirtualListChangedFlag(layoutChanged) {
-        throw new Error("TODO");
         // if (layoutChanged)
         //     this._virtualListChanged = 2;
         // else if (this._virtualListChanged == 0)
@@ -14810,7 +14957,6 @@ class GList extends GComponent {
         // Laya.timer.callLater(this, this._refreshVirtualList);
     }
     _refreshVirtualList() {
-        throw new Error("TODO");
         // if (!this._displayObject)
         //     return;
         // var layoutChanged: boolean = this._virtualListChanged == 2;
@@ -14900,11 +15046,10 @@ class GList extends GComponent {
         // this.handleScroll(true);
     }
     __scrolled(evt) {
-        throw new Error("TODO");
         // this.handleScroll(false);
     }
     getIndexOnPos1(forceUpdate) {
-        throw new Error("TODO");
+        return 0;
         // if (this._realNumItems < this._curLineItemCount) {
         //     s_n = 0;
         //     return 0;
@@ -14953,7 +15098,7 @@ class GList extends GComponent {
         // }
     }
     getIndexOnPos2(forceUpdate) {
-        throw new Error("TODO");
+        return 0;
         // if (this._realNumItems < this._curLineItemCount) {
         //     s_n = 0;
         //     return 0;
@@ -15002,7 +15147,8 @@ class GList extends GComponent {
         // }
     }
     getIndexOnPos3(forceUpdate) {
-        throw new Error("TODO");
+        return 0;
+        // throw new Error("TODO");
         // if (this._realNumItems < this._curLineItemCount) {
         //     s_n = 0;
         //     return 0;
@@ -15057,7 +15203,8 @@ class GList extends GComponent {
         // this._boundsChanged = false;
     }
     handleScroll1(forceUpdate) {
-        throw new Error("TODO");
+        return true;
+        // throw new Error("TODO");
         // var pos: number = this._scrollPane.scrollingPosY;
         // var max: number = pos + this._scrollPane.viewHeight;
         // var end: boolean = max == this._scrollPane.contentHeight;//这个标志表示当前需要滚动到最末，无论内容变化大小
@@ -15193,7 +15340,8 @@ class GList extends GComponent {
         //     return false;
     }
     handleScroll2(forceUpdate) {
-        throw new Error("TODO");
+        return true;
+        // throw new Error("TODO");
         // var pos: number = this._scrollPane.scrollingPosX;
         // var max: number = pos + this._scrollPane.viewWidth;
         // var end: boolean = pos == this._scrollPane.contentWidth;//这个标志表示当前需要滚动到最末，无论内容变化大小
@@ -15328,7 +15476,6 @@ class GList extends GComponent {
         //     return false;
     }
     handleScroll3(forceUpdate) {
-        throw new Error("TODO");
         // var pos: number = this._scrollPane.scrollingPosX;
         // //寻找当前位置的第一条项目
         // s_n = pos;
@@ -15417,19 +15564,19 @@ class GList extends GComponent {
         //         insertIndex = -1;
         //         lastObj = ii.obj;
         //     }
-        //     if (needRender) {
-        //         if (this._autoResizeItem) {
-        //             if (this._curLineItemCount == this._columnCount && this._curLineItemCount2 == this._lineCount)
-        //                 ii.obj.setSize(partWidth, partHeight, true);
-        //             else if (this._curLineItemCount == this._columnCount)
-        //                 ii.obj.setSize(partWidth, ii.obj.height, true);
-        //             else if (this._curLineItemCount2 == this._lineCount)
-        //                 ii.obj.setSize(ii.obj.width, partHeight, true);
-        //         }
-        //         this.itemRenderer.runWith([i % this._numItems, ii.obj]);
-        //         ii.width = Math.ceil(ii.obj.width);
-        //         ii.height = Math.ceil(ii.obj.height);
+        // if (needRender) {
+        //     if (this._autoResizeItem) {
+        //         if (this._curLineItemCount == this._columnCount && this._curLineItemCount2 == this._lineCount)
+        //             ii.obj.setSize(partWidth, partHeight, true);
+        //         else if (this._curLineItemCount == this._columnCount)
+        //             ii.obj.setSize(partWidth, ii.obj.height, true);
+        //         else if (this._curLineItemCount2 == this._lineCount)
+        //             ii.obj.setSize(ii.obj.width, partHeight, true);
         //     }
+        //     this.itemRenderer.runWith([i % this._numItems, ii.obj]);
+        //     ii.width = Math.ceil(ii.obj.width);
+        //     ii.height = Math.ceil(ii.obj.height);
+        // }
         // }
         // //排列item
         // var borderX: number = (startIndex / pageSize) * viewWidth;
@@ -15489,48 +15636,47 @@ class GList extends GComponent {
         }
     }
     handleArchOrder2() {
-        throw new Error("TODO");
-        //     if (this.childrenRenderOrder == ChildrenRenderOrder.Arch) {
-        //         var mid: number = this._scrollPane.posX + this.viewWidth / 2;
-        //         var minDist: number = Number.POSITIVE_INFINITY;
-        //         var dist: number = 0;
-        //         var apexIndex: number = 0;
-        //         var cnt: number = this.numChildren;
-        //         for (var i: number = 0; i < cnt; i++) {
-        //             var obj: GObject = this.getChildAt(i);
-        //             if (!this.foldInvisibleItems || obj.visible) {
-        //                 dist = Math.abs(mid - obj.x - obj.width / 2);
-        //                 if (dist < minDist) {
-        //                     minDist = dist;
-        //                     apexIndex = i;
-        //                 }
-        //             }
-        //         }
-        //         this.apexIndex = apexIndex;
-        //     }
-        // }
-        // private handleAlign(contentWidth: number, contentHeight: number): void {
-        //     var newOffsetX: number = 0;
-        //     var newOffsetY: number = 0;
-        //     if (contentHeight < this.viewHeight) {
-        //         if (this._verticalAlign == "middle")
-        //             newOffsetY = Math.floor((this.viewHeight - contentHeight) / 2);
-        //         else if (this._verticalAlign == "bottom")
-        //             newOffsetY = this.viewHeight - contentHeight;
-        //     }
-        //     if (contentWidth < this.viewWidth) {
-        //         if (this._align == "center")
-        //             newOffsetX = Math.floor((this.viewWidth - contentWidth) / 2);
-        //         else if (this._align == "right")
-        //             newOffsetX = this.viewWidth - contentWidth;
-        //     }
-        //     if (newOffsetX != this._alignOffset.x || newOffsetY != this._alignOffset.y) {
-        //         this._alignOffset.setTo(newOffsetX, newOffsetY);
-        //         if (this._scrollPane)
-        //             this._scrollPane.adjustMaskContainer();
-        //         else
-        //             this._container.pos(this._margin.left + this._alignOffset.x, this._margin.top + this._alignOffset.y);
-        //     }
+        if (this.childrenRenderOrder == ChildrenRenderOrder.Arch) {
+            var mid = this._scrollPane.posX + this.viewWidth / 2;
+            var minDist = Number.POSITIVE_INFINITY;
+            var dist = 0;
+            var apexIndex = 0;
+            var cnt = this.numChildren;
+            for (var i = 0; i < cnt; i++) {
+                var obj = this.getChildAt(i);
+                if (!this.foldInvisibleItems || obj.visible) {
+                    dist = Math.abs(mid - obj.x - obj.width / 2);
+                    if (dist < minDist) {
+                        minDist = dist;
+                        apexIndex = i;
+                    }
+                }
+            }
+            this.apexIndex = apexIndex;
+        }
+    }
+    handleAlign(contentWidth, contentHeight) {
+        var newOffsetX = 0;
+        var newOffsetY = 0;
+        if (contentHeight < this.viewHeight) {
+            if (this._verticalAlign == "middle")
+                newOffsetY = Math.floor((this.viewHeight - contentHeight) / 2);
+            else if (this._verticalAlign == "bottom")
+                newOffsetY = this.viewHeight - contentHeight;
+        }
+        if (contentWidth < this.viewWidth) {
+            if (this._align == "center")
+                newOffsetX = Math.floor((this.viewWidth - contentWidth) / 2);
+            else if (this._align == "right")
+                newOffsetX = this.viewWidth - contentWidth;
+        }
+        if (newOffsetX != this._alignOffset.x || newOffsetY != this._alignOffset.y) {
+            this._alignOffset.setTo(newOffsetX, newOffsetY);
+            if (this._scrollPane)
+                this._scrollPane.adjustMaskContainer();
+            else
+                this._container.setPosition(this._margin.left + this._alignOffset.x, this._margin.top + this._alignOffset.y);
+        }
     }
     updateBounds() {
         // if (this._virtual)
@@ -15883,7 +16029,8 @@ class GList extends GComponent {
             }
             this.getFromPool(str).then((obj) => {
                 if (obj) {
-                    throw new Error("TODO");
+                    this.addChild(obj);
+                    this.setupItem(buffer, obj);
                 }
                 buffer.position = nextPos;
             });
@@ -16826,6 +16973,532 @@ class PopupMenu {
     }
 }
 
+class GBasicTextField extends GTextField {
+    constructor(scene) {
+        super(scene);
+        /**
+         * 描边颜色，默认黑色
+         */
+        this._strokeColor = "#000000";
+        this._letterSpacing = 0;
+        this._textWidth = 0;
+        this._textHeight = 0;
+        this._text = "";
+        this._color = "#000000";
+        // this._textField.align = "left";
+        // this._textField.font = fgui.UIConfig.defaultFont;
+        this._autoSize = AutoSizeType.Both;
+        this._widthAutoSize = this._heightAutoSize = true;
+        this._textField["_sizeDirty"] = false;
+    }
+    createDisplayObject() {
+        this._displayObject = this._textField = new TextExt(this);
+        this._displayObject["$owner"] = this;
+        this._displayObject.mouseEnabled = false;
+    }
+    get nativeText() {
+        return this._textField;
+    }
+    set text(value) {
+        this._text = value;
+        if (this._text == null)
+            this._text = "";
+        if (this._bitmapFont == null) {
+            if (this._widthAutoSize)
+                this._textField.width = 10000;
+            var text2 = this._text;
+            if (this._templateVars)
+                text2 = this.parseTemplate(text2);
+            if (this._ubbEnabled) //laya还不支持同一个文本不同样式
+                this._textField.text = UBBParser.inst.parse(text2, true);
+            else
+                this._textField.text = text2;
+        }
+        else {
+            this._textField.text = "";
+            this._textField["setChanged"]();
+        }
+        // if (this.parent && this.parent._underConstruct)
+        //     this._textField.typeset();
+    }
+    get text() {
+        return this._text;
+    }
+    get font() {
+        // todo
+        return "";
+    }
+    set font(value) {
+        this._font = value;
+        this._textField.setFont(this._font);
+        // if (ToolSet.startsWith(this._font, "ui://"))
+        //     this._bitmapFont = <BitmapFont>UIPackage.getItemAssetByURL(this._font);
+        // else
+        //     delete this._bitmapFont;
+        // if (this._bitmapFont) {
+        //     this._textField["setChanged"]();
+        // }
+        // else {
+        //     if (this._font)
+        //         this._textField.font = this._font;
+        //     else
+        //         this._textField.font = fgui.UIConfig.defaultFont;
+        // }
+    }
+    get fontSize() {
+        return Number(this._textField.style.fontSize);
+    }
+    set fontSize(value) {
+        this._textField.style.setFontSize(value);
+    }
+    get color() {
+        return this._color;
+    }
+    set color(value) {
+        //todo
+        if (this._color != value) {
+            this._color = value;
+            this.updateGear(4);
+            if (this.grayed)
+                this._textField.setFill("#AAAAAA");
+            else
+                this._textField.setFill(this._color);
+        }
+    }
+    get align() {
+        return this._textField.style.align;
+    }
+    set align(value) {
+        this._textField.setAlign(value);
+    }
+    get valign() {
+        return ""; //this._textField.valign;
+    }
+    set valign(value) {
+        // this._textField.valign = value;
+    }
+    get leading() {
+        return this._textField.lineSpacing;
+        // return this._textField.leading;
+    }
+    set leading(value) {
+        this._textField.setLineSpacing(value);
+        // this._textField.leading = value;
+    }
+    get letterSpacing() {
+        return this._letterSpacing;
+    }
+    set letterSpacing(value) {
+        this._letterSpacing = value;
+    }
+    get bold() {
+        return false;
+    }
+    set bold(value) {
+        // todo bold
+        // this._textField.bold = value;
+    }
+    get italic() {
+        return false;
+    }
+    set italic(value) {
+        // todo italic
+        // this._textField.italic = value;
+    }
+    get underline() {
+        return false;
+        // return this._textField.underline;
+    }
+    set underline(value) {
+        // todo underline
+        // this._textField.underline = value;
+    }
+    get singleLine() {
+        return this._singleLine;
+    }
+    set singleLine(value) {
+        // todo singleline
+        // this._singleLine = value;
+        // this._textField.wordWrap = !this._widthAutoSize && !this._singleLine;
+    }
+    get stroke() {
+        return this._textField.style.strokeThickness;
+    }
+    set stroke(value) {
+        this._textField.setStroke(this._strokeColor, value);
+    }
+    get strokeColor() {
+        return this._strokeColor;
+    }
+    set strokeColor(value) {
+        if (this._strokeColor != value) {
+            this._strokeColor = value;
+            this._textField.setStroke(this._strokeColor, this.stroke);
+            this.updateGear(4);
+        }
+    }
+    updateAutoSize() {
+        /*一般没有剪裁文字的需要，感觉HIDDEN有消耗，所以不用了
+        if(this._heightAutoSize)
+        this._textField.overflow = Text.VISIBLE;
+        else
+        this._textField.overflow = Text.HIDDEN;*/
+        // todo phaser默认自动换行
+        // this._textField.wordWrap = !this._widthAutoSize && !this._singleLine;
+        if (!this._underConstruct) {
+            if (!this._heightAutoSize)
+                this._textField.setSize(this.width, this.height);
+            else if (!this._widthAutoSize)
+                this._textField.width = this.width;
+        }
+    }
+    get textWidth() {
+        // if (this._textField["_isChanged"])
+        //     this._textField.typeset();
+        return this._textWidth;
+    }
+    ensureSizeCorrect() {
+        // if (!this._underConstruct && this._textField["_isChanged"])
+        //     this._textField.typeset();
+    }
+    typeset() {
+        if (this._bitmapFont)
+            this.renderWithBitmapFont();
+        else if (this._widthAutoSize || this._heightAutoSize)
+            this.updateSize();
+    }
+    updateSize() {
+        this._textWidth = Math.ceil(this._textField.width);
+        this._textHeight = Math.ceil(this._textField.height);
+        var w, h = 0;
+        if (this._widthAutoSize) {
+            w = this._textWidth;
+            if (this._textField.width != w) {
+                this._textField.width = w;
+                if (this._textField.style.align != "left")
+                    this._textField["baseTypeset"]();
+            }
+        }
+        else
+            w = this.width;
+        if (this._heightAutoSize) {
+            h = this._textHeight;
+            if (!this._widthAutoSize) {
+                if (this._textField.height != this._textHeight)
+                    this._textField.height = this._textHeight;
+            }
+        }
+        else {
+            h = this.height;
+            if (this._textHeight > h)
+                this._textHeight = h;
+            if (this._textField.height != this._textHeight)
+                this._textField.height = this._textHeight;
+        }
+        this._updatingSize = true;
+        this.setSize(w, h);
+        this._updatingSize = false;
+    }
+    renderWithBitmapFont() {
+        // var gr: Phaser.GameObjects.Graphics = this._displayObject.graphics;
+        // gr.clear();
+        // if (!this._lines)
+        //     this._lines = new Array<LineInfo>();
+        // else
+        //     returnList(this._lines);
+        // var lineSpacing: number = this.leading - 1;
+        // var rectWidth: number = this.width - GUTTER_X * 2;
+        // var lineWidth: number = 0, lineHeight: number = 0, lineTextHeight: number = 0;
+        // var glyphWidth: number = 0, glyphHeight: number = 0;
+        // var wordChars: number = 0, wordStart: number = 0, wordEnd: number = 0;
+        // var lastLineHeight: number = 0;
+        // var lineBuffer: string = "";
+        // var lineY: number = GUTTER_Y;
+        // var line: LineInfo;
+        // var wordWrap: boolean = true; // ===========!this._widthAutoSize && !this._singleLine;
+        // var fontSize: number = this.fontSize;
+        // var fontScale: number = this._bitmapFont.resizable ? fontSize / this._bitmapFont.size : 1;
+        // this._textWidth = 0;
+        // this._textHeight = 0;
+        // var text2: string = this._text;
+        // if (this._templateVars)
+        //     text2 = this.parseTemplate(text2);
+        // var textLength: number = text2.length;
+        // for (var offset: number = 0; offset < textLength; ++offset) {
+        //     var ch: string = text2.charAt(offset);
+        //     var cc: number = ch.charCodeAt(0);
+        //     if (cc == 10) {
+        //         lineBuffer += ch;
+        //         line = borrow();
+        //         line.width = lineWidth;
+        //         if (lineTextHeight == 0) {
+        //             if (lastLineHeight == 0)
+        //                 lastLineHeight = fontSize;
+        //             if (lineHeight == 0)
+        //                 lineHeight = lastLineHeight;
+        //             lineTextHeight = lineHeight;
+        //         }
+        //         line.height = lineHeight;
+        //         lastLineHeight = lineHeight;
+        //         line.textHeight = lineTextHeight;
+        //         line.text = lineBuffer;
+        //         line.y = lineY;
+        //         lineY += (line.height + lineSpacing);
+        //         if (line.width > this._textWidth)
+        //             this._textWidth = line.width;
+        //         this._lines.push(line);
+        //         lineBuffer = "";
+        //         lineWidth = 0;
+        //         lineHeight = 0;
+        //         lineTextHeight = 0;
+        //         wordChars = 0;
+        //         wordStart = 0;
+        //         wordEnd = 0;
+        //         continue;
+        //     }
+        //     if (cc >= 65 && cc <= 90 || cc >= 97 && cc <= 122) //a-z,A-Z
+        //     {
+        //         if (wordChars == 0)
+        //             wordStart = lineWidth;
+        //         wordChars++;
+        //     }
+        //     else {
+        //         if (wordChars > 0)
+        //             wordEnd = lineWidth;
+        //         wordChars = 0;
+        //     }
+        //     if (cc == 32) {
+        //         glyphWidth = Math.ceil(fontSize / 2);
+        //         glyphHeight = fontSize;
+        //     }
+        //     else {
+        //         var glyph: BMGlyph = this._bitmapFont.glyphs[ch];
+        //         if (glyph) {
+        //             glyphWidth = Math.ceil(glyph.advance * fontScale);
+        //             glyphHeight = Math.ceil(glyph.lineHeight * fontScale);
+        //         }
+        //         else {
+        //             glyphWidth = 0;
+        //             glyphHeight = 0;
+        //         }
+        //     }
+        //     if (glyphHeight > lineTextHeight)
+        //         lineTextHeight = glyphHeight;
+        //     if (glyphHeight > lineHeight)
+        //         lineHeight = glyphHeight;
+        //     if (lineWidth != 0)
+        //         lineWidth += this._letterSpacing;
+        //     lineWidth += glyphWidth;
+        //     if (!wordWrap || lineWidth <= rectWidth) {
+        //         lineBuffer += ch;
+        //     }
+        //     else {
+        //         line = borrow();
+        //         line.height = lineHeight;
+        //         line.textHeight = lineTextHeight;
+        //         if (lineBuffer.length == 0) {//the line cannt fit even a char
+        //             line.text = ch;
+        //         }
+        //         else if (wordChars > 0 && wordEnd > 0) {//if word had broken, move it to new line
+        //             lineBuffer += ch;
+        //             var len: number = lineBuffer.length - wordChars;
+        //             line.text = ToolSet.trimRight(lineBuffer.substr(0, len));
+        //             line.width = wordEnd;
+        //             lineBuffer = lineBuffer.substr(len);
+        //             lineWidth -= wordStart;
+        //         }
+        //         else {
+        //             line.text = lineBuffer;
+        //             line.width = lineWidth - (glyphWidth + this._letterSpacing);
+        //             lineBuffer = ch;
+        //             lineWidth = glyphWidth;
+        //             lineHeight = glyphHeight;
+        //             lineTextHeight = glyphHeight;
+        //         }
+        //         line.y = lineY;
+        //         lineY += (line.height + lineSpacing);
+        //         if (line.width > this._textWidth)
+        //             this._textWidth = line.width;
+        //         wordChars = 0;
+        //         wordStart = 0;
+        //         wordEnd = 0;
+        //         this._lines.push(line);
+        //     }
+        // }
+        // if (lineBuffer.length > 0) {
+        //     line = borrow();
+        //     line.width = lineWidth;
+        //     if (lineHeight == 0)
+        //         lineHeight = lastLineHeight;
+        //     if (lineTextHeight == 0)
+        //         lineTextHeight = lineHeight;
+        //     line.height = lineHeight;
+        //     line.textHeight = lineTextHeight;
+        //     line.text = lineBuffer;
+        //     line.y = lineY;
+        //     if (line.width > this._textWidth)
+        //         this._textWidth = line.width;
+        //     this._lines.push(line);
+        // }
+        // if (this._textWidth > 0)
+        //     this._textWidth += GUTTER_X * 2;
+        // var count: number = this._lines.length;
+        // if (count == 0) {
+        //     this._textHeight = 0;
+        // }
+        // else {
+        //     line = this._lines[this._lines.length - 1];
+        //     this._textHeight = line.y + line.height + GUTTER_Y;
+        // }
+        // var w: number, h: number = 0;
+        // if (this._widthAutoSize) {
+        //     if (this._textWidth == 0)
+        //         w = 0;
+        //     else
+        //         w = this._textWidth;
+        // }
+        // else
+        //     w = this.width;
+        // if (this._heightAutoSize) {
+        //     if (this._textHeight == 0)
+        //         h = 0;
+        //     else
+        //         h = this._textHeight;
+        // }
+        // else
+        //     h = this.height;
+        // this._updatingSize = true;
+        // this.setSize(w, h);
+        // this._updatingSize = false;
+        // this.doAlign();
+        // if (w == 0 || h == 0)
+        //     return;
+        // var charX: number = GUTTER_X;
+        // var lineIndent: number = 0;
+        // var charIndent: number = 0;
+        // rectWidth = this.width - GUTTER_X * 2;
+        // var lineCount: number = this._lines.length;
+        // var color: string = this._bitmapFont.tint ? this._color : null;
+        // for (var i: number = 0; i < lineCount; i++) {
+        //     line = this._lines[i];
+        //     charX = GUTTER_X;
+        //     if (this.align == "center")
+        //         lineIndent = (rectWidth - line.width) / 2;
+        //     else if (this.align == "right")
+        //         lineIndent = rectWidth - line.width;
+        //     else
+        //         lineIndent = 0;
+        //     textLength = line.text.length;
+        //     for (var j: number = 0; j < textLength; j++) {
+        //         ch = line.text.charAt(j);
+        //         cc = ch.charCodeAt(0);
+        //         if (cc == 10)
+        //             continue;
+        //         if (cc == 32) {
+        //             charX += this._letterSpacing + Math.ceil(fontSize / 2);
+        //             continue;
+        //         }
+        //         glyph = this._bitmapFont.glyphs[ch];
+        //         if (glyph) {
+        //             charIndent = (line.height + line.textHeight) / 2 - Math.ceil(glyph.lineHeight * fontScale);
+        //             if (glyph.texture) {
+        //                 gr.drawTexture(glyph.texture,
+        //                     charX + lineIndent + Math.ceil(glyph.x * fontScale),
+        //                     line.y + charIndent + Math.ceil(glyph.y * fontScale),
+        //                     glyph.width * fontScale,
+        //                     glyph.height * fontScale, null, 1, color);
+        //             }
+        //             charX += this._letterSpacing + Math.ceil(glyph.advance * fontScale);
+        //         }
+        //         else {
+        //             charX += this._letterSpacing;
+        //         }
+        //     }//this.text loop
+        // }//line loop
+    }
+    handleSizeChanged() {
+        if (this._updatingSize)
+            return;
+        if (this._underConstruct)
+            this._textField.setSize(this._width, this._height);
+        else {
+            if (this._bitmapFont) {
+                if (!this._widthAutoSize)
+                    this._textField["setChanged"]();
+                else
+                    this.doAlign();
+            }
+            else {
+                if (!this._widthAutoSize) {
+                    if (!this._heightAutoSize)
+                        this._textField.setSize(this._width, this._height);
+                    else
+                        this._textField.width = this._width;
+                }
+            }
+        }
+    }
+    handleGrayedChanged() {
+        super.handleGrayedChanged();
+        // if (this.grayed)
+        //     this._textField.color = "#AAAAAA";
+        // else
+        //     this._textField.color = this._color;
+    }
+    doAlign() {
+        if (this.valign == "top" || this._textHeight == 0)
+            this._yOffset = GUTTER_Y;
+        else {
+            var dh = this.height - this._textHeight;
+            if (dh < 0)
+                dh = 0;
+            if (this.valign == "middle")
+                this._yOffset = Math.floor(dh / 2);
+            else
+                this._yOffset = Math.floor(dh);
+        }
+        this.handleXYChanged();
+    }
+    flushVars() {
+        this.text = this._text;
+    }
+}
+class TextExt extends Phaser.GameObjects.Text {
+    constructor(owner) {
+        super(owner.scene, 0, 0, "", undefined);
+        this._owner = owner;
+    }
+    baseTypeset() {
+        this._lock = true;
+        this.typeset();
+        this._lock = false;
+    }
+    typeset() {
+        // this._sizeDirty = true; //阻止SIZE_DELAY_CHANGE的触发
+        // super.typeset();
+        // if (!this._lock)
+        //     this._owner.typeset();
+        // if (this._isChanged) {
+        //     Laya.timer.clear(this, this.typeset);
+        //     this._isChanged = false;
+        // }
+        // this._sizeDirty = false;
+    }
+    setChanged() {
+        this.isChanged = true;
+    }
+    set isChanged(value) {
+        // if (value && !this._sizeDirty) {
+        //     if (this._owner.autoSize != AutoSizeType.None && this._owner.parent) {
+        //         this._sizeDirty = true;
+        //         this.event(Events.SIZE_DELAY_CHANGE);
+        //     }
+        // }
+        super["isChanged"] = value;
+    }
+}
+const GUTTER_Y = 2;
+
 class UIObjectFactory {
     constructor() {
     }
@@ -16861,17 +17534,17 @@ class UIObjectFactory {
                 case ObjectType.Component:
                     return new GComponent(GRoot.inst.scene);
                 case ObjectType.Text:
-                // return new GBasicTextField();
+                    return new GBasicTextField(GRoot.inst.scene);
                 case ObjectType.RichText:
-                // return new GRichTextField();
+                // return new GRichTextField(GRoot.inst.scene);
                 case ObjectType.InputText:
-                // return new GTextInput();
+                // return new GTextInput(GRoot.inst.scene);
                 case ObjectType.Group:
                     return new GGroup(GRoot.inst.scene);
                 case ObjectType.List:
                     return new GList(GRoot.inst.scene);
                 case ObjectType.Graph:
-                // return new GGraph();
+                    return new GGraph(GRoot.inst.scene);
                 case ObjectType.Loader:
                     // if (UIObjectFactory.loaderType)
                     // return new UIObjectFactory.loaderType();
