@@ -15,6 +15,8 @@ export declare class GTextField extends GObject {
     protected _heightAutoSize: boolean;
     protected _ubbEnabled: boolean;
     protected _updatingSize: boolean;
+    protected _align: string;
+    protected _valign: string;
     constructor(scene: Phaser.Scene);
     get font(): string;
     set font(value: string);
@@ -60,5 +62,8 @@ export declare class GTextField extends GObject {
     getProp(index: number): any;
     setProp(index: number, value: any): void;
     setup_beforeAdd(buffer: ByteBuffer, beginPos: number): void;
+    protected updateSize(): void;
+    protected doAlign(): void;
+    typeset(): void;
     setup_afterAdd(buffer: ByteBuffer, beginPos: number): void;
 }

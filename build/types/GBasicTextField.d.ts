@@ -48,11 +48,12 @@ export declare class GBasicTextField extends GTextField {
     get textWidth(): number;
     ensureSizeCorrect(): void;
     typeset(): void;
-    private updateSize;
+    protected updateSize(): void;
+    setSize(w: any, h: any): void;
     private renderWithBitmapFont;
     protected handleSizeChanged(): void;
     protected handleGrayedChanged(): void;
-    private doAlign;
+    protected doAlign(): void;
     flushVars(): void;
 }
 export interface LineInfo {

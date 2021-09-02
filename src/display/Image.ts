@@ -1,9 +1,12 @@
+import { PackageItem } from '../PackageItem';
 import { ToolSet } from './../utils/ToolSet';
 import { fillImage } from './FillUtils';
 import { Graphics } from "./Graphics";
 
+const __BASE = "__BASE";
+const patches = ["[0][0]", "[1][0]", "[2][0]", "[0][1]", "[1][1]", "[2][1]", "[0][2]", "[1][2]", "[2][2]"];
 export class Image extends Phaser.GameObjects.Container {
-    protected _source: Phaser.Textures.Texture;
+    protected _sourceTexture: Phaser.Textures.Texture;
     protected _scaleByTile?: boolean;
     protected _scale9Grid?: Phaser.Geom.Rectangle;
 
@@ -16,57 +19,167 @@ export class Image extends Phaser.GameObjects.Container {
     private _fillClockwise?: boolean;
     private _mask?: Graphics;
     private _color: string;
-    private _img: Phaser.GameObjects.Image;
+
+    private finalXs: number[] = [];
+    private finalYs: number[] = [];
+    // private _img: Phaser.GameObjects.Image;
+    // private _renderTexture: Phaser.GameObjects.RenderTexture;
+    private originFrame: Phaser.Textures.Frame;
+
+    private internalTint: number;
+    private tintFill: boolean = false;
+    /**
+     * phaser 存到内存中的图片资源需要一个key，相同originkey的图片会覆盖原先九宫过的资源
+     */
+    private patchKey: string;
 
     constructor(scene: Phaser.Scene) {
         super(scene);
-        this._img = this.scene.make.image(undefined, false);
-        this._img.setPosition(0, 0);
-        this.add(this._img);
+
+        // this._renderTexture = this.scene.make.renderTexture(undefined, false);
+        // this._renderTexture.setPosition(0, 0);
+        // this.add(this._renderTexture);
+        this.patchKey = Math.random() * 1000 + "";
         // this.mouseEnabled = false;
         this._color = "#FFFFFF";
     }
 
-    // public set width(value: number) {
-    //     if (this["_width"] !== value) {
-    //         super.set_width(value);
-    //         this.markChanged(1);
-    //     }
-    // }
-
-    // public set height(value: number) {
-    //     if (this["_height"] !== value) {
-    //         super.set_height(value);
-    //         this.markChanged(1);
-    //     }
-    // }
     public setSize(width: number, height: number): this {
         this.width = width;
         this.height = height;
+        const originWidth = this["$owner"].sourceWidth;
+        const originHeight = this["$owner"].sourceHeight;
+        if (this._scale9Grid) {
+            const _left = this._scale9Grid.left;
+            const _right = originWidth - this._scale9Grid.right;
+            const _top = this._scale9Grid.top;
+            const _bottom = originHeight - this._scale9Grid.bottom;
+            const centerWid = this._scale9Grid.width; // right - left
+            const centerHei = this._scale9Grid.height; // bottom - top
+            this.finalXs = [0, _left, width - _left - _right, width];
+            this.finalYs = [0, _top, height - _top - _bottom, height];
+        } else {
+            this.finalXs = [0, 0, 0, this.width];
+            this.finalYs = [0, 0, 0, this.height];
+        }
+        // 有texture资源后再创建九宫图片
+        if(this.originFrame){
+            this.createPatches();
+            this.drawPatches();
+        }
         this.markChanged(1);
         return this;
     }
 
+    createPatches() {
+        // The positions we want from the base texture
+        // 保存有x轴和y轴9宫坐标信息，如果存在坐标信息相同，则表示某一部分的图片尺寸为0，需要查看原因
+        const textureXs = this.finalXs;//[0, this._scale9Grid.left, this.originFrame.width - this._scale9Grid.right, this.originFrame.width];
+        const textureYs = this.finalYs;//[0, this._scale9Grid.top, this.originFrame.height - this._scale9Grid.bottom, this.originFrame.height];
+        let patchIndex = 0;
+        for (let yi = 0; yi < 3; yi++) {
+            for (let xi = 0; xi < 3; xi++) {
+                this.createPatchFrame(this.getPatchNameByIndex(patchIndex), textureXs[xi], // x
+                    textureYs[yi], // y
+                    textureXs[xi + 1] - textureXs[xi], // width
+                    textureYs[yi + 1] - textureYs[yi] // height
+                );
+                ++patchIndex;
+            }
+        }
+    }
+
+    drawPatches() {
+        const tintFill = this.tintFill;
+        this.removeAll(true);
+        let patchIndex = 0;
+        for (let yi = 0; yi < 3; yi++) {
+            for (let xi = 0; xi < 3; xi++) {
+                const patch = this._sourceTexture.frames[this.getPatchNameByIndex(patchIndex)];
+                const patchImg = new Phaser.GameObjects.Image(this.scene, 0, 0, patch.texture.key, patch.name);
+                patchImg.setOrigin(0);
+                patchImg.setPosition(this.finalXs[xi], this.finalYs[yi]);
+                patchImg.displayWidth = this.finalXs[xi + 1] - this.finalXs[xi]; //+ (xi < 2 ? this.mCorrection : 0);
+                patchImg.displayHeight = this.finalYs[yi + 1] - this.finalYs[yi]; //+ (yi < 2 ? this.mCorrection : 0);
+                // console.log("drawImage ===>", patchImg, this.finalXs, this.finalYs);
+                this.add(patchImg);
+                if (this.internalTint)
+                    patchImg.setTint(this.internalTint);
+                patchImg.tintFill = tintFill;
+                ++patchIndex;
+            }
+        }
+    }
+
+    createPatchFrame(patch, x, y, width, height) {
+        if (this._sourceTexture.frames.hasOwnProperty(patch)) {
+            return;
+        }
+        this._sourceTexture.add(patch, this.originFrame.sourceIndex, this.originFrame.cutX + x, this.originFrame.cutY + y, width, height);
+    }
+
+    getPatchNameByIndex(index) {
+        return this.originFrame.name + patches[index] + this.patchKey;
+    }
+
     public get texture(): Phaser.Textures.Texture {
-        return this._source;
+        return this._sourceTexture;
     }
 
     public set texture(value: Phaser.Textures.Texture) {
-        if (this._source != value) {
-            this._source = value;
+        if (this._sourceTexture != value) {
+            this._sourceTexture = value;
             if (this["_width"] == 0) {
-                if (this._source)
-                    this.setSize(this._source.source[0].width, this._source.source[0].height);
+                if (this._sourceTexture)
+                    this.setSize(this._sourceTexture.source[0].width, this._sourceTexture.source[0].height);
                 else
                     this.setSize(0, 0);
             }
             // todo 重绘
-            // this.scene.add.image(0, 0, this._source);
-            this._img.setTexture(value.key);
+            // this.scene.add.image(0, 0, this._sourceTexture);
+            const frames = value.getFrameNames();
+            const baseFrameName = frames[0];
+            // this._renderTexture.drawFrame(value.key, baseFrameName, 0, 0);
             // this.repaint();
             this.markChanged(1);
         }
     }
+
+    public setPackItem(value: PackageItem) {
+        if (!value || !value.texture) {
+            // console.log("setpackitem ===>", value);
+            return;
+        }
+        const _texture = value.texture;
+        if (!this._scale9Grid) {
+            const img = this.scene.make.image(undefined, false);
+            img.setTexture(_texture.key);
+            this.add(img);
+        } else {
+            const canvas = this.scene.textures.createCanvas(value.name + "_" + _texture.key + "_" + this.patchKey, value.width, value.height);
+            canvas.drawFrame(_texture.key, "__BASE", value.x, value.y);
+            // const img = this.scene.make.image(undefined, false);
+            // img.setTexture(value.name + "_" + _texture.key + "_" + this.patchKey);
+            // this.add(img);
+
+            if (canvas && this._sourceTexture != canvas) {
+                this._sourceTexture = canvas;
+
+                // todo 重绘
+                // // 修正九宫切片中间的裂缝，默认4
+                // this.mCorrection = 4;
+                this.originFrame = this._sourceTexture.frames["__BASE"];
+                this.setSize(value.width, value.height);
+            }
+
+            // this._renderTexture.drawFrame(_texture.key, baseFrameName, value.x, value.y);
+            // this.repaint();
+
+        }
+        this.markChanged(1);
+    }
+
+
 
     public get scale9Grid(): Phaser.Geom.Rectangle {
         return this._scale9Grid;
@@ -192,7 +305,7 @@ export class Image extends Phaser.GameObjects.Container {
         var w: number = this["_width"];
         var h: number = this["_height"];
         var g: Graphics = new Graphics(this.scene);
-        var tex: Phaser.Textures.Texture = this._source;
+        var tex: Phaser.Textures.Texture = this._sourceTexture;
 
         g.clear();
 

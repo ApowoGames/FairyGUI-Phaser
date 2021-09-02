@@ -281,7 +281,7 @@ export class Controller extends Phaser.Events.EventEmitter {
         }
 
         if (this.parent && this._pageIds.length > 0)
-            this._selectedIndex = homePageIndex;
+            this.selectedIndex = homePageIndex;
         else
             this._selectedIndex = -1;
     }

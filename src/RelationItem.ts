@@ -1,3 +1,4 @@
+import { DisplayObjectEvent } from './event/DisplayObjectEvent';
 import { RelationType } from "./FieldTypes";
 import { GObject } from "./GObject";
 import { Transition } from "./Transition";
@@ -504,8 +505,9 @@ export class RelationItem {
 
     private addRefTarget(): void {
         if (this._target != this._owner.parent)
-            this._target.on("pos_changed", this.__targetXYChanged);
-        this._target.on("size_changed", this.__targetSizeChanged);
+            this._target.on(DisplayObjectEvent.XY_CHANGED, this.__targetXYChanged, this);
+        this._target.on(DisplayObjectEvent.SIZE_CHANGED, this.__targetSizeChanged, this);
+        this._target.on(DisplayObjectEvent.SIZE_DELAY_CHANGE, this.__targetSizeWillChange, this);
 
         this._targetX = this._target.x;
         this._targetY = this._target.y;
@@ -513,12 +515,17 @@ export class RelationItem {
         this._targetHeight = this._target._height;
     }
 
+    private __targetSizeWillChange(): void {
+        this._owner.relations.sizeDirty = true;
+    }
+
     private releaseRefTarget(): void {
         if (this._target.displayObject == null)
             return;
 
-        this._target.off("pos_changed", this.__targetXYChanged);
-        this._target.off("size_changed", this.__targetSizeChanged);
+        this._target.off(DisplayObjectEvent.XY_CHANGED, this.__targetXYChanged, this);
+        this._target.off(DisplayObjectEvent.SIZE_CHANGED, this.__targetSizeChanged, this);
+        this._target.off(DisplayObjectEvent.SIZE_DELAY_CHANGE, this.__targetSizeWillChange, this);
     }
 
     private __targetXYChanged(): void {
@@ -560,6 +567,8 @@ export class RelationItem {
     }
 
     private __targetSizeChanged(): void {
+        if (this._owner.relations.sizeDirty)
+            this._owner.relations.ensureRelationsSizeCorrect();
         if (this._owner.relations.handling) {
             this._targetWidth = this._target._width;
             this._targetHeight = this._target._height;
@@ -573,9 +582,11 @@ export class RelationItem {
         var ow: number = this._owner._rawWidth;
         var oh: number = this._owner._rawHeight;
         var cnt: number = this._defs.length;
+
         for (var i: number = 0; i < cnt; i++) {
             this.applyOnSizeChanged(this._defs[i]);
         }
+
         this._targetWidth = this._target._width;
         this._targetHeight = this._target._height;
 

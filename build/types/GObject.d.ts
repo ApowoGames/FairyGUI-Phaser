@@ -212,8 +212,8 @@ export declare class GObject {
     onClick(listener: Function): void;
     offClick(listener: Function, once?: boolean): void;
     hasClickListener(): boolean;
-    on(type: string, listener: Function): void;
-    off(type: string, listener: Function, once?: boolean): void;
+    on(type: string, listener: Function, context?: any): void;
+    off(type: string, listener: Function, context?: any, once?: boolean): void;
     get draggable(): boolean;
     set draggable(value: boolean);
     get dragBounds(): Phaser.Geom.Rectangle;

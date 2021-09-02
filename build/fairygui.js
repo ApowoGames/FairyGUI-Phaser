@@ -1720,6 +1720,10 @@
     }
 
     class GearDisplay extends GearBase {
+        constructor() {
+            super(...arguments);
+            this._displayLockToken = 0;
+        }
         init() {
             this.pages = null;
         }
@@ -2291,18 +2295,23 @@
         }
         addRefTarget() {
             if (this._target != this._owner.parent)
-                this._target.on("pos_changed", this.__targetXYChanged);
-            this._target.on("size_changed", this.__targetSizeChanged);
+                this._target.on(DisplayObjectEvent.XY_CHANGED, this.__targetXYChanged, this);
+            this._target.on(DisplayObjectEvent.SIZE_CHANGED, this.__targetSizeChanged, this);
+            this._target.on(DisplayObjectEvent.SIZE_DELAY_CHANGE, this.__targetSizeWillChange, this);
             this._targetX = this._target.x;
             this._targetY = this._target.y;
             this._targetWidth = this._target._width;
             this._targetHeight = this._target._height;
         }
+        __targetSizeWillChange() {
+            this._owner.relations.sizeDirty = true;
+        }
         releaseRefTarget() {
             if (this._target.displayObject == null)
                 return;
-            this._target.off("pos_changed", this.__targetXYChanged);
-            this._target.off("size_changed", this.__targetSizeChanged);
+            this._target.off(DisplayObjectEvent.XY_CHANGED, this.__targetXYChanged, this);
+            this._target.off(DisplayObjectEvent.SIZE_CHANGED, this.__targetSizeChanged, this);
+            this._target.off(DisplayObjectEvent.SIZE_DELAY_CHANGE, this.__targetSizeWillChange, this);
         }
         __targetXYChanged() {
             if (this._owner.relations.handling || this._owner.group && this._owner.group._updating) {
@@ -2336,6 +2345,8 @@
             this._owner.relations.handling = null;
         }
         __targetSizeChanged() {
+            if (this._owner.relations.sizeDirty)
+                this._owner.relations.ensureRelationsSizeCorrect();
             if (this._owner.relations.handling) {
                 this._targetWidth = this._target._width;
                 this._targetHeight = this._target._height;
@@ -3073,7 +3084,7 @@
                     this._parent.setBoundsChangedFlag();
                     if (this._group)
                         this._group.setBoundsChangedFlag(true);
-                    this.displayObject.emit(Events.XY_CHANGED);
+                    this.displayObject.emit(DisplayObjectEvent.XY_CHANGED);
                 }
                 if (GObject.draggingObject == this && !sUpdateInDragging)
                     this.localToGlobalRect(0, 0, this.width, this.height, sGlobalRect);
@@ -3171,7 +3182,7 @@
                     if (this._group)
                         this._group.setBoundsChangedFlag();
                 }
-                this.displayObject.emit(Events.SIZE_CHANGED);
+                this.displayObject.emit(DisplayObjectEvent.SIZE_CHANGED);
             }
         }
         ensureSizeCorrect() {
@@ -3673,11 +3684,11 @@
         hasClickListener() {
             return this._displayObject && this._touchable; // hasListener(InteractiveEvent.CLICK);
         }
-        on(type, listener) {
-            this._displayObject.on(type, listener, this);
+        on(type, listener, context = this) {
+            this._displayObject.on(type, listener, context);
         }
-        off(type, listener, once = false) {
-            this._displayObject.off(type, listener, this, once);
+        off(type, listener, context = this, once = false) {
+            this._displayObject.off(type, listener, this, context);
         }
         get draggable() {
             return this._draggable;
@@ -3974,7 +3985,6 @@
             if (buffer.readBool()) {
                 this.initWidth = buffer.readInt();
                 this.initHeight = buffer.readInt();
-                this.setSize(this.initWidth, this.initHeight, true);
             }
             if (buffer.readBool()) {
                 this.minWidth = buffer.readInt();
@@ -4008,7 +4018,7 @@
                 this.rotation = f1;
             if (!buffer.readBool())
                 this.visible = false;
-            console.log("visible object ===>", this);
+            // console.log("visible object ===>", this);
             if (!buffer.readBool())
                 this.touchable = false;
             if (buffer.readBool())
@@ -4041,6 +4051,7 @@
                 gear.setup(buffer);
                 buffer.position = nextPos;
             }
+            this.setSize(this.initWidth, this.initHeight, true);
         }
         //drag support
         //-------------------------------------------------------------------
@@ -4176,7 +4187,7 @@
             this._totalSize = 0;
             this._numChildren = 0;
             this._updating = 0;
-            console.log("group create", this);
+            //console.log("group create", this);
         }
         dispose() {
             this._boundsChanged = false;
@@ -4688,6 +4699,7 @@
                 throw "parent not set";
             // var index: number = this._parent.getChildIndex(this);
             // index++;
+            // index++;
             // this._parent.addChildAt(target, index);
         }
         setNativeObject(obj) {
@@ -5096,6 +5108,7 @@
         }
     }
 
+    const patches = ["[0][0]", "[1][0]", "[2][0]", "[0][1]", "[1][1]", "[2][1]", "[0][2]", "[1][2]", "[2][2]"];
     class Image extends Phaser.GameObjects.Container {
         constructor(scene) {
             super(scene);
@@ -5104,48 +5117,140 @@
             this._fillMethod = 0;
             this._fillOrigin = 0;
             this._fillAmount = 0;
-            this._img = this.scene.make.image(undefined, false);
-            this._img.setPosition(0, 0);
-            this.add(this._img);
+            this.finalXs = [];
+            this.finalYs = [];
+            this.tintFill = false;
+            // this._renderTexture = this.scene.make.renderTexture(undefined, false);
+            // this._renderTexture.setPosition(0, 0);
+            // this.add(this._renderTexture);
+            this.patchKey = Math.random() * 1000 + "";
             // this.mouseEnabled = false;
             this._color = "#FFFFFF";
         }
-        // public set width(value: number) {
-        //     if (this["_width"] !== value) {
-        //         super.set_width(value);
-        //         this.markChanged(1);
-        //     }
-        // }
-        // public set height(value: number) {
-        //     if (this["_height"] !== value) {
-        //         super.set_height(value);
-        //         this.markChanged(1);
-        //     }
-        // }
         setSize(width, height) {
             this.width = width;
             this.height = height;
+            const originWidth = this["$owner"].sourceWidth;
+            const originHeight = this["$owner"].sourceHeight;
+            if (this._scale9Grid) {
+                const _left = this._scale9Grid.left;
+                const _right = originWidth - this._scale9Grid.right;
+                const _top = this._scale9Grid.top;
+                const _bottom = originHeight - this._scale9Grid.bottom;
+                this._scale9Grid.width; // right - left
+                this._scale9Grid.height; // bottom - top
+                this.finalXs = [0, _left, width - _left - _right, width];
+                this.finalYs = [0, _top, height - _top - _bottom, height];
+            }
+            else {
+                this.finalXs = [0, 0, 0, this.width];
+                this.finalYs = [0, 0, 0, this.height];
+            }
+            // 有texture资源后再创建九宫图片
+            if (this.originFrame) {
+                this.createPatches();
+                this.drawPatches();
+            }
             this.markChanged(1);
             return this;
         }
+        createPatches() {
+            // The positions we want from the base texture
+            // 保存有x轴和y轴9宫坐标信息，如果存在坐标信息相同，则表示某一部分的图片尺寸为0，需要查看原因
+            const textureXs = this.finalXs; //[0, this._scale9Grid.left, this.originFrame.width - this._scale9Grid.right, this.originFrame.width];
+            const textureYs = this.finalYs; //[0, this._scale9Grid.top, this.originFrame.height - this._scale9Grid.bottom, this.originFrame.height];
+            let patchIndex = 0;
+            for (let yi = 0; yi < 3; yi++) {
+                for (let xi = 0; xi < 3; xi++) {
+                    this.createPatchFrame(this.getPatchNameByIndex(patchIndex), textureXs[xi], // x
+                    textureYs[yi], // y
+                    textureXs[xi + 1] - textureXs[xi], // width
+                    textureYs[yi + 1] - textureYs[yi] // height
+                    );
+                    ++patchIndex;
+                }
+            }
+        }
+        drawPatches() {
+            const tintFill = this.tintFill;
+            this.removeAll(true);
+            let patchIndex = 0;
+            for (let yi = 0; yi < 3; yi++) {
+                for (let xi = 0; xi < 3; xi++) {
+                    const patch = this._sourceTexture.frames[this.getPatchNameByIndex(patchIndex)];
+                    const patchImg = new Phaser.GameObjects.Image(this.scene, 0, 0, patch.texture.key, patch.name);
+                    patchImg.setOrigin(0);
+                    patchImg.setPosition(this.finalXs[xi], this.finalYs[yi]);
+                    patchImg.displayWidth = this.finalXs[xi + 1] - this.finalXs[xi]; //+ (xi < 2 ? this.mCorrection : 0);
+                    patchImg.displayHeight = this.finalYs[yi + 1] - this.finalYs[yi]; //+ (yi < 2 ? this.mCorrection : 0);
+                    // console.log("drawImage ===>", patchImg, this.finalXs, this.finalYs);
+                    this.add(patchImg);
+                    if (this.internalTint)
+                        patchImg.setTint(this.internalTint);
+                    patchImg.tintFill = tintFill;
+                    ++patchIndex;
+                }
+            }
+        }
+        createPatchFrame(patch, x, y, width, height) {
+            if (this._sourceTexture.frames.hasOwnProperty(patch)) {
+                return;
+            }
+            this._sourceTexture.add(patch, this.originFrame.sourceIndex, this.originFrame.cutX + x, this.originFrame.cutY + y, width, height);
+        }
+        getPatchNameByIndex(index) {
+            return this.originFrame.name + patches[index] + this.patchKey;
+        }
         get texture() {
-            return this._source;
+            return this._sourceTexture;
         }
         set texture(value) {
-            if (this._source != value) {
-                this._source = value;
+            if (this._sourceTexture != value) {
+                this._sourceTexture = value;
                 if (this["_width"] == 0) {
-                    if (this._source)
-                        this.setSize(this._source.source[0].width, this._source.source[0].height);
+                    if (this._sourceTexture)
+                        this.setSize(this._sourceTexture.source[0].width, this._sourceTexture.source[0].height);
                     else
                         this.setSize(0, 0);
                 }
                 // todo 重绘
-                // this.scene.add.image(0, 0, this._source);
-                this._img.setTexture(value.key);
+                // this.scene.add.image(0, 0, this._sourceTexture);
+                const frames = value.getFrameNames();
+                frames[0];
+                // this._renderTexture.drawFrame(value.key, baseFrameName, 0, 0);
                 // this.repaint();
                 this.markChanged(1);
             }
+        }
+        setPackItem(value) {
+            if (!value || !value.texture) {
+                // console.log("setpackitem ===>", value);
+                return;
+            }
+            const _texture = value.texture;
+            if (!this._scale9Grid) {
+                const img = this.scene.make.image(undefined, false);
+                img.setTexture(_texture.key);
+                this.add(img);
+            }
+            else {
+                const canvas = this.scene.textures.createCanvas(value.name + "_" + _texture.key + "_" + this.patchKey, value.width, value.height);
+                canvas.drawFrame(_texture.key, "__BASE", value.x, value.y);
+                // const img = this.scene.make.image(undefined, false);
+                // img.setTexture(value.name + "_" + _texture.key + "_" + this.patchKey);
+                // this.add(img);
+                if (canvas && this._sourceTexture != canvas) {
+                    this._sourceTexture = canvas;
+                    // todo 重绘
+                    // // 修正九宫切片中间的裂缝，默认4
+                    // this.mCorrection = 4;
+                    this.originFrame = this._sourceTexture.frames["__BASE"];
+                    this.setSize(value.width, value.height);
+                }
+                // this._renderTexture.drawFrame(_texture.key, baseFrameName, value.x, value.y);
+                // this.repaint();
+            }
+            this.markChanged(1);
         }
         get scale9Grid() {
             return this._scale9Grid;
@@ -5251,7 +5356,7 @@
             var w = this["_width"];
             var h = this["_height"];
             var g = new Graphics(this.scene);
-            var tex = this._source;
+            var tex = this._sourceTexture;
             g.clear();
             if (tex == null || w == 0 || h == 0) {
                 return;
@@ -5352,6 +5457,9 @@
             this._scene.stage.addChild(this._displayObject, 1);
             this._displayObject["$owner"] = this;
         }
+        setSize(wv, hv, ignorePivot) {
+            super.setSize(wv, hv, ignorePivot);
+        }
         constructFromResource() {
             return new Promise((reslove, reject) => {
                 this._contentItem = this.packageItem.getBranch();
@@ -5361,16 +5469,15 @@
                 this.initHeight = this.sourceHeight;
                 this._contentItem = this._contentItem.getHighResolution();
                 this._contentItem.load().then((packageItem) => {
+                    // 优先九宫格，初始化九宫格各类数据，防止setpackitem时位置数据缺失
+                    this.setSize(this._contentItem.width, this._contentItem.height);
                     this.image.scale9Grid = this._contentItem.scale9Grid;
                     this.image.scaleByTile = this._contentItem.scaleByTile;
                     this.image.tileGridIndice = this._contentItem.tileGridIndice;
-                    this.image.texture = this._contentItem.texture;
-                    console.log("image pos", this);
-                    // this.x = packageItem.x;
-                    // this.y = packageItem.y;
-                    // this._xOffset = packageItem.tx;
-                    // this._yOffset = packageItem.ty;
-                    this.setSize(this.sourceWidth, this.sourceHeight);
+                    this.image.setPackItem(this._contentItem);
+                    // console.log("image pos", this);
+                    // this.image.setPosition(this._contentItem.x, this._contentItem.y);
+                    // this.setSize(this.sourceWidth, this.sourceHeight);
                     reslove();
                 });
             });
@@ -5408,6 +5515,9 @@
                 this.image.fillClockwise = buffer.readBool();
                 this.image.fillAmount = buffer.readFloat();
             }
+        }
+        setup_afterAdd(buffer, beginPos) {
+            super.setup_afterAdd(buffer, beginPos);
         }
     }
 
@@ -5891,6 +6001,31 @@
         clearTimeout(resizeCheckTimer);
         resizeCheckTimer = window.setTimeout(resizeHandler, 300);
     });
+
+    /*! *****************************************************************************
+    Copyright (c) Microsoft Corporation.
+
+    Permission to use, copy, modify, and/or distribute this software for any
+    purpose with or without fee is hereby granted.
+
+    THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+    REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+    AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+    INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+    LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+    OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+    PERFORMANCE OF THIS SOFTWARE.
+    ***************************************************************************** */
+
+    function __awaiter(thisArg, _arguments, P, generator) {
+        function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+        return new (P || (P = Promise))(function (resolve, reject) {
+            function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+            function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+            function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+            step((generator = generator.apply(thisArg, _arguments || [])).next());
+        });
+    }
 
     class TranslationHelper {
         static loadFromXML(source) {
@@ -7953,6 +8088,10 @@
     class AssetProxy {
         constructor() {
             this._resMap = new Map();
+            this._emitter = new Phaser.Events.EventEmitter;
+        }
+        get emitter() {
+            return this._emitter;
         }
         static get inst() {
             if (!AssetProxy._inst)
@@ -7962,10 +8101,13 @@
         getRes(key, type) {
             return new Promise((resolve, reject) => {
                 if (!this._resMap.get(key)) {
-                    this.load(key, GRoot.inst.getResUIUrl(key), type, (file) => {
+                    const url = GRoot.inst.getResUIUrl(key);
+                    this.load(key, url, type, (file) => {
+                        this._emitter.emit(file + "_" + type + "_complete", file);
                         resolve(file);
+                        this._resMap.set(key, url);
                     }, () => {
-                        reject();
+                        reject("__DEFAULT");
                     });
                 }
                 else {
@@ -7974,15 +8116,14 @@
             });
         }
         load(key, url, type, completeCallBack, _errorCallBack) {
-            this._resMap.set(key, url);
             this._completeCallBack = completeCallBack;
             this._errorCallBack = _errorCallBack;
+            this.addListen(type, key);
             if (GRoot.inst.scene.cache.obj.has(key)) {
                 if (this._completeCallBack) {
                     return this._completeCallBack();
                 }
             }
-            this.addListen(type, key);
             switch (type) {
                 case LoaderType.IMAGE:
                     GRoot.inst.scene.load.image(key, url);
@@ -8541,12 +8682,43 @@
                             }
                             else {
                                 item.texture = null;
-                                reslove(item.texture);
+                                reslove(item);
                             }
                         }
                         else {
-                            item.texture = null;
-                            reslove(item.texture);
+                            const sprite = this._sprites[item.id];
+                            if (!sprite) {
+                                item.texture = null;
+                                reslove(item);
+                            }
+                            else {
+                                let texture = GRoot.inst.scene.textures.get(sprite.atlas.file);
+                                if (texture) {
+                                    item.texture = texture;
+                                    item.x = sprite.rect.x;
+                                    item.y = sprite.rect.y;
+                                    item.tx = sprite.offset.x;
+                                    item.ty = sprite.offset.y;
+                                    item.width = sprite.rect.width;
+                                    item.height = sprite.rect.height;
+                                    reslove(item);
+                                }
+                                else {
+                                    AssetProxy.inst.emitter.once(sprite.atlas.file + "_image" + "_complete", (file) => {
+                                        texture = GRoot.inst.scene.textures.get(file);
+                                        if (texture) {
+                                            item.texture = texture;
+                                            item.x = sprite.rect.x;
+                                            item.y = sprite.rect.y;
+                                            item.tx = sprite.offset.x;
+                                            item.ty = sprite.offset.y;
+                                            item.width = sprite.rect.width;
+                                            item.height = sprite.rect.height;
+                                            reslove(item);
+                                        }
+                                    }, this);
+                                }
+                            }
                         }
                         break;
                     case exports.PackageItemType.Atlas:
@@ -9976,7 +10148,7 @@
                 }
             }
             if (this.parent && this._pageIds.length > 0)
-                this._selectedIndex = homePageIndex;
+                this.selectedIndex = homePageIndex;
             else
                 this._selectedIndex = -1;
         }
@@ -10832,262 +11004,200 @@
             });
         }
         constructFromResource2(objectPool, poolIndex) {
-            return new Promise((reslove, reject) => {
-                var contentItem = this.packageItem.getBranch();
-                if (!contentItem.decoded) {
-                    contentItem.decoded = true;
-                    TranslationHelper.translateComponent(contentItem);
-                }
-                var i;
-                var dataLen;
-                var curPos;
-                var nextPos;
-                var f1;
-                var f2;
-                let i1;
-                let i2;
-                var buffer = contentItem.rawData;
-                buffer.seek(0, 0);
-                this._underConstruct = true;
-                this.sourceWidth = buffer.readInt();
-                this.sourceHeight = buffer.readInt();
-                this.initWidth = this.sourceWidth;
-                this.initHeight = this.sourceHeight;
-                if (!this.displayObject)
-                    this.createDisplayObject();
-                this.setSize(this.sourceWidth, this.sourceHeight);
-                if (buffer.readBool()) {
-                    this.minWidth = buffer.readInt();
-                    this.maxWidth = buffer.readInt();
-                    this.minHeight = buffer.readInt();
-                    this.maxHeight = buffer.readInt();
-                }
-                if (buffer.readBool()) {
-                    f1 = buffer.readFloat();
-                    f2 = buffer.readFloat();
-                    this.internalSetPivot(f1, f2, buffer.readBool());
-                }
-                if (buffer.readBool()) {
-                    this._margin.top = buffer.readInt();
-                    this._margin.bottom = buffer.readInt();
-                    this._margin.left = buffer.readInt();
-                    this._margin.right = buffer.readInt();
-                }
-                var overflow = buffer.readByte();
-                if (overflow == exports.OverflowType.Scroll) {
-                    var savedPos = buffer.position;
-                    buffer.seek(0, 7);
-                    this.setupScroll(buffer);
-                    buffer.position = savedPos;
-                }
-                else
-                    this.setupOverflow(overflow);
-                if (buffer.readBool())
-                    buffer.skip(8);
-                this._buildingDisplayList = true;
-                buffer.seek(0, 1);
-                var controllerCount = buffer.readShort();
-                for (i = 0; i < controllerCount; i++) {
-                    nextPos = buffer.readShort();
-                    nextPos += buffer.position;
-                    var controller = new Controller();
-                    this._controllers.push(controller);
-                    controller.parent = this;
-                    controller.setup(buffer);
-                    buffer.position = nextPos;
-                }
-                buffer.seek(0, 2);
-                var child;
-                var childCount = buffer.readShort();
-                for (i = 0; i < childCount; i++) {
-                    dataLen = buffer.readShort();
-                    curPos = buffer.position;
-                    if (objectPool)
-                        child = objectPool[poolIndex + i];
-                    else {
-                        buffer.seek(curPos, 0);
-                        var type = buffer.readByte();
-                        var src = buffer.readS();
-                        var pkgId = buffer.readS();
-                        var pi = null;
-                        if (src != null) {
-                            var pkg;
-                            if (pkgId != null)
-                                pkg = UIPackage.getById(pkgId);
-                            else
-                                pkg = contentItem.owner;
-                            pi = pkg ? pkg.getItemById(src) : null;
-                        }
-                        if (pi) {
-                            child = Decls.UIObjectFactory.newObject(pi);
-                            child.constructFromResource().then(() => {
-                                // child._underConstruct = true;
-                                // child.setup_beforeAdd(buffer, curPos);
-                                // child.parent = this;
-                                // this._children.push(child);
-                                // buffer.position = curPos + dataLen;
-                                // this._constructFromResource2(buffer, contentItem, childCount, nextPos);
-                                // reslove();
-                            }).catch((err) => {
-                                console.log(err);
-                            });
-                        }
-                        else {
-                            child = Decls.UIObjectFactory.newObject(type);
-                            // child._underConstruct = true;
-                            // child.setup_beforeAdd(buffer, curPos);
-                            // child.parent = this;
-                            // this._children.push(child);
-                            // buffer.position = curPos + dataLen;
-                            // this._constructFromResource2(buffer, contentItem, childCount, nextPos);
-                            // reslove();
-                        }
+            return __awaiter(this, void 0, void 0, function* () {
+                return new Promise((reslove, reject) => {
+                    var contentItem = this.packageItem.getBranch();
+                    if (!contentItem.decoded) {
+                        contentItem.decoded = true;
+                        TranslationHelper.translateComponent(contentItem);
                     }
-                    child._underConstruct = true;
-                    child.setup_beforeAdd(buffer, curPos);
-                    child.parent = this;
-                    this._children.push(child);
-                    buffer.position = curPos + dataLen;
-                }
-                buffer.seek(0, 3);
-                this.relations.setup(buffer, true);
-                buffer.seek(0, 2);
-                buffer.skip(2);
-                for (i = 0; i < childCount; i++) {
-                    nextPos = buffer.readShort();
-                    nextPos += buffer.position;
-                    buffer.seek(buffer.position, 3);
-                    this._children[i].relations.setup(buffer, false);
-                    buffer.position = nextPos;
-                }
-                buffer.seek(0, 2);
-                buffer.skip(2);
-                for (i = 0; i < childCount; i++) {
-                    nextPos = buffer.readShort();
-                    nextPos += buffer.position;
-                    child = this._children[i];
-                    child.setup_afterAdd(buffer, buffer.position);
-                    child._underConstruct = false;
-                    buffer.position = nextPos;
-                }
-                buffer.seek(0, 4);
-                buffer.skip(2); //customData
-                this.opaque = buffer.readBool();
-                var maskId = buffer.readShort();
-                if (maskId != -1) {
-                    this.setMask(this.getChildAt(maskId).displayObject, buffer.readBool());
-                }
-                var hitTestId = buffer.readS();
-                i1 = buffer.readInt();
-                i2 = buffer.readInt();
-                var hitArea;
-                if (hitTestId) {
-                    pi = contentItem.owner.getItemById(hitTestId);
-                    if (pi && pi.pixelHitTestData)
-                        hitArea = new PixelHitTest(pi.pixelHitTestData, i1, i2);
-                }
-                if (hitArea) {
-                    // this._displayObject.setInteractive(hitArea,Phaser.Geom.Rectangle.Contains);
-                    this.hitArea = hitArea;
-                    // this._displayObject.mouseThrough = false;
-                    // this._displayObject.hitTestPrior = true;
-                }
-                buffer.seek(0, 5);
-                var transitionCount = buffer.readShort();
-                for (i = 0; i < transitionCount; i++) {
-                    nextPos = buffer.readShort();
-                    nextPos += buffer.position;
-                    var trans = new Transition(this);
-                    trans.setup(buffer);
-                    this._transitions.push(trans);
-                    buffer.position = nextPos;
-                }
-                if (this._transitions.length > 0) {
-                    this.displayObject.on(Phaser.GameObjects.Events.ADDED_TO_SCENE, this.___added);
-                    this.displayObject.on(Phaser.GameObjects.Events.REMOVED_FROM_SCENE, this.___removed);
-                }
-                this.applyAllControllers();
-                this._buildingDisplayList = false;
-                this._underConstruct = false;
-                this.buildNativeDisplayList();
-                this.setBoundsChangedFlag();
-                if (contentItem.objectType != exports.ObjectType.Component)
-                    this.constructExtension(buffer);
-                this.onConstruct();
-                reslove();
+                    var i;
+                    var dataLen;
+                    var curPos;
+                    var nextPos;
+                    var f1;
+                    var f2;
+                    let i1;
+                    let i2;
+                    var buffer = contentItem.rawData;
+                    buffer.seek(0, 0);
+                    this._underConstruct = true;
+                    this.sourceWidth = buffer.readInt();
+                    this.sourceHeight = buffer.readInt();
+                    this.initWidth = this.sourceWidth;
+                    this.initHeight = this.sourceHeight;
+                    if (!this.displayObject)
+                        this.createDisplayObject();
+                    // 必须先设置原始尺寸，否则后续relationItem的targetWidth/targetHeight值为0
+                    this.setSize(this.sourceWidth, this.sourceHeight);
+                    if (buffer.readBool()) {
+                        this.minWidth = buffer.readInt();
+                        this.maxWidth = buffer.readInt();
+                        this.minHeight = buffer.readInt();
+                        this.maxHeight = buffer.readInt();
+                    }
+                    if (buffer.readBool()) {
+                        f1 = buffer.readFloat();
+                        f2 = buffer.readFloat();
+                        this.internalSetPivot(f1, f2, buffer.readBool());
+                    }
+                    if (buffer.readBool()) {
+                        this._margin.top = buffer.readInt();
+                        this._margin.bottom = buffer.readInt();
+                        this._margin.left = buffer.readInt();
+                        this._margin.right = buffer.readInt();
+                    }
+                    var overflow = buffer.readByte();
+                    if (overflow == exports.OverflowType.Scroll) {
+                        var savedPos = buffer.position;
+                        buffer.seek(0, 7);
+                        this.setupScroll(buffer);
+                        buffer.position = savedPos;
+                    }
+                    else
+                        this.setupOverflow(overflow);
+                    if (buffer.readBool())
+                        buffer.skip(8);
+                    this._buildingDisplayList = true;
+                    buffer.seek(0, 1);
+                    var controllerCount = buffer.readShort();
+                    for (i = 0; i < controllerCount; i++) {
+                        nextPos = buffer.readShort();
+                        nextPos += buffer.position;
+                        var controller = new Controller();
+                        this._controllers.push(controller);
+                        controller.parent = this;
+                        controller.setup(buffer);
+                        buffer.position = nextPos;
+                    }
+                    buffer.seek(0, 2);
+                    var child;
+                    var childCount = buffer.readShort();
+                    let hasAsync = false;
+                    let delayNum = -1;
+                    const fun = (index) => {
+                        for (i = index; i < childCount; i++) {
+                            if (hasAsync) {
+                                return;
+                            }
+                            dataLen = buffer.readShort();
+                            curPos = buffer.position;
+                            if (objectPool) {
+                                child = objectPool[poolIndex + i];
+                            }
+                            else {
+                                buffer.seek(curPos, 0);
+                                var type = buffer.readByte();
+                                var src = buffer.readS();
+                                var pkgId = buffer.readS();
+                                var pi = null;
+                                if (src != null) {
+                                    var pkg;
+                                    if (pkgId != null)
+                                        pkg = UIPackage.getById(pkgId);
+                                    else
+                                        pkg = contentItem.owner;
+                                    pi = pkg ? pkg.getItemById(src) : null;
+                                }
+                                if (pi) {
+                                    delayNum = i;
+                                    hasAsync = true;
+                                    child = Decls.UIObjectFactory.newObject(pi);
+                                    child.constructFromResource().then(() => {
+                                        hasAsync = false;
+                                        child._underConstruct = true;
+                                        child.setup_beforeAdd(buffer, curPos);
+                                        child.parent = this;
+                                        this._children.push(child);
+                                        buffer.position = curPos + dataLen;
+                                        fun(++delayNum);
+                                    });
+                                    return;
+                                }
+                                else {
+                                    child = Decls.UIObjectFactory.newObject(type);
+                                }
+                            }
+                            child._underConstruct = true;
+                            child.setup_beforeAdd(buffer, curPos);
+                            child.parent = this;
+                            this._children.push(child);
+                            buffer.position = curPos + dataLen;
+                        }
+                        if (hasAsync) {
+                            return;
+                        }
+                        buffer.seek(0, 3);
+                        this.relations.setup(buffer, true);
+                        buffer.seek(0, 2);
+                        buffer.skip(2);
+                        for (i = 0; i < childCount; i++) {
+                            nextPos = buffer.readShort();
+                            nextPos += buffer.position;
+                            buffer.seek(buffer.position, 3);
+                            this._children[i].relations.setup(buffer, false);
+                            buffer.position = nextPos;
+                        }
+                        buffer.seek(0, 2);
+                        buffer.skip(2);
+                        for (i = 0; i < childCount; i++) {
+                            nextPos = buffer.readShort();
+                            nextPos += buffer.position;
+                            child = this._children[i];
+                            child.setup_afterAdd(buffer, buffer.position);
+                            child._underConstruct = false;
+                            buffer.position = nextPos;
+                        }
+                        buffer.seek(0, 4);
+                        buffer.skip(2); //customData
+                        this.opaque = buffer.readBool();
+                        var maskId = buffer.readShort();
+                        if (maskId != -1) {
+                            this.setMask(this.getChildAt(maskId).displayObject, buffer.readBool());
+                        }
+                        var hitTestId = buffer.readS();
+                        i1 = buffer.readInt();
+                        i2 = buffer.readInt();
+                        var hitArea;
+                        if (hitTestId) {
+                            pi = contentItem.owner.getItemById(hitTestId);
+                            if (pi && pi.pixelHitTestData)
+                                hitArea = new PixelHitTest(pi.pixelHitTestData, i1, i2);
+                        }
+                        if (hitArea) {
+                            // this._displayObject.setInteractive(hitArea,Phaser.Geom.Rectangle.Contains);
+                            this.hitArea = hitArea;
+                            // this._displayObject.mouseThrough = false;
+                            // this._displayObject.hitTestPrior = true;
+                        }
+                        buffer.seek(0, 5);
+                        var transitionCount = buffer.readShort();
+                        for (i = 0; i < transitionCount; i++) {
+                            nextPos = buffer.readShort();
+                            nextPos += buffer.position;
+                            var trans = new Transition(this);
+                            trans.setup(buffer);
+                            this._transitions.push(trans);
+                            buffer.position = nextPos;
+                        }
+                        if (this._transitions.length > 0) {
+                            this.displayObject.on(Phaser.GameObjects.Events.ADDED_TO_SCENE, this.___added);
+                            this.displayObject.on(Phaser.GameObjects.Events.REMOVED_FROM_SCENE, this.___removed);
+                        }
+                        this.applyAllControllers();
+                        this._buildingDisplayList = false;
+                        this._underConstruct = false;
+                        this.buildNativeDisplayList();
+                        this.setBoundsChangedFlag();
+                        if (contentItem.objectType != exports.ObjectType.Component)
+                            this.constructExtension(buffer);
+                        this.onConstruct();
+                        reslove();
+                        return;
+                    };
+                    fun(0);
+                });
             });
-        }
-        _constructFromResource2(buffer, contentItem, childCount, nextPos) {
-            let i1;
-            let i2;
-            let child;
-            let pi;
-            buffer.seek(0, 3);
-            this.relations.setup(buffer, true);
-            buffer.seek(0, 2);
-            buffer.skip(2);
-            let i = 0;
-            for (i = 0; i < childCount; i++) {
-                nextPos = buffer.readShort();
-                nextPos += buffer.position;
-                buffer.seek(buffer.position, 3);
-                this._children[i].relations.setup(buffer, false);
-                buffer.position = nextPos;
-            }
-            buffer.seek(0, 2);
-            buffer.skip(2);
-            for (i = 0; i < childCount; i++) {
-                nextPos = buffer.readShort();
-                nextPos += buffer.position;
-                child = this._children[i];
-                child.setup_afterAdd(buffer, buffer.position);
-                child._underConstruct = false;
-                buffer.position = nextPos;
-            }
-            buffer.seek(0, 4);
-            buffer.skip(2); //customData
-            this.opaque = buffer.readBool();
-            var maskId = buffer.readShort();
-            if (maskId != -1) {
-                this.setMask(this.getChildAt(maskId).displayObject, buffer.readBool());
-            }
-            var hitTestId = buffer.readS();
-            i1 = buffer.readInt();
-            i2 = buffer.readInt();
-            var hitArea;
-            if (hitTestId) {
-                pi = contentItem.owner.getItemById(hitTestId);
-                if (pi && pi.pixelHitTestData)
-                    hitArea = new PixelHitTest(pi.pixelHitTestData, i1, i2);
-            }
-            if (hitArea) {
-                // this._displayObject.setInteractive(hitArea,Phaser.Geom.Rectangle.Contains);
-                this.hitArea = hitArea;
-                // this._displayObject.mouseThrough = false;
-                // this._displayObject.hitTestPrior = true;
-            }
-            buffer.seek(0, 5);
-            var transitionCount = buffer.readShort();
-            for (i = 0; i < transitionCount; i++) {
-                nextPos = buffer.readShort();
-                nextPos += buffer.position;
-                var trans = new Transition(this);
-                trans.setup(buffer);
-                this._transitions.push(trans);
-                buffer.position = nextPos;
-            }
-            if (this._transitions.length > 0) {
-                this.displayObject.on(Phaser.GameObjects.Events.ADDED_TO_SCENE, this.___added);
-                this.displayObject.on(Phaser.GameObjects.Events.REMOVED_FROM_SCENE, this.___removed);
-            }
-            this.applyAllControllers();
-            this._buildingDisplayList = false;
-            this._underConstruct = false;
-            this.buildNativeDisplayList();
-            this.setBoundsChangedFlag();
-            if (contentItem.objectType != exports.ObjectType.Component)
-                this.constructExtension(buffer);
-            this.onConstruct();
         }
         constructExtension(buffer) {
         }
@@ -11337,7 +11447,9 @@
     class GTextField extends GObject {
         constructor(scene) {
             super(scene);
-            console.log("text create", this);
+            this._align = "";
+            this._valign = "";
+            // console.log("text create", this);
         }
         get font() {
             return null;
@@ -11355,14 +11467,18 @@
         set color(value) {
         }
         get align() {
-            return null;
+            return this._align;
         }
         set align(value) {
+            this._align = value;
+            this.doAlign();
         }
         get valign() {
-            return null;
+            return this._valign;
         }
         set valign(value) {
+            this._valign = value;
+            this.doAlign();
         }
         get leading() {
             return 0;
@@ -11542,6 +11658,12 @@
                 buffer.skip(12);
             if (buffer.readBool())
                 this._templateVars = {};
+        }
+        updateSize() {
+        }
+        doAlign() {
+        }
+        typeset() {
         }
         setup_afterAdd(buffer, beginPos) {
             super.setup_afterAdd(buffer, beginPos);
@@ -12528,6 +12650,17 @@
     }
     GLoader._errorSignPool = new GObjectPool();
 
+    class Utils {
+        static toHexColor(color) {
+            if (color < 0 || isNaN(color))
+                return null;
+            var str = color.toString(16);
+            while (str.length < 6)
+                str = "0" + str;
+            return "#" + str;
+        }
+    }
+
     class GButton extends GComponent {
         constructor(scene) {
             super(scene);
@@ -12540,7 +12673,7 @@
             this._soundVolumeScale = UIConfig.buttonSoundVolumeScale;
             this._changeStateOnClick = true;
             this._downEffectValue = 0.8;
-            console.log("button create===>", this);
+            //console.log("button create===>", this);
         }
         get icon() {
             return this._icon;
@@ -12720,39 +12853,45 @@
         setState(val) {
             if (this._buttonController)
                 this._buttonController.selectedPage = val;
-            // if (this._downEffect == 1) {
-            //     var cnt: number = this.numChildren;
-            //     if (val == GButton.DOWN || val == GButton.SELECTED_OVER || val == GButton.SELECTED_DISABLED) {
-            //         var r: number = this._downEffectValue * 255;
-            //         var color: string = Laya.Utils.toHexColor((r << 16) + (r << 8) + r);
-            //         for (var i: number = 0; i < cnt; i++) {
-            //             var obj: GObject = this.getChildAt(i);
-            //             if (!(obj instanceof GTextField))
-            //                 obj.setProp(ObjectPropID.Color, color);
-            //         }
-            //     }
-            //     else {
-            //         for (i = 0; i < cnt; i++) {
-            //             obj = this.getChildAt(i);
-            //             if (!(obj instanceof GTextField))
-            //                 obj.setProp(ObjectPropID.Color, "#FFFFFF");
-            //         }
-            //     }
-            // }
-            // else if (this._downEffect == 2) {
-            //     if (val == GButton.DOWN || val == GButton.SELECTED_OVER || val == GButton.SELECTED_DISABLED) {
-            //         if (!this._downScaled) {
-            //             this.setScale(this.scaleX * this._downEffectValue, this.scaleY * this._downEffectValue);
-            //             this._downScaled = true;
-            //         }
-            //     }
-            //     else {
-            //         if (this._downScaled) {
-            //             this.setScale(this.scaleX / this._downEffectValue, this.scaleY / this._downEffectValue);
-            //             this._downScaled = false;
-            //         }
-            //     }
-            // }
+            if (this._downEffect == 1) {
+                var cnt = this.numChildren;
+                if (val == GButton.DOWN || val == GButton.SELECTED_OVER || val == GButton.SELECTED_DISABLED) {
+                    var r = this._downEffectValue * 255;
+                    var color = Utils.toHexColor((r << 16) + (r << 8) + r);
+                    for (var i = 0; i < cnt; i++) {
+                        var obj = this.getChildAt(i);
+                        if (!(obj instanceof GTextField))
+                            obj.setProp(exports.ObjectPropID.Color, color);
+                    }
+                }
+                else {
+                    for (i = 0; i < cnt; i++) {
+                        obj = this.getChildAt(i);
+                        if (!(obj instanceof GTextField))
+                            obj.setProp(exports.ObjectPropID.Color, "#FFFFFF");
+                    }
+                }
+            }
+            else if (this._downEffect == 2) {
+                if (val == GButton.DOWN || val == GButton.SELECTED_OVER || val == GButton.SELECTED_DISABLED) {
+                    if (!this._downScaled) {
+                        this.setScale(this.scaleX * this._downEffectValue, this.scaleY * this._downEffectValue);
+                        this._downScaled = true;
+                    }
+                }
+                else {
+                    if (this._downScaled) {
+                        this.setScale(this.scaleX / this._downEffectValue, this.scaleY / this._downEffectValue);
+                        this._downScaled = false;
+                    }
+                }
+            }
+        }
+        setSize(wv, hv, ignorePivot) {
+            super.setSize(wv, hv, ignorePivot);
+        }
+        handleSizeChanged() {
+            super.handleSizeChanged();
         }
         handleControllerChanged(c) {
             super.handleControllerChanged(c);
@@ -12842,6 +12981,9 @@
             this.on(InteractiveEvent.GAMEOBJECT_OUT, this.__rollout);
             this.on(InteractiveEvent.GAMEOBJECT_DOWN, this.__mousedown);
             this.on(InteractiveEvent.GAMEOBJECT_UP, this.__click);
+        }
+        setup_beforeAdd(buffer, beginPos) {
+            super.setup_beforeAdd(buffer, beginPos);
         }
         setup_afterAdd(buffer, beginPos) {
             super.setup_afterAdd(buffer, beginPos);
@@ -16997,6 +17139,8 @@
         }
         createDisplayObject() {
             this._displayObject = this._textField = new TextExt(this);
+            this._color = "#000000";
+            this._textField.setColor(this._color);
             this._displayObject["$owner"] = this;
             this._displayObject.mouseEnabled = false;
         }
@@ -17022,8 +17166,11 @@
                 this._textField.text = "";
                 this._textField["setChanged"]();
             }
-            // if (this.parent && this.parent._underConstruct)
-            //     this._textField.typeset();
+            if (this.parent && this.parent._underConstruct) {
+                this._textField.typeset();
+                this.updateSize();
+                this.doAlign();
+            }
         }
         get text() {
             return this._text;
@@ -17063,6 +17210,7 @@
             if (this._color != value) {
                 this._color = value;
                 this.updateGear(4);
+                this._textField.setColor(value);
                 if (this.grayed)
                     this._textField.setFill("#AAAAAA");
                 else
@@ -17070,16 +17218,20 @@
             }
         }
         get align() {
-            return this._textField.style.align;
+            return this._align;
         }
         set align(value) {
+            this._align = value;
             this._textField.setAlign(value);
+            this.doAlign();
         }
         get valign() {
-            return ""; //this._textField.valign;
+            return this._valign;
         }
         set valign(value) {
-            // this._textField.valign = value;
+            this._valign = value;
+            this._textField.setAlign(this._valign);
+            this.doAlign();
         }
         get leading() {
             return this._textField.lineSpacing;
@@ -17162,8 +17314,8 @@
             return this._textWidth;
         }
         ensureSizeCorrect() {
-            // if (!this._underConstruct && this._textField["_isChanged"])
-            //     this._textField.typeset();
+            if (!this._underConstruct)
+                this.typeset();
         }
         typeset() {
             if (this._bitmapFont)
@@ -17172,13 +17324,13 @@
                 this.updateSize();
         }
         updateSize() {
-            this._textWidth = Math.ceil(this._textField.width);
-            this._textHeight = Math.ceil(this._textField.height);
+            this._textWidth = Math.ceil(this._textField.displayWidth);
+            this._textHeight = Math.ceil(this._textField.displayHeight);
             var w, h = 0;
             if (this._widthAutoSize) {
                 w = this._textWidth;
-                if (this._textField.width != w) {
-                    this._textField.width = w;
+                if (this._textField.displayWidth != w) {
+                    this._textField.displayWidth = w;
                     if (this._textField.style.align != "left")
                         this._textField["baseTypeset"]();
                 }
@@ -17188,20 +17340,23 @@
             if (this._heightAutoSize) {
                 h = this._textHeight;
                 if (!this._widthAutoSize) {
-                    if (this._textField.height != this._textHeight)
-                        this._textField.height = this._textHeight;
+                    if (this._textField.displayHeight != this._textHeight)
+                        this._textField.displayHeight = this._textHeight;
                 }
             }
             else {
                 h = this.height;
                 if (this._textHeight > h)
                     this._textHeight = h;
-                if (this._textField.height != this._textHeight)
-                    this._textField.height = this._textHeight;
+                if (this._textField.displayHeight != this._textHeight)
+                    this._textField.displayHeight = this._textHeight;
             }
             this._updatingSize = true;
             this.setSize(w, h);
             this._updatingSize = false;
+        }
+        setSize(w, h) {
+            super.setSize(w, h);
         }
         renderWithBitmapFont() {
             // var gr: Phaser.GameObjects.Graphics = this._displayObject.graphics;
@@ -17435,7 +17590,7 @@
                 else {
                     if (!this._widthAutoSize) {
                         if (!this._heightAutoSize)
-                            this._textField.setSize(this._width, this._height);
+                            this.setSize(this._width, this._height);
                         else
                             this._textField.width = this._width;
                     }
@@ -17450,8 +17605,25 @@
             //     this._textField.color = this._color;
         }
         doAlign() {
-            if (this.valign == "top" || this._textHeight == 0)
+            // 横向
+            if (this.align === "left" || this._textWidth === 0) {
+                this._xOffset = GUTTER_X;
+            }
+            else {
+                let dx = this.width - this._textWidth;
+                if (dx < 0)
+                    dx = 0;
+                if (this.align === "center") {
+                    this._xOffset = Math.floor(dx / 2);
+                }
+                else {
+                    this._xOffset = Math.floor(dx);
+                }
+            }
+            // 纵向
+            if (this.valign == "top" || this._textHeight == 0) {
                 this._yOffset = GUTTER_Y;
+            }
             else {
                 var dh = this.height - this._textHeight;
                 if (dh < 0)
@@ -17486,21 +17658,23 @@
             //     Laya.timer.clear(this, this.typeset);
             //     this._isChanged = false;
             // }
-            // this._sizeDirty = false;
+            this._sizeDirty = false;
+            this.setChanged();
         }
         setChanged() {
             this.isChanged = true;
         }
         set isChanged(value) {
-            // if (value && !this._sizeDirty) {
-            //     if (this._owner.autoSize != AutoSizeType.None && this._owner.parent) {
-            //         this._sizeDirty = true;
-            //         this.event(Events.SIZE_DELAY_CHANGE);
-            //     }
-            // }
+            if (value && !this._sizeDirty) {
+                if (this._owner.autoSize != exports.AutoSizeType.None && this._owner.parent) {
+                    this._sizeDirty = true;
+                    this.emit(DisplayObjectEvent.SIZE_DELAY_CHANGE);
+                }
+            }
             super["isChanged"] = value;
         }
     }
+    const GUTTER_X = 2;
     const GUTTER_Y = 2;
 
     class UIObjectFactory {

@@ -21,6 +21,7 @@ export declare class RelationItem {
     private applyOnXYChanged;
     private applyOnSizeChanged;
     private addRefTarget;
+    private __targetSizeWillChange;
     private releaseRefTarget;
     private __targetXYChanged;
     private __targetSizeChanged;

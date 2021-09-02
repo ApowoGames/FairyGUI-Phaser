@@ -20,9 +20,11 @@ export declare class GImage extends GObject {
     get fillAmount(): number;
     set fillAmount(value: number);
     createDisplayObject(): void;
+    setSize(wv: number, hv: number, ignorePivot?: boolean): void;
     constructFromResource(): Promise<void>;
     protected handleXYChanged(): void;
     getProp(index: number): any;
     setProp(index: number, value: any): void;
     setup_beforeAdd(buffer: ByteBuffer, beginPos: number): void;
+    setup_afterAdd(buffer: ByteBuffer, beginPos: number): void;
 }

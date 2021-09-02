@@ -1,10 +1,10 @@
+import { DisplayObjectEvent } from './event/DisplayObjectEvent';
 import { UBBParser } from './utils/UBBParser';
 import { AutoSizeType } from './FieldTypes';
-import { BitmapFont, BMGlyph } from './display/BitmapFont';
+import { BitmapFont } from './display/BitmapFont';
 import { GTextField } from './GTextField';
-import { ToolSet } from './utils';
 export class GBasicTextField extends GTextField {
-    private _textField: Phaser.GameObjects.Text;
+    private _textField: TextExt;
 
     private _font: string;
     private _color: string;
@@ -34,6 +34,8 @@ export class GBasicTextField extends GTextField {
 
     public createDisplayObject(): void {
         this._displayObject = this._textField = new TextExt(this);
+        this._color = "#000000";
+        this._textField.setColor(this._color);
         this._displayObject["$owner"] = this;
         this._displayObject.mouseEnabled = false;
     }
@@ -63,8 +65,11 @@ export class GBasicTextField extends GTextField {
             this._textField["setChanged"]();
         }
 
-        // if (this.parent && this.parent._underConstruct)
-        //     this._textField.typeset();
+        if (this.parent && this.parent._underConstruct) {
+            this._textField.typeset();
+            this.updateSize();
+            this.doAlign();
+        }
     }
 
     public get text(): string {
@@ -114,6 +119,7 @@ export class GBasicTextField extends GTextField {
         if (this._color != value) {
             this._color = value;
             this.updateGear(4);
+            this._textField.setColor(value);
 
             if (this.grayed)
                 this._textField.setFill("#AAAAAA");
@@ -123,19 +129,23 @@ export class GBasicTextField extends GTextField {
     }
 
     public get align(): string {
-        return this._textField.style.align;
+        return this._align;
     }
 
     public set align(value: string) {
+        this._align = value;
         this._textField.setAlign(value);
+        this.doAlign();
     }
 
     public get valign(): string {
-        return "";//this._textField.valign;
+        return this._valign;
     }
 
     public set valign(value: string) {
-        // this._textField.valign = value;
+        this._valign = value;
+        this._textField.setAlign(this._valign);
+        this.doAlign();
     }
 
     public get leading(): number {
@@ -237,8 +247,8 @@ export class GBasicTextField extends GTextField {
     }
 
     public ensureSizeCorrect(): void {
-        // if (!this._underConstruct && this._textField["_isChanged"])
-        //     this._textField.typeset();
+        if (!this._underConstruct)
+            this.typeset();
     }
 
     public typeset(): void {
@@ -248,15 +258,15 @@ export class GBasicTextField extends GTextField {
             this.updateSize();
     }
 
-    private updateSize(): void {
-        this._textWidth = Math.ceil(this._textField.width);
-        this._textHeight = Math.ceil(this._textField.height);
+    protected updateSize(): void {
+        this._textWidth = Math.ceil(this._textField.displayWidth);
+        this._textHeight = Math.ceil(this._textField.displayHeight);
 
         var w: number, h: number = 0;
         if (this._widthAutoSize) {
             w = this._textWidth;
-            if (this._textField.width != w) {
-                this._textField.width = w;
+            if (this._textField.displayWidth != w) {
+                this._textField.displayWidth = w;
                 if (this._textField.style.align != "left")
                     this._textField["baseTypeset"]();
             }
@@ -267,21 +277,25 @@ export class GBasicTextField extends GTextField {
         if (this._heightAutoSize) {
             h = this._textHeight;
             if (!this._widthAutoSize) {
-                if (this._textField.height != this._textHeight)
-                    this._textField.height = this._textHeight;
+                if (this._textField.displayHeight != this._textHeight)
+                    this._textField.displayHeight = this._textHeight;
             }
         }
         else {
             h = this.height;
             if (this._textHeight > h)
                 this._textHeight = h;
-            if (this._textField.height != this._textHeight)
-                this._textField.height = this._textHeight;
+            if (this._textField.displayHeight != this._textHeight)
+                this._textField.displayHeight = this._textHeight;
         }
 
         this._updatingSize = true;
         this.setSize(w, h);
         this._updatingSize = false;
+    }
+
+    public setSize(w, h) {
+        super.setSize(w, h);
     }
 
     private renderWithBitmapFont(): void {
@@ -544,7 +558,7 @@ export class GBasicTextField extends GTextField {
             else {
                 if (!this._widthAutoSize) {
                     if (!this._heightAutoSize)
-                        this._textField.setSize(this._width, this._height);
+                        this.setSize(this._width, this._height);
                     else
                         this._textField.width = this._width;
                 }
@@ -561,9 +575,23 @@ export class GBasicTextField extends GTextField {
         //     this._textField.color = this._color;
     }
 
-    private doAlign(): void {
-        if (this.valign == "top" || this._textHeight == 0)
+    protected doAlign(): void {
+        // 横向
+        if (this.align === "left" || this._textWidth === 0) {
+            this._xOffset = GUTTER_X;
+        } else {
+            let dx: number = this.width - this._textWidth;
+            if (dx < 0) dx = 0;
+            if (this.align === "center") {
+                this._xOffset = Math.floor(dx / 2);
+            } else {
+                this._xOffset = Math.floor(dx);
+            }
+        }
+        // 纵向
+        if (this.valign == "top" || this._textHeight == 0) {
             this._yOffset = GUTTER_Y;
+        }
         else {
             var dh: number = this.height - this._textHeight;
             if (dh < 0)
@@ -583,14 +611,13 @@ export class GBasicTextField extends GTextField {
 
 class TextExt extends Phaser.GameObjects.Text {
     private _owner: GBasicTextField;
-
+    private _lock: boolean;
+    private _sizeDirty: boolean;
     constructor(owner: GBasicTextField) {
         super(owner.scene, 0, 0, "", undefined);
         this._owner = owner;
     }
 
-    private _lock: boolean;
-    private _sizeDirty: boolean;
     public baseTypeset(): void {
         this._lock = true;
         this.typeset();
@@ -606,7 +633,8 @@ class TextExt extends Phaser.GameObjects.Text {
         //     Laya.timer.clear(this, this.typeset);
         //     this._isChanged = false;
         // }
-        // this._sizeDirty = false;
+        this._sizeDirty = false;
+        this.setChanged();
     }
 
     public setChanged(): void {
@@ -614,12 +642,12 @@ class TextExt extends Phaser.GameObjects.Text {
     }
 
     protected set isChanged(value: boolean) {
-        // if (value && !this._sizeDirty) {
-        //     if (this._owner.autoSize != AutoSizeType.None && this._owner.parent) {
-        //         this._sizeDirty = true;
-        //         this.event(Events.SIZE_DELAY_CHANGE);
-        //     }
-        // }
+        if (value && !this._sizeDirty) {
+            if (this._owner.autoSize != AutoSizeType.None && this._owner.parent) {
+                this._sizeDirty = true;
+                this.emit(DisplayObjectEvent.SIZE_DELAY_CHANGE);
+            }
+        }
 
         super["isChanged"] = value;
     }

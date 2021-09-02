@@ -12,7 +12,7 @@ import { GGroup } from './GGroup';
 import { Relations } from './Relations';
 import { PackageItem } from './PackageItem';
 import { GComponent } from './GComponent';
-import { InteractiveEvent } from './event/DisplayObjectEvent';
+import { DisplayObjectEvent, InteractiveEvent } from './event/DisplayObjectEvent';
 import { GTree } from './GTree';
 import { GearAnimation, GearColor, GearFontSize, GearIcon, GearLook, GearSize, GearText, GearXY } from './gears';
 export class DisplayStyle {
@@ -189,7 +189,7 @@ export class GObject {
                 this._parent.setBoundsChangedFlag();
                 if (this._group)
                     this._group.setBoundsChangedFlag(true);
-                this.displayObject.emit(Events.XY_CHANGED);
+                this.displayObject.emit(DisplayObjectEvent.XY_CHANGED);
             }
 
             if (GObject.draggingObject == this && !sUpdateInDragging)
@@ -306,7 +306,7 @@ export class GObject {
                     this._group.setBoundsChangedFlag();
             }
 
-            this.displayObject.emit(Events.SIZE_CHANGED);
+            this.displayObject.emit(DisplayObjectEvent.SIZE_CHANGED);
         }
     }
 
@@ -920,12 +920,12 @@ export class GObject {
         return this._displayObject && this._touchable;// hasListener(InteractiveEvent.CLICK);
     }
 
-    public on(type: string, listener: Function): void {
-        this._displayObject.on(type, listener, this);
+    public on(type: string, listener: Function, context: any = this): void {
+        this._displayObject.on(type, listener, context);
     }
 
-    public off(type: string, listener: Function, once: boolean = false): void {
-        this._displayObject.off(type, listener, this, once);
+    public off(type: string, listener: Function, context: any = this, once: boolean = false): void {
+        this._displayObject.off(type, listener, this, context);
     }
 
     public get draggable(): boolean {
@@ -1260,7 +1260,6 @@ export class GObject {
         if (buffer.readBool()) {
             this.initWidth = buffer.readInt();
             this.initHeight = buffer.readInt();
-            this.setSize(this.initWidth, this.initHeight, true);
         }
 
         if (buffer.readBool()) {
@@ -1300,7 +1299,7 @@ export class GObject {
 
         if (!buffer.readBool())
             this.visible = false;
-        console.log("visible object ===>", this);
+        // console.log("visible object ===>", this);
         if (!buffer.readBool())
             this.touchable = false;
         if (buffer.readBool())
@@ -1343,6 +1342,7 @@ export class GObject {
 
             buffer.position = nextPos;
         }
+        this.setSize(this.initWidth, this.initHeight, true);
     }
 
     //drag support

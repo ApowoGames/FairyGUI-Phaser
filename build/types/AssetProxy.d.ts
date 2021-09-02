@@ -13,7 +13,9 @@ export declare class AssetProxy {
     private _resMap;
     private _completeCallBack;
     private _errorCallBack;
+    private _emitter;
     constructor();
+    get emitter(): Phaser.Events.EventEmitter;
     private static _inst;
     static get inst(): AssetProxy;
     getRes(key: string, type: string): Promise<any>;

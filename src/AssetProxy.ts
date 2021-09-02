@@ -15,8 +15,14 @@ export class AssetProxy {
     private _resMap: Map<string, string>;
     private _completeCallBack: Function;
     private _errorCallBack: Function;
+    private _emitter: Phaser.Events.EventEmitter;
     constructor() {
         this._resMap = new Map();
+        this._emitter = new Phaser.Events.EventEmitter;
+    }
+
+    public get emitter(): Phaser.Events.EventEmitter {
+        return this._emitter;
     }
 
     private static _inst: AssetProxy;
@@ -30,10 +36,13 @@ export class AssetProxy {
     public getRes(key: string, type: string): Promise<any> {
         return new Promise((resolve, reject) => {
             if (!this._resMap.get(key)) {
-                this.load(key, GRoot.inst.getResUIUrl(key), type, (file) => {
+                const url = GRoot.inst.getResUIUrl(key);
+                this.load(key, url, type, (file) => {
+                    this._emitter.emit(file + "_" + type + "_complete", file);
                     resolve(file);
+                    this._resMap.set(key, url);
                 }, () => {
-                    reject();
+                    reject("__DEFAULT");
                 });
             } else {
                 resolve(GRoot.inst.getResUIUrl(key));
@@ -42,15 +51,15 @@ export class AssetProxy {
     }
 
     public load(key: string, url: any, type: string, completeCallBack: Function, _errorCallBack?: Function): void {
-        this._resMap.set(key, url);
+
         this._completeCallBack = completeCallBack;
         this._errorCallBack = _errorCallBack;
+        this.addListen(type, key);
         if (GRoot.inst.scene.cache.obj.has(key)) {
             if (this._completeCallBack) {
                 return this._completeCallBack();
             }
         }
-        this.addListen(type, key);
         switch (type) {
             case LoaderType.IMAGE:
                 GRoot.inst.scene.load.image(key, url);

@@ -84,6 +84,10 @@ export class GImage extends GObject {
 
     }
 
+    public setSize(wv: number, hv: number, ignorePivot?: boolean): void {
+        super.setSize(wv, hv, ignorePivot);
+    }
+
     public constructFromResource(): Promise<void> {
         return new Promise((reslove, reject) => {
             this._contentItem = this.packageItem.getBranch();
@@ -96,17 +100,16 @@ export class GImage extends GObject {
 
             this._contentItem = this._contentItem.getHighResolution();
             this._contentItem.load().then((packageItem: PackageItem) => {
+                // 优先九宫格，初始化九宫格各类数据，防止setpackitem时位置数据缺失
+                this.setSize(this._contentItem.width, this._contentItem.height);
                 this.image.scale9Grid = this._contentItem.scale9Grid;
                 this.image.scaleByTile = this._contentItem.scaleByTile;
                 this.image.tileGridIndice = this._contentItem.tileGridIndice;
-                this.image.texture = this._contentItem.texture;
-                console.log("image pos", this);
-                // this.x = packageItem.x;
-                // this.y = packageItem.y;
-                // this._xOffset = packageItem.tx;
-                // this._yOffset = packageItem.ty;
+                this.image.setPackItem(this._contentItem);
+                // console.log("image pos", this);
+                // this.image.setPosition(this._contentItem.x, this._contentItem.y);
 
-                this.setSize(this.sourceWidth, this.sourceHeight);
+                // this.setSize(this.sourceWidth, this.sourceHeight);
                 reslove();
             });
         });
@@ -152,5 +155,9 @@ export class GImage extends GObject {
             this.image.fillClockwise = buffer.readBool();
             this.image.fillAmount = buffer.readFloat();
         }
+    }
+
+    public setup_afterAdd(buffer: ByteBuffer, beginPos: number) {
+        super.setup_afterAdd(buffer, beginPos);
     }
 }

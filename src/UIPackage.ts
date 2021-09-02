@@ -612,11 +612,41 @@ export class UIPackage {
                         }
                         else {
                             item.texture = null;
-                            reslove(item.texture);
+                            reslove(item);
                         }
                     } else {
-                        item.texture = null;
-                        reslove(item.texture);
+                        const sprite: AtlasSprite = this._sprites[item.id];
+                        if (!sprite) {
+                            item.texture = null;
+                            reslove(item);
+                        } else {
+                            let texture = GRoot.inst.scene.textures.get(sprite.atlas.file);
+                            if (texture) {
+                                item.texture = texture;
+                                item.x = sprite.rect.x;
+                                item.y = sprite.rect.y;
+                                item.tx = sprite.offset.x;
+                                item.ty = sprite.offset.y;
+                                item.width = sprite.rect.width;
+                                item.height = sprite.rect.height;
+                                reslove(item);
+                            } else {
+                                AssetProxy.inst.emitter.once(sprite.atlas.file + "_image" + "_complete", (file) => {
+                                    texture = GRoot.inst.scene.textures.get(file);
+                                    if (texture) {
+                                        item.texture = texture;
+                                        item.x = sprite.rect.x;
+                                        item.y = sprite.rect.y;
+                                        item.tx = sprite.offset.x;
+                                        item.ty = sprite.offset.y;
+                                        item.width = sprite.rect.width;
+                                        item.height = sprite.rect.height;
+                                        reslove(item);
+                                    }
+
+                                }, this);
+                            }
+                        }
                     }
                     break;
                 case PackageItemType.Atlas:

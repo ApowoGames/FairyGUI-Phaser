@@ -15,10 +15,12 @@ export class GTextField extends GObject {
     protected _heightAutoSize: boolean;
     protected _ubbEnabled: boolean;
     protected _updatingSize: boolean;
+    protected _align: string = "";
+    protected _valign: string = "";
 
     constructor(scene: Phaser.Scene) {
         super(scene);
-        console.log("text create", this);
+        // console.log("text create", this);
     }
 
     public get font(): string {
@@ -43,17 +45,21 @@ export class GTextField extends GObject {
     }
 
     public get align(): string {
-        return null;
+        return this._align;
     }
 
     public set align(value: string) {
+        this._align = value;
+        this.doAlign();
     }
 
     public get valign(): string {
-        return null;
+        return this._valign;
     }
 
     public set valign(value: string) {
+        this._valign = value;
+        this.doAlign();
     }
 
     public get leading(): number {
@@ -276,6 +282,15 @@ export class GTextField extends GObject {
 
         if (buffer.readBool())
             this._templateVars = {};
+    }
+
+    protected updateSize() {
+    }
+
+    protected doAlign() {
+    }
+
+    public typeset() {
     }
 
     public setup_afterAdd(buffer: ByteBuffer, beginPos: number): void {

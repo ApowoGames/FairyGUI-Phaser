@@ -63,11 +63,14 @@ export declare class GButton extends GComponent {
     set linkedPopup(value: GObject);
     getTextField(): GTextField;
     protected setState(val: string): void;
+    setSize(wv: number, hv: number, ignorePivot?: boolean): void;
+    protected handleSizeChanged(): void;
     handleControllerChanged(c: Controller): void;
     protected handleGrayedChanged(): void;
     getProp(index: number): any;
     setProp(index: number, value: any): void;
     protected constructExtension(buffer: ByteBuffer): void;
+    setup_beforeAdd(buffer: ByteBuffer, beginPos: number): void;
     setup_afterAdd(buffer: ByteBuffer, beginPos: number): void;
     private __rollover;
     private __rollout;

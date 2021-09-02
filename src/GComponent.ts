@@ -782,7 +782,6 @@ export class GComponent extends GObject {
 
     protected handleSizeChanged(): void {
         super.handleSizeChanged();
-
         if (this._scrollPane)
             this._scrollPane.onOwnerSizeChanged();
         else if (this.scrollRect)
@@ -1020,15 +1019,13 @@ export class GComponent extends GObject {
         });
     }
 
-    public constructFromResource2(objectPool: GObject[], poolIndex: number): Promise<void> {
+    public async constructFromResource2(objectPool: GObject[], poolIndex: number): Promise<void> {
         return new Promise((reslove, reject) => {
             var contentItem: PackageItem = this.packageItem.getBranch();
-
             if (!contentItem.decoded) {
                 contentItem.decoded = true;
                 TranslationHelper.translateComponent(contentItem);
             }
-
             var i: number;
             var dataLen: number;
             var curPos: number;
@@ -1049,6 +1046,7 @@ export class GComponent extends GObject {
             this.initHeight = this.sourceHeight;
 
             if (!this.displayObject) this.createDisplayObject();
+            // 必须先设置原始尺寸，否则后续relationItem的targetWidth/targetHeight值为0
             this.setSize(this.sourceWidth, this.sourceHeight);
 
             if (buffer.readBool()) {
@@ -1105,254 +1103,161 @@ export class GComponent extends GObject {
 
             var child: GObject;
             var childCount: number = buffer.readShort();
-            for (i = 0; i < childCount; i++) {
-                dataLen = buffer.readShort();
-                curPos = buffer.position;
-
-                if (objectPool)
-                    child = objectPool[poolIndex + i];
-                else {
-                    buffer.seek(curPos, 0);
-
-                    var type: number = buffer.readByte();
-                    var src: string = buffer.readS();
-                    var pkgId: string = buffer.readS();
-
-                    var pi: PackageItem = null;
-                    if (src != null) {
-                        var pkg: UIPackage;
-                        if (pkgId != null)
-                            pkg = UIPackage.getById(pkgId);
-                        else
-                            pkg = contentItem.owner;
-
-                        pi = pkg ? pkg.getItemById(src) : null;
+            let hasAsync: boolean = false;
+            let delayNum: number = -1;
+            const fun = (index) => {
+                for (i = index; i < childCount; i++) {
+                    if (hasAsync) {
+                        return;
                     }
-                    if (pi) {
-                        child = Decls.UIObjectFactory.newObject(pi);
-                        child.constructFromResource().then(() => {
-                            // child._underConstruct = true;
-                            // child.setup_beforeAdd(buffer, curPos);
-                            // child.parent = this;
-                            // this._children.push(child);
-                            // buffer.position = curPos + dataLen;
-                            // this._constructFromResource2(buffer, contentItem, childCount, nextPos);
-                            // reslove();
-                        }).catch((err) => {
-                            console.log(err);
-                        });
+                    dataLen = buffer.readShort();
+                    curPos = buffer.position;
+
+                    if (objectPool) {
+                        child = objectPool[poolIndex + i];
                     }
                     else {
-                        child = Decls.UIObjectFactory.newObject(type);
-                        // child._underConstruct = true;
-                        // child.setup_beforeAdd(buffer, curPos);
-                        // child.parent = this;
-                        // this._children.push(child);
-                        // buffer.position = curPos + dataLen;
-                        // this._constructFromResource2(buffer, contentItem, childCount, nextPos);
-                        // reslove();
+                        buffer.seek(curPos, 0);
+
+                        var type: number = buffer.readByte();
+                        var src: string = buffer.readS();
+                        var pkgId: string = buffer.readS();
+
+                        var pi: PackageItem = null;
+                        if (src != null) {
+                            var pkg: UIPackage;
+                            if (pkgId != null)
+
+                                pkg = UIPackage.getById(pkgId);
+                            else
+                                pkg = contentItem.owner;
+
+                            pi = pkg ? pkg.getItemById(src) : null;
+                        }
+                        if (pi) {
+                            delayNum = i;
+                            hasAsync = true;
+                            child = Decls.UIObjectFactory.newObject(pi);
+                            child.constructFromResource().then(() => {
+                                hasAsync = false;
+                                child._underConstruct = true;
+                                child.setup_beforeAdd(buffer, curPos);
+                                child.parent = this;
+                                this._children.push(child);
+                                buffer.position = curPos + dataLen;
+                                fun(++delayNum);
+                            });
+                            return;
+                        }
+                        else {
+                            child = Decls.UIObjectFactory.newObject(type);
+                        }
                     }
+                    child._underConstruct = true;
+                    child.setup_beforeAdd(buffer, curPos);
+                    child.parent = this;
+                    this._children.push(child);
+                    buffer.position = curPos + dataLen;
                 }
-                child._underConstruct = true;
-                child.setup_beforeAdd(buffer, curPos);
-                child.parent = this;
-                this._children.push(child);
+                if (hasAsync) {
+                    return;
+                }
+                buffer.seek(0, 3);
+                this.relations.setup(buffer, true);
 
-                buffer.position = curPos + dataLen;
+                buffer.seek(0, 2);
+                buffer.skip(2);
+
+                for (i = 0; i < childCount; i++) {
+                    nextPos = buffer.readShort();
+                    nextPos += buffer.position;
+
+                    buffer.seek(buffer.position, 3);
+                    this._children[i].relations.setup(buffer, false);
+
+                    buffer.position = nextPos;
+                }
+
+                buffer.seek(0, 2);
+                buffer.skip(2);
+
+                for (i = 0; i < childCount; i++) {
+                    nextPos = buffer.readShort();
+                    nextPos += buffer.position;
+
+                    child = this._children[i];
+                    child.setup_afterAdd(buffer, buffer.position);
+                    child._underConstruct = false;
+
+                    buffer.position = nextPos;
+                }
+
+                buffer.seek(0, 4);
+
+                buffer.skip(2); //customData
+                this.opaque = buffer.readBool();
+                var maskId: number = buffer.readShort();
+                if (maskId != -1) {
+                    this.setMask((<Graphics>this.getChildAt(maskId).displayObject), buffer.readBool());
+                }
+
+                var hitTestId: string = buffer.readS();
+                i1 = buffer.readInt();
+                i2 = buffer.readInt();
+                var hitArea: HitArea;
+
+                if (hitTestId) {
+                    pi = contentItem.owner.getItemById(hitTestId);
+                    if (pi && pi.pixelHitTestData)
+                        hitArea = new PixelHitTest(pi.pixelHitTestData, i1, i2);
+                }
+                else if (i1 != 0 && i2 != -1) {
+                    // hitArea = new ChildHitArea(this.getChildAt(i2));
+                }
+
+                if (hitArea) {
+                    // this._displayObject.setInteractive(hitArea,Phaser.Geom.Rectangle.Contains);
+                    this.hitArea = hitArea;
+                    // this._displayObject.mouseThrough = false;
+                    // this._displayObject.hitTestPrior = true;
+                }
+
+                buffer.seek(0, 5);
+
+                var transitionCount: number = buffer.readShort();
+                for (i = 0; i < transitionCount; i++) {
+                    nextPos = buffer.readShort();
+                    nextPos += buffer.position;
+
+                    var trans: Transition = new Transition(this);
+                    trans.setup(buffer);
+                    this._transitions.push(trans);
+
+                    buffer.position = nextPos;
+                }
+
+                if (this._transitions.length > 0) {
+                    this.displayObject.on(Phaser.GameObjects.Events.ADDED_TO_SCENE, this.___added);
+                    this.displayObject.on(Phaser.GameObjects.Events.REMOVED_FROM_SCENE, this.___removed);
+                }
+
+                this.applyAllControllers();
+
+                this._buildingDisplayList = false;
+                this._underConstruct = false;
+
+                this.buildNativeDisplayList();
+                this.setBoundsChangedFlag();
+
+                if (contentItem.objectType != ObjectType.Component)
+                    this.constructExtension(buffer);
+
+                this.onConstruct();
+                reslove();
+                return;
             }
-
-            buffer.seek(0, 3);
-            this.relations.setup(buffer, true);
-
-            buffer.seek(0, 2);
-            buffer.skip(2);
-
-            for (i = 0; i < childCount; i++) {
-                nextPos = buffer.readShort();
-                nextPos += buffer.position;
-
-                buffer.seek(buffer.position, 3);
-                this._children[i].relations.setup(buffer, false);
-
-                buffer.position = nextPos;
-            }
-
-            buffer.seek(0, 2);
-            buffer.skip(2);
-
-            for (i = 0; i < childCount; i++) {
-                nextPos = buffer.readShort();
-                nextPos += buffer.position;
-
-                child = this._children[i];
-                child.setup_afterAdd(buffer, buffer.position);
-                child._underConstruct = false;
-
-                buffer.position = nextPos;
-            }
-
-            buffer.seek(0, 4);
-
-            buffer.skip(2); //customData
-            this.opaque = buffer.readBool();
-            var maskId: number = buffer.readShort();
-            if (maskId != -1) {
-                this.setMask((<Graphics>this.getChildAt(maskId).displayObject), buffer.readBool());
-            }
-
-            var hitTestId: string = buffer.readS();
-            i1 = buffer.readInt();
-            i2 = buffer.readInt();
-            var hitArea: HitArea;
-
-            if (hitTestId) {
-                pi = contentItem.owner.getItemById(hitTestId);
-                if (pi && pi.pixelHitTestData)
-                    hitArea = new PixelHitTest(pi.pixelHitTestData, i1, i2);
-            }
-            else if (i1 != 0 && i2 != -1) {
-                // hitArea = new ChildHitArea(this.getChildAt(i2));
-            }
-
-            if (hitArea) {
-                // this._displayObject.setInteractive(hitArea,Phaser.Geom.Rectangle.Contains);
-                this.hitArea = hitArea;
-                // this._displayObject.mouseThrough = false;
-                // this._displayObject.hitTestPrior = true;
-            }
-
-            buffer.seek(0, 5);
-
-            var transitionCount: number = buffer.readShort();
-            for (i = 0; i < transitionCount; i++) {
-                nextPos = buffer.readShort();
-                nextPos += buffer.position;
-
-                var trans: Transition = new Transition(this);
-                trans.setup(buffer);
-                this._transitions.push(trans);
-
-                buffer.position = nextPos;
-            }
-
-            if (this._transitions.length > 0) {
-                this.displayObject.on(Phaser.GameObjects.Events.ADDED_TO_SCENE, this.___added);
-                this.displayObject.on(Phaser.GameObjects.Events.REMOVED_FROM_SCENE, this.___removed);
-            }
-
-            this.applyAllControllers();
-
-            this._buildingDisplayList = false;
-            this._underConstruct = false;
-
-            this.buildNativeDisplayList();
-            this.setBoundsChangedFlag();
-
-            if (contentItem.objectType != ObjectType.Component)
-                this.constructExtension(buffer);
-
-            this.onConstruct();
-            reslove();
+            fun(0);
         });
-    }
-
-    protected _constructFromResource2(buffer: ByteBuffer, contentItem: PackageItem, childCount: number, nextPos: number) {
-        let i1: number;
-        let i2: number;
-        let child: GObject;
-        let pi: PackageItem;
-        buffer.seek(0, 3);
-        this.relations.setup(buffer, true);
-
-        buffer.seek(0, 2);
-        buffer.skip(2);
-
-        let i: number = 0;
-        for (i = 0; i < childCount; i++) {
-            nextPos = buffer.readShort();
-            nextPos += buffer.position;
-
-            buffer.seek(buffer.position, 3);
-            this._children[i].relations.setup(buffer, false);
-
-            buffer.position = nextPos;
-        }
-
-        buffer.seek(0, 2);
-        buffer.skip(2);
-
-        for (i = 0; i < childCount; i++) {
-            nextPos = buffer.readShort();
-            nextPos += buffer.position;
-
-            child = this._children[i];
-            child.setup_afterAdd(buffer, buffer.position);
-            child._underConstruct = false;
-
-            buffer.position = nextPos;
-        }
-
-        buffer.seek(0, 4);
-
-        buffer.skip(2); //customData
-        this.opaque = buffer.readBool();
-        var maskId: number = buffer.readShort();
-        if (maskId != -1) {
-            this.setMask((<Graphics>this.getChildAt(maskId).displayObject), buffer.readBool());
-        }
-
-        var hitTestId: string = buffer.readS();
-        i1 = buffer.readInt();
-        i2 = buffer.readInt();
-        var hitArea: HitArea;
-
-        if (hitTestId) {
-            pi = contentItem.owner.getItemById(hitTestId);
-            if (pi && pi.pixelHitTestData)
-                hitArea = new PixelHitTest(pi.pixelHitTestData, i1, i2);
-        }
-        else if (i1 != 0 && i2 != -1) {
-            // hitArea = new ChildHitArea(this.getChildAt(i2));
-        }
-
-        if (hitArea) {
-            // this._displayObject.setInteractive(hitArea,Phaser.Geom.Rectangle.Contains);
-            this.hitArea = hitArea;
-            // this._displayObject.mouseThrough = false;
-            // this._displayObject.hitTestPrior = true;
-        }
-
-        buffer.seek(0, 5);
-
-        var transitionCount: number = buffer.readShort();
-        for (i = 0; i < transitionCount; i++) {
-            nextPos = buffer.readShort();
-            nextPos += buffer.position;
-
-            var trans: Transition = new Transition(this);
-            trans.setup(buffer);
-            this._transitions.push(trans);
-
-            buffer.position = nextPos;
-        }
-
-        if (this._transitions.length > 0) {
-            this.displayObject.on(Phaser.GameObjects.Events.ADDED_TO_SCENE, this.___added);
-            this.displayObject.on(Phaser.GameObjects.Events.REMOVED_FROM_SCENE, this.___removed);
-        }
-
-        this.applyAllControllers();
-
-        this._buildingDisplayList = false;
-        this._underConstruct = false;
-
-        this.buildNativeDisplayList();
-        this.setBoundsChangedFlag();
-
-        if (contentItem.objectType != ObjectType.Component)
-            this.constructExtension(buffer);
-
-        this.onConstruct();
     }
 
     protected constructExtension(buffer: ByteBuffer): void {

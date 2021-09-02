@@ -9,6 +9,7 @@ import { Controller } from './Controller';
 import { GObject } from './GObject';
 import { GComponent } from "./GComponent";
 import { DisplayObjectEvent, InteractiveEvent } from './event/DisplayObjectEvent';
+import { Utils } from './utils/Utils';
 
 export class GButton extends GComponent {
     protected _titleObject: GObject;
@@ -53,7 +54,7 @@ export class GButton extends GComponent {
         this._soundVolumeScale = UIConfig.buttonSoundVolumeScale;
         this._changeStateOnClick = true;
         this._downEffectValue = 0.8;
-        console.log("button create===>", this);
+        //console.log("button create===>", this);
     }
 
     public get icon(): string {
@@ -268,39 +269,47 @@ export class GButton extends GComponent {
         if (this._buttonController)
             this._buttonController.selectedPage = val;
 
-        // if (this._downEffect == 1) {
-        //     var cnt: number = this.numChildren;
-        //     if (val == GButton.DOWN || val == GButton.SELECTED_OVER || val == GButton.SELECTED_DISABLED) {
-        //         var r: number = this._downEffectValue * 255;
-        //         var color: string = Laya.Utils.toHexColor((r << 16) + (r << 8) + r);
-        //         for (var i: number = 0; i < cnt; i++) {
-        //             var obj: GObject = this.getChildAt(i);
-        //             if (!(obj instanceof GTextField))
-        //                 obj.setProp(ObjectPropID.Color, color);
-        //         }
-        //     }
-        //     else {
-        //         for (i = 0; i < cnt; i++) {
-        //             obj = this.getChildAt(i);
-        //             if (!(obj instanceof GTextField))
-        //                 obj.setProp(ObjectPropID.Color, "#FFFFFF");
-        //         }
-        //     }
-        // }
-        // else if (this._downEffect == 2) {
-        //     if (val == GButton.DOWN || val == GButton.SELECTED_OVER || val == GButton.SELECTED_DISABLED) {
-        //         if (!this._downScaled) {
-        //             this.setScale(this.scaleX * this._downEffectValue, this.scaleY * this._downEffectValue);
-        //             this._downScaled = true;
-        //         }
-        //     }
-        //     else {
-        //         if (this._downScaled) {
-        //             this.setScale(this.scaleX / this._downEffectValue, this.scaleY / this._downEffectValue);
-        //             this._downScaled = false;
-        //         }
-        //     }
-        // }
+        if (this._downEffect == 1) {
+            var cnt: number = this.numChildren;
+            if (val == GButton.DOWN || val == GButton.SELECTED_OVER || val == GButton.SELECTED_DISABLED) {
+                var r: number = this._downEffectValue * 255;
+                var color: string = Utils.toHexColor((r << 16) + (r << 8) + r);
+                for (var i: number = 0; i < cnt; i++) {
+                    var obj: GObject = this.getChildAt(i);
+                    if (!(obj instanceof GTextField))
+                        obj.setProp(ObjectPropID.Color, color);
+                }
+            }
+            else {
+                for (i = 0; i < cnt; i++) {
+                    obj = this.getChildAt(i);
+                    if (!(obj instanceof GTextField))
+                        obj.setProp(ObjectPropID.Color, "#FFFFFF");
+                }
+            }
+        }
+        else if (this._downEffect == 2) {
+            if (val == GButton.DOWN || val == GButton.SELECTED_OVER || val == GButton.SELECTED_DISABLED) {
+                if (!this._downScaled) {
+                    this.setScale(this.scaleX * this._downEffectValue, this.scaleY * this._downEffectValue);
+                    this._downScaled = true;
+                }
+            }
+            else {
+                if (this._downScaled) {
+                    this.setScale(this.scaleX / this._downEffectValue, this.scaleY / this._downEffectValue);
+                    this._downScaled = false;
+                }
+            }
+        }
+    }
+
+    public setSize(wv: number, hv: number, ignorePivot?: boolean): void {
+        super.setSize(wv, hv, ignorePivot);
+    }
+
+    protected handleSizeChanged(): void {
+        super.handleSizeChanged();
     }
 
     public handleControllerChanged(c: Controller): void {
@@ -400,6 +409,10 @@ export class GButton extends GComponent {
         this.on(InteractiveEvent.GAMEOBJECT_OUT, this.__rollout);
         this.on(InteractiveEvent.GAMEOBJECT_DOWN, this.__mousedown);
         this.on(InteractiveEvent.GAMEOBJECT_UP, this.__click);
+    }
+
+    public setup_beforeAdd(buffer: ByteBuffer, beginPos: number) {
+        super.setup_beforeAdd(buffer, beginPos);
     }
 
     public setup_afterAdd(buffer: ByteBuffer, beginPos: number): void {
