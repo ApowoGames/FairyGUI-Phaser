@@ -79,7 +79,7 @@ export class GImage extends GObject {
 
     public createDisplayObject(): void {
         this._displayObject = this._image = new Image(this.scene);
-        (<any>this._scene).stage.addChild(this._displayObject, 1);
+        // (<any>this._scene).stage.addChild(this._displayObject, 1);
         this._displayObject["$owner"] = this;
 
     }
@@ -155,6 +155,7 @@ export class GImage extends GObject {
             this.image.fillClockwise = buffer.readBool();
             this.image.fillAmount = buffer.readFloat();
         }
+        this._touchable = false;
     }
 
     public setup_afterAdd(buffer: ByteBuffer, beginPos: number) {

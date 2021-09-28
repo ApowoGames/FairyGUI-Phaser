@@ -52,7 +52,7 @@ export class GObject {
     private _visible: boolean = true;
     private _dpr: number = 1;
     // 可交互默认false
-    private _touchable: boolean = false;
+    protected _touchable: boolean = false;
     private _grayed: boolean;
     private _draggable?: boolean;
     private _scaleX: number = 1;
@@ -480,21 +480,26 @@ export class GObject {
 
     public set touchable(value: boolean) {
         if (this._touchable != value) {
-            this._touchable = value;
-            this.updateGear(3);
-
-            // if ((this instanceof GImage) || (this instanceof GMovieClip)
-            //     || (this instanceof GTextField) && !(this instanceof GTextInput) && !(this instanceof GRichTextField))
-            //     //Touch is not supported by GImage/GMovieClip/GTextField
-            //     return;
-
-            if (this._displayObject)
-                if (this._touchable) {
-                    this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this._width / this.scaleX, this._height / this.scaleY), Phaser.Geom.Rectangle.Contains);
-                } else {
-                    this._displayObject.disableInteractive();
-                }
+            this.setTouchable(value);
         }
+    }
+
+    public setTouchable(value: boolean) {
+        this._touchable = value;
+        this.updateGear(3);
+
+        // if ((this instanceof GImage) || (this instanceof GMovieClip)
+        //     || (this instanceof GTextField) && !(this instanceof GTextInput) && !(this instanceof GRichTextField))
+        //     //Touch is not supported by GImage/GMovieClip/GTextField
+        //     return;
+
+        if (this._displayObject)
+            if (this._touchable) {
+                this._displayObject.disableInteractive();
+                this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this.initWidth / this.scaleX, this.initHeight / this.scaleY), Phaser.Geom.Rectangle.Contains);
+            } else {
+                this._displayObject.disableInteractive();
+            }
     }
 
     public get grayed(): boolean {
@@ -610,14 +615,14 @@ export class GObject {
 
     public set tooltips(value: string) {
         if (this._tooltips) {
-            this.off(InteractiveEvent.GAMEOBJECT_OVER, this.__rollOver);
-            this.off(InteractiveEvent.GAMEOBJECT_OUT, this.__rollOut);
+            this._displayObject.off(InteractiveEvent.POINTER_OVER, this.__rollOver);
+            this._displayObject.off(InteractiveEvent.POINTER_OUT, this.__rollOut);
         }
 
         this._tooltips = value;
         if (this._tooltips) {
-            this.on(InteractiveEvent.GAMEOBJECT_OVER, this.__rollOver);
-            this.on(InteractiveEvent.GAMEOBJECT_OUT, this.__rollOut);
+            this._displayObject.on(InteractiveEvent.POINTER_OVER, this.__rollOver);
+            this._displayObject.on(InteractiveEvent.POINTER_OUT, this.__rollOut);
         }
     }
 
@@ -909,11 +914,11 @@ export class GObject {
     }
 
     public onClick(listener: Function): void {
-        this.on(InteractiveEvent.GAMEOBJECT_UP, listener);
+        this.on(InteractiveEvent.POINTER_UP, listener);
     }
 
     public offClick(listener: Function, once: boolean = false): void {
-        this.off(InteractiveEvent.GAMEOBJECT_UP, listener, once);
+        this.off(InteractiveEvent.POINTER_UP, listener, once);
     }
 
     public hasClickListener(): boolean {
@@ -1180,7 +1185,7 @@ export class GObject {
 
     protected handleSizeChanged(): void {
         this._displayObject.setSize(this._width, this._height);
-        this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this._width, this._height), Phaser.Geom.Rectangle.Contains);
+        // this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this._width, this._height), Phaser.Geom.Rectangle.Contains);
     }
 
     protected handleScaleChanged(): void {
@@ -1300,8 +1305,11 @@ export class GObject {
         if (!buffer.readBool())
             this.visible = false;
         // console.log("visible object ===>", this);
-        if (!buffer.readBool())
-            this.touchable = false;
+        if (!buffer.readBool()) {
+            this._touchable = false;
+        } else {
+            this._touchable = true;
+        }
         if (buffer.readBool())
             this.grayed = true;
         var bm: number = buffer.readByte();
@@ -1343,6 +1351,7 @@ export class GObject {
             buffer.position = nextPos;
         }
         this.setSize(this.initWidth, this.initHeight, true);
+        this.setTouchable(this._touchable);
     }
 
     //drag support
@@ -1350,9 +1359,9 @@ export class GObject {
 
     private initDrag(): void {
         if (this._draggable)
-            this.on(InteractiveEvent.GAMEOBJECT_DOWN, this.__begin);
+            this._displayObject.on(InteractiveEvent.POINTER_DOWN, this.__begin);
         else
-            this.off(InteractiveEvent.GAMEOBJECT_DOWN, this.__begin);
+            this._displayObject.off(InteractiveEvent.POINTER_DOWN, this.__begin);
     }
 
     private dragBegin(touchID?: number): void {
@@ -1371,8 +1380,8 @@ export class GObject {
         this._dragTesting = true;
         GObject.draggingObject = this;
 
-        this._displayObject.on(InteractiveEvent.GAMEOBJECT_MOVE, this.__moving);
-        this._displayObject.on(InteractiveEvent.GAMEOBJECT_UP, this.__end);
+        this._displayObject.on(InteractiveEvent.POINTER_MOVE, this.__moving);
+        this._displayObject.on(InteractiveEvent.POINTER_UP, this.__end);
     }
 
     private dragEnd(): void {
@@ -1385,8 +1394,8 @@ export class GObject {
     }
 
     private reset(): void {
-        this._displayObject.off(InteractiveEvent.GAMEOBJECT_MOVE, this.__moving);
-        this._displayObject.off(InteractiveEvent.GAMEOBJECT_UP, this.__end);
+        this._displayObject.off(InteractiveEvent.POINTER_MOVE, this.__moving);
+        this._displayObject.off(InteractiveEvent.POINTER_UP, this.__end);
     }
 
     private __begin(): void {
@@ -1396,8 +1405,8 @@ export class GObject {
         this._dragStartPos.y = this.scene.input.activePointer.y;
         this._dragTesting = true;
 
-        this._displayObject.on(InteractiveEvent.GAMEOBJECT_MOVE, this.__moving);
-        this._displayObject.on(InteractiveEvent.GAMEOBJECT_UP, this.__end);
+        this._displayObject.on(InteractiveEvent.POINTER_MOVE, this.__moving);
+        this._displayObject.on(InteractiveEvent.POINTER_UP, this.__end);
     }
 
     private __moving(evt: InteractiveEvent): void {

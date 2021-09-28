@@ -42,7 +42,7 @@ export declare class GObject {
     private _rotation;
     private _visible;
     private _dpr;
-    private _touchable;
+    protected _touchable: boolean;
     private _grayed;
     private _draggable?;
     private _scaleX;
@@ -144,6 +144,7 @@ export declare class GObject {
     private applyPivot;
     get touchable(): boolean;
     set touchable(value: boolean);
+    setTouchable(value: boolean): void;
     get grayed(): boolean;
     set grayed(value: boolean);
     get enabled(): boolean;

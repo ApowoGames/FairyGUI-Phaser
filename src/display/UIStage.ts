@@ -137,6 +137,7 @@ export class UIStage extends Phaser.Events.EventEmitter {
         this.dialogContainer = this.scene.add.container(0, 0);
         this.tipsContainer = this.scene.add.container(0, 0);
         this.maskContainer = this.scene.add.container(0, 0);
+        this.rootContainer.setInteractive();
         this.scene.sys.displayList.add(this.rootContainer);
         this.scene.sys.displayList.add(this.uiContainer);
         this.scene.sys.displayList.add(this.dialogContainer);

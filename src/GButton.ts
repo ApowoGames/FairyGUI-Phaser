@@ -404,11 +404,21 @@ export class GButton extends GComponent {
 
         if (this._mode == ButtonMode.Common)
             this.setState(GButton.UP);
+    }
 
-        this.on(InteractiveEvent.GAMEOBJECT_OVER, this.__rollover);
-        this.on(InteractiveEvent.GAMEOBJECT_OUT, this.__rollout);
-        this.on(InteractiveEvent.GAMEOBJECT_DOWN, this.__mousedown);
-        this.on(InteractiveEvent.GAMEOBJECT_UP, this.__click);
+    public addListen() {
+        this.removeListen();
+        this._displayObject.on(InteractiveEvent.POINTER_OVER, this.__rollover, this);
+        this._displayObject.on(InteractiveEvent.POINTER_OUT, this.__rollout, this);
+        this._displayObject.on(InteractiveEvent.POINTER_DOWN, this.__mousedown, this);
+        this._displayObject.on(InteractiveEvent.POINTER_UP, this.__click, this);
+    }
+
+    public removeListen() {
+        this._displayObject.off(InteractiveEvent.POINTER_OVER, this.__rollover, this);
+        this._displayObject.off(InteractiveEvent.POINTER_OUT, this.__rollout, this);
+        this._displayObject.off(InteractiveEvent.POINTER_DOWN, this.__mousedown, this);
+        this._displayObject.off(InteractiveEvent.POINTER_UP, this.__click, this);
     }
 
     public setup_beforeAdd(buffer: ByteBuffer, beginPos: number) {
@@ -454,8 +464,13 @@ export class GButton extends GComponent {
             this._sound = str;
         if (buffer.readBool())
             this._soundVolumeScale = buffer.readFloat();
-
         this.selected = buffer.readBool();
+        this.addListen();
+        // const g = this.scene.make.graphics(undefined, false);
+        // g.clear();
+        // g.fillStyle(0xFFCC00);
+        // g.fillRoundedRect(0, 0, this.initWidth, this.initHeight);
+        // this._displayObject.addAt(g, 0);
     }
 
     private __rollover(): void {
@@ -490,7 +505,7 @@ export class GButton extends GComponent {
         this._down = true;
         // GRoot.inst.checkPopups(evt.target);
 
-        this.scene.input.on(InteractiveEvent.POINTER_UP, this.__mouseup);
+        this.scene.input.on(InteractiveEvent.POINTER_UP, this.__mouseup, this);
 
         if (this._mode == ButtonMode.Common) {
             if (this.grayed && this._buttonController && this._buttonController.hasPage(GButton.DISABLED))
@@ -509,7 +524,7 @@ export class GButton extends GComponent {
 
     private __mouseup(): void {
         if (this._down) {
-            this.scene.input.off(InteractiveEvent.POINTER_UP, this.__mouseup);
+            this.scene.input.off(InteractiveEvent.POINTER_UP, this.__mouseup, this);
             this._down = false;
 
             if (this._displayObject == null)

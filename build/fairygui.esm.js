@@ -3325,20 +3325,24 @@ class GObject {
     }
     set touchable(value) {
         if (this._touchable != value) {
-            this._touchable = value;
-            this.updateGear(3);
-            // if ((this instanceof GImage) || (this instanceof GMovieClip)
-            //     || (this instanceof GTextField) && !(this instanceof GTextInput) && !(this instanceof GRichTextField))
-            //     //Touch is not supported by GImage/GMovieClip/GTextField
-            //     return;
-            if (this._displayObject)
-                if (this._touchable) {
-                    this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this._width / this.scaleX, this._height / this.scaleY), Phaser.Geom.Rectangle.Contains);
-                }
-                else {
-                    this._displayObject.disableInteractive();
-                }
+            this.setTouchable(value);
         }
+    }
+    setTouchable(value) {
+        this._touchable = value;
+        this.updateGear(3);
+        // if ((this instanceof GImage) || (this instanceof GMovieClip)
+        //     || (this instanceof GTextField) && !(this instanceof GTextInput) && !(this instanceof GRichTextField))
+        //     //Touch is not supported by GImage/GMovieClip/GTextField
+        //     return;
+        if (this._displayObject)
+            if (this._touchable) {
+                this._displayObject.disableInteractive();
+                this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this.initWidth / this.scaleX, this.initHeight / this.scaleY), Phaser.Geom.Rectangle.Contains);
+            }
+            else {
+                this._displayObject.disableInteractive();
+            }
     }
     get grayed() {
         return this._grayed;
@@ -3434,13 +3438,13 @@ class GObject {
     }
     set tooltips(value) {
         if (this._tooltips) {
-            this.off(InteractiveEvent.GAMEOBJECT_OVER, this.__rollOver);
-            this.off(InteractiveEvent.GAMEOBJECT_OUT, this.__rollOut);
+            this._displayObject.off(InteractiveEvent.POINTER_OVER, this.__rollOver);
+            this._displayObject.off(InteractiveEvent.POINTER_OUT, this.__rollOut);
         }
         this._tooltips = value;
         if (this._tooltips) {
-            this.on(InteractiveEvent.GAMEOBJECT_OVER, this.__rollOver);
-            this.on(InteractiveEvent.GAMEOBJECT_OUT, this.__rollOut);
+            this._displayObject.on(InteractiveEvent.POINTER_OVER, this.__rollOver);
+            this._displayObject.on(InteractiveEvent.POINTER_OUT, this.__rollOut);
         }
     }
     __rollOver(evt) {
@@ -3672,10 +3676,10 @@ class GObject {
         }
     }
     onClick(listener) {
-        this.on(InteractiveEvent.GAMEOBJECT_UP, listener);
+        this.on(InteractiveEvent.POINTER_UP, listener);
     }
     offClick(listener, once = false) {
-        this.off(InteractiveEvent.GAMEOBJECT_UP, listener, once);
+        this.off(InteractiveEvent.POINTER_UP, listener, once);
     }
     hasClickListener() {
         return this._displayObject && this._touchable; // hasListener(InteractiveEvent.CLICK);
@@ -3913,7 +3917,7 @@ class GObject {
     }
     handleSizeChanged() {
         this._displayObject.setSize(this._width, this._height);
-        this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this._width, this._height), Phaser.Geom.Rectangle.Contains);
+        // this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this._width, this._height), Phaser.Geom.Rectangle.Contains);
     }
     handleScaleChanged() {
         this._displayObject.setScale(this._scaleX, this._scaleY);
@@ -4015,8 +4019,12 @@ class GObject {
         if (!buffer.readBool())
             this.visible = false;
         // console.log("visible object ===>", this);
-        if (!buffer.readBool())
-            this.touchable = false;
+        if (!buffer.readBool()) {
+            this._touchable = false;
+        }
+        else {
+            this._touchable = true;
+        }
         if (buffer.readBool())
             this.grayed = true;
         var bm = buffer.readByte();
@@ -4048,14 +4056,15 @@ class GObject {
             buffer.position = nextPos;
         }
         this.setSize(this.initWidth, this.initHeight, true);
+        this.setTouchable(this._touchable);
     }
     //drag support
     //-------------------------------------------------------------------
     initDrag() {
         if (this._draggable)
-            this.on(InteractiveEvent.GAMEOBJECT_DOWN, this.__begin);
+            this._displayObject.on(InteractiveEvent.POINTER_DOWN, this.__begin);
         else
-            this.off(InteractiveEvent.GAMEOBJECT_DOWN, this.__begin);
+            this._displayObject.off(InteractiveEvent.POINTER_DOWN, this.__begin);
     }
     dragBegin(touchID) {
         if (GObject.draggingObject) {
@@ -4069,8 +4078,8 @@ class GObject {
         this.localToGlobalRect(0, 0, this.width, this.height, sGlobalRect);
         this._dragTesting = true;
         GObject.draggingObject = this;
-        this._displayObject.on(InteractiveEvent.GAMEOBJECT_MOVE, this.__moving);
-        this._displayObject.on(InteractiveEvent.GAMEOBJECT_UP, this.__end);
+        this._displayObject.on(InteractiveEvent.POINTER_MOVE, this.__moving);
+        this._displayObject.on(InteractiveEvent.POINTER_UP, this.__end);
     }
     dragEnd() {
         if (GObject.draggingObject == this) {
@@ -4081,8 +4090,8 @@ class GObject {
         sDraggingQuery = false;
     }
     reset() {
-        this._displayObject.off(InteractiveEvent.GAMEOBJECT_MOVE, this.__moving);
-        this._displayObject.off(InteractiveEvent.GAMEOBJECT_UP, this.__end);
+        this._displayObject.off(InteractiveEvent.POINTER_MOVE, this.__moving);
+        this._displayObject.off(InteractiveEvent.POINTER_UP, this.__end);
     }
     __begin() {
         if (!this._dragStartPos)
@@ -4090,8 +4099,8 @@ class GObject {
         this._dragStartPos.x = this.scene.input.activePointer.x;
         this._dragStartPos.y = this.scene.input.activePointer.y;
         this._dragTesting = true;
-        this._displayObject.on(InteractiveEvent.GAMEOBJECT_MOVE, this.__moving);
-        this._displayObject.on(InteractiveEvent.GAMEOBJECT_UP, this.__end);
+        this._displayObject.on(InteractiveEvent.POINTER_MOVE, this.__moving);
+        this._displayObject.on(InteractiveEvent.POINTER_UP, this.__end);
     }
     __moving(evt) {
         if (GObject.draggingObject != this && this._draggable && this._dragTesting) {
@@ -5119,7 +5128,7 @@ class Image extends Phaser.GameObjects.Container {
         // this._renderTexture = this.scene.make.renderTexture(undefined, false);
         // this._renderTexture.setPosition(0, 0);
         // this.add(this._renderTexture);
-        this.patchKey = Math.random() * 1000 + "";
+        // this.patchKey = Math.random() * 1000 + "";
         // this.mouseEnabled = false;
         this._color = "#FFFFFF";
     }
@@ -5187,9 +5196,17 @@ class Image extends Phaser.GameObjects.Container {
                 ++patchIndex;
             }
         }
+        // test position
+        // if (this["$owner"]._id === "n1") return;
+        // const g = this.scene.add.graphics(undefined);
+        // g.clear();
+        // g.fillStyle(0xFFCC00);
+        // g.fillRect(0, 0, 20, 20);
+        // this.add(g);
     }
     createPatchFrame(patch, x, y, width, height) {
         if (this._sourceTexture.frames.hasOwnProperty(patch)) {
+            console.log("patch cf", patch);
             return;
         }
         this._sourceTexture.add(patch, this.originFrame.sourceIndex, this.originFrame.cutX + x, this.originFrame.cutY + y, width, height);
@@ -5224,27 +5241,33 @@ class Image extends Phaser.GameObjects.Container {
             return;
         }
         const _texture = value.texture;
+        const name = _texture.key + "_" + value.name + "_" + this["$owner"].width + "_" + this["$owner"].height;
+        this.patchKey = name;
         if (!this._scale9Grid) {
             const img = this.scene.make.image(undefined, false);
             img.setTexture(_texture.key);
             this.add(img);
         }
         else {
-            const canvas = this.scene.textures.createCanvas(value.name + "_" + _texture.key + "_" + this.patchKey, value.width, value.height);
-            canvas.drawFrame(_texture.key, "__BASE", value.x, value.y);
-            // const img = this.scene.make.image(undefined, false);
-            // img.setTexture(value.name + "_" + _texture.key + "_" + this.patchKey);
-            // this.add(img);
-            if (canvas && this._sourceTexture != canvas) {
-                this._sourceTexture = canvas;
-                // todo 重绘
-                // // 修正九宫切片中间的裂缝，默认4
-                // this.mCorrection = 4;
-                this.originFrame = this._sourceTexture.frames["__BASE"];
-                this.setSize(value.width, value.height);
+            // 手动将packitem数据组织成frame格式添加到大图集的frames中，内部会去重
+            _texture.add(name, 0, value.x, value.y, value.width, value.height);
+            if (!this.scene.textures.exists(name)) {
+                const canvas = this.scene.textures.createCanvas(name, value.width, value.height);
+                canvas.drawFrame(_texture.key, name, 0, 0);
+                if (canvas && this._sourceTexture != canvas) {
+                    this._sourceTexture = canvas;
+                    this.originFrame = this._sourceTexture.frames["__BASE"];
+                    this.setSize(value.width, value.height);
+                }
             }
-            // this._renderTexture.drawFrame(_texture.key, baseFrameName, value.x, value.y);
-            // this.repaint();
+            else {
+                let texture = this.scene.textures.get(name);
+                if (texture && this._sourceTexture != texture) {
+                    this._sourceTexture = texture;
+                    this.originFrame = this._sourceTexture.frames["__BASE"];
+                    this.setSize(value.width, value.height);
+                }
+            }
         }
         this.markChanged(1);
     }
@@ -5450,7 +5473,7 @@ class GImage extends GObject {
     }
     createDisplayObject() {
         this._displayObject = this._image = new Image(this.scene);
-        this._scene.stage.addChild(this._displayObject, 1);
+        // (<any>this._scene).stage.addChild(this._displayObject, 1);
         this._displayObject["$owner"] = this;
     }
     setSize(wv, hv, ignorePivot) {
@@ -5511,6 +5534,7 @@ class GImage extends GObject {
             this.image.fillClockwise = buffer.readBool();
             this.image.fillAmount = buffer.readFloat();
         }
+        this._touchable = false;
     }
     setup_afterAdd(buffer, beginPos) {
         super.setup_afterAdd(buffer, beginPos);
@@ -5845,6 +5869,7 @@ class UIStage extends Phaser.Events.EventEmitter {
         this.dialogContainer = this.scene.add.container(0, 0);
         this.tipsContainer = this.scene.add.container(0, 0);
         this.maskContainer = this.scene.add.container(0, 0);
+        this.rootContainer.setInteractive();
         this.scene.sys.displayList.add(this.rootContainer);
         this.scene.sys.displayList.add(this.uiContainer);
         this.scene.sys.displayList.add(this.dialogContainer);
@@ -10511,6 +10536,7 @@ class GComponent extends GObject {
                             index++;
                     }
                     this._container.addAt(child.displayObject, index);
+                    console.log("add display", child);
                 }
                 else if (this._childrenRenderOrder == ChildrenRenderOrder.Descent) {
                     for (i = cnt - 1; i >= 0; i--) {
@@ -10531,6 +10557,7 @@ class GComponent extends GObject {
         else {
             if (child.displayObject.parentContainer) {
                 this._container.remove(child.displayObject);
+                console.log("remove display", child);
                 //     if (this._childrenRenderOrder == ChildrenRenderOrder.Arch)
                 //         Laya.timer.callLater(this, this.buildNativeDisplayList);
             }
@@ -10665,8 +10692,8 @@ class GComponent extends GObject {
                 if (!this.hitArea)
                     this.hitArea = new Phaser.Geom.Rectangle();
                 if (this.hitArea instanceof Phaser.Geom.Rectangle)
-                    this.hitArea.setTo(0, 0, this._width, this._height);
-                this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this._width, this._height), Phaser.Geom.Rectangle.Contains);
+                    this.hitArea.setTo(this.initWidth >> 1, this.initHeight >> 1, this.initWidth, this.initHeight);
+                this._displayObject.setInteractive(this.hitArea, Phaser.Geom.Rectangle.Contains);
             }
             else {
                 if (this.hitArea instanceof Phaser.Geom.Rectangle)
@@ -10746,15 +10773,16 @@ class GComponent extends GObject {
         return buffer.readS();
     }
     updateHitArea() {
-        if (this.hitArea instanceof PixelHitTest) {
-            var hitTest = (this.hitArea);
-            if (this.sourceWidth != 0)
-                hitTest.scaleX = this._width / this.sourceWidth;
-            if (this.sourceHeight != 0)
-                hitTest.scaleY = this._height / this.sourceHeight;
-        }
-        else if (this.hitArea instanceof Phaser.Geom.Rectangle) {
-            this.hitArea.setTo(0, 0, this._width, this._height);
+        // if (this.hitArea instanceof PixelHitTest) {
+        //     var hitTest: PixelHitTest = <PixelHitTest>(this.hitArea);
+        //     if (this.sourceWidth != 0)
+        //         hitTest.scaleX = this.initWidth / this.sourceWidth;
+        //     if (this.sourceHeight != 0)
+        //         hitTest.scaleY = this.initHeight / this.sourceHeight;
+        // }
+        // else 
+        if (this.hitArea instanceof Phaser.Geom.Rectangle) {
+            this.hitArea.setTo(this.initWidth >> 1, this.initHeight >> 1, this.initWidth, this.initHeight);
         }
     }
     updateMask() {
@@ -11161,8 +11189,9 @@ class GComponent extends GObject {
                             hitArea = new PixelHitTest(pi.pixelHitTestData, i1, i2);
                     }
                     if (hitArea) {
-                        // this._displayObject.setInteractive(hitArea,Phaser.Geom.Rectangle.Contains);
+                        this._displayObject.setInteractive(hitArea, Phaser.Geom.Rectangle.Contains);
                         this.hitArea = hitArea;
+                        // console.log("hitArea", this.hitArea);
                         // this._displayObject.mouseThrough = false;
                         // this._displayObject.hitTestPrior = true;
                     }
@@ -11654,6 +11683,7 @@ class GTextField extends GObject {
             buffer.skip(12);
         if (buffer.readBool())
             this._templateVars = {};
+        this._touchable = false;
     }
     updateSize() {
     }
@@ -12973,10 +13003,19 @@ class GButton extends GComponent {
             this._icon = this._iconObject.icon;
         if (this._mode == ButtonMode.Common)
             this.setState(GButton.UP);
-        this.on(InteractiveEvent.GAMEOBJECT_OVER, this.__rollover);
-        this.on(InteractiveEvent.GAMEOBJECT_OUT, this.__rollout);
-        this.on(InteractiveEvent.GAMEOBJECT_DOWN, this.__mousedown);
-        this.on(InteractiveEvent.GAMEOBJECT_UP, this.__click);
+    }
+    addListen() {
+        this.removeListen();
+        this._displayObject.on(InteractiveEvent.POINTER_OVER, this.__rollover, this);
+        this._displayObject.on(InteractiveEvent.POINTER_OUT, this.__rollout, this);
+        this._displayObject.on(InteractiveEvent.POINTER_DOWN, this.__mousedown, this);
+        this._displayObject.on(InteractiveEvent.POINTER_UP, this.__click, this);
+    }
+    removeListen() {
+        this._displayObject.off(InteractiveEvent.POINTER_OVER, this.__rollover, this);
+        this._displayObject.off(InteractiveEvent.POINTER_OUT, this.__rollout, this);
+        this._displayObject.off(InteractiveEvent.POINTER_DOWN, this.__mousedown, this);
+        this._displayObject.off(InteractiveEvent.POINTER_UP, this.__click, this);
     }
     setup_beforeAdd(buffer, beginPos) {
         super.setup_beforeAdd(buffer, beginPos);
@@ -13016,6 +13055,12 @@ class GButton extends GComponent {
         if (buffer.readBool())
             this._soundVolumeScale = buffer.readFloat();
         this.selected = buffer.readBool();
+        this.addListen();
+        // const g = this.scene.make.graphics(undefined, false);
+        // g.clear();
+        // g.fillStyle(0xFFCC00);
+        // g.fillRoundedRect(0, 0, this.initWidth, this.initHeight);
+        // this._displayObject.addAt(g, 0);
     }
     __rollover() {
         if (!this._buttonController || !this._buttonController.hasPage(GButton.OVER))
@@ -13040,7 +13085,7 @@ class GButton extends GComponent {
     __mousedown(pointer) {
         this._down = true;
         // GRoot.inst.checkPopups(evt.target);
-        this.scene.input.on(InteractiveEvent.POINTER_UP, this.__mouseup);
+        this.scene.input.on(InteractiveEvent.POINTER_UP, this.__mouseup, this);
         if (this._mode == ButtonMode.Common) {
             if (this.grayed && this._buttonController && this._buttonController.hasPage(GButton.DISABLED))
                 this.setState(GButton.SELECTED_DISABLED);
@@ -13056,7 +13101,7 @@ class GButton extends GComponent {
     }
     __mouseup() {
         if (this._down) {
-            this.scene.input.off(InteractiveEvent.POINTER_UP, this.__mouseup);
+            this.scene.input.off(InteractiveEvent.POINTER_UP, this.__mouseup, this);
             this._down = false;
             if (this._displayObject == null)
                 return;

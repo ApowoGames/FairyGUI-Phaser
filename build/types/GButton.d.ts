@@ -70,6 +70,8 @@ export declare class GButton extends GComponent {
     getProp(index: number): any;
     setProp(index: number, value: any): void;
     protected constructExtension(buffer: ByteBuffer): void;
+    addListen(): void;
+    removeListen(): void;
     setup_beforeAdd(buffer: ByteBuffer, beginPos: number): void;
     setup_afterAdd(buffer: ByteBuffer, beginPos: number): void;
     private __rollover;

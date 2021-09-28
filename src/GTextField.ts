@@ -282,6 +282,7 @@ export class GTextField extends GObject {
 
         if (buffer.readBool())
             this._templateVars = {};
+        this._touchable=false;
     }
 
     protected updateSize() {

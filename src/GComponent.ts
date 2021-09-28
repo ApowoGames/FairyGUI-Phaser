@@ -459,6 +459,7 @@ export class GComponent extends GObject {
                             index++;
                     }
                     this._container.addAt(child.displayObject, index);
+                    console.log("add display", child);
                 }
                 else if (this._childrenRenderOrder == ChildrenRenderOrder.Descent) {
                     for (i = cnt - 1; i >= 0; i--) {
@@ -481,7 +482,7 @@ export class GComponent extends GObject {
         else {
             if (child.displayObject.parentContainer) {
                 this._container.remove(child.displayObject);
-
+                console.log("remove display", child);
                 //     if (this._childrenRenderOrder == ChildrenRenderOrder.Arch)
                 //         Laya.timer.callLater(this, this.buildNativeDisplayList);
             }
@@ -631,9 +632,8 @@ export class GComponent extends GObject {
                     this.hitArea = new Phaser.Geom.Rectangle();
 
                 if (this.hitArea instanceof Phaser.Geom.Rectangle)
-                    this.hitArea.setTo(0, 0, this._width, this._height);
-
-                this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this._width, this._height), Phaser.Geom.Rectangle.Contains);
+                    this.hitArea.setTo(this.initWidth >> 1, this.initHeight >> 1, this.initWidth, this.initHeight);
+                this._displayObject.setInteractive(this.hitArea, Phaser.Geom.Rectangle.Contains);
             }
             else {
                 if (this.hitArea instanceof Phaser.Geom.Rectangle)
@@ -728,15 +728,16 @@ export class GComponent extends GObject {
     }
 
     protected updateHitArea(): void {
-        if (this.hitArea instanceof PixelHitTest) {
-            var hitTest: PixelHitTest = <PixelHitTest>(this.hitArea);
-            if (this.sourceWidth != 0)
-                hitTest.scaleX = this._width / this.sourceWidth;
-            if (this.sourceHeight != 0)
-                hitTest.scaleY = this._height / this.sourceHeight;
-        }
-        else if (this.hitArea instanceof Phaser.Geom.Rectangle) {
-            this.hitArea.setTo(0, 0, this._width, this._height);
+        // if (this.hitArea instanceof PixelHitTest) {
+        //     var hitTest: PixelHitTest = <PixelHitTest>(this.hitArea);
+        //     if (this.sourceWidth != 0)
+        //         hitTest.scaleX = this.initWidth / this.sourceWidth;
+        //     if (this.sourceHeight != 0)
+        //         hitTest.scaleY = this.initHeight / this.sourceHeight;
+        // }
+        // else 
+        if (this.hitArea instanceof Phaser.Geom.Rectangle) {
+            this.hitArea.setTo(this.initWidth >> 1, this.initHeight >> 1, this.initWidth, this.initHeight);
         }
     }
 
@@ -1216,8 +1217,9 @@ export class GComponent extends GObject {
                 }
 
                 if (hitArea) {
-                    // this._displayObject.setInteractive(hitArea,Phaser.Geom.Rectangle.Contains);
+                    this._displayObject.setInteractive(hitArea, Phaser.Geom.Rectangle.Contains);
                     this.hitArea = hitArea;
+                    // console.log("hitArea", this.hitArea);
                     // this._displayObject.mouseThrough = false;
                     // this._displayObject.hitTestPrior = true;
                 }

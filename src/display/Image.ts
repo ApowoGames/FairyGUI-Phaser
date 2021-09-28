@@ -39,7 +39,7 @@ export class Image extends Phaser.GameObjects.Container {
         // this._renderTexture = this.scene.make.renderTexture(undefined, false);
         // this._renderTexture.setPosition(0, 0);
         // this.add(this._renderTexture);
-        this.patchKey = Math.random() * 1000 + "";
+        // this.patchKey = Math.random() * 1000 + "";
         // this.mouseEnabled = false;
         this._color = "#FFFFFF";
     }
@@ -63,7 +63,7 @@ export class Image extends Phaser.GameObjects.Container {
             this.finalYs = [0, 0, 0, this.height];
         }
         // 有texture资源后再创建九宫图片
-        if(this.originFrame){
+        if (this.originFrame) {
             this.createPatches();
             this.drawPatches();
         }
@@ -109,10 +109,18 @@ export class Image extends Phaser.GameObjects.Container {
                 ++patchIndex;
             }
         }
+        // test position
+        // if (this["$owner"]._id === "n1") return;
+        // const g = this.scene.add.graphics(undefined);
+        // g.clear();
+        // g.fillStyle(0xFFCC00);
+        // g.fillRect(0, 0, 20, 20);
+        // this.add(g);
     }
 
     createPatchFrame(patch, x, y, width, height) {
         if (this._sourceTexture.frames.hasOwnProperty(patch)) {
+            console.log("patch cf", patch);
             return;
         }
         this._sourceTexture.add(patch, this.originFrame.sourceIndex, this.originFrame.cutX + x, this.originFrame.cutY + y, width, height);
@@ -150,31 +158,33 @@ export class Image extends Phaser.GameObjects.Container {
             // console.log("setpackitem ===>", value);
             return;
         }
+
         const _texture = value.texture;
+        const name = _texture.key + "_" + value.name + "_" + this["$owner"].width + "_" + this["$owner"].height;
+        this.patchKey = name;
         if (!this._scale9Grid) {
             const img = this.scene.make.image(undefined, false);
             img.setTexture(_texture.key);
             this.add(img);
         } else {
-            const canvas = this.scene.textures.createCanvas(value.name + "_" + _texture.key + "_" + this.patchKey, value.width, value.height);
-            canvas.drawFrame(_texture.key, "__BASE", value.x, value.y);
-            // const img = this.scene.make.image(undefined, false);
-            // img.setTexture(value.name + "_" + _texture.key + "_" + this.patchKey);
-            // this.add(img);
-
-            if (canvas && this._sourceTexture != canvas) {
-                this._sourceTexture = canvas;
-
-                // todo 重绘
-                // // 修正九宫切片中间的裂缝，默认4
-                // this.mCorrection = 4;
-                this.originFrame = this._sourceTexture.frames["__BASE"];
-                this.setSize(value.width, value.height);
+            // 手动将packitem数据组织成frame格式添加到大图集的frames中，内部会去重
+            _texture.add(name, 0, value.x, value.y, value.width, value.height);
+            if (!this.scene.textures.exists(name)) {
+                const canvas = this.scene.textures.createCanvas(name, value.width, value.height);
+                canvas.drawFrame(_texture.key, name, 0, 0);
+                if (canvas && this._sourceTexture != canvas) {
+                    this._sourceTexture = canvas;
+                    this.originFrame = this._sourceTexture.frames["__BASE"];
+                    this.setSize(value.width, value.height);
+                }
+            } else {
+                let texture = this.scene.textures.get(name);
+                if (texture && this._sourceTexture != texture) {
+                    this._sourceTexture = texture;
+                    this.originFrame = this._sourceTexture.frames["__BASE"];
+                    this.setSize(value.width, value.height);
+                }
             }
-
-            // this._renderTexture.drawFrame(_texture.key, baseFrameName, value.x, value.y);
-            // this.repaint();
-
         }
         this.markChanged(1);
     }

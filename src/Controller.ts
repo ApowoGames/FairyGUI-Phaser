@@ -28,7 +28,7 @@ export class Controller extends Phaser.Events.EventEmitter {
     }
 
     public dispose(): void {
-         this.removeAllListeners();
+        this.removeAllListeners();
     }
 
     public get selectedIndex(): number {
