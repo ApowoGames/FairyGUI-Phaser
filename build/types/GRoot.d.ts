@@ -28,6 +28,7 @@ export declare class GRoot extends GComponent {
     private _defaultTooltipWin;
     private _checkPopups;
     constructor();
+    get emitter(): Phaser.Events.EventEmitter;
     static get inst(): GRoot;
     /**
     * the current mouse/pointer data

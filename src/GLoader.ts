@@ -26,8 +26,8 @@ export class GLoader extends GObject {
 
     private static _errorSignPool: GObjectPool = new GObjectPool();
 
-    constructor() {
-        super();
+    constructor(scene: Phaser.Scene) {
+        super(scene);
         this._url = "";
         this._fill = LoaderFillType.None;
         this._align = "left";
@@ -37,9 +37,9 @@ export class GLoader extends GObject {
 
     public createDisplayObject(): void {
         super.createDisplayObject();
-        throw new Error("TODO");
-        // this._content = new MovieClip();
-        // this._displayObject.addChild(this._content);
+        this._content = new MovieClip(this.scene);
+        this._content["$owner"] = this;
+        this._displayObject.add(this._content);
         // this._displayObject.mouseEnabled = true;
     }
 
@@ -305,13 +305,12 @@ export class GLoader extends GObject {
     }
 
     protected onExternalLoadSuccess(texture: Phaser.Textures.Texture): void {
-        throw new Error("TODO");
-        // this._content.texture = texture;
-        // this._content.scale9Grid = null;
-        // this._content.scaleByTile = false;
-        // this.sourceWidth = texture.width;
-        // this.sourceHeight = texture.height;
-        // this.updateLayout();
+        this._content.texture = texture;
+        this._content.scale9Grid = null;
+        this._content.scaleByTile = false;
+        this.sourceWidth = texture.source[0].width;
+        this.sourceHeight = texture.source[0].height;
+        this.updateLayout();
     }
 
     protected onExternalLoadFailed(): void {
@@ -335,117 +334,114 @@ export class GLoader extends GObject {
                     this._errorSign = obj;
                     if (this._errorSign) {
                         this._errorSign.setSize(this.width, this.height);
-                        throw new Error("TODO");
-                        // this._displayObject.addChild(this._errorSign.displayObject);
+                        this._displayObject.add(this._errorSign.displayObject);
                     }
                 });
             }
-        }        
+        }
     }
 
     private clearErrorState(): void {
         if (this._errorSign) {
-            throw new Error("TODO");
-            // this._displayObject.removeChild(this._errorSign.displayObject);
+            this._displayObject.remove(this._errorSign.displayObject);
             GLoader._errorSignPool.returnObject(this._errorSign);
             this._errorSign = null;
         }
     }
 
     private updateLayout(): void {
-        throw new Error("TODO");
-        // if (!this._content2 && !this._content.texture && !this._content.frames) {
-        //     if (this._autoSize) {
-        //         this._updatingLayout = true;
-        //         this.setSize(50, 30);
-        //         this._updatingLayout = false;
-        //     }
-        //     return;
-        // }
+        if (!this._content2 && !this._content.texture && !this._content.frames) {
+            if (this._autoSize) {
+                this._updatingLayout = true;
+                this.setSize(50, 30);
+                this._updatingLayout = false;
+            }
+            return;
+        }
 
-        // let cw = this.sourceWidth;
-        // let ch = this.sourceHeight;
+        let cw = this.sourceWidth;
+        let ch = this.sourceHeight;
 
-        // if (this._autoSize) {
-        //     this._updatingLayout = true;
-        //     if (cw == 0)
-        //         cw = 50;
-        //     if (ch == 0)
-        //         ch = 30;
-        //     this.setSize(cw, ch);
-        //     this._updatingLayout = false;
+        if (this._autoSize) {
+            this._updatingLayout = true;
+            if (cw == 0)
+                cw = 50;
+            if (ch == 0)
+                ch = 30;
+            this.setSize(cw, ch);
+            this._updatingLayout = false;
 
-        //     if (cw == this._width && ch == this._height) {
-        //         if (this._content2) {
-        //             this._content2.setXY(0, 0);
-        //             this._content2.setScale(1, 1);
-        //         }
-        //         else {
-        //             this._content.size(cw, ch);
-        //             this._content.pos(0, 0);
-        //         }
-        //         return;
-        //     }
-        // }
+            if (cw == this._width && ch == this._height) {
+                if (this._content2) {
+                    this._content2.setXY(0, 0);
+                    this._content2.setScale(1, 1);
+                }
+                else {
+                    this._content.setSize(cw, ch);
+                    this._content.setPosition(0, 0);
+                }
+                return;
+            }
+        }
 
-        // var sx: number = 1, sy: number = 1;
-        // if (this._fill != LoaderFillType.None) {
-        //     sx = this.width / this.sourceWidth;
-        //     sy = this.height / this.sourceHeight;
+        var sx: number = 1, sy: number = 1;
+        if (this._fill != LoaderFillType.None) {
+            sx = this.width / this.sourceWidth;
+            sy = this.height / this.sourceHeight;
 
-        //     if (sx != 1 || sy != 1) {
-        //         if (this._fill == LoaderFillType.ScaleMatchHeight)
-        //             sx = sy;
-        //         else if (this._fill == LoaderFillType.ScaleMatchWidth)
-        //             sy = sx;
-        //         else if (this._fill == LoaderFillType.Scale) {
-        //             if (sx > sy)
-        //                 sx = sy;
-        //             else
-        //                 sy = sx;
-        //         }
-        //         else if (this._fill == LoaderFillType.ScaleNoBorder) {
-        //             if (sx > sy)
-        //                 sy = sx;
-        //             else
-        //                 sx = sy;
-        //         }
+            if (sx != 1 || sy != 1) {
+                if (this._fill == LoaderFillType.ScaleMatchHeight)
+                    sx = sy;
+                else if (this._fill == LoaderFillType.ScaleMatchWidth)
+                    sy = sx;
+                else if (this._fill == LoaderFillType.Scale) {
+                    if (sx > sy)
+                        sx = sy;
+                    else
+                        sy = sx;
+                }
+                else if (this._fill == LoaderFillType.ScaleNoBorder) {
+                    if (sx > sy)
+                        sy = sx;
+                    else
+                        sx = sy;
+                }
 
-        //         if (this._shrinkOnly) {
-        //             if (sx > 1)
-        //                 sx = 1;
-        //             if (sy > 1)
-        //                 sy = 1;
-        //         }
+                if (this._shrinkOnly) {
+                    if (sx > 1)
+                        sx = 1;
+                    if (sy > 1)
+                        sy = 1;
+                }
 
-        //         cw = this.sourceWidth * sx;
-        //         ch = this.sourceHeight * sy;
-        //     }
-        // }
+                cw = this.sourceWidth * sx;
+                ch = this.sourceHeight * sy;
+            }
+        }
 
-        // if (this._content2)
-        //     this._content2.setScale(sx, sy);
-        // else
-        //     this._content.size(cw, ch);
+        if (this._content2)
+            this._content2.setScale(sx, sy);
+        else
+            this._content.setSize(cw, ch);
 
-        // var nx: number, ny: number;
-        // if (this._align == "center")
-        //     nx = Math.floor((this.width - cw) / 2);
-        // else if (this._align == "right")
-        //     nx = this.width - cw;
-        // else
-        //     nx = 0;
-        // if (this._valign == "middle")
-        //     ny = Math.floor((this.height - ch) / 2);
-        // else if (this._valign == "bottom")
-        //     ny = this.height - ch;
-        // else
-        //     ny = 0;
+        var nx: number, ny: number;
+        if (this._align == "center")
+            nx = Math.floor((this.width - cw) / 2);
+        else if (this._align == "right")
+            nx = this.width - cw;
+        else
+            nx = 0;
+        if (this._valign == "middle")
+            ny = Math.floor((this.height - ch) / 2);
+        else if (this._valign == "bottom")
+            ny = this.height - ch;
+        else
+            ny = 0;
 
-        // if (this._content2)
-        //     this._content2.setXY(nx, ny);
-        // else
-        //     this._content.pos(nx, ny);
+        if (this._content2)
+            this._content2.setXY(nx, ny);
+        else
+            this._content.setPosition(nx, ny);
     }
 
     private clearContent(): void {

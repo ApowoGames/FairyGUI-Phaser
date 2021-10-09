@@ -26,13 +26,12 @@ export class MovieClip extends Image {
     private _reversed: boolean;
     private _repeatedCount: number = 0;
 
-    constructor() {
-        super(undefined);
-        throw new Error("TODO");
+    constructor(scene: Phaser.Scene) {
+        super(scene);
 
         // this.mouseEnabled = false;
 
-        // this.setPlaySettings();
+        this.setPlaySettings();
 
         // this.on(Laya.Event.DISPLAY, this, this.__addToStage);
         // this.on(Laya.Event.UNDISPLAY, this, this.__removeFromStage);
@@ -190,88 +189,87 @@ export class MovieClip extends Image {
     }
 
     public update(): void {
-        throw new Error("TODO");
-        // if (!this._playing || this._frameCount == 0 || this._status == 3)
-        //     return;
+        if (!this._playing || this._frameCount == 0 || this._status == 3)
+            return;
 
-        // var dt: number = Laya.timer.delta;
-        // if (dt > 100)
-        //     dt = 100;
-        // if (this.timeScale != 1)
-        //     dt *= this.timeScale;
+        var dt: number = 100;//Laya.timer.delta;
+        if (dt > 100)
+            dt = 100;
+        if (this.timeScale != 1)
+            dt *= this.timeScale;
 
-        // this._frameElapsed += dt;
-        // var tt: number = this.interval + this._frames[this._frame].addDelay;
-        // if (this._frame == 0 && this._repeatedCount > 0)
-        //     tt += this.repeatDelay;
-        // if (this._frameElapsed < tt)
-        //     return;
+        this._frameElapsed += dt;
+        var tt: number = this.interval + this._frames[this._frame].addDelay;
+        if (this._frame == 0 && this._repeatedCount > 0)
+            tt += this.repeatDelay;
+        if (this._frameElapsed < tt)
+            return;
 
-        // this._frameElapsed -= tt;
-        // if (this._frameElapsed > this.interval)
-        //     this._frameElapsed = this.interval;
+        this._frameElapsed -= tt;
+        if (this._frameElapsed > this.interval)
+            this._frameElapsed = this.interval;
 
-        // if (this.swing) {
-        //     if (this._reversed) {
-        //         this._frame--;
-        //         if (this._frame <= 0) {
-        //             this._frame = 0;
-        //             this._repeatedCount++;
-        //             this._reversed = !this._reversed;
-        //         }
-        //     }
-        //     else {
-        //         this._frame++;
-        //         if (this._frame > this._frameCount - 1) {
-        //             this._frame = Math.max(0, this._frameCount - 2);
-        //             this._repeatedCount++;
-        //             this._reversed = !this._reversed;
-        //         }
-        //     }
-        // }
-        // else {
-        //     this._frame++;
-        //     if (this._frame > this._frameCount - 1) {
-        //         this._frame = 0;
-        //         this._repeatedCount++;
-        //     }
-        // }
+        if (this.swing) {
+            if (this._reversed) {
+                this._frame--;
+                if (this._frame <= 0) {
+                    this._frame = 0;
+                    this._repeatedCount++;
+                    this._reversed = !this._reversed;
+                }
+            }
+            else {
+                this._frame++;
+                if (this._frame > this._frameCount - 1) {
+                    this._frame = Math.max(0, this._frameCount - 2);
+                    this._repeatedCount++;
+                    this._reversed = !this._reversed;
+                }
+            }
+        }
+        else {
+            this._frame++;
+            if (this._frame > this._frameCount - 1) {
+                this._frame = 0;
+                this._repeatedCount++;
+            }
+        }
 
-        // if (this._status == 1) //new loop
-        // {
-        //     this._frame = this._start;
-        //     this._frameElapsed = 0;
-        //     this._status = 0;
-        // }
-        // else if (this._status == 2) //ending
-        // {
-        //     this._frame = this._endAt;
-        //     this._frameElapsed = 0;
-        //     this._status = 3; //ended
+        if (this._status == 1) //new loop
+        {
+            this._frame = this._start;
+            this._frameElapsed = 0;
+            this._status = 0;
+        }
+        else if (this._status == 2) //ending
+        {
+            this._frame = this._endAt;
+            this._frameElapsed = 0;
+            this._status = 3; //ended
 
-        //     //play end
-        //     if (this._endHandler) {
-        //         var handler = this._endHandler;
-        //         this._endHandler = null;
-        //         handler();
-        //     }
-        // }
-        // else {
-        //     if (this._frame == this._end) {
-        //         if (this._times > 0) {
-        //             this._times--;
-        //             if (this._times == 0)
-        //                 this._status = 2;  //ending
-        //             else
-        //                 this._status = 1; //new loop
-        //         }
-        //         else {
-        //             this._status = 1; //new loop
-        //         }
-        //     }
-        // }
+            //play end
+            if (this._endHandler) {
+                var handler = this._endHandler;
+                this._endHandler = null;
+                handler();
+            }
+        }
+        else {
+            if (this._frame == this._end) {
+                if (this._times > 0) {
+                    this._times--;
+                    if (this._times == 0)
+                        this._status = 2;  //ending
+                    else
+                        this._status = 1; //new loop
+                }
+                else {
+                    this._status = 1; //new loop
+                }
+            }
+        }
 
-        // this.drawFrame();
+        this.drawFrame();
     }
 
     private drawFrame(): void {
@@ -285,7 +283,7 @@ export class MovieClip extends Image {
     }
 
     private checkTimer(): void {
-        throw new Error("TODO");
+       //  throw new Error("TODO");
         // if (this._playing && this._frameCount > 0 && this.stage != null)
         //     Laya.timer.frameLoop(1, this, this.update);
         // else

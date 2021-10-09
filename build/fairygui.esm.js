@@ -1482,7 +1482,6 @@ class TweenManager {
             // TODO
             throw new Error("TODO");
         }
-        var tweener;
     }
     static isTweening(target, propType) {
         if (target == null)
@@ -1795,6 +1794,50 @@ DisplayObjectEvent.VISIBLE_CHANGED = "__visibleChanged";
 DisplayObjectEvent.SIZE_DELAY_CHANGE = "__sizeDelayChange";
 DisplayObjectEvent.MOUSE_WHEEL = "__mouseWheel";
 class InteractiveEvent {
+    /**键盘值*/
+    // keyCode: number;
+    /**滚轮滑动增量*/
+    // delta: number;
+    /**
+     * 设置事件数据。
+     * @param	type 事件类型。
+     * @param	currentTarget 事件目标触发对象。
+     * @param	target 事件当前冒泡对象。
+     * @return 返回当前 Event 对象。
+     */
+    setTo(type, currentTarget, target) {
+        this.type = type;
+        this.currentTarget = currentTarget;
+        this.target = target;
+        return this;
+    }
+    /**
+     * 阻止对事件流中当前节点的后续节点中的所有事件侦听器进行处理。此方法不会影响当前节点 (currentTarget) 中的任何事件侦听器。
+     */
+    stopPropagation() {
+        this._stoped = true;
+    }
+    /**
+     * 触摸点列表。
+     */
+    get touches() {
+        const arr = GRoot.inst.scene.input.manager.pointers;
+        // if (!this.nativeEvent) return null;
+        // var arr: any[] = this.nativeEvent.touches;
+        // if (arr) {
+        //     var stage: Stage = ILaya.stage;
+        //     for (var i: number = 0, n: number = arr.length; i < n; i++) {
+        //         var e: Phaser.Input.Pointer = arr[i];
+        //         var point: Phaser.Geom.Point = new Phaser.Geom.Point();
+        //         point.setTo(e.x, e.y);
+        //         stage._canvasTransform.invertTransformPoint(point);
+        //         stage.transform.invertTransformPoint(point);
+        //         e.stageX = point.x;
+        //         e.stageY = point.y;
+        //     }
+        // }
+        return arr;
+    }
 }
 InteractiveEvent.POINTER_DOWN = "pointerdown";
 InteractiveEvent.POINTER_UP = "pointerup";
@@ -1809,15 +1852,15 @@ InteractiveEvent.GAMEOBJECT_MOVE = "gameobjectmove";
 
 class Events {
     static createEvent(type, target, source) {
-        // this.$event.setTo(type, target, source ? (source.target || target) : target);
-        // this.$event.touchId = source ? (source.touchId || 0) : 0;
-        // this.$event.nativeEvent = source;
-        // this.$event["_stoped"] = false;
-        throw new Error("TODO");
+        this.$event.setTo(type, target, source ? (source.target || target) : target);
+        this.$event.touchId = source ? (source.touchId || 0) : 0;
+        this.$event.nativeEvent = source;
+        this.$event["_stoped"] = false;
+        return this.$event;
     }
     static dispatch(type, target, source) {
-        // target.event(type, this.createEvent(type, target, source));
-        throw new Error("TODO");
+        target.emit(type, this.createEvent(type, target, source));
+        // GRoot.inst.emitter.emit(type, target);
     }
 }
 Events.STATE_CHANGED = "fui_state_changed";
@@ -3587,9 +3630,9 @@ class GObject {
     get asCom() {
         return this;
     }
-    // public get asButton(): GButton {
-    //     return <GButton><any>this;
-    // }
+    get asButton() {
+        return this;
+    }
     // public get asLabel(): GLabel {
     //     return <GLabel><any>this;
     // }
@@ -3605,12 +3648,12 @@ class GObject {
     // public get asTextInput(): GTextInput {
     //     return <GTextInput><any>this;
     // }
-    // public get asLoader(): GLoader {
-    //     return <GLoader><any>this;
-    // }
-    // public get asList(): GList {
-    //     return <GList><any>this;
-    // }
+    get asLoader() {
+        return this;
+    }
+    get asList() {
+        return this;
+    }
     get asTree() {
         return this;
     }
@@ -3626,9 +3669,9 @@ class GObject {
     // public get asComboBox(): GComboBox {
     //     return <GComboBox><any>this;
     // }
-    // public get asImage(): GImage {
-    //     return <GImage><any>this;
-    // }
+    get asImage() {
+        return this;
+    }
     // public get asMovieClip(): GMovieClip {
     //     return <GMovieClip><any>this;
     // }
@@ -5541,8 +5584,263 @@ class GImage extends GObject {
     }
 }
 
+class MovieClip extends Image {
+    constructor(scene) {
+        super(scene);
+        this.interval = 0;
+        this.repeatDelay = 0;
+        this.timeScale = 1;
+        this._playing = true;
+        this._frameCount = 0;
+        this._frame = 0;
+        this._start = 0;
+        this._end = 0;
+        this._times = 0;
+        this._endAt = 0;
+        this._status = 0; //0-none, 1-next loop, 2-ending, 3-ended
+        this._frameElapsed = 0; //当前帧延迟
+        this._repeatedCount = 0;
+        // this.mouseEnabled = false;
+        this.setPlaySettings();
+        // this.on(Laya.Event.DISPLAY, this, this.__addToStage);
+        // this.on(Laya.Event.UNDISPLAY, this, this.__removeFromStage);
+    }
+    get frames() {
+        return this._frames;
+    }
+    set frames(value) {
+        this._frames = value;
+        this._scaleByTile = false;
+        this._scale9Grid = null;
+        if (this._frames) {
+            this._frameCount = this._frames.length;
+            if (this._end == -1 || this._end > this._frameCount - 1)
+                this._end = this._frameCount - 1;
+            if (this._endAt == -1 || this._endAt > this._frameCount - 1)
+                this._endAt = this._frameCount - 1;
+            if (this._frame < 0 || this._frame > this._frameCount - 1)
+                this._frame = this._frameCount - 1;
+            this._frameElapsed = 0;
+            this._repeatedCount = 0;
+            this._reversed = false;
+        }
+        else
+            this._frameCount = 0;
+        this.drawFrame();
+        this.checkTimer();
+    }
+    get frameCount() {
+        return this._frameCount;
+    }
+    get frame() {
+        return this._frame;
+    }
+    set frame(value) {
+        if (this._frame != value) {
+            if (this._frames && value >= this._frameCount)
+                value = this._frameCount - 1;
+            this._frame = value;
+            this._frameElapsed = 0;
+            this.drawFrame();
+        }
+    }
+    get playing() {
+        return this._playing;
+    }
+    set playing(value) {
+        if (this._playing != value) {
+            this._playing = value;
+            this.checkTimer();
+        }
+    }
+    //从start帧开始，播放到end帧（-1表示结尾），重复times次（0表示无限循环），循环结束后，停止在endAt帧（-1表示参数end）
+    rewind() {
+        this._frame = 0;
+        this._frameElapsed = 0;
+        this._reversed = false;
+        this._repeatedCount = 0;
+        this.drawFrame();
+    }
+    syncStatus(anotherMc) {
+        this._frame = anotherMc._frame;
+        this._frameElapsed = anotherMc._frameElapsed;
+        this._reversed = anotherMc._reversed;
+        this._repeatedCount = anotherMc._repeatedCount;
+        this.drawFrame();
+    }
+    advance(timeInMiniseconds) {
+        var beginFrame = this._frame;
+        var beginReversed = this._reversed;
+        var backupTime = timeInMiniseconds;
+        while (true) {
+            var tt = this.interval + this._frames[this._frame].addDelay;
+            if (this._frame == 0 && this._repeatedCount > 0)
+                tt += this.repeatDelay;
+            if (timeInMiniseconds < tt) {
+                this._frameElapsed = 0;
+                break;
+            }
+            timeInMiniseconds -= tt;
+            if (this.swing) {
+                if (this._reversed) {
+                    this._frame--;
+                    if (this._frame <= 0) {
+                        this._frame = 0;
+                        this._repeatedCount++;
+                        this._reversed = !this._reversed;
+                    }
+                }
+                else {
+                    this._frame++;
+                    if (this._frame > this._frameCount - 1) {
+                        this._frame = Math.max(0, this._frameCount - 2);
+                        this._repeatedCount++;
+                        this._reversed = !this._reversed;
+                    }
+                }
+            }
+            else {
+                this._frame++;
+                if (this._frame > this._frameCount - 1) {
+                    this._frame = 0;
+                    this._repeatedCount++;
+                }
+            }
+            if (this._frame == beginFrame && this._reversed == beginReversed) //走了一轮了
+             {
+                var roundTime = backupTime - timeInMiniseconds; //这就是一轮需要的时间
+                timeInMiniseconds -= Math.floor(timeInMiniseconds / roundTime) * roundTime; //跳过
+            }
+        }
+        this.drawFrame();
+    }
+    //从start帧开始，播放到end帧（-1表示结尾），重复times次（0表示无限循环），循环结束后，停止在endAt帧（-1表示参数end）
+    setPlaySettings(start, end, times, endAt, endHandler) {
+        if (start == undefined)
+            start = 0;
+        if (end == undefined)
+            end = -1;
+        if (times == undefined)
+            times = 0;
+        if (endAt == undefined)
+            endAt = -1;
+        this._start = start;
+        this._end = end;
+        if (this._end == -1 || this._end > this._frameCount - 1)
+            this._end = this._frameCount - 1;
+        this._times = times;
+        this._endAt = endAt;
+        if (this._endAt == -1)
+            this._endAt = this._end;
+        this._status = 0;
+        this._endHandler = endHandler;
+        this.frame = start;
+    }
+    update() {
+        if (!this._playing || this._frameCount == 0 || this._status == 3)
+            return;
+        var dt = 100; //Laya.timer.delta;
+        if (dt > 100)
+            dt = 100;
+        if (this.timeScale != 1)
+            dt *= this.timeScale;
+        this._frameElapsed += dt;
+        var tt = this.interval + this._frames[this._frame].addDelay;
+        if (this._frame == 0 && this._repeatedCount > 0)
+            tt += this.repeatDelay;
+        if (this._frameElapsed < tt)
+            return;
+        this._frameElapsed -= tt;
+        if (this._frameElapsed > this.interval)
+            this._frameElapsed = this.interval;
+        if (this.swing) {
+            if (this._reversed) {
+                this._frame--;
+                if (this._frame <= 0) {
+                    this._frame = 0;
+                    this._repeatedCount++;
+                    this._reversed = !this._reversed;
+                }
+            }
+            else {
+                this._frame++;
+                if (this._frame > this._frameCount - 1) {
+                    this._frame = Math.max(0, this._frameCount - 2);
+                    this._repeatedCount++;
+                    this._reversed = !this._reversed;
+                }
+            }
+        }
+        else {
+            this._frame++;
+            if (this._frame > this._frameCount - 1) {
+                this._frame = 0;
+                this._repeatedCount++;
+            }
+        }
+        if (this._status == 1) //new loop
+         {
+            this._frame = this._start;
+            this._frameElapsed = 0;
+            this._status = 0;
+        }
+        else if (this._status == 2) //ending
+         {
+            this._frame = this._endAt;
+            this._frameElapsed = 0;
+            this._status = 3; //ended
+            //play end
+            if (this._endHandler) {
+                var handler = this._endHandler;
+                this._endHandler = null;
+                handler();
+            }
+        }
+        else {
+            if (this._frame == this._end) {
+                if (this._times > 0) {
+                    this._times--;
+                    if (this._times == 0)
+                        this._status = 2; //ending
+                    else
+                        this._status = 1; //new loop
+                }
+                else {
+                    this._status = 1; //new loop
+                }
+            }
+        }
+        this.drawFrame();
+    }
+    drawFrame() {
+        if (this._frameCount > 0 && this._frame < this._frames.length) {
+            var frame = this._frames[this._frame];
+            this.texture = frame.texture;
+        }
+        else
+            this.texture = null;
+        this.rebuild();
+    }
+    checkTimer() {
+        //  throw new Error("TODO");
+        // if (this._playing && this._frameCount > 0 && this.stage != null)
+        //     Laya.timer.frameLoop(1, this, this.update);
+        // else
+        //     Laya.timer.clear(this, this.update);
+    }
+    __addToStage() {
+        throw new Error("TODO");
+        // if (this._playing && this._frameCount > 0)
+        //     Laya.timer.frameLoop(1, this, this.update);
+    }
+    __removeFromStage() {
+        throw new Error("TODO");
+        // Laya.timer.clear(this, this.update);
+    }
+}
+
 class GMovieClip extends GObject {
-    constructor() {
+    constructor(scene) {
         super();
     }
     get color() {
@@ -5552,10 +5850,9 @@ class GMovieClip extends GObject {
         this._movieClip.color = value;
     }
     createDisplayObject() {
-        throw new Error("TODO");
-        // this._displayObject = this._movieClip = new MovieClip();
+        this._displayObject = this._movieClip = new MovieClip(this.scene);
         // this._movieClip.mouseEnabled = false;
-        // this._displayObject["$owner"] = this;
+        this._displayObject["$owner"] = this;
     }
     get playing() {
         return this._movieClip.playing;
@@ -5816,6 +6113,24 @@ var StageAlign;
     StageAlign[StageAlign["MIDDLE"] = 4] = "MIDDLE";
     StageAlign[StageAlign["BOTTOM"] = 5] = "BOTTOM";
 })(StageAlign || (StageAlign = {}));
+class DefaultUIStageOptions {
+    constructor() {
+        this.scaleMode = StageScaleMode.SHOW_ALL;
+        this.orientation = StageOrientation.AUTO;
+        this.resolution = 1;
+        this.designWidth = 800;
+        this.designHeight = 600;
+        this.alignV = StageAlign.MIDDLE;
+        this.alignH = StageAlign.CENTER;
+        this.fallbackWidth = 0;
+        this.fallbackHeight = 0;
+        this.osd = "/";
+        this.res = "resources/";
+        this.resUI = "resources/ui";
+        this.dpr = 1;
+        // [key: string]: string | number;
+    }
+}
 class DefaultBoudingRectCalculator {
     getRect(view, fallbackWidth, fallbackHeight) {
         let p = view.parentElement;
@@ -5869,7 +6184,7 @@ class UIStage extends Phaser.Events.EventEmitter {
         this.dialogContainer = this.scene.add.container(0, 0);
         this.tipsContainer = this.scene.add.container(0, 0);
         this.maskContainer = this.scene.add.container(0, 0);
-        this.rootContainer.setInteractive();
+        this.rootContainer.setInteractive(new Phaser.Geom.Rectangle(0, 0, GRoot.inst.width, GRoot.inst.height), Phaser.Geom.Rectangle.Contains);
         this.scene.sys.displayList.add(this.rootContainer);
         this.scene.sys.displayList.add(this.uiContainer);
         this.scene.sys.displayList.add(this.dialogContainer);
@@ -6403,6 +6718,23 @@ class PixelHitTest extends HitArea {
             return false;
     }
 }
+class PixelHitTestData {
+    constructor() {
+    }
+    load(ba) {
+        ba.getInt32();
+        this.pixelWidth = ba.getInt32();
+        this.scale = 1 / ba.readByte();
+        var len = ba.getInt32();
+        this.pixels = [];
+        for (var i = 0; i < len; i++) {
+            var j = ba.readByte();
+            if (j < 0)
+                j += 256;
+            this.pixels[i] = j;
+        }
+    }
+}
 
 let _func = HitArea["_isHitGraphic"];
 class ChildHitArea extends HitArea {
@@ -6427,1449 +6759,6 @@ class ChildHitArea extends HitArea {
         else
             return _func(x - tPos.x, y - tPos.y, this.hit);
     }
-}
-
-class Margin {
-    constructor() {
-        this.left = 0;
-        this.right = 0;
-        this.top = 0;
-        this.bottom = 0;
-    }
-    copy(source) {
-        this.top = source.top;
-        this.bottom = source.bottom;
-        this.left = source.left;
-        this.right = source.right;
-    }
-}
-
-class ScrollPane {
-    constructor(owner) {
-        this._owner = owner;
-        this._maskContainer = owner.scene.make.container(undefined, false);
-        this._owner.displayObject.add(this._maskContainer);
-        this._container = this._owner.displayListContainer;
-        this._container.setPosition(0, 0);
-        this._maskContainer.add(this._container);
-        this._mouseWheelEnabled = true;
-        this._xPos = 0;
-        this._yPos = 0;
-        this._aniFlag = 0;
-        this._tweening = 0;
-        this._loop = 0;
-        this._footerLockedSize = 0;
-        this._headerLockedSize = 0;
-        this._scrollBarMargin = new Margin();
-        this._viewSize = new Phaser.Geom.Point();
-        this._contentSize = new Phaser.Geom.Point();
-        this._pageSize = new Phaser.Geom.Point(1, 1);
-        this._overlapSize = new Phaser.Geom.Point();
-        this._tweenTime = new Phaser.Geom.Point();
-        this._tweenStart = new Phaser.Geom.Point();
-        this._tweenDuration = new Phaser.Geom.Point();
-        this._tweenChange = new Phaser.Geom.Point();
-        this._velocity = new Phaser.Geom.Point();
-        this._containerPos = new Phaser.Geom.Point();
-        this._beginTouchPos = new Phaser.Geom.Point();
-        this._lastTouchPos = new Phaser.Geom.Point();
-        this._lastTouchGlobalPos = new Phaser.Geom.Point();
-        this._scrollStep = UIConfig.defaultScrollStep;
-        this._mouseWheelStep = this._scrollStep * 2;
-        this._decelerationRate = UIConfig.defaultScrollDecelerationRate;
-        // this._owner.on(Laya.Event.MOUSE_DOWN, this, this.__mouseDown);
-        // this._owner.on(Laya.Event.MOUSE_WHEEL, this, this.__mouseWheel);
-    }
-    setup(buffer) {
-        this._scrollType = buffer.readByte();
-        buffer.readByte();
-        var flags = buffer.readInt();
-        if (buffer.readBool()) {
-            this._scrollBarMargin.top = buffer.readInt();
-            this._scrollBarMargin.bottom = buffer.readInt();
-            this._scrollBarMargin.left = buffer.readInt();
-            this._scrollBarMargin.right = buffer.readInt();
-        }
-        buffer.readS();
-        buffer.readS();
-        buffer.readS();
-        buffer.readS();
-        if ((flags & 1) != 0)
-            this._displayOnLeft = true;
-        if ((flags & 2) != 0)
-            this._snapToItem = true;
-        if ((flags & 4) != 0)
-            this._displayInDemand = true;
-        if ((flags & 8) != 0)
-            this._pageMode = true;
-        if (flags & 16)
-            this._touchEffect = true;
-        else if (flags & 32)
-            this._touchEffect = false;
-        else
-            this._touchEffect = UIConfig.defaultScrollTouchEffect;
-        if (flags & 64)
-            this._bouncebackEffect = true;
-        else if (flags & 128)
-            this._bouncebackEffect = false;
-        else
-            this._bouncebackEffect = UIConfig.defaultScrollBounceEffect;
-        if ((flags & 256) != 0)
-            this._inertiaDisabled = true;
-        if ((flags & 512) == 0) //this._maskContainer.scrollRect = new Laya.Rectangle();
-            if ((flags & 1024) != 0)
-                this._floating = true;
-        if ((flags & 2048) != 0)
-            this._dontClipMargin = true;
-        // if (scrollBarDisplay == ScrollBarDisplayType.Default)
-        //     scrollBarDisplay = UIConfig.defaultScrollBarDisplay;
-        // if (scrollBarDisplay != ScrollBarDisplayType.Hidden) {
-        //     if (this._scrollType == ScrollType.Both || this._scrollType == ScrollType.Vertical) {
-        //         var res: string = vtScrollBarRes ? vtScrollBarRes : UIConfig.verticalScrollBar;
-        //         if (res) {
-        //             this._vtScrollBar = <GScrollBar>(UIPackage.createObjectFromURL(res));
-        //             if (!this._vtScrollBar)
-        //                 throw "cannot create scrollbar from " + res;
-        //             this._vtScrollBar.setScrollPane(this, true);
-        //             this._owner.displayObject.add(this._vtScrollBar.displayObject);
-        //         }
-        //     }
-        //     if (this._scrollType == ScrollType.Both || this._scrollType == ScrollType.Horizontal) {
-        //         res = hzScrollBarRes ? hzScrollBarRes : UIConfig.horizontalScrollBar;
-        //         if (res) {
-        //             this._hzScrollBar = <GScrollBar>(UIPackage.createObjectFromURL(res));
-        //             if (!this._hzScrollBar)
-        //                 throw "cannot create scrollbar from " + res;
-        //             this._hzScrollBar.setScrollPane(this, false);
-        //             this._owner.displayObject.addChild(this._hzScrollBar.displayObject);
-        //         }
-        //     }
-        //     if (scrollBarDisplay == ScrollBarDisplayType.Auto)
-        //         this._scrollBarDisplayAuto = true;
-        //     if (this._scrollBarDisplayAuto) {
-        //         if (this._vtScrollBar)
-        //             (<Phaser.GameObjects.Container>this._vtScrollBar.displayObject).visible = false;
-        //         if (this._hzScrollBar)
-        //             this._hzScrollBar.displayObject.visible = false;
-        //     }
-        // }
-        // else
-        //     this._mouseWheelEnabled = false;
-        // if (headerRes) {
-        //     this._header = <GComponent>UIPackage.createObjectFromURL(headerRes);
-        //     if (!this._header)
-        //         throw new Error("FairyGUI: cannot create scrollPane this.header from " + headerRes);
-        // }
-        // if (footerRes) {
-        //     this._footer = <GComponent>UIPackage.createObjectFromURL(footerRes);
-        //     if (!this._footer)
-        //         throw new Error("FairyGUI: cannot create scrollPane this.footer from " + footerRes);
-        // }
-        // if (this._header || this._footer)
-        //     this._refreshBarAxis = (this._scrollType == ScrollType.Both || this._scrollType == ScrollType.Vertical) ? "y" : "x";
-        this.setSize(this.owner.width, this.owner.height);
-    }
-    dispose() {
-        if (ScrollPane.draggingPane == this) {
-            ScrollPane.draggingPane = null;
-        }
-        if (this._tweening != 0)
-            // Laya.timer.clear(this, this.tweenUpdate);
-            this._pageController = null;
-        if (this._hzScrollBar)
-            this._hzScrollBar.dispose();
-        if (this._vtScrollBar)
-            this._vtScrollBar.dispose();
-        if (this._header)
-            this._header.dispose();
-        if (this._footer)
-            this._footer.dispose();
-    }
-    get owner() {
-        return this._owner;
-    }
-    get hzScrollBar() {
-        return this._hzScrollBar;
-    }
-    get vtScrollBar() {
-        return this._vtScrollBar;
-    }
-    get header() {
-        return this._header;
-    }
-    get footer() {
-        return this._footer;
-    }
-    get bouncebackEffect() {
-        return this._bouncebackEffect;
-    }
-    set bouncebackEffect(sc) {
-        this._bouncebackEffect = sc;
-    }
-    get touchEffect() {
-        return this._touchEffect;
-    }
-    set touchEffect(sc) {
-        this._touchEffect = sc;
-    }
-    set scrollStep(val) {
-        this._scrollStep = val;
-        if (this._scrollStep == 0)
-            this._scrollStep = UIConfig.defaultScrollStep;
-        this._mouseWheelStep = this._scrollStep * 2;
-    }
-    get scrollStep() {
-        return this._scrollStep;
-    }
-    get snapToItem() {
-        return this._snapToItem;
-    }
-    set snapToItem(value) {
-        this._snapToItem = value;
-    }
-    get mouseWheelEnabled() {
-        return this._mouseWheelEnabled;
-    }
-    set mouseWheelEnabled(value) {
-        this._mouseWheelEnabled = value;
-    }
-    get decelerationRate() {
-        return this._decelerationRate;
-    }
-    set decelerationRate(value) {
-        this._decelerationRate = value;
-    }
-    get isDragged() {
-        return this._dragged;
-    }
-    get percX() {
-        return this._overlapSize.x == 0 ? 0 : this._xPos / this._overlapSize.x;
-    }
-    set percX(value) {
-        this.setPercX(value, false);
-    }
-    setPercX(value, ani) {
-        this._owner.ensureBoundsCorrect();
-        this.setPosX(this._overlapSize.x * ToolSet.clamp01(value), ani);
-    }
-    get percY() {
-        return this._overlapSize.y == 0 ? 0 : this._yPos / this._overlapSize.y;
-    }
-    set percY(value) {
-        this.setPercY(value, false);
-    }
-    setPercY(value, ani) {
-        this._owner.ensureBoundsCorrect();
-        this.setPosY(this._overlapSize.y * ToolSet.clamp01(value), ani);
-    }
-    get posX() {
-        return this._xPos;
-    }
-    set posX(value) {
-        this.setPosX(value, false);
-    }
-    setPosX(value, ani) {
-        this._owner.ensureBoundsCorrect();
-        if (this._loop == 1)
-            value = this.loopCheckingNewPos(value, "x");
-        value = ToolSet.clamp(value, 0, this._overlapSize.x);
-        if (value != this._xPos) {
-            this._xPos = value;
-            this.posChanged(ani);
-        }
-    }
-    get posY() {
-        return this._yPos;
-    }
-    set posY(value) {
-        this.setPosY(value, false);
-    }
-    setPosY(value, ani) {
-        this._owner.ensureBoundsCorrect();
-        if (this._loop == 1)
-            value = this.loopCheckingNewPos(value, "y");
-        value = ToolSet.clamp(value, 0, this._overlapSize.y);
-        if (value != this._yPos) {
-            this._yPos = value;
-            this.posChanged(ani);
-        }
-    }
-    get contentWidth() {
-        return this._contentSize.x;
-    }
-    get contentHeight() {
-        return this._contentSize.y;
-    }
-    get viewWidth() {
-        return this._viewSize.x;
-    }
-    set viewWidth(value) {
-        value = value + this._owner.margin.left + this._owner.margin.right;
-        if (this._vtScrollBar && !this._floating)
-            value += this._vtScrollBar.width;
-        this._owner.width = value;
-    }
-    get viewHeight() {
-        return this._viewSize.y;
-    }
-    set viewHeight(value) {
-        value = value + this._owner.margin.top + this._owner.margin.bottom;
-        if (this._hzScrollBar && !this._floating)
-            value += this._hzScrollBar.height;
-        this._owner.height = value;
-    }
-    get currentPageX() {
-        if (!this._pageMode)
-            return 0;
-        var page = Math.floor(this._xPos / this._pageSize.x);
-        if (this._xPos - page * this._pageSize.x > this._pageSize.x * 0.5)
-            page++;
-        return page;
-    }
-    set currentPageX(value) {
-        this.setCurrentPageX(value, false);
-    }
-    get currentPageY() {
-        if (!this._pageMode)
-            return 0;
-        var page = Math.floor(this._yPos / this._pageSize.y);
-        if (this._yPos - page * this._pageSize.y > this._pageSize.y * 0.5)
-            page++;
-        return page;
-    }
-    set currentPageY(value) {
-        this.setCurrentPageY(value, false);
-    }
-    setCurrentPageX(value, ani) {
-        if (!this._pageMode)
-            return;
-        this._owner.ensureBoundsCorrect();
-        if (this._overlapSize.x > 0)
-            this.setPosX(value * this._pageSize.x, ani);
-    }
-    setCurrentPageY(value, ani) {
-        if (!this._pageMode)
-            return;
-        this._owner.ensureBoundsCorrect();
-        if (this._overlapSize.y > 0)
-            this.setPosY(value * this._pageSize.y, ani);
-    }
-    get isBottomMost() {
-        return this._yPos == this._overlapSize.y || this._overlapSize.y == 0;
-    }
-    get isRightMost() {
-        return this._xPos == this._overlapSize.x || this._overlapSize.x == 0;
-    }
-    get pageController() {
-        return this._pageController;
-    }
-    set pageController(value) {
-        this._pageController = value;
-    }
-    get scrollingPosX() {
-        return ToolSet.clamp(-this._container.x, 0, this._overlapSize.x);
-    }
-    get scrollingPosY() {
-        return ToolSet.clamp(-this._container.y, 0, this._overlapSize.y);
-    }
-    scrollTop(ani) {
-        this.setPercY(0, ani);
-    }
-    scrollBottom(ani) {
-        this.setPercY(1, ani);
-    }
-    scrollUp(ratio, ani) {
-        ratio = ratio || 1;
-        if (this._pageMode)
-            this.setPosY(this._yPos - this._pageSize.y * ratio, ani);
-        else
-            this.setPosY(this._yPos - this._scrollStep * ratio, ani);
-    }
-    scrollDown(ratio, ani) {
-        ratio = ratio || 1;
-        if (this._pageMode)
-            this.setPosY(this._yPos + this._pageSize.y * ratio, ani);
-        else
-            this.setPosY(this._yPos + this._scrollStep * ratio, ani);
-    }
-    scrollLeft(ratio, ani) {
-        ratio = ratio || 1;
-        if (this._pageMode)
-            this.setPosX(this._xPos - this._pageSize.x * ratio, ani);
-        else
-            this.setPosX(this._xPos - this._scrollStep * ratio, ani);
-    }
-    scrollRight(ratio, ani) {
-        ratio = ratio || 1;
-        if (this._pageMode)
-            this.setPosX(this._xPos + this._pageSize.x * ratio, ani);
-        else
-            this.setPosX(this._xPos + this._scrollStep * ratio, ani);
-    }
-    scrollToView(target, ani, setFirst) {
-        this._owner.ensureBoundsCorrect();
-        if (this._needRefresh)
-            this.refresh();
-        var rect;
-        if (target instanceof GObject) {
-            if (target.parent != this._owner) {
-                target.parent.localToGlobalRect(target.x, target.y, target.width, target.height, s_rect);
-                rect = this._owner.globalToLocalRect(s_rect.x, s_rect.y, s_rect.width, s_rect.height, s_rect);
-            }
-            else {
-                rect = s_rect;
-                rect.setTo(target.x, target.y, target.width, target.height);
-            }
-        }
-        else
-            rect = target;
-        if (this._overlapSize.y > 0) {
-            var bottom = this._yPos + this._viewSize.y;
-            if (setFirst || rect.y <= this._yPos || rect.height >= this._viewSize.y) {
-                if (this._pageMode)
-                    this.setPosY(Math.floor(rect.y / this._pageSize.y) * this._pageSize.y, ani);
-                else
-                    this.setPosY(rect.y, ani);
-            }
-            else if (rect.y + rect.height > bottom) {
-                if (this._pageMode)
-                    this.setPosY(Math.floor(rect.y / this._pageSize.y) * this._pageSize.y, ani);
-                else if (rect.height <= this._viewSize.y / 2)
-                    this.setPosY(rect.y + rect.height * 2 - this._viewSize.y, ani);
-                else
-                    this.setPosY(rect.y + rect.height - this._viewSize.y, ani);
-            }
-        }
-        if (this._overlapSize.x > 0) {
-            var right = this._xPos + this._viewSize.x;
-            if (setFirst || rect.x <= this._xPos || rect.width >= this._viewSize.x) {
-                if (this._pageMode)
-                    this.setPosX(Math.floor(rect.x / this._pageSize.x) * this._pageSize.x, ani);
-                else
-                    this.setPosX(rect.x, ani);
-            }
-            else if (rect.x + rect.width > right) {
-                if (this._pageMode)
-                    this.setPosX(Math.floor(rect.x / this._pageSize.x) * this._pageSize.x, ani);
-                else if (rect.width <= this._viewSize.x / 2)
-                    this.setPosX(rect.x + rect.width * 2 - this._viewSize.x, ani);
-                else
-                    this.setPosX(rect.x + rect.width - this._viewSize.x, ani);
-            }
-        }
-        if (!ani && this._needRefresh)
-            this.refresh();
-    }
-    isChildInView(obj) {
-        if (this._overlapSize.y > 0) {
-            var dist = obj.y + this._container.y;
-            if (dist < -obj.height || dist > this._viewSize.y)
-                return false;
-        }
-        if (this._overlapSize.x > 0) {
-            dist = obj.x + this._container.x;
-            if (dist < -obj.width || dist > this._viewSize.x)
-                return false;
-        }
-        return true;
-    }
-    cancelDragging() {
-        // this._owner.displayObject.stage.off(Laya.Event.MOUSE_MOVE, this, this.__mouseMove);
-        // this._owner.displayObject.stage.off(Laya.Event.MOUSE_UP, this, this.__mouseUp);
-        // this._owner.displayObject.stage.off(Laya.Event.CLICK, this, this.__click);
-        // if (ScrollPane.draggingPane == this)
-        //     ScrollPane.draggingPane = null;
-        // _gestureFlag = 0;
-        // this._dragged = false;
-        // this._maskContainer.mouseEnabled = true;
-    }
-    lockHeader(size) {
-        if (this._headerLockedSize == size)
-            return;
-        this._headerLockedSize = size;
-        if (!this._refreshEventDispatching && this._container[this._refreshBarAxis] >= 0) {
-            this._tweenStart.setTo(this._container.x, this._container.y);
-            this._tweenChange.setTo(0, 0);
-            this._tweenChange[this._refreshBarAxis] = this._headerLockedSize - this._tweenStart[this._refreshBarAxis];
-            this._tweenDuration.setTo(TWEEN_TIME_DEFAULT, TWEEN_TIME_DEFAULT);
-            this.startTween(2);
-        }
-    }
-    lockFooter(size) {
-        if (this._footerLockedSize == size)
-            return;
-        this._footerLockedSize = size;
-        if (!this._refreshEventDispatching && this._container[this._refreshBarAxis] <= -this._overlapSize[this._refreshBarAxis]) {
-            this._tweenStart.setTo(this._container.x, this._container.y);
-            this._tweenChange.setTo(0, 0);
-            var max = this._overlapSize[this._refreshBarAxis];
-            if (max == 0)
-                max = Math.max(this._contentSize[this._refreshBarAxis] + this._footerLockedSize - this._viewSize[this._refreshBarAxis], 0);
-            else
-                max += this._footerLockedSize;
-            this._tweenChange[this._refreshBarAxis] = -max - this._tweenStart[this._refreshBarAxis];
-            this._tweenDuration.setTo(TWEEN_TIME_DEFAULT, TWEEN_TIME_DEFAULT);
-            this.startTween(2);
-        }
-    }
-    onOwnerSizeChanged() {
-        this.setSize(this._owner.width, this._owner.height);
-        this.posChanged(false);
-    }
-    handleControllerChanged(c) {
-        if (this._pageController == c) {
-            if (this._scrollType == ScrollType.Horizontal)
-                this.setCurrentPageX(c.selectedIndex, true);
-            else
-                this.setCurrentPageY(c.selectedIndex, true);
-        }
-    }
-    updatePageController() {
-        if (this._pageController != null && !this._pageController.changing) {
-            var index;
-            if (this._scrollType == ScrollType.Horizontal)
-                index = this.currentPageX;
-            else
-                index = this.currentPageY;
-            if (index < this._pageController.pageCount) {
-                var c = this._pageController;
-                this._pageController = null; //防止HandleControllerChanged的调用
-                c.selectedIndex = index;
-                this._pageController = c;
-            }
-        }
-    }
-    adjustMaskContainer() {
-        // var mx: number = 0, my: number = 0;
-        // if (this._dontClipMargin) {
-        //     if (this._displayOnLeft && this._vtScrollBar && !this._floating)
-        //         mx = this._vtScrollBar.width;
-        // }
-        // else {
-        //     if (this._displayOnLeft && this._vtScrollBar && !this._floating)
-        //         mx = this._owner.margin.left + this._vtScrollBar.width;
-        //     else
-        //         mx = this._owner.margin.left;
-        //     my = this._owner.margin.top;
-        // }
-        // this._maskContainer.pos(mx, my);
-        // mx = this._owner._alignOffset.x;
-        // my = this._owner._alignOffset.y;
-        // if (mx != 0 || my != 0 || this._dontClipMargin) {
-        //     if (!this._alignContainer) {
-        //         throw new Error("TODO");
-        //         // this._alignContainer = new Laya.Sprite();
-        //         // this._maskContainer.addChild(this._alignContainer);
-        //         // this._alignContainer.addChild(this._container);
-        //     }
-        // }
-        // if (this._alignContainer) {
-        //     if (this._dontClipMargin) {
-        //         mx += this._owner.margin.left;
-        //         my += this._owner.margin.top;
-        //     }
-        //     this._alignContainer.pos(mx, my);
-        // }
-    }
-    setSize(aWidth, aHeight) {
-        this.adjustMaskContainer();
-        if (this._hzScrollBar) {
-            this._hzScrollBar.y = aHeight - this._hzScrollBar.height;
-            if (this._vtScrollBar) {
-                this._hzScrollBar.width = aWidth - this._vtScrollBar.width - this._scrollBarMargin.left - this._scrollBarMargin.right;
-                if (this._displayOnLeft)
-                    this._hzScrollBar.x = this._scrollBarMargin.left + this._vtScrollBar.width;
-                else
-                    this._hzScrollBar.x = this._scrollBarMargin.left;
-            }
-            else {
-                this._hzScrollBar.width = aWidth - this._scrollBarMargin.left - this._scrollBarMargin.right;
-                this._hzScrollBar.x = this._scrollBarMargin.left;
-            }
-        }
-        if (this._vtScrollBar) {
-            if (!this._displayOnLeft)
-                this._vtScrollBar.x = aWidth - this._vtScrollBar.width;
-            if (this._hzScrollBar)
-                this._vtScrollBar.height = aHeight - this._hzScrollBar.height - this._scrollBarMargin.top - this._scrollBarMargin.bottom;
-            else
-                this._vtScrollBar.height = aHeight - this._scrollBarMargin.top - this._scrollBarMargin.bottom;
-            this._vtScrollBar.y = this._scrollBarMargin.top;
-        }
-        this._viewSize.x = aWidth;
-        this._viewSize.y = aHeight;
-        if (this._hzScrollBar && !this._floating)
-            this._viewSize.y -= this._hzScrollBar.height;
-        if (this._vtScrollBar && !this._floating)
-            this._viewSize.x -= this._vtScrollBar.width;
-        this._viewSize.x -= (this._owner.margin.left + this._owner.margin.right);
-        this._viewSize.y -= (this._owner.margin.top + this._owner.margin.bottom);
-        this._viewSize.x = Math.max(1, this._viewSize.x);
-        this._viewSize.y = Math.max(1, this._viewSize.y);
-        this._pageSize.x = this._viewSize.x;
-        this._pageSize.y = this._viewSize.y;
-        this.handleSizeChanged();
-    }
-    setContentSize(aWidth, aHeight) {
-        if (this._contentSize.x == aWidth && this._contentSize.y == aHeight)
-            return;
-        this._contentSize.x = aWidth;
-        this._contentSize.y = aHeight;
-        this.handleSizeChanged();
-    }
-    changeContentSizeOnScrolling(deltaWidth, deltaHeight, deltaPosX, deltaPosY) {
-        var isRightmost = this._xPos == this._overlapSize.x;
-        var isBottom = this._yPos == this._overlapSize.y;
-        this._contentSize.x += deltaWidth;
-        this._contentSize.y += deltaHeight;
-        this.handleSizeChanged();
-        if (this._tweening == 1) {
-            //如果原来滚动位置是贴边，加入处理继续贴边。
-            if (deltaWidth != 0 && isRightmost && this._tweenChange.x < 0) {
-                this._xPos = this._overlapSize.x;
-                this._tweenChange.x = -this._xPos - this._tweenStart.x;
-            }
-            if (deltaHeight != 0 && isBottom && this._tweenChange.y < 0) {
-                this._yPos = this._overlapSize.y;
-                this._tweenChange.y = -this._yPos - this._tweenStart.y;
-            }
-        }
-        else if (this._tweening == 2) {
-            //重新调整起始位置，确保能够顺滑滚下去
-            if (deltaPosX != 0) {
-                this._container.x -= deltaPosX;
-                this._tweenStart.x -= deltaPosX;
-                this._xPos = -this._container.x;
-            }
-            if (deltaPosY != 0) {
-                this._container.y -= deltaPosY;
-                this._tweenStart.y -= deltaPosY;
-                this._yPos = -this._container.y;
-            }
-        }
-        else if (this._dragged) {
-            if (deltaPosX != 0) {
-                this._container.x -= deltaPosX;
-                this._containerPos.x -= deltaPosX;
-                this._xPos = -this._container.x;
-            }
-            if (deltaPosY != 0) {
-                this._container.y -= deltaPosY;
-                this._containerPos.y -= deltaPosY;
-                this._yPos = -this._container.y;
-            }
-        }
-        else {
-            //如果原来滚动位置是贴边，加入处理继续贴边。
-            if (deltaWidth != 0 && isRightmost) {
-                this._xPos = this._overlapSize.x;
-                this._container.x = -this._xPos;
-            }
-            if (deltaHeight != 0 && isBottom) {
-                this._yPos = this._overlapSize.y;
-                this._container.y = -this._yPos;
-            }
-        }
-        if (this._pageMode)
-            this.updatePageController();
-    }
-    handleSizeChanged() {
-        // if (this._displayInDemand) {
-        //     this._vScrollNone = this._contentSize.y <= this._viewSize.y;
-        //     this._hScrollNone = this._contentSize.x <= this._viewSize.x;
-        // }
-        // if (this._vtScrollBar) {
-        //     if (this._contentSize.y == 0)
-        //         this._vtScrollBar.setDisplayPerc(0);
-        //     else
-        //         this._vtScrollBar.setDisplayPerc(Math.min(1, this._viewSize.y / this._contentSize.y));
-        // }
-        // if (this._hzScrollBar) {
-        //     if (this._contentSize.x == 0)
-        //         this._hzScrollBar.setDisplayPerc(0);
-        //     else
-        //         this._hzScrollBar.setDisplayPerc(Math.min(1, this._viewSize.x / this._contentSize.x));
-        // }
-        // this.updateScrollBarVisible();
-        // var rect: Phaser.Geom.Rectangle = this._maskContainer.scrollRect;
-        // if (rect) {
-        //     rect.width = this._viewSize.x;
-        //     rect.height = this._viewSize.y;
-        //     if (this._vScrollNone && this._vtScrollBar)
-        //         rect.width += this._vtScrollBar.width;
-        //     if (this._hScrollNone && this._hzScrollBar)
-        //         rect.height += this._hzScrollBar.height;
-        //     if (this._dontClipMargin) {
-        //         rect.width += (this._owner.margin.left + this._owner.margin.right);
-        //         rect.height += (this._owner.margin.top + this._owner.margin.bottom);
-        //     }
-        //     this._maskContainer.scrollRect = rect;
-        // }
-        // if (this._scrollType == ScrollType.Horizontal || this._scrollType == ScrollType.Both)
-        //     this._overlapSize.x = Math.ceil(Math.max(0, this._contentSize.x - this._viewSize.x));
-        // else
-        //     this._overlapSize.x = 0;
-        // if (this._scrollType == ScrollType.Vertical || this._scrollType == ScrollType.Both)
-        //     this._overlapSize.y = Math.ceil(Math.max(0, this._contentSize.y - this._viewSize.y));
-        // else
-        //     this._overlapSize.y = 0;
-        // //边界检查
-        // this._xPos = ToolSet.clamp(this._xPos, 0, this._overlapSize.x);
-        // this._yPos = ToolSet.clamp(this._yPos, 0, this._overlapSize.y);
-        // if (this._refreshBarAxis != null) {
-        //     var max: number = this._overlapSize[this._refreshBarAxis];
-        //     if (max == 0)
-        //         max = Math.max(this._contentSize[this._refreshBarAxis] + this._footerLockedSize - this._viewSize[this._refreshBarAxis], 0);
-        //     else
-        //         max += this._footerLockedSize;
-        //     if (this._refreshBarAxis == "x") {
-        //         this._container.setPosition(ToolSet.clamp(this._container.x, -max, this._headerLockedSize),
-        //             ToolSet.clamp(this._container.y, -this._overlapSize.y, 0));
-        //     }
-        //     else {
-        //         this._container.setPosition(ToolSet.clamp(this._container.x, -this._overlapSize.x, 0),
-        //             ToolSet.clamp(this._container.y, -max, this._headerLockedSize));
-        //     }
-        //     if (this._header) {
-        //         if (this._refreshBarAxis == "x")
-        //             this._header.height = this._viewSize.y;
-        //         else
-        //             this._header.width = this._viewSize.x;
-        //     }
-        //     if (this._footer) {
-        //         if (this._refreshBarAxis == "y")
-        //             this._footer.height = this._viewSize.y;
-        //         else
-        //             this._footer.width = this._viewSize.x;
-        //     }
-        // }
-        // else {
-        //     this._container.setPosition(ToolSet.clamp(this._container.x, -this._overlapSize.x, 0),
-        //         ToolSet.clamp(this._container.y, -this._overlapSize.y, 0));
-        // }
-        // this.updateScrollBarPos();
-        // if (this._pageMode)
-        //     this.updatePageController();
-    }
-    posChanged(ani) {
-        // if (this._aniFlag == 0)
-        //     this._aniFlag = ani ? 1 : -1;
-        // else if (this._aniFlag == 1 && !ani)
-        //     this._aniFlag = -1;
-        // this._needRefresh = true;
-        // Laya.timer.callLater(this, this.refresh);
-    }
-    refresh() {
-        // if (!this._owner.displayObject) {
-        //     return;
-        // }
-        // this._needRefresh = false;
-        // Laya.timer.clear(this, this.refresh);
-        // if (this._pageMode || this._snapToItem) {
-        //     sEndPos.setTo(-this._xPos, -this._yPos);
-        //     this.alignPosition(sEndPos, false);
-        //     this._xPos = -sEndPos.x;
-        //     this._yPos = -sEndPos.y;
-        // }
-        // this.refresh2();
-        // Events.dispatch(Events.SCROLL, this._owner.displayObject);
-        // if (this._needRefresh) //在onScroll事件里开发者可能修改位置，这里再刷新一次，避免闪烁
-        // {
-        //     this._needRefresh = false;
-        //     Laya.timer.clear(this, this.refresh);
-        //     this.refresh2();
-        // }
-        // this.updateScrollBarPos();
-        // this._aniFlag = 0;
-    }
-    refresh2() {
-        // if (this._aniFlag == 1 && !this._dragged) {
-        //     var posX: number;
-        //     var posY: number;
-        //     if (this._overlapSize.x > 0)
-        //         posX = -Math.floor(this._xPos);
-        //     else {
-        //         if (this._container.x != 0)
-        //             this._container.x = 0;
-        //         posX = 0;
-        //     }
-        //     if (this._overlapSize.y > 0)
-        //         posY = -Math.floor(this._yPos);
-        //     else {
-        //         if (this._container.y != 0)
-        //             this._container.y = 0;
-        //         posY = 0;
-        //     }
-        //     if (posX != this._container.x || posY != this._container.y) {
-        //         this._tweenDuration.setTo(TWEEN_TIME_GO, TWEEN_TIME_GO);
-        //         this._tweenStart.setTo(this._container.x, this._container.y);
-        //         this._tweenChange.setTo(posX - this._tweenStart.x, posY - this._tweenStart.y);
-        //         this.startTween(1);
-        //     }
-        //     else if (this._tweening != 0)
-        //         this.killTween();
-        // }
-        // else {
-        //     if (this._tweening != 0)
-        //         this.killTween();
-        //     this._container.pos(Math.floor(-this._xPos), Math.floor(-this._yPos));
-        //     this.loopCheckingCurrent();
-        // }
-        // if (this._pageMode)
-        //     this.updatePageController();
-    }
-    __mouseDown() {
-        // if (!this._touchEffect)
-        //     return;
-        // if (this._tweening != 0) {
-        //     this.killTween();
-        //     this._dragged = true;
-        // }
-        // else
-        //     this._dragged = false;
-        // var pt = this._owner.globalToLocal(Laya.stage.mouseX, Laya.stage.mouseY, s_vec2);
-        // this._containerPos.setTo(this._container.x, this._container.y);
-        // this._beginTouchPos.setTo(pt.x, pt.y);
-        // this._lastTouchPos.setTo(pt.x, pt.y);
-        // this._lastTouchGlobalPos.setTo(Laya.stage.mouseX, Laya.stage.mouseY);
-        // this._isHoldAreaDone = false;
-        // this._velocity.setTo(0, 0);
-        // this._velocityScale = 1;
-        // this._lastMoveTime = Laya.timer.currTimer / 1000;
-        // this._owner.displayObject.stage.on(Laya.Event.MOUSE_MOVE, this, this.__mouseMove);
-        // this._owner.displayObject.stage.on(Laya.Event.MOUSE_UP, this, this.__mouseUp);
-        // this._owner.displayObject.stage.on(Laya.Event.CLICK, this, this.__click);
-    }
-    __mouseMove() {
-        // if (!this._touchEffect || this.owner.isDisposed)
-        //     return;
-        // if (ScrollPane.draggingPane && ScrollPane.draggingPane != this || GObject.draggingObject) //已经有其他拖动
-        //     return;
-        // var sensitivity: number = UIConfig.touchScrollSensitivity;
-        // var pt: Laya.Point = this._owner.globalToLocal(Laya.stage.mouseX, Laya.stage.mouseY, s_vec2);
-        // var diff: number, diff2: number;
-        // var sv: boolean, sh: boolean, st: boolean;
-        // if (this._scrollType == ScrollType.Vertical) {
-        //     if (!this._isHoldAreaDone) {
-        //         //表示正在监测垂直方向的手势
-        //         _gestureFlag |= 1;
-        //         diff = Math.abs(this._beginTouchPos.y - pt.y);
-        //         if (diff < sensitivity)
-        //             return;
-        //         if ((_gestureFlag & 2) != 0) //已经有水平方向的手势在监测，那么我们用严格的方式检查是不是按垂直方向移动，避免冲突
-        //         {
-        //             diff2 = Math.abs(this._beginTouchPos.x - pt.x);
-        //             if (diff < diff2) //不通过则不允许滚动了
-        //                 return;
-        //         }
-        //     }
-        //     sv = true;
-        // }
-        // else if (this._scrollType == ScrollType.Horizontal) {
-        //     if (!this._isHoldAreaDone) {
-        //         _gestureFlag |= 2;
-        //         diff = Math.abs(this._beginTouchPos.x - pt.x);
-        //         if (diff < sensitivity)
-        //             return;
-        //         if ((_gestureFlag & 1) != 0) {
-        //             diff2 = Math.abs(this._beginTouchPos.y - pt.y);
-        //             if (diff < diff2)
-        //                 return;
-        //         }
-        //     }
-        //     sh = true;
-        // }
-        // else {
-        //     _gestureFlag = 3;
-        //     if (!this._isHoldAreaDone) {
-        //         diff = Math.abs(this._beginTouchPos.y - pt.y);
-        //         if (diff < sensitivity) {
-        //             diff = Math.abs(this._beginTouchPos.x - pt.x);
-        //             if (diff < sensitivity)
-        //                 return;
-        //         }
-        //     }
-        //     sv = sh = true;
-        // }
-        // var newPosX: number = Math.floor(this._containerPos.x + pt.x - this._beginTouchPos.x);
-        // var newPosY: number = Math.floor(this._containerPos.y + pt.y - this._beginTouchPos.y);
-        // if (sv) {
-        //     if (newPosY > 0) {
-        //         if (!this._bouncebackEffect)
-        //             this._container.y = 0;
-        //         else if (this._header && this._header.maxHeight != 0)
-        //             this._container.y = Math.floor(Math.min(newPosY * 0.5, this._header.maxHeight));
-        //         else
-        //             this._container.y = Math.floor(Math.min(newPosY * 0.5, this._viewSize.y * PULL_RATIO));
-        //     }
-        //     else if (newPosY < -this._overlapSize.y) {
-        //         if (!this._bouncebackEffect)
-        //             this._container.y = -this._overlapSize.y;
-        //         else if (this._footer && this._footer.maxHeight > 0)
-        //             this._container.y = Math.floor(Math.max((newPosY + this._overlapSize.y) * 0.5, -this._footer.maxHeight) - this._overlapSize.y);
-        //         else
-        //             this._container.y = Math.floor(Math.max((newPosY + this._overlapSize.y) * 0.5, -this._viewSize.y * PULL_RATIO) - this._overlapSize.y);
-        //     }
-        //     else
-        //         this._container.y = newPosY;
-        // }
-        // if (sh) {
-        //     if (newPosX > 0) {
-        //         if (!this._bouncebackEffect)
-        //             this._container.x = 0;
-        //         else if (this._header && this._header.maxWidth != 0)
-        //             this._container.x = Math.floor(Math.min(newPosX * 0.5, this._header.maxWidth));
-        //         else
-        //             this._container.x = Math.floor(Math.min(newPosX * 0.5, this._viewSize.x * PULL_RATIO));
-        //     }
-        //     else if (newPosX < 0 - this._overlapSize.x) {
-        //         if (!this._bouncebackEffect)
-        //             this._container.x = -this._overlapSize.x;
-        //         else if (this._footer && this._footer.maxWidth > 0)
-        //             this._container.x = Math.floor(Math.max((newPosX + this._overlapSize.x) * 0.5, -this._footer.maxWidth) - this._overlapSize.x);
-        //         else
-        //             this._container.x = Math.floor(Math.max((newPosX + this._overlapSize.x) * 0.5, -this._viewSize.x * PULL_RATIO) - this._overlapSize.x);
-        //     }
-        //     else
-        //         this._container.x = newPosX;
-        // }
-        // //更新速度
-        // var frameRate: number = Laya.stage.frameRate == Laya.Stage.FRAME_SLOW ? 30 : 60;
-        // var now: number = Laya.timer.currTimer / 1000;
-        // var deltaTime: number = Math.max(now - this._lastMoveTime, 1 / frameRate);
-        // var deltaPositionX: number = pt.x - this._lastTouchPos.x;
-        // var deltaPositionY: number = pt.y - this._lastTouchPos.y;
-        // if (!sh)
-        //     deltaPositionX = 0;
-        // if (!sv)
-        //     deltaPositionY = 0;
-        // if (deltaTime != 0) {
-        //     var elapsed: number = deltaTime * frameRate - 1;
-        //     if (elapsed > 1) //速度衰减
-        //     {
-        //         var factor: number = Math.pow(0.833, elapsed);
-        //         this._velocity.x = this._velocity.x * factor;
-        //         this._velocity.y = this._velocity.y * factor;
-        //     }
-        //     this._velocity.x = ToolSet.lerp(this._velocity.x, deltaPositionX * 60 / frameRate / deltaTime, deltaTime * 10);
-        //     this._velocity.y = ToolSet.lerp(this._velocity.y, deltaPositionY * 60 / frameRate / deltaTime, deltaTime * 10);
-        // }
-        // /*速度计算使用的是本地位移，但在后续的惯性滚动判断中需要用到屏幕位移，所以这里要记录一个位移的比例。
-        // */
-        // var deltaGlobalPositionX: number = this._lastTouchGlobalPos.x - Laya.stage.mouseX;
-        // var deltaGlobalPositionY: number = this._lastTouchGlobalPos.y - Laya.stage.mouseY;
-        // if (deltaPositionX != 0)
-        //     this._velocityScale = Math.abs(deltaGlobalPositionX / deltaPositionX);
-        // else if (deltaPositionY != 0)
-        //     this._velocityScale = Math.abs(deltaGlobalPositionY / deltaPositionY);
-        // this._lastTouchPos.setTo(pt.x, pt.y);
-        // this._lastTouchGlobalPos.setTo(Laya.stage.mouseX, Laya.stage.mouseY);
-        // this._lastMoveTime = now;
-        // //同步更新pos值
-        // if (this._overlapSize.x > 0)
-        //     this._xPos = ToolSet.clamp(-this._container.x, 0, this._overlapSize.x);
-        // if (this._overlapSize.y > 0)
-        //     this._yPos = ToolSet.clamp(-this._container.y, 0, this._overlapSize.y);
-        // //循环滚动特别检查
-        // if (this._loop != 0) {
-        //     newPosX = this._container.x;
-        //     newPosY = this._container.y;
-        //     if (this.loopCheckingCurrent()) {
-        //         this._containerPos.x += this._container.x - newPosX;
-        //         this._containerPos.y += this._container.y - newPosY;
-        //     }
-        // }
-        // ScrollPane.draggingPane = this;
-        // this._isHoldAreaDone = true;
-        // this._dragged = true;
-        // this._maskContainer.mouseEnabled = false;
-        // this.updateScrollBarPos();
-        // this.updateScrollBarVisible();
-        // if (this._pageMode)
-        //     this.updatePageController();
-        // Events.dispatch(Events.SCROLL, this._owner.displayObject);
-    }
-    __mouseUp() {
-        throw new Error("TODO");
-        // if (this._owner.isDisposed)
-        //     return;
-        // this._owner.displayObject.stage.off(Laya.Event.MOUSE_MOVE, this, this.__mouseMove);
-        // this._owner.displayObject.stage.off(Laya.Event.MOUSE_UP, this, this.__mouseUp);
-        // this._owner.displayObject.stage.off(Laya.Event.CLICK, this, this.__click);
-        // if (ScrollPane.draggingPane == this)
-        //     ScrollPane.draggingPane = null;
-        // _gestureFlag = 0;
-        // if (!this._dragged || !this._touchEffect) {
-        //     this._dragged = false;
-        //     this._maskContainer.mouseEnabled = true;
-        //     return;
-        // }
-        // this._dragged = false;
-        // this._maskContainer.mouseEnabled = true;
-        // this._tweenStart.setTo(this._container.x, this._container.y);
-        // sEndPos.setTo(this._tweenStart.x, this._tweenStart.y);
-        // var flag: boolean = false;
-        // if (this._container.x > 0) {
-        //     sEndPos.x = 0;
-        //     flag = true;
-        // }
-        // else if (this._container.x < -this._overlapSize.x) {
-        //     sEndPos.x = -this._overlapSize.x;
-        //     flag = true;
-        // }
-        // if (this._container.y > 0) {
-        //     sEndPos.y = 0;
-        //     flag = true;
-        // }
-        // else if (this._container.y < -this._overlapSize.y) {
-        //     sEndPos.y = -this._overlapSize.y;
-        //     flag = true;
-        // }
-        // if (flag) {
-        //     this._tweenChange.setTo(sEndPos.x - this._tweenStart.x, sEndPos.y - this._tweenStart.y);
-        //     if (this._tweenChange.x < -UIConfig.touchDragSensitivity || this._tweenChange.y < -UIConfig.touchDragSensitivity) {
-        //         this._refreshEventDispatching = true;
-        //         Events.dispatch(Events.PULL_DOWN_RELEASE, this._owner.displayObject);
-        //         this._refreshEventDispatching = false;
-        //     }
-        //     else if (this._tweenChange.x > UIConfig.touchDragSensitivity || this._tweenChange.y > UIConfig.touchDragSensitivity) {
-        //         this._refreshEventDispatching = true;
-        //         Events.dispatch(Events.PULL_UP_RELEASE, this._owner.displayObject);
-        //         this._refreshEventDispatching = false;
-        //     }
-        //     if (this._headerLockedSize > 0 && sEndPos[this._refreshBarAxis] == 0) {
-        //         sEndPos[this._refreshBarAxis] = this._headerLockedSize;
-        //         this._tweenChange.x = sEndPos.x - this._tweenStart.x;
-        //         this._tweenChange.y = sEndPos.y - this._tweenStart.y;
-        //     }
-        //     else if (this._footerLockedSize > 0 && sEndPos[this._refreshBarAxis] == -this._overlapSize[this._refreshBarAxis]) {
-        //         var max: number = this._overlapSize[this._refreshBarAxis];
-        //         if (max == 0)
-        //             max = Math.max(this._contentSize[this._refreshBarAxis] + this._footerLockedSize - this._viewSize[this._refreshBarAxis], 0);
-        //         else
-        //             max += this._footerLockedSize;
-        //         sEndPos[this._refreshBarAxis] = -max;
-        //         this._tweenChange.x = sEndPos.x - this._tweenStart.x;
-        //         this._tweenChange.y = sEndPos.y - this._tweenStart.y;
-        //     }
-        //     this._tweenDuration.setTo(TWEEN_TIME_DEFAULT, TWEEN_TIME_DEFAULT);
-        // }
-        // else {
-        //     //更新速度
-        //     if (!this._inertiaDisabled) {
-        //         var frameRate: number = Laya.stage.frameRate == Laya.Stage.FRAME_SLOW ? 30 : 60;
-        //         var elapsed: number = (Laya.timer.currTimer / 1000 - this._lastMoveTime) * frameRate - 1;
-        //         if (elapsed > 1) {
-        //             var factor: number = Math.pow(0.833, elapsed);
-        //             this._velocity.x = this._velocity.x * factor;
-        //             this._velocity.y = this._velocity.y * factor;
-        //         }
-        //         //根据速度计算目标位置和需要时间
-        //         this.updateTargetAndDuration(this._tweenStart, sEndPos);
-        //     }
-        //     else
-        //         this._tweenDuration.setTo(TWEEN_TIME_DEFAULT, TWEEN_TIME_DEFAULT);
-        //     sOldChange.setTo(sEndPos.x - this._tweenStart.x, sEndPos.y - this._tweenStart.y);
-        //     //调整目标位置
-        //     this.loopCheckingTarget(sEndPos);
-        //     if (this._pageMode || this._snapToItem)
-        //         this.alignPosition(sEndPos, true);
-        //     this._tweenChange.x = sEndPos.x - this._tweenStart.x;
-        //     this._tweenChange.y = sEndPos.y - this._tweenStart.y;
-        //     if (this._tweenChange.x == 0 && this._tweenChange.y == 0) {
-        //         this.updateScrollBarVisible();
-        //         return;
-        //     }
-        //     //如果目标位置已调整，随之调整需要时间
-        //     if (this._pageMode || this._snapToItem) {
-        //         this.fixDuration("x", sOldChange.x);
-        //         this.fixDuration("y", sOldChange.y);
-        //     }
-        // }
-        // this.startTween(2);
-    }
-    __click() {
-        this._dragged = false;
-    }
-    __mouseWheel(evt) {
-        throw new Error("TODO");
-    }
-    updateScrollBarPos() {
-        if (this._vtScrollBar)
-            this._vtScrollBar.setScrollPerc(this._overlapSize.y == 0 ? 0 : ToolSet.clamp(-this._container.y, 0, this._overlapSize.y) / this._overlapSize.y);
-        if (this._hzScrollBar)
-            this._hzScrollBar.setScrollPerc(this._overlapSize.x == 0 ? 0 : ToolSet.clamp(-this._container.x, 0, this._overlapSize.x) / this._overlapSize.x);
-        this.checkRefreshBar();
-    }
-    updateScrollBarVisible() {
-        // if (this._vtScrollBar) {
-        //     if (this._viewSize.y <= this._vtScrollBar.minSize || this._vScrollNone)
-        //         this._vtScrollBar.displayObject.visible = false;
-        //     else
-        //         this.updateScrollBarVisible2(this._vtScrollBar);
-        // }
-        // if (this._hzScrollBar) {
-        //     if (this._viewSize.x <= this._hzScrollBar.minSize || this._hScrollNone)
-        //         this._hzScrollBar.displayObject.visible = false;
-        //     else
-        //         this.updateScrollBarVisible2(this._hzScrollBar);
-        // }
-    }
-    updateScrollBarVisible2(bar) {
-        throw new Error("TODO");
-        // if (this._scrollBarDisplayAuto)
-        //     GTween.kill(bar, false, "alpha");
-        // if (this._scrollBarDisplayAuto && this._tweening == 0 && !this._dragged && !bar.gripDragging) {
-        //     if (bar.displayObject.visible)
-        //         GTween.to(1, 0, 0.5).setDelay(0.5).onComplete(this.__barTweenComplete, this).setTarget(bar, "alpha");
-        // }
-        // else {
-        //     bar.alpha = 1;
-        //     bar.displayObject.visible = true;
-        // }
-    }
-    __barTweenComplete(tweener) {
-        throw new Error("TODO");
-        // var bar: GObject = <GObject>(tweener.target);
-        // bar.alpha = 1;
-        // bar.displayObject.visible = false;
-    }
-    getLoopPartSize(division, axis) {
-        // return (this._contentSize[axis] + (axis == "x" ? (<GList>(this._owner)).columnGap : (<GList>(this._owner)).lineGap)) / division;
-        return 0;
-    }
-    loopCheckingCurrent() {
-        throw new Error("TODO");
-        // var changed: boolean = false;
-        // if (this._loop == 1 && this._overlapSize.x > 0) {
-        //     if (this._xPos < 0.001) {
-        //         this._xPos += this.getLoopPartSize(2, "x");
-        //         changed = true;
-        //     }
-        //     else if (this._xPos >= this._overlapSize.x) {
-        //         this._xPos -= this.getLoopPartSize(2, "x");
-        //         changed = true;
-        //     }
-        // }
-        // else if (this._loop == 2 && this._overlapSize.y > 0) {
-        //     if (this._yPos < 0.001) {
-        //         this._yPos += this.getLoopPartSize(2, "y");
-        //         changed = true;
-        //     }
-        //     else if (this._yPos >= this._overlapSize.y) {
-        //         this._yPos -= this.getLoopPartSize(2, "y");
-        //         changed = true;
-        //     }
-        // }
-        // if (changed)
-        //     this._container.pos(Math.floor(-this._xPos), Math.floor(-this._yPos));
-        // return changed;
-    }
-    loopCheckingTarget(endPos) {
-        if (this._loop == 1)
-            this.loopCheckingTarget2(endPos, "x");
-        if (this._loop == 2)
-            this.loopCheckingTarget2(endPos, "y");
-    }
-    loopCheckingTarget2(endPos, axis) {
-        var halfSize;
-        var tmp;
-        if (endPos[axis] > 0) {
-            halfSize = this.getLoopPartSize(2, axis);
-            tmp = this._tweenStart[axis] - halfSize;
-            if (tmp <= 0 && tmp >= -this._overlapSize[axis]) {
-                endPos[axis] -= halfSize;
-                this._tweenStart[axis] = tmp;
-            }
-        }
-        else if (endPos[axis] < -this._overlapSize[axis]) {
-            halfSize = this.getLoopPartSize(2, axis);
-            tmp = this._tweenStart[axis] + halfSize;
-            if (tmp <= 0 && tmp >= -this._overlapSize[axis]) {
-                endPos[axis] += halfSize;
-                this._tweenStart[axis] = tmp;
-            }
-        }
-    }
-    loopCheckingNewPos(value, axis) {
-        if (this._overlapSize[axis] == 0)
-            return value;
-        var pos = axis == "x" ? this._xPos : this._yPos;
-        var changed = false;
-        var v;
-        if (value < 0.001) {
-            value += this.getLoopPartSize(2, axis);
-            if (value > pos) {
-                v = this.getLoopPartSize(6, axis);
-                v = Math.ceil((value - pos) / v) * v;
-                pos = ToolSet.clamp(pos + v, 0, this._overlapSize[axis]);
-                changed = true;
-            }
-        }
-        else if (value >= this._overlapSize[axis]) {
-            value -= this.getLoopPartSize(2, axis);
-            if (value < pos) {
-                v = this.getLoopPartSize(6, axis);
-                v = Math.ceil((pos - value) / v) * v;
-                pos = ToolSet.clamp(pos - v, 0, this._overlapSize[axis]);
-                changed = true;
-            }
-        }
-        if (changed) {
-            if (axis == "x")
-                this._container.x = -Math.floor(pos);
-            else
-                this._container.y = -Math.floor(pos);
-        }
-        return value;
-    }
-    alignPosition(pos, inertialScrolling) {
-        if (this._pageMode) {
-            pos.x = this.alignByPage(pos.x, "x", inertialScrolling);
-            pos.y = this.alignByPage(pos.y, "y", inertialScrolling);
-        }
-        else if (this._snapToItem) {
-            var xDir = 0;
-            var yDir = 0;
-            if (inertialScrolling) {
-                xDir = pos.x - this._containerPos.x;
-                yDir = pos.y - this._containerPos.y;
-            }
-            var pt = this._owner.getSnappingPositionWithDir(-pos.x, -pos.y, xDir, yDir, s_vec2);
-            if (pos.x < 0 && pos.x > -this._overlapSize.x)
-                pos.x = -pt.x;
-            if (pos.y < 0 && pos.y > -this._overlapSize.y)
-                pos.y = -pt.y;
-        }
-    }
-    alignByPage(pos, axis, inertialScrolling) {
-        var page;
-        if (pos > 0)
-            page = 0;
-        else if (pos < -this._overlapSize[axis])
-            page = Math.ceil(this._contentSize[axis] / this._pageSize[axis]) - 1;
-        else {
-            page = Math.floor(-pos / this._pageSize[axis]);
-            var change = inertialScrolling ? (pos - this._containerPos[axis]) : (pos - this._container[axis]);
-            var testPageSize = Math.min(this._pageSize[axis], this._contentSize[axis] - (page + 1) * this._pageSize[axis]);
-            var delta = -pos - page * this._pageSize[axis];
-            //页面吸附策略
-            if (Math.abs(change) > this._pageSize[axis]) //如果滚动距离超过1页,则需要超过页面的一半，才能到更下一页
-             {
-                if (delta > testPageSize * 0.5)
-                    page++;
-            }
-            else //否则只需要页面的1/3，当然，需要考虑到左移和右移的情况
-             {
-                if (delta > testPageSize * (change < 0 ? UIConfig.defaultScrollPagingThreshold : (1 - UIConfig.defaultScrollPagingThreshold)))
-                    page++;
-            }
-            //重新计算终点
-            pos = -page * this._pageSize[axis];
-            if (pos < -this._overlapSize[axis]) //最后一页未必有pageSize那么大
-                pos = -this._overlapSize[axis];
-        }
-        //惯性滚动模式下，会增加判断尽量不要滚动超过一页
-        if (inertialScrolling) {
-            var oldPos = this._tweenStart[axis];
-            var oldPage;
-            if (oldPos > 0)
-                oldPage = 0;
-            else if (oldPos < -this._overlapSize[axis])
-                oldPage = Math.ceil(this._contentSize[axis] / this._pageSize[axis]) - 1;
-            else
-                oldPage = Math.floor(-oldPos / this._pageSize[axis]);
-            var startPage = Math.floor(-this._containerPos[axis] / this._pageSize[axis]);
-            if (Math.abs(page - startPage) > 1 && Math.abs(oldPage - startPage) <= 1) {
-                if (page > startPage)
-                    page = startPage + 1;
-                else
-                    page = startPage - 1;
-                pos = -page * this._pageSize[axis];
-            }
-        }
-        return pos;
-    }
-    updateTargetAndDuration(orignPos, resultPos) {
-        resultPos.x = this.updateTargetAndDuration2(orignPos.x, "x");
-        resultPos.y = this.updateTargetAndDuration2(orignPos.y, "y");
-    }
-    updateTargetAndDuration2(pos, axis) {
-        this._velocity[axis];
-        var duration = 0;
-        if (pos > 0)
-            pos = 0;
-        else if (pos < -this._overlapSize[axis])
-            pos = -this._overlapSize[axis];
-        else ;
-        if (duration < TWEEN_TIME_DEFAULT)
-            duration = TWEEN_TIME_DEFAULT;
-        this._tweenDuration[axis] = duration;
-        return pos;
-    }
-    fixDuration(axis, oldChange) {
-        if (this._tweenChange[axis] == 0 || Math.abs(this._tweenChange[axis]) >= Math.abs(oldChange))
-            return;
-        var newDuration = Math.abs(this._tweenChange[axis] / oldChange) * this._tweenDuration[axis];
-        if (newDuration < TWEEN_TIME_DEFAULT)
-            newDuration = TWEEN_TIME_DEFAULT;
-        this._tweenDuration[axis] = newDuration;
-    }
-    startTween(type) {
-        // this._tweenTime.setTo(0, 0);
-        // this._tweening = type;
-        // Laya.timer.frameLoop(1, this, this.tweenUpdate);
-        // this.updateScrollBarVisible();
-    }
-    killTween() {
-        throw new Error("TODO");
-        // if (this._tweening == 1) //取消类型为1的tween需立刻设置到终点
-        // {
-        //     this._container.pos(this._tweenStart.x + this._tweenChange.x, this._tweenStart.y + this._tweenChange.y);
-        //     Events.dispatch(Events.SCROLL, this._owner.displayObject);
-        // }
-        // this._tweening = 0;
-        // Laya.timer.clear(this, this.tweenUpdate);
-        // this.updateScrollBarVisible();
-        // Events.dispatch(Events.SCROLL_END, this._owner.displayObject);
-    }
-    checkRefreshBar() {
-        // if (!this._header && !this._footer)
-        //     return;
-        // var pos: number = this._container[this._refreshBarAxis];
-        // if (this._header) {
-        //     if (pos > 0) {
-        //         if (!this._header.displayObject.parent)
-        //             this._maskContainer.addChildAt(this._header.displayObject, 0);
-        //         var pt: Phaser.Geom.Point = s_vec2;
-        //         pt.setTo(this._header.width, this._header.height);
-        //         pt[this._refreshBarAxis] = pos;
-        //         this._header.setSize(pt.x, pt.y);
-        //     }
-        //     else {
-        //         if (this._header.displayObject.parent)
-        //             this._maskContainer.removeChild(this._header.displayObject);
-        //     }
-        // }
-        // if (this._footer) {
-        //     var max: number = this._overlapSize[this._refreshBarAxis];
-        //     if (pos < -max || max == 0 && this._footerLockedSize > 0) {
-        //         if (!this._footer.displayObject.parent)
-        //             this._maskContainer.addChildAt(this._footer.displayObject, 0);
-        //         pt = s_vec2;
-        //         pt.setTo(this._footer.x, this._footer.y);
-        //         if (max > 0)
-        //             pt[this._refreshBarAxis] = pos + this._contentSize[this._refreshBarAxis];
-        //         else
-        //             pt[this._refreshBarAxis] = Math.max(Math.min(pos + this._viewSize[this._refreshBarAxis], this._viewSize[this._refreshBarAxis] - this._footerLockedSize),
-        //                 this._viewSize[this._refreshBarAxis] - this._contentSize[this._refreshBarAxis]);
-        //         this._footer.setXY(pt.x, pt.y);
-        //         pt.setTo(this._footer.width, this._footer.height);
-        //         if (max > 0)
-        //             pt[this._refreshBarAxis] = -max - pos;
-        //         else
-        //             pt[this._refreshBarAxis] = this._viewSize[this._refreshBarAxis] - this._footer[this._refreshBarAxis];
-        //         this._footer.setSize(pt.x, pt.y);
-        //     }
-        //     else {
-        //         if (this._footer.displayObject.parent)
-        //             this._maskContainer.removeChild(this._footer.displayObject);
-        //     }
-        // }
-    }
-    tweenUpdate() {
-        throw new Error("TODO");
-        // var nx: number = this.runTween("x");
-        // var ny: number = this.runTween("y");
-        // this._container.pos(nx, ny);
-        // if (this._tweening == 2) {
-        //     if (this._overlapSize.x > 0)
-        //         this._xPos = ToolSet.clamp(-nx, 0, this._overlapSize.x);
-        //     if (this._overlapSize.y > 0)
-        //         this._yPos = ToolSet.clamp(-ny, 0, this._overlapSize.y);
-        //     if (this._pageMode)
-        //         this.updatePageController();
-        // }
-        // if (this._tweenChange.x == 0 && this._tweenChange.y == 0) {
-        //     throw new Error("TODO");
-        //     // this._tweening = 0;
-        //     // Laya.timer.clear(this, this.tweenUpdate);
-        //     // this.loopCheckingCurrent();
-        //     // this.updateScrollBarPos();
-        //     // this.updateScrollBarVisible();
-        //     // Events.dispatch(Events.SCROLL, this._owner.displayObject);
-        //     // Events.dispatch(Events.SCROLL_END, this._owner.displayObject);
-        // }
-        // else {
-        //     this.updateScrollBarPos();
-        //     Events.dispatch(Events.SCROLL, this._owner.displayObject);
-        // }
-    }
-    runTween(axis) {
-        var newValue;
-        if (this._tweenChange[axis] != 0) {
-            // this._tweenTime[axis] += Laya.timer.delta / 1000;
-            if (this._tweenTime[axis] >= this._tweenDuration[axis]) {
-                newValue = this._tweenStart[axis] + this._tweenChange[axis];
-                this._tweenChange[axis] = 0;
-            }
-            else {
-                var ratio = easeFunc(this._tweenTime[axis], this._tweenDuration[axis]);
-                newValue = this._tweenStart[axis] + Math.floor(this._tweenChange[axis] * ratio);
-            }
-            var threshold1 = 0;
-            var threshold2 = -this._overlapSize[axis];
-            if (this._headerLockedSize > 0 && this._refreshBarAxis == axis)
-                threshold1 = this._headerLockedSize;
-            if (this._footerLockedSize > 0 && this._refreshBarAxis == axis) {
-                var max = this._overlapSize[this._refreshBarAxis];
-                if (max == 0)
-                    max = Math.max(this._contentSize[this._refreshBarAxis] + this._footerLockedSize - this._viewSize[this._refreshBarAxis], 0);
-                else
-                    max += this._footerLockedSize;
-                threshold2 = -max;
-            }
-            if (this._tweening == 2 && this._bouncebackEffect) {
-                if (newValue > 20 + threshold1 && this._tweenChange[axis] > 0
-                    || newValue > threshold1 && this._tweenChange[axis] == 0) //开始回弹
-                 {
-                    this._tweenTime[axis] = 0;
-                    this._tweenDuration[axis] = TWEEN_TIME_DEFAULT;
-                    this._tweenChange[axis] = -newValue + threshold1;
-                    this._tweenStart[axis] = newValue;
-                }
-                else if (newValue < threshold2 - 20 && this._tweenChange[axis] < 0
-                    || newValue < threshold2 && this._tweenChange[axis] == 0) //开始回弹
-                 {
-                    this._tweenTime[axis] = 0;
-                    this._tweenDuration[axis] = TWEEN_TIME_DEFAULT;
-                    this._tweenChange[axis] = threshold2 - newValue;
-                    this._tweenStart[axis] = newValue;
-                }
-            }
-            else {
-                if (newValue > threshold1) {
-                    newValue = threshold1;
-                    this._tweenChange[axis] = 0;
-                }
-                else if (newValue < threshold2) {
-                    newValue = threshold2;
-                    this._tweenChange[axis] = 0;
-                }
-            }
-        }
-        else
-            newValue = this._container[axis];
-        return newValue;
-    }
-}
-const TWEEN_TIME_DEFAULT = 0.3; //惯性滚动的最小缓动时间
-var s_vec2 = new Phaser.Geom.Point();
-var s_rect = new Phaser.Geom.Rectangle();
-new Phaser.Geom.Point();
-new Phaser.Geom.Point();
-function easeFunc(t, d) {
-    return (t = t / d - 1) * t * t + 1; //cubicOut
 }
 
 class ByteBuffer {
@@ -8823,6 +7712,1539 @@ UIPackage._instByName = {};
 UIPackage._branch = "";
 UIPackage._vars = {};
 var Decls = {};
+
+class Margin {
+    constructor() {
+        this.left = 0;
+        this.right = 0;
+        this.top = 0;
+        this.bottom = 0;
+    }
+    copy(source) {
+        this.top = source.top;
+        this.bottom = source.bottom;
+        this.left = source.left;
+        this.right = source.right;
+    }
+}
+
+class ScrollPane {
+    constructor(owner) {
+        this._timeDelta = 0.01;
+        this._owner = owner;
+        this._refreshTimeEvent = { delay: this._timeDelta, callback: this.refresh, callbackScope: this };
+        const _tweenUp = this._timeDelta / owner.scene.game.config.fps.target;
+        this._tweenUpdateTimeEvent = { delay: _tweenUp, callback: this.tweenUpdate, callbackScope: this, loop: true };
+        this._maskContainer = this._owner.scene.make.container(undefined);
+        this._owner.displayObject.add(this._maskContainer);
+        this._container = this._owner._container;
+        this._container.setPosition(0, 0);
+        this._maskContainer.add(this._container);
+        this._mouseWheelEnabled = true;
+        this._xPos = 0;
+        this._yPos = 0;
+        this._aniFlag = 0;
+        this._tweening = 0;
+        this._loop = 0;
+        this._footerLockedSize = 0;
+        this._headerLockedSize = 0;
+        this._scrollBarMargin = new Margin();
+        this._viewSize = new Phaser.Geom.Point();
+        this._contentSize = new Phaser.Geom.Point();
+        this._pageSize = new Phaser.Geom.Point(1, 1);
+        this._overlapSize = new Phaser.Geom.Point();
+        this._tweenTime = new Phaser.Geom.Point();
+        this._tweenStart = new Phaser.Geom.Point();
+        this._tweenDuration = new Phaser.Geom.Point();
+        this._tweenChange = new Phaser.Geom.Point();
+        this._velocity = new Phaser.Geom.Point();
+        this._containerPos = new Phaser.Geom.Point();
+        this._beginTouchPos = new Phaser.Geom.Point();
+        this._lastTouchPos = new Phaser.Geom.Point();
+        this._lastTouchGlobalPos = new Phaser.Geom.Point();
+        this._scrollStep = UIConfig.defaultScrollStep;
+        this._mouseWheelStep = this._scrollStep * 2;
+        this._decelerationRate = UIConfig.defaultScrollDecelerationRate;
+        this._owner.on("pointerdown", this.__mouseDown, this);
+        this._owner.on("wheel", this.__mouseWheel, this);
+    }
+    setup(buffer) {
+        this._scrollType = buffer.readByte();
+        var scrollBarDisplay = buffer.readByte();
+        var flags = buffer.readInt();
+        if (buffer.readBool()) {
+            this._scrollBarMargin.top = buffer.readInt();
+            this._scrollBarMargin.bottom = buffer.readInt();
+            this._scrollBarMargin.left = buffer.readInt();
+            this._scrollBarMargin.right = buffer.readInt();
+        }
+        var vtScrollBarRes = buffer.readS();
+        var hzScrollBarRes = buffer.readS();
+        var headerRes = buffer.readS();
+        var footerRes = buffer.readS();
+        if ((flags & 1) != 0)
+            this._displayOnLeft = true;
+        if ((flags & 2) != 0)
+            this._snapToItem = true;
+        if ((flags & 4) != 0)
+            this._displayInDemand = true;
+        if ((flags & 8) != 0)
+            this._pageMode = true;
+        if (flags & 16)
+            this._touchEffect = true;
+        else if (flags & 32)
+            this._touchEffect = false;
+        else
+            this._touchEffect = UIConfig.defaultScrollTouchEffect;
+        if (flags & 64)
+            this._bouncebackEffect = true;
+        else if (flags & 128)
+            this._bouncebackEffect = false;
+        else
+            this._bouncebackEffect = UIConfig.defaultScrollBounceEffect;
+        if ((flags & 256) != 0)
+            this._inertiaDisabled = true;
+        if ((flags & 512) == 0) // this.maskScrollRect = new Phaser.Geom.Rectangle();//this._maskContainer["scrollRect"] = new Phaser.Geom.Rectangle();
+            if ((flags & 1024) != 0)
+                this._floating = true;
+        if ((flags & 2048) != 0)
+            this._dontClipMargin = true;
+        if (scrollBarDisplay == ScrollBarDisplayType.Default)
+            scrollBarDisplay = UIConfig.defaultScrollBarDisplay;
+        if (scrollBarDisplay != ScrollBarDisplayType.Hidden) {
+            if (this._scrollType == ScrollType.Both || this._scrollType == ScrollType.Vertical) {
+                var res = vtScrollBarRes ? vtScrollBarRes : UIConfig.verticalScrollBar;
+                if (res) {
+                    UIPackage.createObjectFromURL(res).then((scrollBar) => {
+                        this._vtScrollBar = scrollBar;
+                        if (!this._vtScrollBar)
+                            throw "cannot create scrollbar from " + res;
+                        this._vtScrollBar.setScrollPane(this, true);
+                        this._owner.displayObject.add(this._vtScrollBar.displayObject);
+                    });
+                    // this._vtScrollBar = <GScrollBar>(UIPackage.createObjectFromURL(res));
+                    // if (!this._vtScrollBar)
+                    //     throw "cannot create scrollbar from " + res;
+                    // this._vtScrollBar.setScrollPane(this, true);
+                    // (<Phaser.GameObjects.Container>this._owner.displayObject).add(this._vtScrollBar.displayObject);
+                }
+            }
+            if (this._scrollType == ScrollType.Both || this._scrollType == ScrollType.Horizontal) {
+                res = hzScrollBarRes ? hzScrollBarRes : UIConfig.horizontalScrollBar;
+                if (res) {
+                    UIPackage.createObjectFromURL(res).then((scrollBar) => {
+                        this._hzScrollBar = scrollBar;
+                        if (!this._hzScrollBar)
+                            throw "cannot create scrollbar from " + res;
+                        this._hzScrollBar.setScrollPane(this, false);
+                        this._owner.displayObject.add(this._hzScrollBar.displayObject);
+                    });
+                }
+            }
+            if (scrollBarDisplay == ScrollBarDisplayType.Auto)
+                this._scrollBarDisplayAuto = true;
+            if (this._scrollBarDisplayAuto) {
+                if (this._vtScrollBar)
+                    this._vtScrollBar.displayObject.visible = false;
+                if (this._hzScrollBar)
+                    this._hzScrollBar.displayObject.visible = false;
+            }
+        }
+        else
+            this._mouseWheelEnabled = false;
+        if (headerRes) {
+            UIPackage.createObjectFromURL(headerRes).then((header) => {
+                this._header = this.header;
+                if (!this._header)
+                    throw new Error("FairyGUI: cannot create scrollPane this.header from " + headerRes);
+            });
+        }
+        if (footerRes) {
+            UIPackage.createObjectFromURL(footerRes).then((footer) => {
+                this._footer = footer;
+                if (!this._footer)
+                    throw new Error("FairyGUI: cannot create scrollPane this.footer from " + footerRes);
+            });
+        }
+        if (this._header || this._footer)
+            this._refreshBarAxis = (this._scrollType == ScrollType.Both || this._scrollType == ScrollType.Vertical) ? "y" : "x";
+        this.setSize(this.owner.initWidth, this.owner.initHeight);
+    }
+    dispose() {
+        if (ScrollPane.draggingPane == this) {
+            ScrollPane.draggingPane = null;
+        }
+        if (this._tweening != 0) {
+            if (this._tweenUpdateTime) {
+                this._tweenUpdateTime.remove(false);
+                this._tweenUpdateTime = null;
+                console.log("remove tweenupdate");
+            }
+            // Laya.timer.clear(this, this.tweenUpdate);
+        }
+        this._pageController = null;
+        if (this._hzScrollBar)
+            this._hzScrollBar.dispose();
+        if (this._vtScrollBar)
+            this._vtScrollBar.dispose();
+        if (this._header)
+            this._header.dispose();
+        if (this._footer)
+            this._footer.dispose();
+    }
+    get owner() {
+        return this._owner;
+    }
+    get hzScrollBar() {
+        return this._hzScrollBar;
+    }
+    get vtScrollBar() {
+        return this._vtScrollBar;
+    }
+    get header() {
+        return this._header;
+    }
+    get footer() {
+        return this._footer;
+    }
+    get bouncebackEffect() {
+        return this._bouncebackEffect;
+    }
+    set bouncebackEffect(sc) {
+        this._bouncebackEffect = sc;
+    }
+    get touchEffect() {
+        return this._touchEffect;
+    }
+    set touchEffect(sc) {
+        this._touchEffect = sc;
+    }
+    set scrollStep(val) {
+        this._scrollStep = val;
+        if (this._scrollStep == 0)
+            this._scrollStep = UIConfig.defaultScrollStep;
+        this._mouseWheelStep = this._scrollStep * 2;
+    }
+    get scrollStep() {
+        return this._scrollStep;
+    }
+    get snapToItem() {
+        return this._snapToItem;
+    }
+    set snapToItem(value) {
+        this._snapToItem = value;
+    }
+    get mouseWheelEnabled() {
+        return this._mouseWheelEnabled;
+    }
+    set mouseWheelEnabled(value) {
+        this._mouseWheelEnabled = value;
+    }
+    get decelerationRate() {
+        return this._decelerationRate;
+    }
+    set decelerationRate(value) {
+        this._decelerationRate = value;
+    }
+    get isDragged() {
+        return this._dragged;
+    }
+    get percX() {
+        return this._overlapSize.x == 0 ? 0 : this._xPos / this._overlapSize.x;
+    }
+    set percX(value) {
+        this.setPercX(value, false);
+    }
+    setPercX(value, ani) {
+        this._owner.ensureBoundsCorrect();
+        this.setPosX(this._overlapSize.x * ToolSet.clamp01(value), ani);
+    }
+    get percY() {
+        return this._overlapSize.y == 0 ? 0 : this._yPos / this._overlapSize.y;
+    }
+    set percY(value) {
+        this.setPercY(value, false);
+    }
+    setPercY(value, ani) {
+        this._owner.ensureBoundsCorrect();
+        this.setPosY(this._overlapSize.y * ToolSet.clamp01(value), ani);
+    }
+    get posX() {
+        return this._xPos;
+    }
+    set posX(value) {
+        this.setPosX(value, false);
+    }
+    setPosX(value, ani) {
+        this._owner.ensureBoundsCorrect();
+        if (this._loop == 1)
+            value = this.loopCheckingNewPos(value, "x");
+        value = ToolSet.clamp(value, 0, this._overlapSize.x);
+        if (value != this._xPos) {
+            this._xPos = value;
+            this.posChanged(ani);
+        }
+    }
+    get posY() {
+        return this._yPos;
+    }
+    set posY(value) {
+        this.setPosY(value, false);
+    }
+    setPosY(value, ani) {
+        this._owner.ensureBoundsCorrect();
+        if (this._loop == 1)
+            value = this.loopCheckingNewPos(value, "y");
+        value = ToolSet.clamp(value, 0, this._overlapSize.y);
+        if (value != this._yPos) {
+            this._yPos = value;
+            this.posChanged(ani);
+        }
+    }
+    get contentWidth() {
+        return this._contentSize.x;
+    }
+    get contentHeight() {
+        return this._contentSize.y;
+    }
+    get viewWidth() {
+        return this._viewSize.x;
+    }
+    set viewWidth(value) {
+        value = value + this._owner.margin.left + this._owner.margin.right;
+        if (this._vtScrollBar && !this._floating)
+            value += this._vtScrollBar.width;
+        this._owner.width = value;
+    }
+    get viewHeight() {
+        return this._viewSize.y;
+    }
+    set viewHeight(value) {
+        value = value + this._owner.margin.top + this._owner.margin.bottom;
+        if (this._hzScrollBar && !this._floating)
+            value += this._hzScrollBar.height;
+        this._owner.height = value;
+    }
+    get currentPageX() {
+        if (!this._pageMode)
+            return 0;
+        var page = Math.floor(this._xPos / this._pageSize.x);
+        if (this._xPos - page * this._pageSize.x > this._pageSize.x * 0.5)
+            page++;
+        return page;
+    }
+    set currentPageX(value) {
+        this.setCurrentPageX(value, false);
+    }
+    get currentPageY() {
+        if (!this._pageMode)
+            return 0;
+        var page = Math.floor(this._yPos / this._pageSize.y);
+        if (this._yPos - page * this._pageSize.y > this._pageSize.y * 0.5)
+            page++;
+        return page;
+    }
+    set currentPageY(value) {
+        this.setCurrentPageY(value, false);
+    }
+    setCurrentPageX(value, ani) {
+        if (!this._pageMode)
+            return;
+        this._owner.ensureBoundsCorrect();
+        if (this._overlapSize.x > 0)
+            this.setPosX(value * this._pageSize.x, ani);
+    }
+    setCurrentPageY(value, ani) {
+        if (!this._pageMode)
+            return;
+        this._owner.ensureBoundsCorrect();
+        if (this._overlapSize.y > 0)
+            this.setPosY(value * this._pageSize.y, ani);
+    }
+    get isBottomMost() {
+        return this._yPos == this._overlapSize.y || this._overlapSize.y == 0;
+    }
+    get isRightMost() {
+        return this._xPos == this._overlapSize.x || this._overlapSize.x == 0;
+    }
+    get pageController() {
+        return this._pageController;
+    }
+    set pageController(value) {
+        this._pageController = value;
+    }
+    get scrollingPosX() {
+        return ToolSet.clamp(-this._container.x, 0, this._overlapSize.x);
+    }
+    get scrollingPosY() {
+        return ToolSet.clamp(-this._container.y, 0, this._overlapSize.y);
+    }
+    scrollTop(ani) {
+        this.setPercY(0, ani);
+    }
+    scrollBottom(ani) {
+        this.setPercY(1, ani);
+    }
+    scrollUp(ratio, ani) {
+        ratio = ratio || 1;
+        if (this._pageMode)
+            this.setPosY(this._yPos - this._pageSize.y * ratio, ani);
+        else
+            this.setPosY(this._yPos - this._scrollStep * ratio, ani);
+    }
+    scrollDown(ratio, ani) {
+        ratio = ratio || 1;
+        if (this._pageMode)
+            this.setPosY(this._yPos + this._pageSize.y * ratio, ani);
+        else
+            this.setPosY(this._yPos + this._scrollStep * ratio, ani);
+    }
+    scrollLeft(ratio, ani) {
+        ratio = ratio || 1;
+        if (this._pageMode)
+            this.setPosX(this._xPos - this._pageSize.x * ratio, ani);
+        else
+            this.setPosX(this._xPos - this._scrollStep * ratio, ani);
+    }
+    scrollRight(ratio, ani) {
+        ratio = ratio || 1;
+        if (this._pageMode)
+            this.setPosX(this._xPos + this._pageSize.x * ratio, ani);
+        else
+            this.setPosX(this._xPos + this._scrollStep * ratio, ani);
+    }
+    scrollToView(target, ani, setFirst) {
+        this._owner.ensureBoundsCorrect();
+        if (this._needRefresh)
+            this.refresh();
+        var rect;
+        if (target instanceof GObject) {
+            if (target.parent != this._owner) {
+                target.parent.localToGlobalRect(target.x, target.y, target.width, target.height, s_rect);
+                rect = this._owner.globalToLocalRect(s_rect.x, s_rect.y, s_rect.width, s_rect.height, s_rect);
+            }
+            else {
+                rect = s_rect;
+                rect.setTo(target.x, target.y, target.width, target.height);
+            }
+        }
+        else
+            rect = target;
+        if (this._overlapSize.y > 0) {
+            var bottom = this._yPos + this._viewSize.y;
+            if (setFirst || rect.y <= this._yPos || rect.height >= this._viewSize.y) {
+                if (this._pageMode)
+                    this.setPosY(Math.floor(rect.y / this._pageSize.y) * this._pageSize.y, ani);
+                else
+                    this.setPosY(rect.y, ani);
+            }
+            else if (rect.y + rect.height > bottom) {
+                if (this._pageMode)
+                    this.setPosY(Math.floor(rect.y / this._pageSize.y) * this._pageSize.y, ani);
+                else if (rect.height <= this._viewSize.y / 2)
+                    this.setPosY(rect.y + rect.height * 2 - this._viewSize.y, ani);
+                else
+                    this.setPosY(rect.y + rect.height - this._viewSize.y, ani);
+            }
+        }
+        if (this._overlapSize.x > 0) {
+            var right = this._xPos + this._viewSize.x;
+            if (setFirst || rect.x <= this._xPos || rect.width >= this._viewSize.x) {
+                if (this._pageMode)
+                    this.setPosX(Math.floor(rect.x / this._pageSize.x) * this._pageSize.x, ani);
+                else
+                    this.setPosX(rect.x, ani);
+            }
+            else if (rect.x + rect.width > right) {
+                if (this._pageMode)
+                    this.setPosX(Math.floor(rect.x / this._pageSize.x) * this._pageSize.x, ani);
+                else if (rect.width <= this._viewSize.x / 2)
+                    this.setPosX(rect.x + rect.width * 2 - this._viewSize.x, ani);
+                else
+                    this.setPosX(rect.x + rect.width - this._viewSize.x, ani);
+            }
+        }
+        if (!ani && this._needRefresh)
+            this.refresh();
+    }
+    isChildInView(obj) {
+        if (this._overlapSize.y > 0) {
+            var dist = obj.y + this._container.y;
+            if (dist < -obj.height || dist > this._viewSize.y)
+                return false;
+        }
+        if (this._overlapSize.x > 0) {
+            dist = obj.x + this._container.x;
+            if (dist < -obj.width || dist > this._viewSize.x)
+                return false;
+        }
+        return true;
+    }
+    cancelDragging() {
+        this._owner.scene.input.off("pointermove", this.__mouseMove, this);
+        this._owner.scene.input.off("pointerup", this.__mouseUp, this);
+        this._owner.scene.input.off("pointerout", this.__mouseUp, this);
+        if (ScrollPane.draggingPane == this)
+            ScrollPane.draggingPane = null;
+        _gestureFlag = 0;
+        this._dragged = false;
+        // this._maskContainer.disableInteractive();
+    }
+    lockHeader(size) {
+        if (this._headerLockedSize == size)
+            return;
+        this._headerLockedSize = size;
+        if (!this._refreshEventDispatching && this._container[this._refreshBarAxis] >= 0) {
+            this._tweenStart.setTo(this._container.x, this._container.y);
+            this._tweenChange.setTo(0, 0);
+            this._tweenChange[this._refreshBarAxis] = this._headerLockedSize - this._tweenStart[this._refreshBarAxis];
+            this._tweenDuration.setTo(TWEEN_TIME_DEFAULT, TWEEN_TIME_DEFAULT);
+            this.startTween(2);
+        }
+    }
+    lockFooter(size) {
+        if (this._footerLockedSize == size)
+            return;
+        this._footerLockedSize = size;
+        if (!this._refreshEventDispatching && this._container[this._refreshBarAxis] <= -this._overlapSize[this._refreshBarAxis]) {
+            this._tweenStart.setTo(this._container.x, this._container.y);
+            this._tweenChange.setTo(0, 0);
+            var max = this._overlapSize[this._refreshBarAxis];
+            if (max == 0)
+                max = Math.max(this._contentSize[this._refreshBarAxis] + this._footerLockedSize - this._viewSize[this._refreshBarAxis], 0);
+            else
+                max += this._footerLockedSize;
+            this._tweenChange[this._refreshBarAxis] = -max - this._tweenStart[this._refreshBarAxis];
+            this._tweenDuration.setTo(TWEEN_TIME_DEFAULT, TWEEN_TIME_DEFAULT);
+            this.startTween(2);
+        }
+    }
+    onOwnerSizeChanged() {
+        this.setSize(this._owner.width, this._owner.height);
+        this.posChanged(false);
+    }
+    handleControllerChanged(c) {
+        if (this._pageController == c) {
+            if (this._scrollType == ScrollType.Horizontal)
+                this.setCurrentPageX(c.selectedIndex, true);
+            else
+                this.setCurrentPageY(c.selectedIndex, true);
+        }
+    }
+    updatePageController() {
+        if (this._pageController != null && !this._pageController.changing) {
+            var index;
+            if (this._scrollType == ScrollType.Horizontal)
+                index = this.currentPageX;
+            else
+                index = this.currentPageY;
+            if (index < this._pageController.pageCount) {
+                var c = this._pageController;
+                this._pageController = null; //防止HandleControllerChanged的调用
+                c.selectedIndex = index;
+                this._pageController = c;
+            }
+        }
+    }
+    adjustMaskContainer() {
+        var mx = 0, my = 0;
+        if (this._dontClipMargin) {
+            if (this._displayOnLeft && this._vtScrollBar && !this._floating)
+                mx = this._vtScrollBar.width;
+        }
+        else {
+            if (this._displayOnLeft && this._vtScrollBar && !this._floating)
+                mx = this._owner.margin.left + this._vtScrollBar.width;
+            else
+                mx = this._owner.margin.left;
+            my = this._owner.margin.top;
+        }
+        this._maskContainer.setPosition(mx, my);
+        mx = this._owner._alignOffset.x;
+        my = this._owner._alignOffset.y;
+        if (mx != 0 || my != 0 || this._dontClipMargin) {
+            if (!this._alignContainer) {
+                this._alignContainer = this._owner.scene.make.container(undefined);
+                this._maskContainer.add(this._alignContainer);
+                this._alignContainer.add(this._container);
+            }
+        }
+        if (this._alignContainer) {
+            if (this._dontClipMargin) {
+                mx += this._owner.margin.left;
+                my += this._owner.margin.top;
+            }
+            this._alignContainer.setPosition(mx, my);
+        }
+    }
+    setSize(aWidth, aHeight) {
+        this.adjustMaskContainer();
+        if (this._hzScrollBar) {
+            this._hzScrollBar.y = aHeight - this._hzScrollBar.height;
+            if (this._vtScrollBar) {
+                this._hzScrollBar.width = aWidth - this._vtScrollBar.width - this._scrollBarMargin.left - this._scrollBarMargin.right;
+                if (this._displayOnLeft)
+                    this._hzScrollBar.x = this._scrollBarMargin.left + this._vtScrollBar.width;
+                else
+                    this._hzScrollBar.x = this._scrollBarMargin.left;
+            }
+            else {
+                this._hzScrollBar.width = aWidth - this._scrollBarMargin.left - this._scrollBarMargin.right;
+                this._hzScrollBar.x = this._scrollBarMargin.left;
+            }
+        }
+        if (this._vtScrollBar) {
+            if (!this._displayOnLeft)
+                this._vtScrollBar.x = aWidth - this._vtScrollBar.width;
+            if (this._hzScrollBar)
+                this._vtScrollBar.height = aHeight - this._hzScrollBar.height - this._scrollBarMargin.top - this._scrollBarMargin.bottom;
+            else
+                this._vtScrollBar.height = aHeight - this._scrollBarMargin.top - this._scrollBarMargin.bottom;
+            this._vtScrollBar.y = this._scrollBarMargin.top;
+        }
+        this._viewSize.x = aWidth;
+        this._viewSize.y = aHeight;
+        if (this._hzScrollBar && !this._floating)
+            this._viewSize.y -= this._hzScrollBar.height;
+        if (this._vtScrollBar && !this._floating)
+            this._viewSize.x -= this._vtScrollBar.width;
+        this._viewSize.x -= (this._owner.margin.left + this._owner.margin.right);
+        this._viewSize.y -= (this._owner.margin.top + this._owner.margin.bottom);
+        this._viewSize.x = Math.max(1, this._viewSize.x);
+        this._viewSize.y = Math.max(1, this._viewSize.y);
+        this._pageSize.x = this._viewSize.x;
+        this._pageSize.y = this._viewSize.y;
+        this.handleSizeChanged();
+    }
+    setContentSize(aWidth, aHeight) {
+        if (this._contentSize.x == aWidth && this._contentSize.y == aHeight)
+            return;
+        this._contentSize.x = aWidth;
+        this._contentSize.y = aHeight;
+        this.handleSizeChanged();
+    }
+    changeContentSizeOnScrolling(deltaWidth, deltaHeight, deltaPosX, deltaPosY) {
+        var isRightmost = this._xPos == this._overlapSize.x;
+        var isBottom = this._yPos == this._overlapSize.y;
+        this._contentSize.x += deltaWidth;
+        this._contentSize.y += deltaHeight;
+        this.handleSizeChanged();
+        if (this._tweening == 1) {
+            //如果原来滚动位置是贴边，加入处理继续贴边。
+            if (deltaWidth != 0 && isRightmost && this._tweenChange.x < 0) {
+                this._xPos = this._overlapSize.x;
+                this._tweenChange.x = -this._xPos - this._tweenStart.x;
+            }
+            if (deltaHeight != 0 && isBottom && this._tweenChange.y < 0) {
+                this._yPos = this._overlapSize.y;
+                this._tweenChange.y = -this._yPos - this._tweenStart.y;
+            }
+        }
+        else if (this._tweening == 2) {
+            //重新调整起始位置，确保能够顺滑滚下去
+            if (deltaPosX != 0) {
+                this._container.x -= deltaPosX;
+                this._tweenStart.x -= deltaPosX;
+                this._xPos = -this._container.x;
+            }
+            if (deltaPosY != 0) {
+                this._container.y -= deltaPosY;
+                this._tweenStart.y -= deltaPosY;
+                this._yPos = -this._container.y;
+            }
+        }
+        else if (this._dragged) {
+            if (deltaPosX != 0) {
+                this._container.x -= deltaPosX;
+                this._containerPos.x -= deltaPosX;
+                this._xPos = -this._container.x;
+            }
+            if (deltaPosY != 0) {
+                this._container.y -= deltaPosY;
+                this._containerPos.y -= deltaPosY;
+                this._yPos = -this._container.y;
+            }
+        }
+        else {
+            //如果原来滚动位置是贴边，加入处理继续贴边。
+            if (deltaWidth != 0 && isRightmost) {
+                this._xPos = this._overlapSize.x;
+                this._container.x = -this._xPos;
+            }
+            if (deltaHeight != 0 && isBottom) {
+                this._yPos = this._overlapSize.y;
+                this._container.y = -this._yPos;
+            }
+        }
+        if (this._pageMode)
+            this.updatePageController();
+    }
+    handleSizeChanged() {
+        if (this._displayInDemand) {
+            this._vScrollNone = this._contentSize.y <= this._viewSize.y;
+            this._hScrollNone = this._contentSize.x <= this._viewSize.x;
+        }
+        if (this._vtScrollBar) {
+            if (this._contentSize.y == 0)
+                this._vtScrollBar.setDisplayPerc(0);
+            else
+                this._vtScrollBar.setDisplayPerc(Math.min(1, this._viewSize.y / this._contentSize.y));
+        }
+        if (this._hzScrollBar) {
+            if (this._contentSize.x == 0)
+                this._hzScrollBar.setDisplayPerc(0);
+            else
+                this._hzScrollBar.setDisplayPerc(Math.min(1, this._viewSize.x / this._contentSize.x));
+        }
+        this.updateScrollBarVisible();
+        if (this.maskScrollRect) {
+            var rect = new Phaser.Geom.Rectangle(); //this._maskContainer["scrollRect"];
+            if (rect) {
+                rect.width = this._viewSize.x;
+                rect.height = this._viewSize.y;
+                if (this._vScrollNone && this._vtScrollBar)
+                    rect.width += this._vtScrollBar.width;
+                if (this._hScrollNone && this._hzScrollBar)
+                    rect.height += this._hzScrollBar.height;
+                if (this._dontClipMargin) {
+                    rect.width += (this._owner.margin.left + this._owner.margin.right);
+                    rect.height += (this._owner.margin.top + this._owner.margin.bottom);
+                }
+                this.maskScrollRect = rect;
+                this._maskContainer.setInteractive(this.maskScrollRect, Phaser.Geom.Rectangle.Contains);
+            }
+        }
+        if (this._scrollType == ScrollType.Horizontal || this._scrollType == ScrollType.Both)
+            this._overlapSize.x = Math.ceil(Math.max(0, this._contentSize.x - this._viewSize.x));
+        else
+            this._overlapSize.x = 0;
+        if (this._scrollType == ScrollType.Vertical || this._scrollType == ScrollType.Both)
+            this._overlapSize.y = Math.ceil(Math.max(0, this._contentSize.y - this._viewSize.y));
+        else
+            this._overlapSize.y = 0;
+        //边界检查
+        this._xPos = ToolSet.clamp(this._xPos, 0, this._overlapSize.x);
+        this._yPos = ToolSet.clamp(this._yPos, 0, this._overlapSize.y);
+        if (this._refreshBarAxis != null) {
+            var max = this._overlapSize[this._refreshBarAxis];
+            if (max == 0)
+                max = Math.max(this._contentSize[this._refreshBarAxis] + this._footerLockedSize - this._viewSize[this._refreshBarAxis], 0);
+            else
+                max += this._footerLockedSize;
+            if (this._refreshBarAxis == "x") {
+                this._container.setPosition(ToolSet.clamp(this._container.x, -max, this._headerLockedSize), ToolSet.clamp(this._container.y, -this._overlapSize.y, 0));
+            }
+            else {
+                this._container.setPosition(ToolSet.clamp(this._container.x, -this._overlapSize.x, 0), ToolSet.clamp(this._container.y, -max, this._headerLockedSize));
+            }
+            if (this._header) {
+                if (this._refreshBarAxis == "x")
+                    this._header.height = this._viewSize.y;
+                else
+                    this._header.width = this._viewSize.x;
+            }
+            if (this._footer) {
+                if (this._refreshBarAxis == "y")
+                    this._footer.height = this._viewSize.y;
+                else
+                    this._footer.width = this._viewSize.x;
+            }
+        }
+        else {
+            this._container.setPosition(ToolSet.clamp(this._container.x, -this._overlapSize.x, 0), ToolSet.clamp(this._container.y, -this._overlapSize.y, 0));
+        }
+        this.updateScrollBarPos();
+        if (this._pageMode)
+            this.updatePageController();
+    }
+    posChanged(ani) {
+        if (this._aniFlag == 0)
+            this._aniFlag = ani ? 1 : -1;
+        else if (this._aniFlag == 1 && !ani)
+            this._aniFlag = -1;
+        this._needRefresh = true;
+        this._refreshTime = this._owner.scene.time.addEvent(this._refreshTimeEvent);
+        // Laya.timer.callLater(this, this.refresh);
+    }
+    refresh() {
+        if (!this._owner.displayObject) {
+            return;
+        }
+        this._needRefresh = false;
+        if (this._refreshTime) {
+            this._refreshTime.remove(false);
+            this._refreshTime = null;
+            console.log("remove refreshTime");
+        }
+        // Laya.timer.clear(this, this.refresh);
+        if (this._pageMode || this._snapToItem) {
+            sEndPos.setTo(-this._xPos, -this._yPos);
+            this.alignPosition(sEndPos, false);
+            this._xPos = -sEndPos.x;
+            this._yPos = -sEndPos.y;
+        }
+        this.refresh2();
+        Events.dispatch(Events.SCROLL, this._owner.displayObject);
+        if (this._needRefresh) //在onScroll事件里开发者可能修改位置，这里再刷新一次，避免闪烁
+         {
+            this._needRefresh = false;
+            if (this._refreshTime) {
+                this._refreshTime.remove(false);
+                this._refreshTime = null;
+                console.log("remove refreshTime");
+            }
+            // Laya.timer.clear(this, this.refresh);
+            this.refresh2();
+        }
+        this.updateScrollBarPos();
+        this._aniFlag = 0;
+    }
+    refresh2() {
+        if (this._aniFlag == 1 && !this._dragged) {
+            var posX;
+            var posY;
+            if (this._overlapSize.x > 0)
+                posX = -Math.floor(this._xPos);
+            else {
+                if (this._container.x != 0)
+                    this._container.x = 0;
+                posX = 0;
+            }
+            if (this._overlapSize.y > 0)
+                posY = -Math.floor(this._yPos);
+            else {
+                if (this._container.y != 0)
+                    this._container.y = 0;
+                posY = 0;
+            }
+            if (posX != this._container.x || posY != this._container.y) {
+                this._tweenDuration.setTo(TWEEN_TIME_GO, TWEEN_TIME_GO);
+                this._tweenStart.setTo(this._container.x, this._container.y);
+                this._tweenChange.setTo(posX - this._tweenStart.x, posY - this._tweenStart.y);
+                this.startTween(1);
+            }
+            else if (this._tweening != 0)
+                this.killTween();
+        }
+        else {
+            if (this._tweening != 0)
+                this.killTween();
+            this._container.setPosition(Math.floor(-this._xPos), Math.floor(-this._yPos));
+            this.loopCheckingCurrent();
+        }
+        if (this._pageMode)
+            this.updatePageController();
+    }
+    __mouseDown(pointer) {
+        if (!this._touchEffect)
+            return;
+        if (this._tweening != 0) {
+            this.killTween();
+            this._dragged = true;
+        }
+        else
+            this._dragged = false;
+        this._owner.globalToLocal(pointer.worldX, pointer.worldY, s_vec2);
+        this._containerPos.setTo(this._container.x, this._container.y);
+        this._beginTouchPos.setTo(pointer.downX, pointer.downY);
+        this._lastTouchPos.setTo(pointer.upX, pointer.upY);
+        this._lastTouchGlobalPos.setTo(pointer.worldX, pointer.worldY);
+        this._isHoldAreaDone = false;
+        this._velocity.setTo(0, 0);
+        this._velocityScale = 1;
+        this._lastMoveTime = this._owner.scene.time.now; // Laya.timer.currTimer / 1000;
+        this._owner.scene.input.on("pointermove", this.__mouseMove, this);
+        this._owner.scene.input.on("pointerup", this.__mouseUp, this);
+        this._owner.scene.input.on("pointerout", this.__mouseUp, this);
+    }
+    __mouseMove(pointer) {
+        if (!this._touchEffect || this.owner.isDisposed)
+            return;
+        if (ScrollPane.draggingPane && ScrollPane.draggingPane != this || GObject.draggingObject) //已经有其他拖动
+            return;
+        var sensitivity = UIConfig.touchScrollSensitivity;
+        this._owner.globalToLocal(pointer.worldX, pointer.worldY, s_vec2);
+        var diff, diff2;
+        var sv, sh;
+        if (this._scrollType == ScrollType.Vertical) {
+            if (!this._isHoldAreaDone) {
+                //表示正在监测垂直方向的手势
+                _gestureFlag |= 1;
+                diff = Math.abs(this._beginTouchPos.y - this._lastTouchPos.y);
+                if (diff < sensitivity)
+                    return;
+                if ((_gestureFlag & 2) != 0) //已经有水平方向的手势在监测，那么我们用严格的方式检查是不是按垂直方向移动，避免冲突
+                 {
+                    diff2 = Math.abs(this._beginTouchPos.x - this._lastTouchPos.x);
+                    if (diff < diff2) //不通过则不允许滚动了
+                        return;
+                }
+            }
+            sv = true;
+        }
+        else if (this._scrollType == ScrollType.Horizontal) {
+            if (!this._isHoldAreaDone) {
+                _gestureFlag |= 2;
+                diff = Math.abs(this._beginTouchPos.x - this._lastTouchPos.x);
+                if (diff < sensitivity)
+                    return;
+                if ((_gestureFlag & 1) != 0) {
+                    diff2 = Math.abs(this._beginTouchPos.y - this._lastTouchPos.y);
+                    if (diff < diff2)
+                        return;
+                }
+            }
+            sh = true;
+        }
+        else {
+            _gestureFlag = 3;
+            if (!this._isHoldAreaDone) {
+                diff = Math.abs(this._beginTouchPos.y - this._lastTouchPos.y);
+                if (diff < sensitivity) {
+                    diff = Math.abs(this._beginTouchPos.x - this._lastTouchPos.x);
+                    if (diff < sensitivity)
+                        return;
+                }
+            }
+            sv = sh = true;
+        }
+        var newPosX = Math.floor(this._containerPos.x + this._lastTouchPos.x - this._beginTouchPos.x);
+        var newPosY = Math.floor(this._containerPos.y + this._lastTouchPos.y - this._beginTouchPos.y);
+        if (sv) {
+            if (newPosY > 0) {
+                if (!this._bouncebackEffect)
+                    this._container.y = 0;
+                else if (this._header && this._header.maxHeight != 0)
+                    this._container.y = Math.floor(Math.min(newPosY * 0.5, this._header.maxHeight));
+                else
+                    this._container.y = Math.floor(Math.min(newPosY * 0.5, this._viewSize.y * PULL_RATIO));
+            }
+            else if (newPosY < -this._overlapSize.y) {
+                if (!this._bouncebackEffect)
+                    this._container.y = -this._overlapSize.y;
+                else if (this._footer && this._footer.maxHeight > 0)
+                    this._container.y = Math.floor(Math.max((newPosY + this._overlapSize.y) * 0.5, -this._footer.maxHeight) - this._overlapSize.y);
+                else
+                    this._container.y = Math.floor(Math.max((newPosY + this._overlapSize.y) * 0.5, -this._viewSize.y * PULL_RATIO) - this._overlapSize.y);
+            }
+            else
+                this._container.y = newPosY;
+        }
+        if (sh) {
+            if (newPosX > 0) {
+                if (!this._bouncebackEffect)
+                    this._container.x = 0;
+                else if (this._header && this._header.maxWidth != 0)
+                    this._container.x = Math.floor(Math.min(newPosX * 0.5, this._header.maxWidth));
+                else
+                    this._container.x = Math.floor(Math.min(newPosX * 0.5, this._viewSize.x * PULL_RATIO));
+            }
+            else if (newPosX < 0 - this._overlapSize.x) {
+                if (!this._bouncebackEffect)
+                    this._container.x = -this._overlapSize.x;
+                else if (this._footer && this._footer.maxWidth > 0)
+                    this._container.x = Math.floor(Math.max((newPosX + this._overlapSize.x) * 0.5, -this._footer.maxWidth) - this._overlapSize.x);
+                else
+                    this._container.x = Math.floor(Math.max((newPosX + this._overlapSize.x) * 0.5, -this._viewSize.x * PULL_RATIO) - this._overlapSize.x);
+            }
+            else
+                this._container.x = newPosX;
+        }
+        //更新速度
+        var frameRate = this._owner.scene.game.config.fps.target;
+        var now = this._owner.scene.time.now; // Laya.timer.currTimer / 1000;
+        var deltaTime = Math.max(now - this._lastMoveTime, 1 / frameRate);
+        var deltaPositionX = this._beginTouchPos.x - this._lastTouchPos.x;
+        var deltaPositionY = this._beginTouchPos.y - this._lastTouchPos.y;
+        if (!sh)
+            deltaPositionX = 0;
+        if (!sv)
+            deltaPositionY = 0;
+        if (deltaTime != 0) {
+            var elapsed = deltaTime * frameRate - 1;
+            if (elapsed > 1) //速度衰减
+             {
+                var factor = Math.pow(0.833, elapsed);
+                this._velocity.x = this._velocity.x * factor;
+                this._velocity.y = this._velocity.y * factor;
+            }
+            this._velocity.x = ToolSet.lerp(this._velocity.x, deltaPositionX * 60 / frameRate / deltaTime, deltaTime * 10);
+            this._velocity.y = ToolSet.lerp(this._velocity.y, deltaPositionY * 60 / frameRate / deltaTime, deltaTime * 10);
+        }
+        /*速度计算使用的是本地位移，但在后续的惯性滚动判断中需要用到屏幕位移，所以这里要记录一个位移的比例。
+        */
+        var deltaGlobalPositionX = this._lastTouchGlobalPos.x - pointer.worldX;
+        var deltaGlobalPositionY = this._lastTouchGlobalPos.y - pointer.worldY;
+        if (deltaPositionX != 0)
+            this._velocityScale = Math.abs(deltaGlobalPositionX / deltaPositionX);
+        else if (deltaPositionY != 0)
+            this._velocityScale = Math.abs(deltaGlobalPositionY / deltaPositionY);
+        this._lastTouchPos.setTo(pointer.upX, pointer.upY);
+        this._lastTouchGlobalPos.setTo(pointer.worldX, pointer.worldY);
+        this._lastMoveTime = now;
+        //同步更新pos值
+        if (this._overlapSize.x > 0)
+            this._xPos = ToolSet.clamp(-this._container.x, 0, this._overlapSize.x);
+        if (this._overlapSize.y > 0)
+            this._yPos = ToolSet.clamp(-this._container.y, 0, this._overlapSize.y);
+        //循环滚动特别检查
+        if (this._loop != 0) {
+            newPosX = this._container.x;
+            newPosY = this._container.y;
+            if (this.loopCheckingCurrent()) {
+                this._containerPos.x += this._container.x - newPosX;
+                this._containerPos.y += this._container.y - newPosY;
+            }
+        }
+        ScrollPane.draggingPane = this;
+        this._isHoldAreaDone = true;
+        this._dragged = true;
+        this._maskContainer.disableInteractive();
+        this.updateScrollBarPos();
+        this.updateScrollBarVisible();
+        if (this._pageMode)
+            this.updatePageController();
+        Events.dispatch(Events.SCROLL, this._owner.displayObject);
+    }
+    __mouseUp() {
+        if (this._owner.isDisposed)
+            return;
+        this._owner.scene.input.off("pointermove", this.__mouseMove, this);
+        this._owner.scene.input.off("pointerup", this.__mouseUp, this);
+        this._owner.scene.input.off("pointerout", this.__mouseUp, this);
+        if (ScrollPane.draggingPane == this)
+            ScrollPane.draggingPane = null;
+        _gestureFlag = 0;
+        if (!this._dragged || !this._touchEffect) {
+            this._dragged = false;
+            if (this.maskScrollRect)
+                this._maskContainer.setInteractive(this.maskScrollRect, Phaser.Geom.Rectangle.Contains);
+            return;
+        }
+        this._dragged = false;
+        if (this.maskScrollRect)
+            this._maskContainer.setInteractive(this.maskScrollRect, Phaser.Geom.Rectangle.Contains);
+        this._tweenStart.setTo(this._container.x, this._container.y);
+        sEndPos.setTo(this._tweenStart.x, this._tweenStart.y);
+        var flag = false;
+        if (this._container.x > 0) {
+            sEndPos.x = 0;
+            flag = true;
+        }
+        else if (this._container.x < -this._overlapSize.x) {
+            sEndPos.x = -this._overlapSize.x;
+            flag = true;
+        }
+        if (this._container.y > 0) {
+            sEndPos.y = 0;
+            flag = true;
+        }
+        else if (this._container.y < -this._overlapSize.y) {
+            sEndPos.y = -this._overlapSize.y;
+            flag = true;
+        }
+        if (flag) {
+            this._tweenChange.setTo(sEndPos.x - this._tweenStart.x, sEndPos.y - this._tweenStart.y);
+            if (this._tweenChange.x < -UIConfig.touchDragSensitivity || this._tweenChange.y < -UIConfig.touchDragSensitivity) {
+                this._refreshEventDispatching = true;
+                Events.dispatch(Events.PULL_DOWN_RELEASE, this._owner.displayObject);
+                this._refreshEventDispatching = false;
+            }
+            else if (this._tweenChange.x > UIConfig.touchDragSensitivity || this._tweenChange.y > UIConfig.touchDragSensitivity) {
+                this._refreshEventDispatching = true;
+                Events.dispatch(Events.PULL_UP_RELEASE, this._owner.displayObject);
+                this._refreshEventDispatching = false;
+            }
+            if (this._headerLockedSize > 0 && sEndPos[this._refreshBarAxis] == 0) {
+                sEndPos[this._refreshBarAxis] = this._headerLockedSize;
+                this._tweenChange.x = sEndPos.x - this._tweenStart.x;
+                this._tweenChange.y = sEndPos.y - this._tweenStart.y;
+            }
+            else if (this._footerLockedSize > 0 && sEndPos[this._refreshBarAxis] == -this._overlapSize[this._refreshBarAxis]) {
+                var max = this._overlapSize[this._refreshBarAxis];
+                if (max == 0)
+                    max = Math.max(this._contentSize[this._refreshBarAxis] + this._footerLockedSize - this._viewSize[this._refreshBarAxis], 0);
+                else
+                    max += this._footerLockedSize;
+                sEndPos[this._refreshBarAxis] = -max;
+                this._tweenChange.x = sEndPos.x - this._tweenStart.x;
+                this._tweenChange.y = sEndPos.y - this._tweenStart.y;
+            }
+            this._tweenDuration.setTo(TWEEN_TIME_DEFAULT, TWEEN_TIME_DEFAULT);
+        }
+        else {
+            //更新速度
+            if (!this._inertiaDisabled) {
+                var frameRate = this._owner.scene.game.config.fps.target; // Laya.stage.frameRate == Laya.Stage.FRAME_SLOW ? 30 : 60;
+                var now = this._owner.scene.time.now;
+                var elapsed = (now - this._lastMoveTime) * frameRate - 1;
+                if (elapsed > 1) {
+                    var factor = Math.pow(0.833, elapsed);
+                    this._velocity.x = this._velocity.x * factor;
+                    this._velocity.y = this._velocity.y * factor;
+                }
+                //根据速度计算目标位置和需要时间
+                this.updateTargetAndDuration(this._tweenStart, sEndPos);
+            }
+            else
+                this._tweenDuration.setTo(TWEEN_TIME_DEFAULT, TWEEN_TIME_DEFAULT);
+            sOldChange.setTo(sEndPos.x - this._tweenStart.x, sEndPos.y - this._tweenStart.y);
+            //调整目标位置
+            this.loopCheckingTarget(sEndPos);
+            if (this._pageMode || this._snapToItem)
+                this.alignPosition(sEndPos, true);
+            this._tweenChange.x = sEndPos.x - this._tweenStart.x;
+            this._tweenChange.y = sEndPos.y - this._tweenStart.y;
+            if (this._tweenChange.x == 0 && this._tweenChange.y == 0) {
+                this.updateScrollBarVisible();
+                return;
+            }
+            //如果目标位置已调整，随之调整需要时间
+            if (this._pageMode || this._snapToItem) {
+                this.fixDuration("x", sOldChange.x);
+                this.fixDuration("y", sOldChange.y);
+            }
+        }
+        this.startTween(2);
+    }
+    __click() {
+        this._dragged = false;
+    }
+    __mouseWheel(pointer, gameObjects, deltaX, deltaY, deltaZ) {
+        if (!this._mouseWheelEnabled)
+            return;
+        var delta = deltaY;
+        delta = delta > 0 ? -1 : (delta < 0 ? 1 : 0);
+        if (this._overlapSize.x > 0 && this._overlapSize.y == 0) {
+            if (this._pageMode)
+                this.setPosX(this._xPos + this._pageSize.x * delta, false);
+            else
+                this.setPosX(this._xPos + this._mouseWheelStep * delta, false);
+        }
+        else {
+            if (this._pageMode)
+                this.setPosY(this._yPos + this._pageSize.y * delta, false);
+            else
+                this.setPosY(this._yPos + this._mouseWheelStep * delta, false);
+        }
+    }
+    updateScrollBarPos() {
+        if (this._vtScrollBar)
+            this._vtScrollBar.setScrollPerc(this._overlapSize.y == 0 ? 0 : ToolSet.clamp(-this._container.y, 0, this._overlapSize.y) / this._overlapSize.y);
+        if (this._hzScrollBar)
+            this._hzScrollBar.setScrollPerc(this._overlapSize.x == 0 ? 0 : ToolSet.clamp(-this._container.x, 0, this._overlapSize.x) / this._overlapSize.x);
+        this.checkRefreshBar();
+    }
+    updateScrollBarVisible() {
+        if (this._vtScrollBar) {
+            if (this._viewSize.y <= this._vtScrollBar.minSize || this._vScrollNone)
+                this._vtScrollBar.displayObject.visible = false;
+            else
+                this.updateScrollBarVisible2(this._vtScrollBar);
+        }
+        if (this._hzScrollBar) {
+            if (this._viewSize.x <= this._hzScrollBar.minSize || this._hScrollNone)
+                this._hzScrollBar.displayObject.visible = false;
+            else
+                this.updateScrollBarVisible2(this._hzScrollBar);
+        }
+    }
+    updateScrollBarVisible2(bar) {
+        if (this._scrollBarDisplayAuto)
+            GTween.kill(bar, false, "alpha");
+        if (this._scrollBarDisplayAuto && this._tweening == 0 && !this._dragged && !bar.gripDragging) {
+            if (bar.displayObject.visible)
+                GTween.to(1, 0, 0.5).setDelay(0.5).onComplete(this.__barTweenComplete, this).setTarget(bar, "alpha");
+        }
+        else {
+            bar.alpha = 1;
+            bar.displayObject.visible = true;
+        }
+    }
+    __barTweenComplete(tweener) {
+        var bar = (tweener.target);
+        bar.alpha = 1;
+        bar.displayObject.visible = false;
+    }
+    getLoopPartSize(division, axis) {
+        return (this._contentSize[axis] + (axis == "x" ? (this._owner).columnGap : (this._owner).lineGap)) / division;
+    }
+    loopCheckingCurrent() {
+        var changed = false;
+        if (this._loop == 1 && this._overlapSize.x > 0) {
+            if (this._xPos < 0.001) {
+                this._xPos += this.getLoopPartSize(2, "x");
+                changed = true;
+            }
+            else if (this._xPos >= this._overlapSize.x) {
+                this._xPos -= this.getLoopPartSize(2, "x");
+                changed = true;
+            }
+        }
+        else if (this._loop == 2 && this._overlapSize.y > 0) {
+            if (this._yPos < 0.001) {
+                this._yPos += this.getLoopPartSize(2, "y");
+                changed = true;
+            }
+            else if (this._yPos >= this._overlapSize.y) {
+                this._yPos -= this.getLoopPartSize(2, "y");
+                changed = true;
+            }
+        }
+        if (changed)
+            this._container.setPosition(Math.floor(-this._xPos), Math.floor(-this._yPos));
+        return changed;
+    }
+    loopCheckingTarget(endPos) {
+        if (this._loop == 1)
+            this.loopCheckingTarget2(endPos, "x");
+        if (this._loop == 2)
+            this.loopCheckingTarget2(endPos, "y");
+    }
+    loopCheckingTarget2(endPos, axis) {
+        var halfSize;
+        var tmp;
+        if (endPos[axis] > 0) {
+            halfSize = this.getLoopPartSize(2, axis);
+            tmp = this._tweenStart[axis] - halfSize;
+            if (tmp <= 0 && tmp >= -this._overlapSize[axis]) {
+                endPos[axis] -= halfSize;
+                this._tweenStart[axis] = tmp;
+            }
+        }
+        else if (endPos[axis] < -this._overlapSize[axis]) {
+            halfSize = this.getLoopPartSize(2, axis);
+            tmp = this._tweenStart[axis] + halfSize;
+            if (tmp <= 0 && tmp >= -this._overlapSize[axis]) {
+                endPos[axis] += halfSize;
+                this._tweenStart[axis] = tmp;
+            }
+        }
+    }
+    loopCheckingNewPos(value, axis) {
+        if (this._overlapSize[axis] == 0)
+            return value;
+        var setPosition = axis == "x" ? this._xPos : this._yPos;
+        var changed = false;
+        var v;
+        if (value < 0.001) {
+            value += this.getLoopPartSize(2, axis);
+            if (value > setPosition) {
+                v = this.getLoopPartSize(6, axis);
+                v = Math.ceil((value - setPosition) / v) * v;
+                setPosition = ToolSet.clamp(setPosition + v, 0, this._overlapSize[axis]);
+                changed = true;
+            }
+        }
+        else if (value >= this._overlapSize[axis]) {
+            value -= this.getLoopPartSize(2, axis);
+            if (value < setPosition) {
+                v = this.getLoopPartSize(6, axis);
+                v = Math.ceil((setPosition - value) / v) * v;
+                setPosition = ToolSet.clamp(setPosition - v, 0, this._overlapSize[axis]);
+                changed = true;
+            }
+        }
+        if (changed) {
+            if (axis == "x")
+                this._container.x = -Math.floor(setPosition);
+            else
+                this._container.y = -Math.floor(setPosition);
+        }
+        return value;
+    }
+    alignPosition(setPosition, inertialScrolling) {
+        if (this._pageMode) {
+            setPosition.x = this.alignByPage(setPosition.x, "x", inertialScrolling);
+            setPosition.y = this.alignByPage(setPosition.y, "y", inertialScrolling);
+        }
+        else if (this._snapToItem) {
+            var xDir = 0;
+            var yDir = 0;
+            if (inertialScrolling) {
+                xDir = setPosition.x - this._containerPos.x;
+                yDir = setPosition.y - this._containerPos.y;
+            }
+            var pt = this._owner.getSnappingPositionWithDir(-setPosition.x, -setPosition.y, xDir, yDir, s_vec2);
+            if (setPosition.x < 0 && setPosition.x > -this._overlapSize.x)
+                setPosition.x = -pt.x;
+            if (setPosition.y < 0 && setPosition.y > -this._overlapSize.y)
+                setPosition.y = -pt.y;
+        }
+    }
+    alignByPage(setPosition, axis, inertialScrolling) {
+        var page;
+        if (setPosition > 0)
+            page = 0;
+        else if (setPosition < -this._overlapSize[axis])
+            page = Math.ceil(this._contentSize[axis] / this._pageSize[axis]) - 1;
+        else {
+            page = Math.floor(-setPosition / this._pageSize[axis]);
+            var change = inertialScrolling ? (setPosition - this._containerPos[axis]) : (setPosition - this._container[axis]);
+            var testPageSize = Math.min(this._pageSize[axis], this._contentSize[axis] - (page + 1) * this._pageSize[axis]);
+            var delta = -setPosition - page * this._pageSize[axis];
+            //页面吸附策略
+            if (Math.abs(change) > this._pageSize[axis]) //如果滚动距离超过1页,则需要超过页面的一半，才能到更下一页
+             {
+                if (delta > testPageSize * 0.5)
+                    page++;
+            }
+            else //否则只需要页面的1/3，当然，需要考虑到左移和右移的情况
+             {
+                if (delta > testPageSize * (change < 0 ? UIConfig.defaultScrollPagingThreshold : (1 - UIConfig.defaultScrollPagingThreshold)))
+                    page++;
+            }
+            //重新计算终点
+            setPosition = -page * this._pageSize[axis];
+            if (setPosition < -this._overlapSize[axis]) //最后一页未必有pageSize那么大
+                setPosition = -this._overlapSize[axis];
+        }
+        //惯性滚动模式下，会增加判断尽量不要滚动超过一页
+        if (inertialScrolling) {
+            var oldPos = this._tweenStart[axis];
+            var oldPage;
+            if (oldPos > 0)
+                oldPage = 0;
+            else if (oldPos < -this._overlapSize[axis])
+                oldPage = Math.ceil(this._contentSize[axis] / this._pageSize[axis]) - 1;
+            else
+                oldPage = Math.floor(-oldPos / this._pageSize[axis]);
+            var startPage = Math.floor(-this._containerPos[axis] / this._pageSize[axis]);
+            if (Math.abs(page - startPage) > 1 && Math.abs(oldPage - startPage) <= 1) {
+                if (page > startPage)
+                    page = startPage + 1;
+                else
+                    page = startPage - 1;
+                setPosition = -page * this._pageSize[axis];
+            }
+        }
+        return setPosition;
+    }
+    updateTargetAndDuration(orignPos, resultPos) {
+        resultPos.x = this.updateTargetAndDuration2(orignPos.x, "x");
+        resultPos.y = this.updateTargetAndDuration2(orignPos.y, "y");
+    }
+    updateTargetAndDuration2(setPosition, axis) {
+        var v = this._velocity[axis];
+        var duration = 0;
+        if (setPosition > 0)
+            setPosition = 0;
+        else if (setPosition < -this._overlapSize[axis])
+            setPosition = -this._overlapSize[axis];
+        else {
+            //以屏幕像素为基准
+            var v2 = Math.abs(v) * this._velocityScale;
+            //在移动设备上，需要对不同分辨率做一个适配，我们的速度判断以1136分辨率为基准
+            const isMobile = this._owner.scene.game.device.os.desktop;
+            if (!isMobile)
+                this._owner.scene.game.config.width;
+            v2 *= 1136 / Math.max(Number(this._owner.scene.game.config.width), Number(this._owner.scene.game.config.height)); // Math.max(Laya.stage.width, Laya.stage.height);
+            //这里有一些阈值的处理，因为在低速内，不希望产生较大的滚动（甚至不滚动）
+            var ratio = 0;
+            if (this._pageMode || !isMobile) {
+                if (v2 > 500)
+                    ratio = Math.pow((v2 - 500) / 500, 2);
+            }
+            else {
+                if (v2 > 1000)
+                    ratio = Math.pow((v2 - 1000) / 1000, 2);
+            }
+            if (ratio != 0) {
+                if (ratio > 1)
+                    ratio = 1;
+                v2 *= ratio;
+                v *= ratio;
+                this._velocity[axis] = v;
+                //算法：v*（_decelerationRate的n次幂）= 60，即在n帧后速度降为60（假设每秒60帧）。
+                duration = Math.log(60 / v2) / Math.log(this._decelerationRate) / 60;
+                //计算距离要使用本地速度
+                //理论公式貌似滚动的距离不够，改为经验公式
+                //var change:number = (v/ 60 - 1) / (1 - this._decelerationRate);
+                var change = Math.floor(v * duration * 0.4);
+                setPosition += change;
+            }
+        }
+        if (duration < TWEEN_TIME_DEFAULT)
+            duration = TWEEN_TIME_DEFAULT;
+        this._tweenDuration[axis] = duration;
+        return setPosition;
+    }
+    fixDuration(axis, oldChange) {
+        if (this._tweenChange[axis] == 0 || Math.abs(this._tweenChange[axis]) >= Math.abs(oldChange))
+            return;
+        var newDuration = Math.abs(this._tweenChange[axis] / oldChange) * this._tweenDuration[axis];
+        if (newDuration < TWEEN_TIME_DEFAULT)
+            newDuration = TWEEN_TIME_DEFAULT;
+        this._tweenDuration[axis] = newDuration;
+    }
+    startTween(type) {
+        this._tweenTime.setTo(0, 0);
+        this._tweening = type;
+        if (!this._tweenUpdateTime)
+            this._tweenUpdateTime = this._owner.scene.time.addEvent(this._tweenUpdateTimeEvent);
+        // Laya.timer.frameLoop(1, this, this.tweenUpdate);
+        this.updateScrollBarVisible();
+    }
+    killTween() {
+        if (this._tweening == 1) //取消类型为1的tween需立刻设置到终点
+         {
+            this._container.setPosition(this._tweenStart.x + this._tweenChange.x, this._tweenStart.y + this._tweenChange.y);
+            Events.dispatch(Events.SCROLL, this._owner.displayObject);
+        }
+        this._tweening = 0;
+        if (this._tweenUpdateTime) {
+            this._tweenUpdateTime.remove(false);
+            this._tweenUpdateTime = null;
+            console.log("remove tweenupdate");
+        }
+        // Laya.timer.clear(this, this.tweenUpdate);
+        this.updateScrollBarVisible();
+        Events.dispatch(Events.SCROLL_END, this._owner.displayObject);
+    }
+    checkRefreshBar() {
+        if (!this._header && !this._footer)
+            return;
+        var setPosition = this._container[this._refreshBarAxis];
+        if (this._header) {
+            if (setPosition > 0) {
+                if (!this._header.displayObject.parentContainer)
+                    this._maskContainer.addAt(this._header.displayObject, 0);
+                var pt = s_vec2;
+                pt.setTo(this._header.width, this._header.height);
+                pt[this._refreshBarAxis] = setPosition;
+                this._header.setSize(pt.x, pt.y);
+            }
+            else {
+                if (this._header.displayObject.parentContainer)
+                    this._maskContainer.remove(this._header.displayObject);
+            }
+        }
+        if (this._footer) {
+            var max = this._overlapSize[this._refreshBarAxis];
+            if (setPosition < -max || max == 0 && this._footerLockedSize > 0) {
+                if (!this._footer.displayObject.parentContainer)
+                    this._maskContainer.addAt(this._footer.displayObject, 0);
+                pt = s_vec2;
+                pt.setTo(this._footer.x, this._footer.y);
+                if (max > 0)
+                    pt[this._refreshBarAxis] = setPosition + this._contentSize[this._refreshBarAxis];
+                else
+                    pt[this._refreshBarAxis] = Math.max(Math.min(setPosition + this._viewSize[this._refreshBarAxis], this._viewSize[this._refreshBarAxis] - this._footerLockedSize), this._viewSize[this._refreshBarAxis] - this._contentSize[this._refreshBarAxis]);
+                this._footer.setXY(pt.x, pt.y);
+                pt.setTo(this._footer.width, this._footer.height);
+                if (max > 0)
+                    pt[this._refreshBarAxis] = -max - setPosition;
+                else
+                    pt[this._refreshBarAxis] = this._viewSize[this._refreshBarAxis] - this._footer[this._refreshBarAxis];
+                this._footer.setSize(pt.x, pt.y);
+            }
+            else {
+                if (this._footer.displayObject.parentContainer)
+                    this._maskContainer.remove(this._footer.displayObject);
+            }
+        }
+    }
+    tweenUpdate() {
+        var nx = this.runTween("x");
+        var ny = this.runTween("y");
+        console.log(nx, ny);
+        this._container.setPosition(nx, ny);
+        if (this._tweening == 2) {
+            if (this._overlapSize.x > 0)
+                this._xPos = ToolSet.clamp(-nx, 0, this._overlapSize.x);
+            if (this._overlapSize.y > 0)
+                this._yPos = ToolSet.clamp(-ny, 0, this._overlapSize.y);
+            if (this._pageMode)
+                this.updatePageController();
+        }
+        if (this._tweenChange.x == 0 && this._tweenChange.y == 0) {
+            this._tweening = 0;
+            if (this._tweenUpdateTime) {
+                this._tweenUpdateTime.remove(false);
+                this._tweenUpdateTime = null;
+                console.log("remove tweenupdate");
+            }
+            // Laya.timer.clear(this, this.tweenUpdate);
+            this.loopCheckingCurrent();
+            this.updateScrollBarPos();
+            this.updateScrollBarVisible();
+            Events.dispatch(Events.SCROLL, this._owner.displayObject);
+            Events.dispatch(Events.SCROLL_END, this._owner.displayObject);
+        }
+        else {
+            this.updateScrollBarPos();
+            Events.dispatch(Events.SCROLL, this._owner.displayObject);
+        }
+    }
+    runTween(axis) {
+        var newValue;
+        if (this._tweenChange[axis] != 0) {
+            this._tweenTime[axis] += this._timeDelta; // Laya.timer.delta / 1000;
+            if (this._tweenTime[axis] >= this._tweenDuration[axis]) {
+                newValue = this._tweenStart[axis] + this._tweenChange[axis];
+                this._tweenChange[axis] = 0;
+            }
+            else {
+                var ratio = easeFunc(this._tweenTime[axis], this._tweenDuration[axis]);
+                newValue = this._tweenStart[axis] + Math.floor(this._tweenChange[axis] * ratio);
+            }
+            var threshold1 = 0;
+            var threshold2 = -this._overlapSize[axis];
+            if (this._headerLockedSize > 0 && this._refreshBarAxis == axis)
+                threshold1 = this._headerLockedSize;
+            if (this._footerLockedSize > 0 && this._refreshBarAxis == axis) {
+                var max = this._overlapSize[this._refreshBarAxis];
+                if (max == 0)
+                    max = Math.max(this._contentSize[this._refreshBarAxis] + this._footerLockedSize - this._viewSize[this._refreshBarAxis], 0);
+                else
+                    max += this._footerLockedSize;
+                threshold2 = -max;
+            }
+            if (this._tweening == 2 && this._bouncebackEffect) {
+                if (newValue > 20 + threshold1 && this._tweenChange[axis] > 0
+                    || newValue > threshold1 && this._tweenChange[axis] == 0) //开始回弹
+                 {
+                    this._tweenTime[axis] = 0;
+                    this._tweenDuration[axis] = TWEEN_TIME_DEFAULT;
+                    this._tweenChange[axis] = -newValue + threshold1;
+                    this._tweenStart[axis] = newValue;
+                }
+                else if (newValue < threshold2 - 20 && this._tweenChange[axis] < 0
+                    || newValue < threshold2 && this._tweenChange[axis] == 0) //开始回弹
+                 {
+                    this._tweenTime[axis] = 0;
+                    this._tweenDuration[axis] = TWEEN_TIME_DEFAULT;
+                    this._tweenChange[axis] = threshold2 - newValue;
+                    this._tweenStart[axis] = newValue;
+                }
+            }
+            else {
+                if (newValue > threshold1) {
+                    newValue = threshold1;
+                    this._tweenChange[axis] = 0;
+                }
+                else if (newValue < threshold2) {
+                    newValue = threshold2;
+                    this._tweenChange[axis] = 0;
+                }
+            }
+        }
+        else
+            newValue = this._container[axis];
+        return newValue;
+    }
+}
+var _gestureFlag = 0;
+const TWEEN_TIME_GO = 0.5; //调用SetPos(ani)时使用的缓动时间
+const TWEEN_TIME_DEFAULT = 0.3; //惯性滚动的最小缓动时间
+const PULL_RATIO = 0.5; //下拉过顶或者上拉过底时允许超过的距离占显示区域的比例
+var s_vec2 = new Phaser.Geom.Point();
+var s_rect = new Phaser.Geom.Rectangle();
+var sEndPos = new Phaser.Geom.Point();
+var sOldChange = new Phaser.Geom.Point();
+function easeFunc(t, d) {
+    return (t = t / d - 1) * t * t + 1; //cubicOut
+}
 
 class Transition {
     constructor(owner) {
@@ -10430,7 +10852,7 @@ class GComponent extends GObject {
                     if (g.inContainer)
                         displayIndex++;
                 }
-                if (displayIndex === this._container.displayList.length)
+                if (displayIndex === this._container.list.length)
                     displayIndex--;
                 this._container.addAt(child.displayObject, displayIndex);
             }
@@ -10440,7 +10862,7 @@ class GComponent extends GObject {
                     if (g.inContainer)
                         displayIndex++;
                 }
-                if (displayIndex === this._container.displayList.length)
+                if (displayIndex === this._container.list.length)
                     displayIndex--;
                 this._container.addAt(child.displayObject, displayIndex);
             }
@@ -11294,9 +11716,9 @@ class GRoot extends GComponent {
     constructor() {
         super();
     }
-    // public get displayObject(): Phaser.GameObjects.Container {
-    //     return this._uiStage.dis;
-    // }
+    get emitter() {
+        return this._uiStage;
+    }
     static get inst() {
         if (GRoot._inst == null)
             GRoot._inst = new GRoot();
@@ -12209,14 +12631,18 @@ class GObjectPool {
     getObject(url) {
         return new Promise((reslove, reject) => {
             url = UIPackage.normalizeURL(url);
-            if (url == null)
+            if (url == null) {
+                console.log("getObject null", url);
                 return reslove(null);
+            }
             var arr = this._pool[url];
             if (arr && arr.length > 0) {
                 this._count--;
+                console.log("getObject arr.shift");
                 return reslove(arr.shift());
             }
             UIPackage.createObjectFromURL(url).then((obj) => {
+                console.log("getObject create");
                 return reslove(obj);
             });
         });
@@ -12236,8 +12662,8 @@ class GObjectPool {
 }
 
 class GLoader extends GObject {
-    constructor() {
-        super();
+    constructor(scene) {
+        super(scene);
         this._url = "";
         this._fill = LoaderFillType.None;
         this._align = "left";
@@ -12246,9 +12672,9 @@ class GLoader extends GObject {
     }
     createDisplayObject() {
         super.createDisplayObject();
-        throw new Error("TODO");
-        // this._content = new MovieClip();
-        // this._displayObject.addChild(this._content);
+        this._content = new MovieClip(this.scene);
+        this._content["$owner"] = this;
+        this._displayObject.add(this._content);
         // this._displayObject.mouseEnabled = true;
     }
     dispose() {
@@ -12470,13 +12896,12 @@ class GLoader extends GObject {
     freeExternal(texture) {
     }
     onExternalLoadSuccess(texture) {
-        throw new Error("TODO");
-        // this._content.texture = texture;
-        // this._content.scale9Grid = null;
-        // this._content.scaleByTile = false;
-        // this.sourceWidth = texture.width;
-        // this.sourceHeight = texture.height;
-        // this.updateLayout();
+        this._content.texture = texture;
+        this._content.scale9Grid = null;
+        this._content.scaleByTile = false;
+        this.sourceWidth = texture.source[0].width;
+        this.sourceHeight = texture.source[0].height;
+        this.updateLayout();
     }
     onExternalLoadFailed() {
         this.setErrorState();
@@ -12496,8 +12921,7 @@ class GLoader extends GObject {
                     this._errorSign = obj;
                     if (this._errorSign) {
                         this._errorSign.setSize(this.width, this.height);
-                        throw new Error("TODO");
-                        // this._displayObject.addChild(this._errorSign.displayObject);
+                        this._displayObject.add(this._errorSign.displayObject);
                     }
                 });
             }
@@ -12505,93 +12929,94 @@ class GLoader extends GObject {
     }
     clearErrorState() {
         if (this._errorSign) {
-            throw new Error("TODO");
+            this._displayObject.remove(this._errorSign.displayObject);
+            GLoader._errorSignPool.returnObject(this._errorSign);
+            this._errorSign = null;
         }
     }
     updateLayout() {
-        throw new Error("TODO");
-        // if (!this._content2 && !this._content.texture && !this._content.frames) {
-        //     if (this._autoSize) {
-        //         this._updatingLayout = true;
-        //         this.setSize(50, 30);
-        //         this._updatingLayout = false;
-        //     }
-        //     return;
-        // }
-        // let cw = this.sourceWidth;
-        // let ch = this.sourceHeight;
-        // if (this._autoSize) {
-        //     this._updatingLayout = true;
-        //     if (cw == 0)
-        //         cw = 50;
-        //     if (ch == 0)
-        //         ch = 30;
-        //     this.setSize(cw, ch);
-        //     this._updatingLayout = false;
-        //     if (cw == this._width && ch == this._height) {
-        //         if (this._content2) {
-        //             this._content2.setXY(0, 0);
-        //             this._content2.setScale(1, 1);
-        //         }
-        //         else {
-        //             this._content.size(cw, ch);
-        //             this._content.pos(0, 0);
-        //         }
-        //         return;
-        //     }
-        // }
-        // var sx: number = 1, sy: number = 1;
-        // if (this._fill != LoaderFillType.None) {
-        //     sx = this.width / this.sourceWidth;
-        //     sy = this.height / this.sourceHeight;
-        //     if (sx != 1 || sy != 1) {
-        //         if (this._fill == LoaderFillType.ScaleMatchHeight)
-        //             sx = sy;
-        //         else if (this._fill == LoaderFillType.ScaleMatchWidth)
-        //             sy = sx;
-        //         else if (this._fill == LoaderFillType.Scale) {
-        //             if (sx > sy)
-        //                 sx = sy;
-        //             else
-        //                 sy = sx;
-        //         }
-        //         else if (this._fill == LoaderFillType.ScaleNoBorder) {
-        //             if (sx > sy)
-        //                 sy = sx;
-        //             else
-        //                 sx = sy;
-        //         }
-        //         if (this._shrinkOnly) {
-        //             if (sx > 1)
-        //                 sx = 1;
-        //             if (sy > 1)
-        //                 sy = 1;
-        //         }
-        //         cw = this.sourceWidth * sx;
-        //         ch = this.sourceHeight * sy;
-        //     }
-        // }
-        // if (this._content2)
-        //     this._content2.setScale(sx, sy);
-        // else
-        //     this._content.size(cw, ch);
-        // var nx: number, ny: number;
-        // if (this._align == "center")
-        //     nx = Math.floor((this.width - cw) / 2);
-        // else if (this._align == "right")
-        //     nx = this.width - cw;
-        // else
-        //     nx = 0;
-        // if (this._valign == "middle")
-        //     ny = Math.floor((this.height - ch) / 2);
-        // else if (this._valign == "bottom")
-        //     ny = this.height - ch;
-        // else
-        //     ny = 0;
-        // if (this._content2)
-        //     this._content2.setXY(nx, ny);
-        // else
-        //     this._content.pos(nx, ny);
+        if (!this._content2 && !this._content.texture && !this._content.frames) {
+            if (this._autoSize) {
+                this._updatingLayout = true;
+                this.setSize(50, 30);
+                this._updatingLayout = false;
+            }
+            return;
+        }
+        let cw = this.sourceWidth;
+        let ch = this.sourceHeight;
+        if (this._autoSize) {
+            this._updatingLayout = true;
+            if (cw == 0)
+                cw = 50;
+            if (ch == 0)
+                ch = 30;
+            this.setSize(cw, ch);
+            this._updatingLayout = false;
+            if (cw == this._width && ch == this._height) {
+                if (this._content2) {
+                    this._content2.setXY(0, 0);
+                    this._content2.setScale(1, 1);
+                }
+                else {
+                    this._content.setSize(cw, ch);
+                    this._content.setPosition(0, 0);
+                }
+                return;
+            }
+        }
+        var sx = 1, sy = 1;
+        if (this._fill != LoaderFillType.None) {
+            sx = this.width / this.sourceWidth;
+            sy = this.height / this.sourceHeight;
+            if (sx != 1 || sy != 1) {
+                if (this._fill == LoaderFillType.ScaleMatchHeight)
+                    sx = sy;
+                else if (this._fill == LoaderFillType.ScaleMatchWidth)
+                    sy = sx;
+                else if (this._fill == LoaderFillType.Scale) {
+                    if (sx > sy)
+                        sx = sy;
+                    else
+                        sy = sx;
+                }
+                else if (this._fill == LoaderFillType.ScaleNoBorder) {
+                    if (sx > sy)
+                        sy = sx;
+                    else
+                        sx = sy;
+                }
+                if (this._shrinkOnly) {
+                    if (sx > 1)
+                        sx = 1;
+                    if (sy > 1)
+                        sy = 1;
+                }
+                cw = this.sourceWidth * sx;
+                ch = this.sourceHeight * sy;
+            }
+        }
+        if (this._content2)
+            this._content2.setScale(sx, sy);
+        else
+            this._content.setSize(cw, ch);
+        var nx, ny;
+        if (this._align == "center")
+            nx = Math.floor((this.width - cw) / 2);
+        else if (this._align == "right")
+            nx = this.width - cw;
+        else
+            nx = 0;
+        if (this._valign == "middle")
+            ny = Math.floor((this.height - ch) / 2);
+        else if (this._valign == "bottom")
+            ny = this.height - ch;
+        else
+            ny = 0;
+        if (this._content2)
+            this._content2.setXY(nx, ny);
+        else
+            this._content.setPosition(nx, ny);
     }
     clearContent() {
         this.clearErrorState();
@@ -14195,6 +14620,8 @@ class GList extends GComponent {
         this._curLineItemCount = 0; //item count in one line
         this._virtualListChanged = 0; //1-content changed, 2-size changed
         this.itemInfoVer = 0; //用来标志item是否在本次处理中已经被重用了
+        this._timeDelta = 500;
+        this._refreshListEvent = { delay: this._timeDelta, callback: this._refreshVirtualList, callbackScope: this };
         this._trackBounds = true;
         this._pool = new GObjectPool();
         this._layout = ListLayoutType.SingleColumn;
@@ -14358,7 +14785,7 @@ class GList extends GComponent {
             child.changeStateOnClick = false;
         }
         // todo click
-        // child.on(Laya.Event.CLICK, this, this.__clickItem);
+        child.on("pointerup", this.__clickItem, this);
         return child;
     }
     addItem(url) {
@@ -14370,7 +14797,6 @@ class GList extends GComponent {
                 reslove(obj);
             });
         });
-        // throw new Error("TODO");
     }
     addItemFromPool(url) {
         return new Promise((reslove, reject) => {
@@ -14385,6 +14811,9 @@ class GList extends GComponent {
             super.removeChildAt(index).then((obj) => {
                 if (dispose) {
                     obj.dispose();
+                }
+                else {
+                    obj.off("pointerup", this.__clickItem, this);
                 }
                 reslove(obj);
             });
@@ -14733,75 +15162,75 @@ class GList extends GComponent {
                 break;
         }
     }
-    __clickItem(evt) {
-        // if (this._scrollPane && this._scrollPane.isDragged)
-        //     return;
-        // var item: GObject = GObject.cast(evt.currentTarget);
-        // this.setSelectionOnEvent(item, evt);
-        // if (this._scrollPane && this.scrollItemToViewOnClick)
-        //     this._scrollPane.scrollToView(item, true);
-        // this.dispatchItemEvent(item, Events.createEvent(Events.CLICK_ITEM, this.displayObject, evt));
+    __clickItem(pointer, gameObject) {
+        if (this._scrollPane && this._scrollPane.isDragged)
+            return;
+        var item = (gameObject["$owner"]);
+        this.setSelectionOnEvent(item, { target: gameObject });
+        if (this._scrollPane && this.scrollItemToViewOnClick)
+            this._scrollPane.scrollToView(item, true);
+        this.dispatchItemEvent(item, Events.createEvent(Events.CLICK_ITEM, this.displayObject, { target: gameObject, touchId: pointer.id }));
     }
     dispatchItemEvent(item, evt) {
-        // this.displayObject.event(Events.CLICK_ITEM, [item, evt]);
+        this.displayObject.emit(Events.CLICK_ITEM, [item, evt]);
     }
     setSelectionOnEvent(item, evt) {
-        // if (!(item instanceof GButton) || this._selectionMode == ListSelectionMode.None)
-        //     return;
-        // var dontChangeLastIndex: boolean = false;
-        // var index: number = this.childIndexToItemIndex(this.getChildIndex(item));
-        // if (this._selectionMode == ListSelectionMode.Single) {
-        //     if (!item.selected) {
-        //         this.clearSelectionExcept(item);
-        //         item.selected = true;
-        //     }
-        // }
-        // else {
-        //     if (evt.shiftKey) {
-        //         if (!item.selected) {
-        //             if (this._lastSelectedIndex != -1) {
-        //                 var min: number = Math.min(this._lastSelectedIndex, index);
-        //                 var max: number = Math.max(this._lastSelectedIndex, index);
-        //                 max = Math.min(max, this.numItems - 1);
-        //                 var i: number;
-        //                 if (this._virtual) {
-        //                     for (i = min; i <= max; i++) {
-        //                         var ii: ItemInfo = this._virtualItems[i];
-        //                         if (ii.obj instanceof GButton)
-        //                             ii.obj.selected = true;
-        //                         ii.selected = true;
-        //                     }
-        //                 }
-        //                 else {
-        //                     for (i = min; i <= max; i++) {
-        //                         var obj: GObject = this.getChildAt(i);
-        //                         if (obj instanceof GButton)
-        //                             obj.selected = true;
-        //                     }
-        //                 }
-        //                 dontChangeLastIndex = true;
-        //             }
-        //             else {
-        //                 item.selected = true;
-        //             }
-        //         }
-        //     }
-        //     else if (evt.ctrlKey || this._selectionMode == ListSelectionMode.Multiple_SingleClick) {
-        //         item.selected = !item.selected;
-        //     }
-        //     else {
-        //         if (!item.selected) {
-        //             this.clearSelectionExcept(item);
-        //             item.selected = true;
-        //         }
-        //         else
-        //             this.clearSelectionExcept(item);
-        //     }
-        // }
-        // if (!dontChangeLastIndex)
-        //     this._lastSelectedIndex = index;
-        // if (item.selected)
-        //     this.updateSelectionController(index);
+        if (!(item instanceof GButton) || this._selectionMode == ListSelectionMode.None)
+            return;
+        var dontChangeLastIndex = false;
+        var index = this.childIndexToItemIndex(this.getChildIndex(item));
+        if (this._selectionMode == ListSelectionMode.Single) {
+            if (!item.selected) {
+                this.clearSelectionExcept(item);
+                item.selected = true;
+            }
+        }
+        else {
+            if (evt.shiftKey) {
+                if (!item.selected) {
+                    if (this._lastSelectedIndex != -1) {
+                        var min = Math.min(this._lastSelectedIndex, index);
+                        var max = Math.max(this._lastSelectedIndex, index);
+                        max = Math.min(max, this.numItems - 1);
+                        var i;
+                        if (this._virtual) {
+                            for (i = min; i <= max; i++) {
+                                var ii = this._virtualItems[i];
+                                if (ii.obj instanceof GButton)
+                                    ii.obj.selected = true;
+                                ii.selected = true;
+                            }
+                        }
+                        else {
+                            for (i = min; i <= max; i++) {
+                                var obj = this.getChildAt(i);
+                                if (obj instanceof GButton)
+                                    obj.selected = true;
+                            }
+                        }
+                        dontChangeLastIndex = true;
+                    }
+                    else {
+                        item.selected = true;
+                    }
+                }
+            }
+            else if (evt.ctrlKey || this._selectionMode == ListSelectionMode.Multiple_SingleClick) {
+                item.selected = !item.selected;
+            }
+            else {
+                if (!item.selected) {
+                    this.clearSelectionExcept(item);
+                    item.selected = true;
+                }
+                else
+                    this.clearSelectionExcept(item);
+            }
+        }
+        if (!dontChangeLastIndex)
+            this._lastSelectedIndex = index;
+        if (item.selected)
+            this.updateSelectionController(index);
     }
     resizeToFit(itemCount, minSize) {
         if (itemCount == null)
@@ -15028,43 +15457,44 @@ class GList extends GComponent {
         this._setVirtual(true);
     }
     _setVirtual(loop) {
-        // if (!this._virtual) {
-        //     if (this._scrollPane == null)
-        //         throw new Error("Virtual list must be scrollable!");
-        //     if (loop) {
-        //         if (this._layout == ListLayoutType.FlowHorizontal || this._layout == ListLayoutType.FlowVertical)
-        //             throw new Error("Loop list instanceof not supported for FlowHorizontal or FlowVertical this.layout!");
-        //         this._scrollPane.bouncebackEffect = false;
-        //     }
-        //     this._virtual = true;
-        //     this._loop = loop;
-        //     this._virtualItems = new Array<ItemInfo>();
-        //     this.removeChildrenToPool();
-        //     if (this._itemSize == null) {
-        //         this._itemSize = new Phaser.Geom.Point();
-        //         var obj: GObject = this.getFromPool(null);
-        //         if (obj == null) {
-        //             throw new Error("Virtual List must have a default list item resource.");
-        //         }
-        //         else {
-        //             this._itemSize.x = obj.width;
-        //             this._itemSize.y = obj.height;
-        //         }
-        //         this.returnToPool(obj);
-        //     }
-        //     if (this._layout == ListLayoutType.SingleColumn || this._layout == ListLayoutType.FlowHorizontal) {
-        //         this._scrollPane.scrollStep = this._itemSize.y;
-        //         if (this._loop)
-        //             this._scrollPane._loop = 2;
-        //     }
-        //     else {
-        //         this._scrollPane.scrollStep = this._itemSize.x;
-        //         if (this._loop)
-        //             this._scrollPane._loop = 1;
-        //     }
-        //     this.on(Events.SCROLL, this, this.__scrolled);
-        //     this.setVirtualListChangedFlag(true);
-        // }
+        if (!this._virtual) {
+            if (this._scrollPane == null)
+                throw new Error("Virtual list must be scrollable!");
+            if (loop) {
+                if (this._layout == ListLayoutType.FlowHorizontal || this._layout == ListLayoutType.FlowVertical)
+                    throw new Error("Loop list instanceof not supported for FlowHorizontal or FlowVertical this.layout!");
+                this._scrollPane.bouncebackEffect = false;
+            }
+            this._virtual = true;
+            this._loop = loop;
+            this._virtualItems = new Array();
+            this.removeChildrenToPool();
+            if (this._itemSize == null) {
+                this._itemSize = new Phaser.Geom.Point();
+                this.getFromPool(null).then((obj) => {
+                    if (obj == null) {
+                        throw new Error("Virtual List must have a default list item resource.");
+                    }
+                    else {
+                        this._itemSize.x = obj.width;
+                        this._itemSize.y = obj.height;
+                    }
+                    this.returnToPool(obj);
+                });
+            }
+            if (this._layout == ListLayoutType.SingleColumn || this._layout == ListLayoutType.FlowHorizontal) {
+                this._scrollPane.scrollStep = this._itemSize.y;
+                if (this._loop)
+                    this._scrollPane._loop = 2;
+            }
+            else {
+                this._scrollPane.scrollStep = this._itemSize.x;
+                if (this._loop)
+                    this._scrollPane._loop = 1;
+            }
+            this.on(Events.SCROLL, this.__scrolled, this);
+            this.setVirtualListChangedFlag(true);
+        }
     }
     /**
      * Set the list item count.
@@ -15078,729 +15508,801 @@ class GList extends GComponent {
             return this._children.length;
     }
     set numItems(value) {
-        // var i: number;
-        // if (this._virtual) {
-        //     if (this.itemRenderer == null)
-        //         throw new Error("set itemRenderer first!");
-        //     this._numItems = value;
-        //     if (this._loop)
-        //         this._realNumItems = this._numItems * 6;//设置6倍数量，用于循环滚动
-        //     else
-        //         this._realNumItems = this._numItems;
-        //     //_virtualItems的设计是只增不减的
-        //     var oldCount: number = this._virtualItems.length;
-        //     if (this._realNumItems > oldCount) {
-        //         for (i = oldCount; i < this._realNumItems; i++) {
-        //             var ii: ItemInfo = {
-        //                 width: this._itemSize.x,
-        //                 height: this._itemSize.y,
-        //                 updateFlag: 0
-        //             };
-        //             this._virtualItems.push(ii);
-        //         }
-        //     }
-        //     else {
-        //         for (i = this._realNumItems; i < oldCount; i++)
-        //             this._virtualItems[i].selected = false;
-        //     }
-        //     if (this._virtualListChanged != 0)
-        //         Laya.timer.clear(this, this._refreshVirtualList);
-        //     //立即刷新
-        //     this._refreshVirtualList();
-        // }
-        // else {
-        //     var cnt: number = this._children.length;
-        //     if (value > cnt) {
-        //         for (i = cnt; i < value; i++) {
-        //             if (this.itemProvider == null)
-        //                 this.addItemFromPool();
-        //             else
-        //                 this.addItemFromPool(this.itemProvider.runWith(i));
-        //         }
-        //     }
-        //     else {
-        //         this.removeChildrenToPool(value, cnt);
-        //     }
-        //     if (this.itemRenderer != null) {
-        //         for (i = 0; i < value; i++)
-        //             this.itemRenderer.runWith([i, this.getChildAt(i)]);
-        //     }
-        // }
+        var i;
+        if (this._virtual) {
+            if (this.itemRenderer == null)
+                throw new Error("set itemRenderer first!");
+            this._numItems = value;
+            if (this._loop)
+                this._realNumItems = this._numItems * 6; //设置6倍数量，用于循环滚动
+            else
+                this._realNumItems = this._numItems;
+            //_virtualItems的设计是只增不减的
+            var oldCount = this._virtualItems.length;
+            if (this._realNumItems > oldCount) {
+                for (i = oldCount; i < this._realNumItems; i++) {
+                    var ii = {
+                        width: this._itemSize.x,
+                        height: this._itemSize.y,
+                        updateFlag: 0
+                    };
+                    this._virtualItems.push(ii);
+                }
+            }
+            else {
+                for (i = this._realNumItems; i < oldCount; i++)
+                    this._virtualItems[i].selected = false;
+            }
+            if (this._virtualListChanged != 0) {
+                if (this._refreshListTime) {
+                    this._refreshListTime.remove(false);
+                    this._refreshListTime = null;
+                }
+                //Laya.timer.clear(this, this._refreshVirtualList);
+            }
+            //立即刷新
+            this._refreshVirtualList();
+        }
+        else {
+            var cnt = this._children.length;
+            if (value > cnt) {
+                for (i = cnt; i < value; i++) {
+                    if (this.itemProvider == null)
+                        this.addItemFromPool();
+                    else
+                        this.addItemFromPool(this.itemProvider.runWith(i));
+                }
+            }
+            else {
+                this.removeChildrenToPool(value, cnt);
+            }
+            if (this.itemRenderer != null) {
+                for (i = 0; i < value; i++)
+                    this.itemRenderer.runWith([i, this.getChildAt(i)]);
+            }
+        }
     }
     refreshVirtualList() {
         this.setVirtualListChangedFlag(false);
     }
     checkVirtualList() {
-        // if (this._virtualListChanged != 0) {
-        //     this._refreshVirtualList();
-        //     Laya.timer.clear(this, this._refreshVirtualList);
-        // }
+        if (this._virtualListChanged != 0) {
+            this._refreshVirtualList();
+            if (this._refreshListTime) {
+                this._refreshListTime.remove(false);
+                this._refreshListTime = null;
+            }
+            // Laya.timer.clear(this, this._refreshVirtualList);
+        }
     }
     setVirtualListChangedFlag(layoutChanged) {
-        // if (layoutChanged)
-        //     this._virtualListChanged = 2;
-        // else if (this._virtualListChanged == 0)
-        //     this._virtualListChanged = 1;
+        if (layoutChanged)
+            this._virtualListChanged = 2;
+        else if (this._virtualListChanged == 0)
+            this._virtualListChanged = 1;
+        if (!this._refreshListTime)
+            this._refreshListTime = this.scene.time.addEvent(this._refreshListEvent);
         // Laya.timer.callLater(this, this._refreshVirtualList);
     }
     _refreshVirtualList() {
-        // if (!this._displayObject)
-        //     return;
-        // var layoutChanged: boolean = this._virtualListChanged == 2;
-        // this._virtualListChanged = 0;
-        // this._eventLocked = true;
-        // if (layoutChanged) {
-        //     if (this._layout == ListLayoutType.SingleColumn || this._layout == ListLayoutType.SingleRow)
-        //         this._curLineItemCount = 1;
-        //     else if (this._layout == ListLayoutType.FlowHorizontal) {
-        //         if (this._columnCount > 0)
-        //             this._curLineItemCount = this._columnCount;
-        //         else {
-        //             this._curLineItemCount = Math.floor((this._scrollPane.viewWidth + this._columnGap) / (this._itemSize.x + this._columnGap));
-        //             if (this._curLineItemCount <= 0)
-        //                 this._curLineItemCount = 1;
-        //         }
-        //     }
-        //     else if (this._layout == ListLayoutType.FlowVertical) {
-        //         if (this._lineCount > 0)
-        //             this._curLineItemCount = this._lineCount;
-        //         else {
-        //             this._curLineItemCount = Math.floor((this._scrollPane.viewHeight + this._lineGap) / (this._itemSize.y + this._lineGap));
-        //             if (this._curLineItemCount <= 0)
-        //                 this._curLineItemCount = 1;
-        //         }
-        //     }
-        //     else //pagination
-        //     {
-        //         if (this._columnCount > 0)
-        //             this._curLineItemCount = this._columnCount;
-        //         else {
-        //             this._curLineItemCount = Math.floor((this._scrollPane.viewWidth + this._columnGap) / (this._itemSize.x + this._columnGap));
-        //             if (this._curLineItemCount <= 0)
-        //                 this._curLineItemCount = 1;
-        //         }
-        //         if (this._lineCount > 0)
-        //             this._curLineItemCount2 = this._lineCount;
-        //         else {
-        //             this._curLineItemCount2 = Math.floor((this._scrollPane.viewHeight + this._lineGap) / (this._itemSize.y + this._lineGap));
-        //             if (this._curLineItemCount2 <= 0)
-        //                 this._curLineItemCount2 = 1;
-        //         }
-        //     }
-        // }
-        // var ch: number = 0, cw: number = 0;
-        // if (this._realNumItems > 0) {
-        //     var i: number;
-        //     var len: number = Math.ceil(this._realNumItems / this._curLineItemCount) * this._curLineItemCount;
-        //     var len2: number = Math.min(this._curLineItemCount, this._realNumItems);
-        //     if (this._layout == ListLayoutType.SingleColumn || this._layout == ListLayoutType.FlowHorizontal) {
-        //         for (i = 0; i < len; i += this._curLineItemCount)
-        //             ch += this._virtualItems[i].height + this._lineGap;
-        //         if (ch > 0)
-        //             ch -= this._lineGap;
-        //         if (this._autoResizeItem)
-        //             cw = this._scrollPane.viewWidth;
-        //         else {
-        //             for (i = 0; i < len2; i++)
-        //                 cw += this._virtualItems[i].width + this._columnGap;
-        //             if (cw > 0)
-        //                 cw -= this._columnGap;
-        //         }
-        //     }
-        //     else if (this._layout == ListLayoutType.SingleRow || this._layout == ListLayoutType.FlowVertical) {
-        //         for (i = 0; i < len; i += this._curLineItemCount)
-        //             cw += this._virtualItems[i].width + this._columnGap;
-        //         if (cw > 0)
-        //             cw -= this._columnGap;
-        //         if (this._autoResizeItem)
-        //             ch = this._scrollPane.viewHeight;
-        //         else {
-        //             for (i = 0; i < len2; i++)
-        //                 ch += this._virtualItems[i].height + this._lineGap;
-        //             if (ch > 0)
-        //                 ch -= this._lineGap;
-        //         }
-        //     }
-        //     else {
-        //         var pageCount: number = Math.ceil(len / (this._curLineItemCount * this._curLineItemCount2));
-        //         cw = pageCount * this.viewWidth;
-        //         ch = this.viewHeight;
-        //     }
-        // }
-        // this.handleAlign(cw, ch);
-        // this._scrollPane.setContentSize(cw, ch);
-        // this._eventLocked = false;
-        // this.handleScroll(true);
+        if (!this._displayObject)
+            return;
+        var layoutChanged = this._virtualListChanged == 2;
+        this._virtualListChanged = 0;
+        this._eventLocked = true;
+        if (layoutChanged) {
+            if (this._layout == ListLayoutType.SingleColumn || this._layout == ListLayoutType.SingleRow)
+                this._curLineItemCount = 1;
+            else if (this._layout == ListLayoutType.FlowHorizontal) {
+                if (this._columnCount > 0)
+                    this._curLineItemCount = this._columnCount;
+                else {
+                    this._curLineItemCount = Math.floor((this._scrollPane.viewWidth + this._columnGap) / (this._itemSize.x + this._columnGap));
+                    if (this._curLineItemCount <= 0)
+                        this._curLineItemCount = 1;
+                }
+            }
+            else if (this._layout == ListLayoutType.FlowVertical) {
+                if (this._lineCount > 0)
+                    this._curLineItemCount = this._lineCount;
+                else {
+                    this._curLineItemCount = Math.floor((this._scrollPane.viewHeight + this._lineGap) / (this._itemSize.y + this._lineGap));
+                    if (this._curLineItemCount <= 0)
+                        this._curLineItemCount = 1;
+                }
+            }
+            else //pagination
+             {
+                if (this._columnCount > 0)
+                    this._curLineItemCount = this._columnCount;
+                else {
+                    this._curLineItemCount = Math.floor((this._scrollPane.viewWidth + this._columnGap) / (this._itemSize.x + this._columnGap));
+                    if (this._curLineItemCount <= 0)
+                        this._curLineItemCount = 1;
+                }
+                if (this._lineCount > 0)
+                    this._curLineItemCount2 = this._lineCount;
+                else {
+                    this._curLineItemCount2 = Math.floor((this._scrollPane.viewHeight + this._lineGap) / (this._itemSize.y + this._lineGap));
+                    if (this._curLineItemCount2 <= 0)
+                        this._curLineItemCount2 = 1;
+                }
+            }
+        }
+        var ch = 0, cw = 0;
+        if (this._realNumItems > 0) {
+            var i;
+            var len = Math.ceil(this._realNumItems / this._curLineItemCount) * this._curLineItemCount;
+            var len2 = Math.min(this._curLineItemCount, this._realNumItems);
+            if (this._layout == ListLayoutType.SingleColumn || this._layout == ListLayoutType.FlowHorizontal) {
+                for (i = 0; i < len; i += this._curLineItemCount)
+                    ch += this._virtualItems[i].height + this._lineGap;
+                if (ch > 0)
+                    ch -= this._lineGap;
+                if (this._autoResizeItem)
+                    cw = this._scrollPane.viewWidth;
+                else {
+                    for (i = 0; i < len2; i++)
+                        cw += this._virtualItems[i].width + this._columnGap;
+                    if (cw > 0)
+                        cw -= this._columnGap;
+                }
+            }
+            else if (this._layout == ListLayoutType.SingleRow || this._layout == ListLayoutType.FlowVertical) {
+                for (i = 0; i < len; i += this._curLineItemCount)
+                    cw += this._virtualItems[i].width + this._columnGap;
+                if (cw > 0)
+                    cw -= this._columnGap;
+                if (this._autoResizeItem)
+                    ch = this._scrollPane.viewHeight;
+                else {
+                    for (i = 0; i < len2; i++)
+                        ch += this._virtualItems[i].height + this._lineGap;
+                    if (ch > 0)
+                        ch -= this._lineGap;
+                }
+            }
+            else {
+                var pageCount = Math.ceil(len / (this._curLineItemCount * this._curLineItemCount2));
+                cw = pageCount * this.viewWidth;
+                ch = this.viewHeight;
+            }
+        }
+        this.handleAlign(cw, ch);
+        this._scrollPane.setContentSize(cw, ch);
+        this._eventLocked = false;
+        this.handleScroll(true);
     }
     __scrolled(evt) {
-        // this.handleScroll(false);
+        this.handleScroll(false);
     }
     getIndexOnPos1(forceUpdate) {
-        return 0;
-        // if (this._realNumItems < this._curLineItemCount) {
-        //     s_n = 0;
-        //     return 0;
-        // }
-        // var i: number;
-        // var pos2: number;
-        // var pos3: number;
-        // if (this.numChildren > 0 && !forceUpdate) {
-        //     pos2 = this.getChildAt(0).y;
-        //     if (pos2 > s_n) {
-        //         for (i = this._firstIndex - this._curLineItemCount; i >= 0; i -= this._curLineItemCount) {
-        //             pos2 -= (this._virtualItems[i].height + this._lineGap);
-        //             if (pos2 <= s_n) {
-        //                 s_n = pos2;
-        //                 return i;
-        //             }
-        //         }
-        //         s_n = 0;
-        //         return 0;
-        //     }
-        //     else {
-        //         for (i = this._firstIndex; i < this._realNumItems; i += this._curLineItemCount) {
-        //             pos3 = pos2 + this._virtualItems[i].height + this._lineGap;
-        //             if (pos3 > s_n) {
-        //                 s_n = pos2;
-        //                 return i;
-        //             }
-        //             pos2 = pos3;
-        //         }
-        //         s_n = pos2;
-        //         return this._realNumItems - this._curLineItemCount;
-        //     }
-        // }
-        // else {
-        //     pos2 = 0;
-        //     for (i = 0; i < this._realNumItems; i += this._curLineItemCount) {
-        //         pos3 = pos2 + this._virtualItems[i].height + this._lineGap;
-        //         if (pos3 > s_n) {
-        //             s_n = pos2;
-        //             return i;
-        //         }
-        //         pos2 = pos3;
-        //     }
-        //     s_n = pos2;
-        //     return this._realNumItems - this._curLineItemCount;
-        // }
+        if (this._realNumItems < this._curLineItemCount) {
+            s_n = 0;
+            return 0;
+        }
+        var i;
+        var pos2;
+        var pos3;
+        if (this.numChildren > 0 && !forceUpdate) {
+            pos2 = this.getChildAt(0).y;
+            if (pos2 > s_n) {
+                for (i = this._firstIndex - this._curLineItemCount; i >= 0; i -= this._curLineItemCount) {
+                    pos2 -= (this._virtualItems[i].height + this._lineGap);
+                    if (pos2 <= s_n) {
+                        s_n = pos2;
+                        return i;
+                    }
+                }
+                s_n = 0;
+                return 0;
+            }
+            else {
+                for (i = this._firstIndex; i < this._realNumItems; i += this._curLineItemCount) {
+                    pos3 = pos2 + this._virtualItems[i].height + this._lineGap;
+                    if (pos3 > s_n) {
+                        s_n = pos2;
+                        return i;
+                    }
+                    pos2 = pos3;
+                }
+                s_n = pos2;
+                return this._realNumItems - this._curLineItemCount;
+            }
+        }
+        else {
+            pos2 = 0;
+            for (i = 0; i < this._realNumItems; i += this._curLineItemCount) {
+                pos3 = pos2 + this._virtualItems[i].height + this._lineGap;
+                if (pos3 > s_n) {
+                    s_n = pos2;
+                    return i;
+                }
+                pos2 = pos3;
+            }
+            s_n = pos2;
+            return this._realNumItems - this._curLineItemCount;
+        }
     }
     getIndexOnPos2(forceUpdate) {
-        return 0;
-        // if (this._realNumItems < this._curLineItemCount) {
-        //     s_n = 0;
-        //     return 0;
-        // }
-        // var i: number;
-        // var pos2: number;
-        // var pos3: number;
-        // if (this.numChildren > 0 && !forceUpdate) {
-        //     pos2 = this.getChildAt(0).x;
-        //     if (pos2 > s_n) {
-        //         for (i = this._firstIndex - this._curLineItemCount; i >= 0; i -= this._curLineItemCount) {
-        //             pos2 -= (this._virtualItems[i].width + this._columnGap);
-        //             if (pos2 <= s_n) {
-        //                 s_n = pos2;
-        //                 return i;
-        //             }
-        //         }
-        //         s_n = 0;
-        //         return 0;
-        //     }
-        //     else {
-        //         for (i = this._firstIndex; i < this._realNumItems; i += this._curLineItemCount) {
-        //             pos3 = pos2 + this._virtualItems[i].width + this._columnGap;
-        //             if (pos3 > s_n) {
-        //                 s_n = pos2;
-        //                 return i;
-        //             }
-        //             pos2 = pos3;
-        //         }
-        //         s_n = pos2;
-        //         return this._realNumItems - this._curLineItemCount;
-        //     }
-        // }
-        // else {
-        //     pos2 = 0;
-        //     for (i = 0; i < this._realNumItems; i += this._curLineItemCount) {
-        //         pos3 = pos2 + this._virtualItems[i].width + this._columnGap;
-        //         if (pos3 > s_n) {
-        //             s_n = pos2;
-        //             return i;
-        //         }
-        //         pos2 = pos3;
-        //     }
-        //     s_n = pos2;
-        //     return this._realNumItems - this._curLineItemCount;
-        // }
+        if (this._realNumItems < this._curLineItemCount) {
+            s_n = 0;
+            return 0;
+        }
+        var i;
+        var pos2;
+        var pos3;
+        if (this.numChildren > 0 && !forceUpdate) {
+            pos2 = this.getChildAt(0).x;
+            if (pos2 > s_n) {
+                for (i = this._firstIndex - this._curLineItemCount; i >= 0; i -= this._curLineItemCount) {
+                    pos2 -= (this._virtualItems[i].width + this._columnGap);
+                    if (pos2 <= s_n) {
+                        s_n = pos2;
+                        return i;
+                    }
+                }
+                s_n = 0;
+                return 0;
+            }
+            else {
+                for (i = this._firstIndex; i < this._realNumItems; i += this._curLineItemCount) {
+                    pos3 = pos2 + this._virtualItems[i].width + this._columnGap;
+                    if (pos3 > s_n) {
+                        s_n = pos2;
+                        return i;
+                    }
+                    pos2 = pos3;
+                }
+                s_n = pos2;
+                return this._realNumItems - this._curLineItemCount;
+            }
+        }
+        else {
+            pos2 = 0;
+            for (i = 0; i < this._realNumItems; i += this._curLineItemCount) {
+                pos3 = pos2 + this._virtualItems[i].width + this._columnGap;
+                if (pos3 > s_n) {
+                    s_n = pos2;
+                    return i;
+                }
+                pos2 = pos3;
+            }
+            s_n = pos2;
+            return this._realNumItems - this._curLineItemCount;
+        }
     }
     getIndexOnPos3(forceUpdate) {
-        return 0;
-        // throw new Error("TODO");
-        // if (this._realNumItems < this._curLineItemCount) {
-        //     s_n = 0;
-        //     return 0;
-        // }
-        // var viewWidth: number = this.viewWidth;
-        // var page: number = Math.floor(s_n / viewWidth);
-        // var startIndex: number = page * (this._curLineItemCount * this._curLineItemCount2);
-        // var pos2: number = page * viewWidth;
-        // var i: number;
-        // var pos3: number;
-        // for (i = 0; i < this._curLineItemCount; i++) {
-        //     pos3 = pos2 + this._virtualItems[startIndex + i].width + this._columnGap;
-        //     if (pos3 > s_n) {
-        //         s_n = pos2;
-        //         return startIndex + i;
-        //     }
-        //     pos2 = pos3;
-        // }
-        // s_n = pos2;
-        // return startIndex + this._curLineItemCount - 1;
+        if (this._realNumItems < this._curLineItemCount) {
+            s_n = 0;
+            return 0;
+        }
+        var viewWidth = this.viewWidth;
+        var page = Math.floor(s_n / viewWidth);
+        var startIndex = page * (this._curLineItemCount * this._curLineItemCount2);
+        var pos2 = page * viewWidth;
+        var i;
+        var pos3;
+        for (i = 0; i < this._curLineItemCount; i++) {
+            pos3 = pos2 + this._virtualItems[startIndex + i].width + this._columnGap;
+            if (pos3 > s_n) {
+                s_n = pos2;
+                return startIndex + i;
+            }
+            pos2 = pos3;
+        }
+        s_n = pos2;
+        return startIndex + this._curLineItemCount - 1;
     }
     handleScroll(forceUpdate) {
-        // if (this._eventLocked)
-        //     return;
-        // if (this._layout == ListLayoutType.SingleColumn || this._layout == ListLayoutType.FlowHorizontal) {
-        //     var enterCounter: number = 0;
-        //     while (this.handleScroll1(forceUpdate)) {
-        //         enterCounter++;
-        //         forceUpdate = false;
-        //         if (enterCounter > 20) {
-        //             console.log("FairyGUI: list will never be <the> filled item renderer function always returns a different size.");
-        //             break;
-        //         }
-        //     }
-        //     this.handleArchOrder1();
-        // }
-        // else if (this._layout == ListLayoutType.SingleRow || this._layout == ListLayoutType.FlowVertical) {
-        //     enterCounter = 0;
-        //     while (this.handleScroll2(forceUpdate)) {
-        //         enterCounter++;
-        //         forceUpdate = false;
-        //         if (enterCounter > 20) {
-        //             console.log("FairyGUI: list will never be <the> filled item renderer function always returns a different size.");
-        //             break;
-        //         }
-        //     }
-        //     this.handleArchOrder2();
-        // }
-        // else {
-        //     this.handleScroll3(forceUpdate);
-        // }
-        // this._boundsChanged = false;
+        if (this._eventLocked)
+            return;
+        if (this._layout == ListLayoutType.SingleColumn || this._layout == ListLayoutType.FlowHorizontal) {
+            var enterCounter = 0;
+            const fun0 = () => {
+                this.handleScroll1(forceUpdate).then((boo) => {
+                    if (boo) {
+                        enterCounter++;
+                        forceUpdate = false;
+                        if (enterCounter > 20) {
+                            console.log("FairyGUI: list will never be <the> filled item renderer function always returns a different size.");
+                        }
+                        fun0();
+                    }
+                    else {
+                        this.handleArchOrder1();
+                        this._boundsChanged = false;
+                    }
+                });
+            };
+            fun0();
+            // while (this.handleScroll1(forceUpdate)) {
+            //     enterCounter++;
+            //     forceUpdate = false;
+            //     if (enterCounter > 20) {
+            //         console.log("FairyGUI: list will never be <the> filled item renderer function always returns a different size.");
+            //         break;
+            //     }
+            // }
+            // this.handleArchOrder1();
+        }
+        else if (this._layout == ListLayoutType.SingleRow || this._layout == ListLayoutType.FlowVertical) {
+            enterCounter = 0;
+            const fun1 = () => {
+                this.handleScroll2(forceUpdate).then((boo) => {
+                    if (boo) {
+                        enterCounter++;
+                        forceUpdate = false;
+                        if (enterCounter > 20) {
+                            console.log("FairyGUI: list will never be <the> filled item renderer function always returns a different size.");
+                        }
+                        fun1();
+                    }
+                    else {
+                        this.handleArchOrder2();
+                        this._boundsChanged = false;
+                    }
+                });
+            };
+            fun1();
+            // while (this.handleScroll2(forceUpdate)) {
+            //     enterCounter++;
+            //     forceUpdate = false;
+            //     if (enterCounter > 20) {
+            //         console.log("FairyGUI: list will never be <the> filled item renderer function always returns a different size.");
+            //         break;
+            //     }
+            // }
+            // this.handleArchOrder2();
+        }
+        else {
+            this.handleScroll3(forceUpdate).then(() => {
+                this._boundsChanged = false;
+            });
+        }
     }
     handleScroll1(forceUpdate) {
-        return true;
-        // throw new Error("TODO");
-        // var pos: number = this._scrollPane.scrollingPosY;
-        // var max: number = pos + this._scrollPane.viewHeight;
-        // var end: boolean = max == this._scrollPane.contentHeight;//这个标志表示当前需要滚动到最末，无论内容变化大小
-        // //寻找当前位置的第一条项目
-        // s_n = pos;
-        // var newFirstIndex: number = this.getIndexOnPos1(forceUpdate);
-        // pos = s_n;
-        // if (newFirstIndex == this._firstIndex && !forceUpdate)
-        //     return false;
-        // var oldFirstIndex: number = this._firstIndex;
-        // this._firstIndex = newFirstIndex;
-        // var curIndex: number = newFirstIndex;
-        // var forward: boolean = oldFirstIndex > newFirstIndex;
-        // var childCount: number = this.numChildren;
-        // var lastIndex: number = oldFirstIndex + childCount - 1;
-        // var reuseIndex: number = forward ? lastIndex : oldFirstIndex;
-        // var curX: number = 0, curY: number = pos;
-        // var needRender: boolean;
-        // var deltaSize: number = 0;
-        // var firstItemDeltaSize: number = 0;
-        // var url: string = this._defaultItem;
-        // var ii: ItemInfo, ii2: ItemInfo;
-        // var i: number, j: number;
-        // var partSize: number = (this._scrollPane.viewWidth - this._columnGap * (this._curLineItemCount - 1)) / this._curLineItemCount;
-        // this.itemInfoVer++;
-        // while (curIndex < this._realNumItems && (end || curY < max)) {
-        //     ii = this._virtualItems[curIndex];
-        //     if (ii.obj == null || forceUpdate) {
-        //         if (this.itemProvider != null) {
-        //             url = this.itemProvider.runWith(curIndex % this._numItems);
-        //             if (url == null)
-        //                 url = this._defaultItem;
-        //             url = UIPackage.normalizeURL(url);
-        //         }
-        //         if (ii.obj && ii.obj.resourceURL != url) {
-        //             if (ii.obj instanceof GButton)
-        //                 ii.selected = ii.obj.selected;
-        //             this.removeChildToPool(ii.obj);
-        //             ii.obj = null;
-        //         }
-        //     }
-        //     if (ii.obj == null) {
-        //         //搜索最适合的重用item，保证每次刷新需要新建或者重新render的item最少
-        //         if (forward) {
-        //             for (j = reuseIndex; j >= oldFirstIndex; j--) {
-        //                 ii2 = this._virtualItems[j];
-        //                 if (ii2.obj && ii2.updateFlag != this.itemInfoVer && ii2.obj.resourceURL == url) {
-        //                     if (ii2.obj instanceof GButton)
-        //                         ii2.selected = ii2.obj.selected;
-        //                     ii.obj = ii2.obj;
-        //                     ii2.obj = null;
-        //                     if (j == reuseIndex)
-        //                         reuseIndex--;
-        //                     break;
-        //                 }
-        //             }
-        //         }
-        //         else {
-        //             for (j = reuseIndex; j <= lastIndex; j++) {
-        //                 ii2 = this._virtualItems[j];
-        //                 if (ii2.obj && ii2.updateFlag != this.itemInfoVer && ii2.obj.resourceURL == url) {
-        //                     if (ii2.obj instanceof GButton)
-        //                         ii2.selected = ii2.obj.selected;
-        //                     ii.obj = ii2.obj;
-        //                     ii2.obj = null;
-        //                     if (j == reuseIndex)
-        //                         reuseIndex++;
-        //                     break;
-        //                 }
-        //             }
-        //         }
-        //         if (ii.obj) {
-        //             this.setChildIndex(ii.obj, forward ? curIndex - newFirstIndex : this.numChildren);
-        //         }
-        //         else {
-        //             ii.obj = this._pool.getObject(url);
-        //             if (forward)
-        //                 this.addChildAt(ii.obj, curIndex - newFirstIndex);
-        //             else
-        //                 this.addChild(ii.obj);
-        //         }
-        //         if (ii.obj instanceof GButton)
-        //             ii.obj.selected = ii.selected;
-        //         needRender = true;
-        //     }
-        //     else
-        //         needRender = forceUpdate;
-        //     if (needRender) {
-        //         if (this._autoResizeItem && (this._layout == ListLayoutType.SingleColumn || this._columnCount > 0))
-        //             ii.obj.setSize(partSize, ii.obj.height, true);
-        //         this.itemRenderer.runWith([curIndex % this._numItems, ii.obj]);
-        //         if (curIndex % this._curLineItemCount == 0) {
-        //             deltaSize += Math.ceil(ii.obj.height) - ii.height;
-        //             if (curIndex == newFirstIndex && oldFirstIndex > newFirstIndex) {
-        //                 //当内容向下滚动时，如果新出现的项目大小发生变化，需要做一个位置补偿，才不会导致滚动跳动
-        //                 firstItemDeltaSize = Math.ceil(ii.obj.height) - ii.height;
-        //             }
-        //         }
-        //         ii.width = Math.ceil(ii.obj.width);
-        //         ii.height = Math.ceil(ii.obj.height);
-        //     }
-        //     ii.updateFlag = this.itemInfoVer;
-        //     ii.obj.setXY(curX, curY);
-        //     if (curIndex == newFirstIndex) //要显示多一条才不会穿帮
-        //         max += ii.height;
-        //     curX += ii.width + this._columnGap;
-        //     if (curIndex % this._curLineItemCount == this._curLineItemCount - 1) {
-        //         curX = 0;
-        //         curY += ii.height + this._lineGap;
-        //     }
-        //     curIndex++;
-        // }
-        // for (i = 0; i < childCount; i++) {
-        //     ii = this._virtualItems[oldFirstIndex + i];
-        //     if (ii.updateFlag != this.itemInfoVer && ii.obj) {
-        //         if (ii.obj instanceof GButton)
-        //             ii.selected = ii.obj.selected;
-        //         this.removeChildToPool(ii.obj);
-        //         ii.obj = null;
-        //     }
-        // }
-        // childCount = this._children.length;
-        // for (i = 0; i < childCount; i++) {
-        //     var obj: GObject = this._virtualItems[newFirstIndex + i].obj;
-        //     if (this._children[i] != obj)
-        //         this.setChildIndex(obj, i);
-        // }
-        // if (deltaSize != 0 || firstItemDeltaSize != 0)
-        //     this._scrollPane.changeContentSizeOnScrolling(0, deltaSize, 0, firstItemDeltaSize);
-        // if (curIndex > 0 && this.numChildren > 0 && this._container.y <= 0 && this.getChildAt(0).y > -this._container.y)//最后一页没填满！
-        //     return true;
-        // else
-        //     return false;
+        return new Promise((reslove, reject) => {
+            var pos = this._scrollPane.scrollingPosY;
+            var max = pos + this._scrollPane.viewHeight;
+            var end = max == this._scrollPane.contentHeight; //这个标志表示当前需要滚动到最末，无论内容变化大小
+            //寻找当前位置的第一条项目
+            s_n = pos;
+            var newFirstIndex = this.getIndexOnPos1(forceUpdate);
+            pos = s_n;
+            if (newFirstIndex == this._firstIndex && !forceUpdate) {
+                reslove(false);
+                return;
+            }
+            var oldFirstIndex = this._firstIndex;
+            this._firstIndex = newFirstIndex;
+            var curIndex = newFirstIndex;
+            var forward = oldFirstIndex > newFirstIndex;
+            var childCount = this.numChildren;
+            var lastIndex = oldFirstIndex + childCount - 1;
+            var reuseIndex = forward ? lastIndex : oldFirstIndex;
+            var curX = 0, curY = pos;
+            var needRender;
+            var deltaSize = 0;
+            var firstItemDeltaSize = 0;
+            var url = this._defaultItem;
+            var ii, ii2;
+            var i, j;
+            var partSize = (this._scrollPane.viewWidth - this._columnGap * (this._curLineItemCount - 1)) / this._curLineItemCount;
+            this.itemInfoVer++;
+            const fun2 = () => {
+                // 等待数据组织完成再处理
+                for (i = 0; i < childCount; i++) {
+                    ii = this._virtualItems[oldFirstIndex + i];
+                    if (ii.updateFlag != this.itemInfoVer && ii.obj) {
+                        if (ii.obj instanceof GButton)
+                            ii.selected = ii.obj.selected;
+                        this.removeChildToPool(ii.obj);
+                        ii.obj = null;
+                    }
+                }
+                childCount = this._children.length;
+                for (i = 0; i < childCount; i++) {
+                    var obj = this._virtualItems[newFirstIndex + i].obj;
+                    if (this._children[i] != obj)
+                        this.setChildIndex(obj, i);
+                }
+                if (deltaSize != 0 || firstItemDeltaSize != 0)
+                    this._scrollPane.changeContentSizeOnScrolling(0, deltaSize, 0, firstItemDeltaSize);
+                if (curIndex > 0 && this.numChildren > 0 && this._container.y <= 0 && this.getChildAt(0).y > -this._container.y) //最后一页没填满！
+                 {
+                    reslove(true);
+                }
+                else {
+                    reslove(false);
+                }
+            };
+            const fun1 = () => {
+                if (needRender) {
+                    if (this._autoResizeItem && (this._layout == ListLayoutType.SingleColumn || this._columnCount > 0))
+                        ii.obj.setSize(partSize, ii.obj.height, true);
+                    this.itemRenderer.runWith([curIndex % this._numItems, ii.obj]);
+                    if (curIndex % this._curLineItemCount == 0) {
+                        deltaSize += Math.ceil(ii.obj.height) - ii.height;
+                        if (curIndex == newFirstIndex && oldFirstIndex > newFirstIndex) {
+                            //当内容向下滚动时，如果新出现的项目大小发生变化，需要做一个位置补偿，才不会导致滚动跳动
+                            firstItemDeltaSize = Math.ceil(ii.obj.height) - ii.height;
+                        }
+                    }
+                    ii.width = Math.ceil(ii.obj.width);
+                    ii.height = Math.ceil(ii.obj.height);
+                }
+                ii.updateFlag = this.itemInfoVer;
+                ii.obj.setXY(curX, curY);
+                if (curIndex == newFirstIndex) //要显示多一条才不会穿帮
+                    max += ii.height;
+                curX += ii.width + this._columnGap;
+                if (curIndex % this._curLineItemCount == this._curLineItemCount - 1) {
+                    curX = 0;
+                    curY += ii.height + this._lineGap;
+                }
+                curIndex++;
+                if (curIndex < this._realNumItems && (end || curY < max)) {
+                    fun0();
+                }
+                else {
+                    fun2();
+                }
+            };
+            const fun0 = () => {
+                ii = this._virtualItems[curIndex];
+                if (ii.obj == null || forceUpdate) {
+                    if (this.itemProvider != null) {
+                        url = this.itemProvider.runWith(curIndex % this._numItems);
+                        if (url == null)
+                            url = this._defaultItem;
+                        url = UIPackage.normalizeURL(url);
+                    }
+                    if (ii.obj && ii.obj.resourceURL != url) {
+                        if (ii.obj instanceof GButton)
+                            ii.selected = ii.obj.selected;
+                        this.removeChildToPool(ii.obj);
+                        ii.obj = null;
+                    }
+                }
+                if (ii.obj == null) {
+                    //搜索最适合的重用item，保证每次刷新需要新建或者重新render的item最少
+                    if (forward) {
+                        for (j = reuseIndex; j >= oldFirstIndex; j--) {
+                            ii2 = this._virtualItems[j];
+                            if (ii2.obj && ii2.updateFlag != this.itemInfoVer && ii2.obj.resourceURL == url) {
+                                if (ii2.obj instanceof GButton)
+                                    ii2.selected = ii2.obj.selected;
+                                ii.obj = ii2.obj;
+                                ii2.obj = null;
+                                if (j == reuseIndex)
+                                    reuseIndex--;
+                                break;
+                            }
+                        }
+                    }
+                    else {
+                        for (j = reuseIndex; j <= lastIndex; j++) {
+                            ii2 = this._virtualItems[j];
+                            if (ii2.obj && ii2.updateFlag != this.itemInfoVer && ii2.obj.resourceURL == url) {
+                                if (ii2.obj instanceof GButton)
+                                    ii2.selected = ii2.obj.selected;
+                                ii.obj = ii2.obj;
+                                ii2.obj = null;
+                                if (j == reuseIndex)
+                                    reuseIndex++;
+                                break;
+                            }
+                        }
+                    }
+                    if (ii.obj) {
+                        this.setChildIndex(ii.obj, forward ? curIndex - newFirstIndex : this.numChildren);
+                        if (ii.obj instanceof GButton)
+                            ii.obj.selected = ii.selected;
+                        needRender = true;
+                        fun1();
+                    }
+                    else {
+                        console.log("await scroll1");
+                        this._pool.getObject(url).then((obj) => {
+                            ii.obj = obj;
+                            if (forward)
+                                this.addChildAt(ii.obj, curIndex - newFirstIndex);
+                            else
+                                this.addChild(ii.obj);
+                            if (ii.obj instanceof GButton)
+                                ii.obj.selected = ii.selected;
+                            needRender = true;
+                            fun1();
+                        });
+                    }
+                }
+                else {
+                    needRender = forceUpdate;
+                    fun1();
+                }
+            };
+            fun0();
+        });
     }
     handleScroll2(forceUpdate) {
-        return true;
-        // throw new Error("TODO");
-        // var pos: number = this._scrollPane.scrollingPosX;
-        // var max: number = pos + this._scrollPane.viewWidth;
-        // var end: boolean = pos == this._scrollPane.contentWidth;//这个标志表示当前需要滚动到最末，无论内容变化大小
-        // //寻找当前位置的第一条项目
-        // s_n = pos;
-        // var newFirstIndex: number = this.getIndexOnPos2(forceUpdate);
-        // pos = s_n;
-        // if (newFirstIndex == this._firstIndex && !forceUpdate)
-        //     return false;
-        // var oldFirstIndex: number = this._firstIndex;
-        // this._firstIndex = newFirstIndex;
-        // var curIndex: number = newFirstIndex;
-        // var forward: boolean = oldFirstIndex > newFirstIndex;
-        // var childCount: number = this.numChildren;
-        // var lastIndex: number = oldFirstIndex + childCount - 1;
-        // var reuseIndex: number = forward ? lastIndex : oldFirstIndex;
-        // var curX: number = pos, curY: number = 0;
-        // var needRender: boolean;
-        // var deltaSize: number = 0;
-        // var firstItemDeltaSize: number = 0;
-        // var url: string = this._defaultItem;
-        // var ii: ItemInfo, ii2: ItemInfo;
-        // var i: number, j: number;
-        // var partSize: number = (this._scrollPane.viewHeight - this._lineGap * (this._curLineItemCount - 1)) / this._curLineItemCount;
-        // this.itemInfoVer++;
-        // while (curIndex < this._realNumItems && (end || curX < max)) {
-        //     ii = this._virtualItems[curIndex];
-        //     if (ii.obj == null || forceUpdate) {
-        //         if (this.itemProvider != null) {
-        //             url = this.itemProvider.runWith(curIndex % this._numItems);
-        //             if (url == null)
-        //                 url = this._defaultItem;
-        //             url = UIPackage.normalizeURL(url);
-        //         }
-        //         if (ii.obj && ii.obj.resourceURL != url) {
-        //             if (ii.obj instanceof GButton)
-        //                 ii.selected = ii.obj.selected;
-        //             this.removeChildToPool(ii.obj);
-        //             ii.obj = null;
-        //         }
-        //     }
-        //     if (ii.obj == null) {
-        //         if (forward) {
-        //             for (j = reuseIndex; j >= oldFirstIndex; j--) {
-        //                 ii2 = this._virtualItems[j];
-        //                 if (ii2.obj && ii2.updateFlag != this.itemInfoVer && ii2.obj.resourceURL == url) {
-        //                     if (ii2.obj instanceof GButton)
-        //                         ii2.selected = ii2.obj.selected;
-        //                     ii.obj = ii2.obj;
-        //                     ii2.obj = null;
-        //                     if (j == reuseIndex)
-        //                         reuseIndex--;
-        //                     break;
-        //                 }
-        //             }
-        //         }
-        //         else {
-        //             for (j = reuseIndex; j <= lastIndex; j++) {
-        //                 ii2 = this._virtualItems[j];
-        //                 if (ii2.obj && ii2.updateFlag != this.itemInfoVer && ii2.obj.resourceURL == url) {
-        //                     if (ii2.obj instanceof GButton)
-        //                         ii2.selected = ii2.obj.selected;
-        //                     ii.obj = ii2.obj;
-        //                     ii2.obj = null;
-        //                     if (j == reuseIndex)
-        //                         reuseIndex++;
-        //                     break;
-        //                 }
-        //             }
-        //         }
-        //         if (ii.obj) {
-        //             this.setChildIndex(ii.obj, forward ? curIndex - newFirstIndex : this.numChildren);
-        //         }
-        //         else {
-        //             ii.obj = this._pool.getObject(url);
-        //             if (forward)
-        //                 this.addChildAt(ii.obj, curIndex - newFirstIndex);
-        //             else
-        //                 this.addChild(ii.obj);
-        //         }
-        //         if (ii.obj instanceof GButton)
-        //             ii.obj.selected = ii.selected;
-        //         needRender = true;
-        //     }
-        //     else
-        //         needRender = forceUpdate;
-        //     if (needRender) {
-        //         if (this._autoResizeItem && (this._layout == ListLayoutType.SingleRow || this._lineCount > 0))
-        //             ii.obj.setSize(ii.obj.width, partSize, true);
-        //         this.itemRenderer.runWith([curIndex % this._numItems, ii.obj]);
-        //         if (curIndex % this._curLineItemCount == 0) {
-        //             deltaSize += Math.ceil(ii.obj.width) - ii.width;
-        //             if (curIndex == newFirstIndex && oldFirstIndex > newFirstIndex) {
-        //                 //当内容向下滚动时，如果新出现的一个项目大小发生变化，需要做一个位置补偿，才不会导致滚动跳动
-        //                 firstItemDeltaSize = Math.ceil(ii.obj.width) - ii.width;
-        //             }
-        //         }
-        //         ii.width = Math.ceil(ii.obj.width);
-        //         ii.height = Math.ceil(ii.obj.height);
-        //     }
-        //     ii.updateFlag = this.itemInfoVer;
-        //     ii.obj.setXY(curX, curY);
-        //     if (curIndex == newFirstIndex) //要显示多一条才不会穿帮
-        //         max += ii.width;
-        //     curY += ii.height + this._lineGap;
-        //     if (curIndex % this._curLineItemCount == this._curLineItemCount - 1) {
-        //         curY = 0;
-        //         curX += ii.width + this._columnGap;
-        //     }
-        //     curIndex++;
-        // }
-        // for (i = 0; i < childCount; i++) {
-        //     ii = this._virtualItems[oldFirstIndex + i];
-        //     if (ii.updateFlag != this.itemInfoVer && ii.obj) {
-        //         if (ii.obj instanceof GButton)
-        //             ii.selected = ii.obj.selected;
-        //         this.removeChildToPool(ii.obj);
-        //         ii.obj = null;
-        //     }
-        // }
-        // childCount = this._children.length;
-        // for (i = 0; i < childCount; i++) {
-        //     var obj: GObject = this._virtualItems[newFirstIndex + i].obj;
-        //     if (this._children[i] != obj)
-        //         this.setChildIndex(obj, i);
-        // }
-        // if (deltaSize != 0 || firstItemDeltaSize != 0)
-        //     this._scrollPane.changeContentSizeOnScrolling(deltaSize, 0, firstItemDeltaSize, 0);
-        // if (curIndex > 0 && this.numChildren > 0 && this._container.x <= 0 && this.getChildAt(0).x > - this._container.x)//最后一页没填满！
-        //     return true;
-        // else
-        //     return false;
+        return __awaiter(this, void 0, void 0, function* () {
+            var pos = this._scrollPane.scrollingPosX;
+            var max = pos + this._scrollPane.viewWidth;
+            var end = pos == this._scrollPane.contentWidth; //这个标志表示当前需要滚动到最末，无论内容变化大小
+            //寻找当前位置的第一条项目
+            s_n = pos;
+            var newFirstIndex = this.getIndexOnPos2(forceUpdate);
+            pos = s_n;
+            if (newFirstIndex == this._firstIndex && !forceUpdate)
+                return false;
+            var oldFirstIndex = this._firstIndex;
+            this._firstIndex = newFirstIndex;
+            var curIndex = newFirstIndex;
+            var forward = oldFirstIndex > newFirstIndex;
+            var childCount = this.numChildren;
+            var lastIndex = oldFirstIndex + childCount - 1;
+            var reuseIndex = forward ? lastIndex : oldFirstIndex;
+            var curX = pos, curY = 0;
+            var needRender;
+            var deltaSize = 0;
+            var firstItemDeltaSize = 0;
+            var url = this._defaultItem;
+            var ii, ii2;
+            var i, j;
+            var partSize = (this._scrollPane.viewHeight - this._lineGap * (this._curLineItemCount - 1)) / this._curLineItemCount;
+            this.itemInfoVer++;
+            while (curIndex < this._realNumItems && (end || curX < max)) {
+                ii = this._virtualItems[curIndex];
+                if (ii.obj == null || forceUpdate) {
+                    if (this.itemProvider != null) {
+                        url = this.itemProvider.runWith(curIndex % this._numItems);
+                        if (url == null)
+                            url = this._defaultItem;
+                        url = UIPackage.normalizeURL(url);
+                    }
+                    if (ii.obj && ii.obj.resourceURL != url) {
+                        if (ii.obj instanceof GButton)
+                            ii.selected = ii.obj.selected;
+                        this.removeChildToPool(ii.obj);
+                        ii.obj = null;
+                    }
+                }
+                if (ii.obj == null) {
+                    if (forward) {
+                        for (j = reuseIndex; j >= oldFirstIndex; j--) {
+                            ii2 = this._virtualItems[j];
+                            if (ii2.obj && ii2.updateFlag != this.itemInfoVer && ii2.obj.resourceURL == url) {
+                                if (ii2.obj instanceof GButton)
+                                    ii2.selected = ii2.obj.selected;
+                                ii.obj = ii2.obj;
+                                ii2.obj = null;
+                                if (j == reuseIndex)
+                                    reuseIndex--;
+                                break;
+                            }
+                        }
+                    }
+                    else {
+                        for (j = reuseIndex; j <= lastIndex; j++) {
+                            ii2 = this._virtualItems[j];
+                            if (ii2.obj && ii2.updateFlag != this.itemInfoVer && ii2.obj.resourceURL == url) {
+                                if (ii2.obj instanceof GButton)
+                                    ii2.selected = ii2.obj.selected;
+                                ii.obj = ii2.obj;
+                                ii2.obj = null;
+                                if (j == reuseIndex)
+                                    reuseIndex++;
+                                break;
+                            }
+                        }
+                    }
+                    if (ii.obj) {
+                        this.setChildIndex(ii.obj, forward ? curIndex - newFirstIndex : this.numChildren);
+                    }
+                    else {
+                        ii.obj = yield this._pool.getObject(url);
+                        if (forward)
+                            this.addChildAt(ii.obj, curIndex - newFirstIndex);
+                        else
+                            this.addChild(ii.obj);
+                    }
+                    if (ii.obj instanceof GButton)
+                        ii.obj.selected = ii.selected;
+                    needRender = true;
+                }
+                else {
+                    needRender = forceUpdate;
+                }
+                if (needRender) {
+                    if (this._autoResizeItem && (this._layout == ListLayoutType.SingleRow || this._lineCount > 0))
+                        ii.obj.setSize(ii.obj.width, partSize, true);
+                    this.itemRenderer.runWith([curIndex % this._numItems, ii.obj]);
+                    if (curIndex % this._curLineItemCount == 0) {
+                        deltaSize += Math.ceil(ii.obj.width) - ii.width;
+                        if (curIndex == newFirstIndex && oldFirstIndex > newFirstIndex) {
+                            //当内容向下滚动时，如果新出现的一个项目大小发生变化，需要做一个位置补偿，才不会导致滚动跳动
+                            firstItemDeltaSize = Math.ceil(ii.obj.width) - ii.width;
+                        }
+                    }
+                    ii.width = Math.ceil(ii.obj.width);
+                    ii.height = Math.ceil(ii.obj.height);
+                }
+                ii.updateFlag = this.itemInfoVer;
+                ii.obj.setXY(curX, curY);
+                if (curIndex == newFirstIndex) //要显示多一条才不会穿帮
+                    max += ii.width;
+                curY += ii.height + this._lineGap;
+                if (curIndex % this._curLineItemCount == this._curLineItemCount - 1) {
+                    curY = 0;
+                    curX += ii.width + this._columnGap;
+                }
+                curIndex++;
+            }
+            for (i = 0; i < childCount; i++) {
+                ii = this._virtualItems[oldFirstIndex + i];
+                if (ii.updateFlag != this.itemInfoVer && ii.obj) {
+                    if (ii.obj instanceof GButton)
+                        ii.selected = ii.obj.selected;
+                    this.removeChildToPool(ii.obj);
+                    ii.obj = null;
+                }
+            }
+            childCount = this._children.length;
+            for (i = 0; i < childCount; i++) {
+                var obj = this._virtualItems[newFirstIndex + i].obj;
+                if (this._children[i] != obj)
+                    this.setChildIndex(obj, i);
+            }
+            if (deltaSize != 0 || firstItemDeltaSize != 0)
+                this._scrollPane.changeContentSizeOnScrolling(deltaSize, 0, firstItemDeltaSize, 0);
+            if (curIndex > 0 && this.numChildren > 0 && this._container.x <= 0 && this.getChildAt(0).x > -this._container.x) //最后一页没填满！
+                return true;
+            else
+                return false;
+        });
     }
     handleScroll3(forceUpdate) {
-        // var pos: number = this._scrollPane.scrollingPosX;
-        // //寻找当前位置的第一条项目
-        // s_n = pos;
-        // var newFirstIndex: number = this.getIndexOnPos3(forceUpdate);
-        // pos = s_n;
-        // if (newFirstIndex == this._firstIndex && !forceUpdate)
-        //     return;
-        // var oldFirstIndex: number = this._firstIndex;
-        // this._firstIndex = newFirstIndex;
-        // //分页模式不支持不等高，所以渲染满一页就好了
-        // var reuseIndex: number = oldFirstIndex;
-        // var virtualItemCount: number = this._virtualItems.length;
-        // var pageSize: number = this._curLineItemCount * this._curLineItemCount2;
-        // var startCol: number = newFirstIndex % this._curLineItemCount;
-        // var viewWidth: number = this.viewWidth;
-        // var page: number = Math.floor(newFirstIndex / pageSize);
-        // var startIndex: number = page * pageSize;
-        // var lastIndex: number = startIndex + pageSize * 2; //测试两页
-        // var needRender: boolean;
-        // var i: number;
-        // var ii: ItemInfo, ii2: ItemInfo;
-        // var col: number;
-        // var url: string = this._defaultItem;
-        // var partWidth: number = (this._scrollPane.viewWidth - this._columnGap * (this._curLineItemCount - 1)) / this._curLineItemCount;
-        // var partHeight: number = (this._scrollPane.viewHeight - this._lineGap * (this._curLineItemCount2 - 1)) / this._curLineItemCount2;
-        // this.itemInfoVer++;
-        // //先标记这次要用到的项目
-        // for (i = startIndex; i < lastIndex; i++) {
-        //     if (i >= this._realNumItems)
-        //         continue;
-        //     col = i % this._curLineItemCount;
-        //     if (i - startIndex < pageSize) {
-        //         if (col < startCol)
-        //             continue;
-        //     }
-        //     else {
-        //         if (col > startCol)
-        //             continue;
-        //     }
-        //     ii = this._virtualItems[i];
-        //     ii.updateFlag = this.itemInfoVer;
-        // }
-        // var lastObj: GObject = null;
-        // var insertIndex: number = 0;
-        // for (i = startIndex; i < lastIndex; i++) {
-        //     if (i >= this._realNumItems)
-        //         continue;
-        //     ii = this._virtualItems[i];
-        //     if (ii.updateFlag != this.itemInfoVer)
-        //         continue;
-        //     if (ii.obj == null) {
-        //         //寻找看有没有可重用的
-        //         while (reuseIndex < virtualItemCount) {
-        //             ii2 = this._virtualItems[reuseIndex];
-        //             if (ii2.obj && ii2.updateFlag != this.itemInfoVer) {
-        //                 if (ii2.obj instanceof GButton)
-        //                     ii2.selected = ii2.obj.selected;
-        //                 ii.obj = ii2.obj;
-        //                 ii2.obj = null;
-        //                 break;
-        //             }
-        //             reuseIndex++;
-        //         }
-        //         if (insertIndex == -1)
-        //             insertIndex = this.getChildIndex(lastObj) + 1;
-        //         if (ii.obj == null) {
-        //             if (this.itemProvider != null) {
-        //                 url = this.itemProvider.runWith(i % this._numItems);
-        //                 if (url == null)
-        //                     url = this._defaultItem;
-        //                 url = UIPackage.normalizeURL(url);
-        //             }
-        //             ii.obj = this._pool.getObject(url);
-        //             this.addChildAt(ii.obj, insertIndex);
-        //         }
-        //         else {
-        //             insertIndex = this.setChildIndexBefore(ii.obj, insertIndex);
-        //         }
-        //         insertIndex++;
-        //         if (ii.obj instanceof GButton)
-        //             ii.obj.selected = ii.selected;
-        //         needRender = true;
-        //     }
-        //     else {
-        //         needRender = forceUpdate;
-        //         insertIndex = -1;
-        //         lastObj = ii.obj;
-        //     }
-        // if (needRender) {
-        //     if (this._autoResizeItem) {
-        //         if (this._curLineItemCount == this._columnCount && this._curLineItemCount2 == this._lineCount)
-        //             ii.obj.setSize(partWidth, partHeight, true);
-        //         else if (this._curLineItemCount == this._columnCount)
-        //             ii.obj.setSize(partWidth, ii.obj.height, true);
-        //         else if (this._curLineItemCount2 == this._lineCount)
-        //             ii.obj.setSize(ii.obj.width, partHeight, true);
-        //     }
-        //     this.itemRenderer.runWith([i % this._numItems, ii.obj]);
-        //     ii.width = Math.ceil(ii.obj.width);
-        //     ii.height = Math.ceil(ii.obj.height);
-        // }
-        // }
-        // //排列item
-        // var borderX: number = (startIndex / pageSize) * viewWidth;
-        // var xx: number = borderX;
-        // var yy: number = 0;
-        // var lineHeight: number = 0;
-        // for (i = startIndex; i < lastIndex; i++) {
-        //     if (i >= this._realNumItems)
-        //         continue;
-        //     ii = this._virtualItems[i];
-        //     if (ii.updateFlag == this.itemInfoVer)
-        //         ii.obj.setXY(xx, yy);
-        //     if (ii.height > lineHeight)
-        //         lineHeight = ii.height;
-        //     if (i % this._curLineItemCount == this._curLineItemCount - 1) {
-        //         xx = borderX;
-        //         yy += lineHeight + this._lineGap;
-        //         lineHeight = 0;
-        //         if (i == startIndex + pageSize - 1) {
-        //             borderX += viewWidth;
-        //             xx = borderX;
-        //             yy = 0;
-        //         }
-        //     }
-        //     else
-        //         xx += ii.width + this._columnGap;
-        // }
-        // //释放未使用的
-        // for (i = reuseIndex; i < virtualItemCount; i++) {
-        //     ii = this._virtualItems[i];
-        //     if (ii.updateFlag != this.itemInfoVer && ii.obj) {
-        //         if (ii.obj instanceof GButton)
-        //             ii.selected = ii.obj.selected;
-        //         this.removeChildToPool(ii.obj);
-        //         ii.obj = null;
-        //     }
-        // }
+        return __awaiter(this, void 0, void 0, function* () {
+            var pos = this._scrollPane.scrollingPosX;
+            //寻找当前位置的第一条项目
+            s_n = pos;
+            var newFirstIndex = this.getIndexOnPos3(forceUpdate);
+            pos = s_n;
+            if (newFirstIndex == this._firstIndex && !forceUpdate)
+                return;
+            var oldFirstIndex = this._firstIndex;
+            this._firstIndex = newFirstIndex;
+            //分页模式不支持不等高，所以渲染满一页就好了
+            var reuseIndex = oldFirstIndex;
+            var virtualItemCount = this._virtualItems.length;
+            var pageSize = this._curLineItemCount * this._curLineItemCount2;
+            var startCol = newFirstIndex % this._curLineItemCount;
+            var viewWidth = this.viewWidth;
+            var page = Math.floor(newFirstIndex / pageSize);
+            var startIndex = page * pageSize;
+            var lastIndex = startIndex + pageSize * 2; //测试两页
+            var needRender;
+            var i;
+            var ii, ii2;
+            var col;
+            var url = this._defaultItem;
+            var partWidth = (this._scrollPane.viewWidth - this._columnGap * (this._curLineItemCount - 1)) / this._curLineItemCount;
+            var partHeight = (this._scrollPane.viewHeight - this._lineGap * (this._curLineItemCount2 - 1)) / this._curLineItemCount2;
+            this.itemInfoVer++;
+            //先标记这次要用到的项目
+            for (i = startIndex; i < lastIndex; i++) {
+                if (i >= this._realNumItems)
+                    continue;
+                col = i % this._curLineItemCount;
+                if (i - startIndex < pageSize) {
+                    if (col < startCol)
+                        continue;
+                }
+                else {
+                    if (col > startCol)
+                        continue;
+                }
+                ii = this._virtualItems[i];
+                ii.updateFlag = this.itemInfoVer;
+            }
+            var lastObj = null;
+            var insertIndex = 0;
+            for (i = startIndex; i < lastIndex; i++) {
+                if (i >= this._realNumItems)
+                    continue;
+                ii = this._virtualItems[i];
+                if (ii.updateFlag != this.itemInfoVer)
+                    continue;
+                if (ii.obj == null) {
+                    //寻找看有没有可重用的
+                    while (reuseIndex < virtualItemCount) {
+                        ii2 = this._virtualItems[reuseIndex];
+                        if (ii2.obj && ii2.updateFlag != this.itemInfoVer) {
+                            if (ii2.obj instanceof GButton)
+                                ii2.selected = ii2.obj.selected;
+                            ii.obj = ii2.obj;
+                            ii2.obj = null;
+                            break;
+                        }
+                        reuseIndex++;
+                    }
+                    if (insertIndex == -1)
+                        insertIndex = this.getChildIndex(lastObj) + 1;
+                    if (ii.obj == null) {
+                        if (this.itemProvider != null) {
+                            url = this.itemProvider.runWith(i % this._numItems);
+                            if (url == null)
+                                url = this._defaultItem;
+                            url = UIPackage.normalizeURL(url);
+                        }
+                        ii.obj = yield this._pool.getObject(url);
+                        this.addChildAt(ii.obj, insertIndex);
+                    }
+                    else {
+                        insertIndex = this.setChildIndexBefore(ii.obj, insertIndex);
+                    }
+                    insertIndex++;
+                    if (ii.obj instanceof GButton)
+                        ii.obj.selected = ii.selected;
+                    needRender = true;
+                }
+                else {
+                    needRender = forceUpdate;
+                    insertIndex = -1;
+                    lastObj = ii.obj;
+                }
+                if (needRender) {
+                    if (this._autoResizeItem) {
+                        if (this._curLineItemCount == this._columnCount && this._curLineItemCount2 == this._lineCount)
+                            ii.obj.setSize(partWidth, partHeight, true);
+                        else if (this._curLineItemCount == this._columnCount)
+                            ii.obj.setSize(partWidth, ii.obj.height, true);
+                        else if (this._curLineItemCount2 == this._lineCount)
+                            ii.obj.setSize(ii.obj.width, partHeight, true);
+                    }
+                    this.itemRenderer.runWith([i % this._numItems, ii.obj]);
+                    ii.width = Math.ceil(ii.obj.width);
+                    ii.height = Math.ceil(ii.obj.height);
+                }
+            }
+            //排列item
+            var borderX = (startIndex / pageSize) * viewWidth;
+            var xx = borderX;
+            var yy = 0;
+            var lineHeight = 0;
+            for (i = startIndex; i < lastIndex; i++) {
+                if (i >= this._realNumItems)
+                    continue;
+                ii = this._virtualItems[i];
+                if (ii.updateFlag == this.itemInfoVer)
+                    ii.obj.setXY(xx, yy);
+                if (ii.height > lineHeight)
+                    lineHeight = ii.height;
+                if (i % this._curLineItemCount == this._curLineItemCount - 1) {
+                    xx = borderX;
+                    yy += lineHeight + this._lineGap;
+                    lineHeight = 0;
+                    if (i == startIndex + pageSize - 1) {
+                        borderX += viewWidth;
+                        xx = borderX;
+                        yy = 0;
+                    }
+                }
+                else
+                    xx += ii.width + this._columnGap;
+            }
+            //释放未使用的
+            for (i = reuseIndex; i < virtualItemCount; i++) {
+                ii = this._virtualItems[i];
+                if (ii.updateFlag != this.itemInfoVer && ii.obj) {
+                    if (ii.obj instanceof GButton)
+                        ii.selected = ii.obj.selected;
+                    this.removeChildToPool(ii.obj);
+                    ii.obj = null;
+                }
+            }
+        });
     }
     handleArchOrder1() {
         if (this.childrenRenderOrder == ChildrenRenderOrder.Arch) {
@@ -15866,294 +16368,293 @@ class GList extends GComponent {
         }
     }
     updateBounds() {
-        // if (this._virtual)
-        //     return;
-        // var i: number;
-        // var child: GObject;
-        // var curX: number = 0;
-        // var curY: number = 0;
-        // var maxWidth: number = 0;
-        // var maxHeight: number = 0;
-        // var cw: number, ch: number;
-        // var j: number = 0;
-        // var page: number = 0;
-        // var k: number = 0;
-        // var cnt: number = this._children.length;
-        // var viewWidth: number = this.viewWidth;
-        // var viewHeight: number = this.viewHeight;
-        // var lineSize: number = 0;
-        // var lineStart: number = 0;
-        // var ratio: number;
-        // if (this._layout == ListLayoutType.SingleColumn) {
-        //     for (i = 0; i < cnt; i++) {
-        //         child = this.getChildAt(i);
-        //         if (this.foldInvisibleItems && !child.visible)
-        //             continue;
-        //         if (curY != 0)
-        //             curY += this._lineGap;
-        //         child.y = curY;
-        //         if (this._autoResizeItem)
-        //             child.setSize(viewWidth, child.height, true);
-        //         curY += Math.ceil(child.height);
-        //         if (child.width > maxWidth)
-        //             maxWidth = child.width;
-        //     }
-        //     ch = curY;
-        //     if (ch <= viewHeight && this._autoResizeItem && this._scrollPane && this._scrollPane._displayInDemand && this._scrollPane.vtScrollBar) {
-        //         viewWidth += this._scrollPane.vtScrollBar.width;
-        //         for (i = 0; i < cnt; i++) {
-        //             child = this.getChildAt(i);
-        //             if (this.foldInvisibleItems && !child.visible)
-        //                 continue;
-        //             child.setSize(viewWidth, child.height, true);
-        //             if (child.width > maxWidth)
-        //                 maxWidth = child.width;
-        //         }
-        //     }
-        //     cw = Math.ceil(maxWidth);
-        // }
-        // else if (this._layout == ListLayoutType.SingleRow) {
-        //     for (i = 0; i < cnt; i++) {
-        //         child = this.getChildAt(i);
-        //         if (this.foldInvisibleItems && !child.visible)
-        //             continue;
-        //         if (curX != 0)
-        //             curX += this._columnGap;
-        //         child.x = curX;
-        //         if (this._autoResizeItem)
-        //             child.setSize(child.width, viewHeight, true);
-        //         curX += Math.ceil(child.width);
-        //         if (child.height > maxHeight)
-        //             maxHeight = child.height;
-        //     }
-        //     cw = curX;
-        //     if (cw <= viewWidth && this._autoResizeItem && this._scrollPane && this._scrollPane._displayInDemand && this._scrollPane.hzScrollBar) {
-        //         viewHeight += this._scrollPane.hzScrollBar.height;
-        //         for (i = 0; i < cnt; i++) {
-        //             child = this.getChildAt(i);
-        //             if (this.foldInvisibleItems && !child.visible)
-        //                 continue;
-        //             child.setSize(child.width, viewHeight, true);
-        //             if (child.height > maxHeight)
-        //                 maxHeight = child.height;
-        //         }
-        //     }
-        //     ch = Math.ceil(maxHeight);
-        // }
-        // else if (this._layout == ListLayoutType.FlowHorizontal) {
-        //     if (this._autoResizeItem && this._columnCount > 0) {
-        //         for (i = 0; i < cnt; i++) {
-        //             child = this.getChildAt(i);
-        //             if (this.foldInvisibleItems && !child.visible)
-        //                 continue;
-        //             lineSize += child.sourceWidth;
-        //             j++;
-        //             if (j == this._columnCount || i == cnt - 1) {
-        //                 ratio = (viewWidth - lineSize - (j - 1) * this._columnGap) / lineSize;
-        //                 curX = 0;
-        //                 for (j = lineStart; j <= i; j++) {
-        //                     child = this.getChildAt(j);
-        //                     if (this.foldInvisibleItems && !child.visible)
-        //                         continue;
-        //                     child.setXY(curX, curY);
-        //                     if (j < i) {
-        //                         child.setSize(child.sourceWidth + Math.round(child.sourceWidth * ratio), child.height, true);
-        //                         curX += Math.ceil(child.width) + this._columnGap;
-        //                     }
-        //                     else {
-        //                         child.setSize(viewWidth - curX, child.height, true);
-        //                     }
-        //                     if (child.height > maxHeight)
-        //                         maxHeight = child.height;
-        //                 }
-        //                 //new line
-        //                 curY += Math.ceil(maxHeight) + this._lineGap;
-        //                 maxHeight = 0;
-        //                 j = 0;
-        //                 lineStart = i + 1;
-        //                 lineSize = 0;
-        //             }
-        //         }
-        //         ch = curY + Math.ceil(maxHeight);
-        //         cw = viewWidth;
-        //     }
-        //     else {
-        //         for (i = 0; i < cnt; i++) {
-        //             child = this.getChildAt(i);
-        //             if (this.foldInvisibleItems && !child.visible)
-        //                 continue;
-        //             if (curX != 0)
-        //                 curX += this._columnGap;
-        //             if (this._columnCount != 0 && j >= this._columnCount
-        //                 || this._columnCount == 0 && curX + child.width > viewWidth && maxHeight != 0) {
-        //                 //new line
-        //                 curX = 0;
-        //                 curY += Math.ceil(maxHeight) + this._lineGap;
-        //                 maxHeight = 0;
-        //                 j = 0;
-        //             }
-        //             child.setXY(curX, curY);
-        //             curX += Math.ceil(child.width);
-        //             if (curX > maxWidth)
-        //                 maxWidth = curX;
-        //             if (child.height > maxHeight)
-        //                 maxHeight = child.height;
-        //             j++;
-        //         }
-        //         ch = curY + Math.ceil(maxHeight);
-        //         cw = Math.ceil(maxWidth);
-        //     }
-        // }
-        // else if (this._layout == ListLayoutType.FlowVertical) {
-        //     if (this._autoResizeItem && this._lineCount > 0) {
-        //         for (i = 0; i < cnt; i++) {
-        //             child = this.getChildAt(i);
-        //             if (this.foldInvisibleItems && !child.visible)
-        //                 continue;
-        //             lineSize += child.sourceHeight;
-        //             j++;
-        //             if (j == this._lineCount || i == cnt - 1) {
-        //                 ratio = (viewHeight - lineSize - (j - 1) * this._lineGap) / lineSize;
-        //                 curY = 0;
-        //                 for (j = lineStart; j <= i; j++) {
-        //                     child = this.getChildAt(j);
-        //                     if (this.foldInvisibleItems && !child.visible)
-        //                         continue;
-        //                     child.setXY(curX, curY);
-        //                     if (j < i) {
-        //                         child.setSize(child.width, child.sourceHeight + Math.round(child.sourceHeight * ratio), true);
-        //                         curY += Math.ceil(child.height) + this._lineGap;
-        //                     }
-        //                     else {
-        //                         child.setSize(child.width, viewHeight - curY, true);
-        //                     }
-        //                     if (child.width > maxWidth)
-        //                         maxWidth = child.width;
-        //                 }
-        //                 //new line
-        //                 curX += Math.ceil(maxWidth) + this._columnGap;
-        //                 maxWidth = 0;
-        //                 j = 0;
-        //                 lineStart = i + 1;
-        //                 lineSize = 0;
-        //             }
-        //         }
-        //         cw = curX + Math.ceil(maxWidth);
-        //         ch = viewHeight;
-        //     }
-        //     else {
-        //         for (i = 0; i < cnt; i++) {
-        //             child = this.getChildAt(i);
-        //             if (this.foldInvisibleItems && !child.visible)
-        //                 continue;
-        //             if (curY != 0)
-        //                 curY += this._lineGap;
-        //             if (this._lineCount != 0 && j >= this._lineCount
-        //                 || this._lineCount == 0 && curY + child.height > viewHeight && maxWidth != 0) {
-        //                 curY = 0;
-        //                 curX += Math.ceil(maxWidth) + this._columnGap;
-        //                 maxWidth = 0;
-        //                 j = 0;
-        //             }
-        //             child.setXY(curX, curY);
-        //             curY += Math.ceil(child.height);
-        //             if (curY > maxHeight)
-        //                 maxHeight = curY;
-        //             if (child.width > maxWidth)
-        //                 maxWidth = child.width;
-        //             j++;
-        //         }
-        //         cw = curX + Math.ceil(maxWidth);
-        //         ch = Math.ceil(maxHeight);
-        //     }
-        // }
-        // else //pagination
-        // {
-        //     var eachHeight: number;
-        //     if (this._autoResizeItem && this._lineCount > 0)
-        //         eachHeight = Math.floor((viewHeight - (this._lineCount - 1) * this._lineGap) / this._lineCount);
-        //     if (this._autoResizeItem && this._columnCount > 0) {
-        //         for (i = 0; i < cnt; i++) {
-        //             child = this.getChildAt(i);
-        //             if (this.foldInvisibleItems && !child.visible)
-        //                 continue;
-        //             if (j == 0 && (this._lineCount != 0 && k >= this._lineCount
-        //                 || this._lineCount == 0 && curY + child.height > viewHeight)) {
-        //                 //new page
-        //                 page++;
-        //                 curY = 0;
-        //                 k = 0;
-        //             }
-        //             lineSize += child.sourceWidth;
-        //             j++;
-        //             if (j == this._columnCount || i == cnt - 1) {
-        //                 ratio = (viewWidth - lineSize - (j - 1) * this._columnGap) / lineSize;
-        //                 curX = 0;
-        //                 for (j = lineStart; j <= i; j++) {
-        //                     child = this.getChildAt(j);
-        //                     if (this.foldInvisibleItems && !child.visible)
-        //                         continue;
-        //                     child.setXY(page * viewWidth + curX, curY);
-        //                     if (j < i) {
-        //                         child.setSize(child.sourceWidth + Math.round(child.sourceWidth * ratio),
-        //                             this._lineCount > 0 ? eachHeight : child.height, true);
-        //                         curX += Math.ceil(child.width) + this._columnGap;
-        //                     }
-        //                     else {
-        //                         child.setSize(viewWidth - curX, this._lineCount > 0 ? eachHeight : child.height, true);
-        //                     }
-        //                     if (child.height > maxHeight)
-        //                         maxHeight = child.height;
-        //                 }
-        //                 //new line
-        //                 curY += Math.ceil(maxHeight) + this._lineGap;
-        //                 maxHeight = 0;
-        //                 j = 0;
-        //                 lineStart = i + 1;
-        //                 lineSize = 0;
-        //                 k++;
-        //             }
-        //         }
-        //     }
-        //     else {
-        //         for (i = 0; i < cnt; i++) {
-        //             child = this.getChildAt(i);
-        //             if (this.foldInvisibleItems && !child.visible)
-        //                 continue;
-        //             if (curX != 0)
-        //                 curX += this._columnGap;
-        //             if (this._autoResizeItem && this._lineCount > 0)
-        //                 child.setSize(child.width, eachHeight, true);
-        //             if (this._columnCount != 0 && j >= this._columnCount
-        //                 || this._columnCount == 0 && curX + child.width > viewWidth && maxHeight != 0) {
-        //                 //new line
-        //                 curX = 0;
-        //                 curY += Math.ceil(maxHeight) + this._lineGap;
-        //                 maxHeight = 0;
-        //                 j = 0;
-        //                 k++;
-        //                 if (this._lineCount != 0 && k >= this._lineCount
-        //                     || this._lineCount == 0 && curY + child.height > viewHeight && maxWidth != 0)//new page
-        //                 {
-        //                     page++;
-        //                     curY = 0;
-        //                     k = 0;
-        //                 }
-        //             }
-        //             child.setXY(page * viewWidth + curX, curY);
-        //             curX += Math.ceil(child.width);
-        //             if (curX > maxWidth)
-        //                 maxWidth = curX;
-        //             if (child.height > maxHeight)
-        //                 maxHeight = child.height;
-        //             j++;
-        //         }
-        //     }
-        //     ch = page > 0 ? viewHeight : curY + Math.ceil(maxHeight);
-        //     cw = (page + 1) * viewWidth;
-        // }
-        // this.handleAlign(cw, ch);
-        // this.setBounds(0, 0, cw, ch);
+        if (this._virtual)
+            return;
+        var i;
+        var child;
+        var curX = 0;
+        var curY = 0;
+        var maxWidth = 0;
+        var maxHeight = 0;
+        var cw, ch;
+        var j = 0;
+        var page = 0;
+        var k = 0;
+        var cnt = this._children.length;
+        var viewWidth = this.viewWidth;
+        var viewHeight = this.viewHeight;
+        var lineSize = 0;
+        var lineStart = 0;
+        var ratio;
+        if (this._layout == ListLayoutType.SingleColumn) {
+            for (i = 0; i < cnt; i++) {
+                child = this.getChildAt(i);
+                if (this.foldInvisibleItems && !child.visible)
+                    continue;
+                if (curY != 0)
+                    curY += this._lineGap;
+                child.y = curY;
+                if (this._autoResizeItem)
+                    child.setSize(viewWidth, child.height, true);
+                curY += Math.ceil(child.height);
+                if (child.width > maxWidth)
+                    maxWidth = child.width;
+            }
+            ch = curY;
+            if (ch <= viewHeight && this._autoResizeItem && this._scrollPane && this._scrollPane._displayInDemand && this._scrollPane.vtScrollBar) {
+                viewWidth += this._scrollPane.vtScrollBar.width;
+                for (i = 0; i < cnt; i++) {
+                    child = this.getChildAt(i);
+                    if (this.foldInvisibleItems && !child.visible)
+                        continue;
+                    child.setSize(viewWidth, child.height, true);
+                    if (child.width > maxWidth)
+                        maxWidth = child.width;
+                }
+            }
+            cw = Math.ceil(maxWidth);
+        }
+        else if (this._layout == ListLayoutType.SingleRow) {
+            for (i = 0; i < cnt; i++) {
+                child = this.getChildAt(i);
+                if (this.foldInvisibleItems && !child.visible)
+                    continue;
+                if (curX != 0)
+                    curX += this._columnGap;
+                child.x = curX;
+                if (this._autoResizeItem)
+                    child.setSize(child.width, viewHeight, true);
+                curX += Math.ceil(child.width);
+                if (child.height > maxHeight)
+                    maxHeight = child.height;
+            }
+            cw = curX;
+            if (cw <= viewWidth && this._autoResizeItem && this._scrollPane && this._scrollPane._displayInDemand && this._scrollPane.hzScrollBar) {
+                viewHeight += this._scrollPane.hzScrollBar.height;
+                for (i = 0; i < cnt; i++) {
+                    child = this.getChildAt(i);
+                    if (this.foldInvisibleItems && !child.visible)
+                        continue;
+                    child.setSize(child.width, viewHeight, true);
+                    if (child.height > maxHeight)
+                        maxHeight = child.height;
+                }
+            }
+            ch = Math.ceil(maxHeight);
+        }
+        else if (this._layout == ListLayoutType.FlowHorizontal) {
+            if (this._autoResizeItem && this._columnCount > 0) {
+                for (i = 0; i < cnt; i++) {
+                    child = this.getChildAt(i);
+                    if (this.foldInvisibleItems && !child.visible)
+                        continue;
+                    lineSize += child.sourceWidth;
+                    j++;
+                    if (j == this._columnCount || i == cnt - 1) {
+                        ratio = (viewWidth - lineSize - (j - 1) * this._columnGap) / lineSize;
+                        curX = 0;
+                        for (j = lineStart; j <= i; j++) {
+                            child = this.getChildAt(j);
+                            if (this.foldInvisibleItems && !child.visible)
+                                continue;
+                            child.setXY(curX, curY);
+                            if (j < i) {
+                                child.setSize(child.sourceWidth + Math.round(child.sourceWidth * ratio), child.height, true);
+                                curX += Math.ceil(child.width) + this._columnGap;
+                            }
+                            else {
+                                child.setSize(viewWidth - curX, child.height, true);
+                            }
+                            if (child.height > maxHeight)
+                                maxHeight = child.height;
+                        }
+                        //new line
+                        curY += Math.ceil(maxHeight) + this._lineGap;
+                        maxHeight = 0;
+                        j = 0;
+                        lineStart = i + 1;
+                        lineSize = 0;
+                    }
+                }
+                ch = curY + Math.ceil(maxHeight);
+                cw = viewWidth;
+            }
+            else {
+                for (i = 0; i < cnt; i++) {
+                    child = this.getChildAt(i);
+                    if (this.foldInvisibleItems && !child.visible)
+                        continue;
+                    if (curX != 0)
+                        curX += this._columnGap;
+                    if (this._columnCount != 0 && j >= this._columnCount
+                        || this._columnCount == 0 && curX + child.width > viewWidth && maxHeight != 0) {
+                        //new line
+                        curX = 0;
+                        curY += Math.ceil(maxHeight) + this._lineGap;
+                        maxHeight = 0;
+                        j = 0;
+                    }
+                    child.setXY(curX, curY);
+                    curX += Math.ceil(child.width);
+                    if (curX > maxWidth)
+                        maxWidth = curX;
+                    if (child.height > maxHeight)
+                        maxHeight = child.height;
+                    j++;
+                }
+                ch = curY + Math.ceil(maxHeight);
+                cw = Math.ceil(maxWidth);
+            }
+        }
+        else if (this._layout == ListLayoutType.FlowVertical) {
+            if (this._autoResizeItem && this._lineCount > 0) {
+                for (i = 0; i < cnt; i++) {
+                    child = this.getChildAt(i);
+                    if (this.foldInvisibleItems && !child.visible)
+                        continue;
+                    lineSize += child.sourceHeight;
+                    j++;
+                    if (j == this._lineCount || i == cnt - 1) {
+                        ratio = (viewHeight - lineSize - (j - 1) * this._lineGap) / lineSize;
+                        curY = 0;
+                        for (j = lineStart; j <= i; j++) {
+                            child = this.getChildAt(j);
+                            if (this.foldInvisibleItems && !child.visible)
+                                continue;
+                            child.setXY(curX, curY);
+                            if (j < i) {
+                                child.setSize(child.width, child.sourceHeight + Math.round(child.sourceHeight * ratio), true);
+                                curY += Math.ceil(child.height) + this._lineGap;
+                            }
+                            else {
+                                child.setSize(child.width, viewHeight - curY, true);
+                            }
+                            if (child.width > maxWidth)
+                                maxWidth = child.width;
+                        }
+                        //new line
+                        curX += Math.ceil(maxWidth) + this._columnGap;
+                        maxWidth = 0;
+                        j = 0;
+                        lineStart = i + 1;
+                        lineSize = 0;
+                    }
+                }
+                cw = curX + Math.ceil(maxWidth);
+                ch = viewHeight;
+            }
+            else {
+                for (i = 0; i < cnt; i++) {
+                    child = this.getChildAt(i);
+                    if (this.foldInvisibleItems && !child.visible)
+                        continue;
+                    if (curY != 0)
+                        curY += this._lineGap;
+                    if (this._lineCount != 0 && j >= this._lineCount
+                        || this._lineCount == 0 && curY + child.height > viewHeight && maxWidth != 0) {
+                        curY = 0;
+                        curX += Math.ceil(maxWidth) + this._columnGap;
+                        maxWidth = 0;
+                        j = 0;
+                    }
+                    child.setXY(curX, curY);
+                    curY += Math.ceil(child.height);
+                    if (curY > maxHeight)
+                        maxHeight = curY;
+                    if (child.width > maxWidth)
+                        maxWidth = child.width;
+                    j++;
+                }
+                cw = curX + Math.ceil(maxWidth);
+                ch = Math.ceil(maxHeight);
+            }
+        }
+        else //pagination
+         {
+            var eachHeight;
+            if (this._autoResizeItem && this._lineCount > 0)
+                eachHeight = Math.floor((viewHeight - (this._lineCount - 1) * this._lineGap) / this._lineCount);
+            if (this._autoResizeItem && this._columnCount > 0) {
+                for (i = 0; i < cnt; i++) {
+                    child = this.getChildAt(i);
+                    if (this.foldInvisibleItems && !child.visible)
+                        continue;
+                    if (j == 0 && (this._lineCount != 0 && k >= this._lineCount
+                        || this._lineCount == 0 && curY + child.height > viewHeight)) {
+                        //new page
+                        page++;
+                        curY = 0;
+                        k = 0;
+                    }
+                    lineSize += child.sourceWidth;
+                    j++;
+                    if (j == this._columnCount || i == cnt - 1) {
+                        ratio = (viewWidth - lineSize - (j - 1) * this._columnGap) / lineSize;
+                        curX = 0;
+                        for (j = lineStart; j <= i; j++) {
+                            child = this.getChildAt(j);
+                            if (this.foldInvisibleItems && !child.visible)
+                                continue;
+                            child.setXY(page * viewWidth + curX, curY);
+                            if (j < i) {
+                                child.setSize(child.sourceWidth + Math.round(child.sourceWidth * ratio), this._lineCount > 0 ? eachHeight : child.height, true);
+                                curX += Math.ceil(child.width) + this._columnGap;
+                            }
+                            else {
+                                child.setSize(viewWidth - curX, this._lineCount > 0 ? eachHeight : child.height, true);
+                            }
+                            if (child.height > maxHeight)
+                                maxHeight = child.height;
+                        }
+                        //new line
+                        curY += Math.ceil(maxHeight) + this._lineGap;
+                        maxHeight = 0;
+                        j = 0;
+                        lineStart = i + 1;
+                        lineSize = 0;
+                        k++;
+                    }
+                }
+            }
+            else {
+                for (i = 0; i < cnt; i++) {
+                    child = this.getChildAt(i);
+                    if (this.foldInvisibleItems && !child.visible)
+                        continue;
+                    if (curX != 0)
+                        curX += this._columnGap;
+                    if (this._autoResizeItem && this._lineCount > 0)
+                        child.setSize(child.width, eachHeight, true);
+                    if (this._columnCount != 0 && j >= this._columnCount
+                        || this._columnCount == 0 && curX + child.width > viewWidth && maxHeight != 0) {
+                        //new line
+                        curX = 0;
+                        curY += Math.ceil(maxHeight) + this._lineGap;
+                        maxHeight = 0;
+                        j = 0;
+                        k++;
+                        if (this._lineCount != 0 && k >= this._lineCount
+                            || this._lineCount == 0 && curY + child.height > viewHeight && maxWidth != 0) //new page
+                         {
+                            page++;
+                            curY = 0;
+                            k = 0;
+                        }
+                    }
+                    child.setXY(page * viewWidth + curX, curY);
+                    curX += Math.ceil(child.width);
+                    if (curX > maxWidth)
+                        maxWidth = curX;
+                    if (child.height > maxHeight)
+                        maxHeight = child.height;
+                    j++;
+                }
+            }
+            ch = page > 0 ? viewHeight : curY + Math.ceil(maxHeight);
+            cw = (page + 1) * viewWidth;
+        }
+        this.handleAlign(cw, ch);
+        this.setBounds(0, 0, cw, ch);
     }
     setup_beforeAdd(buffer, beginPos) {
         super.setup_beforeAdd(buffer, beginPos);
@@ -16465,7 +16966,7 @@ class GTreeNode {
     _setTree(value) {
         this._tree = value;
         if (this._tree && this._tree.treeNodeWillExpand && this._expanded)
-            this._tree.treeNodeWillExpand(this, true);
+            this._tree.treeNodeWillExpand.runWith([this, true]);
         if (this._children) {
             var cnt = this._children.length;
             for (var i = 0; i < cnt; i++) {
@@ -16560,38 +17061,39 @@ class GTree extends GList {
         }
     }
     createCell(node) {
-        throw new Error("TODO");
-        //     var child: GComponent = <GComponent>this.getFromPool(node._resURL ? node._resURL : this.defaultItem);
-        //     if (!child)
-        //         throw new Error("cannot create tree node object.");
-        //     child._treeNode = node;
-        //     node._cell = child;
-        //     var indentObj: GObject = child.getChild("indent");
-        //     if (indentObj)
-        //         indentObj.width = (node.level - 1) * this._indent;
-        //     var cc: Controller;
-        //     cc = child.getController("expanded");
-        //     if (cc) {
-        //         cc.on(Events.STATE_CHANGED, this, this.__expandedStateChanged);
-        //         cc.selectedIndex = node.expanded ? 1 : 0;
-        //     }
-        //     cc = child.getController("leaf");
-        //     if (cc)
-        //         cc.selectedIndex = node.isFolder ? 0 : 1;
-        //     if (node.isFolder)
-        //         child.on(Laya.Event.MOUSE_DOWN, this, this.__cellMouseDown);
-        //     if (this.treeNodeRender)
-        //         this.treeNodeRender.runWith([node, child]);
-        // }
-        // public _afterInserted(node: GTreeNode): void {
-        //     if (!node._cell)
-        //         this.createCell(node);
-        //     var index: number = this.getInsertIndexForNode(node);
-        //     this.addChildAt(node._cell, index);
-        //     if (this.treeNodeRender)
-        //         this.treeNodeRender.runWith([node, node._cell]);
-        //     if (node.isFolder && node.expanded)
-        //         this.checkChildren(node, index);
+        this.getFromPool(node._resURL ? node._resURL : this.defaultItem).then((obj) => {
+            var child = obj;
+            if (!child)
+                throw new Error("cannot create tree node object.");
+            child._treeNode = node;
+            node._cell = child;
+            var indentObj = child.getChild("indent");
+            if (indentObj)
+                indentObj.width = (node.level - 1) * this._indent;
+            var cc;
+            cc = child.getController("expanded");
+            if (cc) {
+                cc.on(Events.STATE_CHANGED, this.__expandedStateChanged, this);
+                cc.selectedIndex = node.expanded ? 1 : 0;
+            }
+            cc = child.getController("leaf");
+            if (cc)
+                cc.selectedIndex = node.isFolder ? 0 : 1;
+            if (node.isFolder)
+                child.on("pointerdown", this.__cellMouseDown, this);
+            if (this.treeNodeRender)
+                this.treeNodeRender.runWith([node, child]);
+        });
+    }
+    _afterInserted(node) {
+        if (!node._cell)
+            this.createCell(node);
+        var index = this.getInsertIndexForNode(node);
+        this.addChildAt(node._cell, index);
+        if (this.treeNodeRender)
+            this.treeNodeRender.runWith([node, node._cell]);
+        if (node.isFolder && node.expanded)
+            this.checkChildren(node, index);
     }
     getInsertIndexForNode(node) {
         var prevNode = node.getPrevSibling();
@@ -16617,11 +17119,11 @@ class GTree extends GList {
             return;
         }
         if (this.treeNodeWillExpand != null)
-            this.treeNodeWillExpand(node, true);
+            this.treeNodeWillExpand.runWith([node, true]);
         if (!node._cell)
             return;
         if (this.treeNodeRender)
-            this.treeNodeRender(node, node._cell);
+            this.treeNodeRender.runWith([node, node._cell]);
         var cc = node._cell.getController("expanded");
         if (cc)
             cc.selectedIndex = 1;
@@ -16634,11 +17136,11 @@ class GTree extends GList {
             return;
         }
         if (this.treeNodeWillExpand)
-            this.treeNodeWillExpand(node, false);
+            this.treeNodeWillExpand.runWith([node, false]);
         if (!node._cell)
             return;
         if (this.treeNodeRender)
-            this.treeNodeRender(node, node._cell);
+            this.treeNodeRender.runWith([node, node._cell]);
         var cc = node._cell.getController("expanded");
         if (cc)
             cc.selectedIndex = 0;
@@ -17350,13 +17852,13 @@ class GBasicTextField extends GTextField {
         }
     }
     get textWidth() {
-        // if (this._textField["_isChanged"])
-        //     this._textField.typeset();
+        if (this._textField["_isChanged"])
+            this._textField.typeset();
         return this._textWidth;
     }
     ensureSizeCorrect() {
-        if (!this._underConstruct)
-            this.typeset();
+        if (!this._underConstruct && this._textField["_isChanged"])
+            this._textField.typeset();
     }
     typeset() {
         if (this._bitmapFont)
@@ -17765,11 +18267,11 @@ class UIObjectFactory {
                 case ObjectType.Graph:
                     return new GGraph(GRoot.inst.scene);
                 case ObjectType.Loader:
-                    // if (UIObjectFactory.loaderType)
-                    // return new UIObjectFactory.loaderType();
-                    // else
-                    // return new GLoader();
-                    return;
+                    // test
+                    if (UIObjectFactory.loaderType)
+                        return new UIObjectFactory.loaderType();
+                    else
+                        return new GLoader(GRoot.inst.scene);
                 case ObjectType.Button:
                     return new GButton(GRoot.inst.scene);
                 case ObjectType.Label:
@@ -18030,265 +18532,881 @@ class AsyncOperation {
     }
 }
 
-class MovieClip extends Image {
+class BitmapFont {
     constructor() {
-        super(undefined);
-        this.interval = 0;
-        this.repeatDelay = 0;
-        this.timeScale = 1;
-        this._playing = true;
-        this._frameCount = 0;
-        this._frame = 0;
-        this._start = 0;
-        this._end = 0;
-        this._times = 0;
-        this._endAt = 0;
-        this._status = 0; //0-none, 1-next loop, 2-ending, 3-ended
-        this._frameElapsed = 0; //当前帧延迟
-        this._repeatedCount = 0;
-        throw new Error("TODO");
-        // this.mouseEnabled = false;
-        // this.setPlaySettings();
-        // this.on(Laya.Event.DISPLAY, this, this.__addToStage);
-        // this.on(Laya.Event.UNDISPLAY, this, this.__removeFromStage);
-    }
-    get frames() {
-        return this._frames;
-    }
-    set frames(value) {
-        this._frames = value;
-        this._scaleByTile = false;
-        this._scale9Grid = null;
-        if (this._frames) {
-            this._frameCount = this._frames.length;
-            if (this._end == -1 || this._end > this._frameCount - 1)
-                this._end = this._frameCount - 1;
-            if (this._endAt == -1 || this._endAt > this._frameCount - 1)
-                this._endAt = this._frameCount - 1;
-            if (this._frame < 0 || this._frame > this._frameCount - 1)
-                this._frame = this._frameCount - 1;
-            this._frameElapsed = 0;
-            this._repeatedCount = 0;
-            this._reversed = false;
-        }
-        else
-            this._frameCount = 0;
-        this.drawFrame();
-        this.checkTimer();
-    }
-    get frameCount() {
-        return this._frameCount;
-    }
-    get frame() {
-        return this._frame;
-    }
-    set frame(value) {
-        if (this._frame != value) {
-            if (this._frames && value >= this._frameCount)
-                value = this._frameCount - 1;
-            this._frame = value;
-            this._frameElapsed = 0;
-            this.drawFrame();
-        }
-    }
-    get playing() {
-        return this._playing;
-    }
-    set playing(value) {
-        if (this._playing != value) {
-            this._playing = value;
-            this.checkTimer();
-        }
-    }
-    //从start帧开始，播放到end帧（-1表示结尾），重复times次（0表示无限循环），循环结束后，停止在endAt帧（-1表示参数end）
-    rewind() {
-        this._frame = 0;
-        this._frameElapsed = 0;
-        this._reversed = false;
-        this._repeatedCount = 0;
-        this.drawFrame();
-    }
-    syncStatus(anotherMc) {
-        this._frame = anotherMc._frame;
-        this._frameElapsed = anotherMc._frameElapsed;
-        this._reversed = anotherMc._reversed;
-        this._repeatedCount = anotherMc._repeatedCount;
-        this.drawFrame();
-    }
-    advance(timeInMiniseconds) {
-        var beginFrame = this._frame;
-        var beginReversed = this._reversed;
-        var backupTime = timeInMiniseconds;
-        while (true) {
-            var tt = this.interval + this._frames[this._frame].addDelay;
-            if (this._frame == 0 && this._repeatedCount > 0)
-                tt += this.repeatDelay;
-            if (timeInMiniseconds < tt) {
-                this._frameElapsed = 0;
-                break;
-            }
-            timeInMiniseconds -= tt;
-            if (this.swing) {
-                if (this._reversed) {
-                    this._frame--;
-                    if (this._frame <= 0) {
-                        this._frame = 0;
-                        this._repeatedCount++;
-                        this._reversed = !this._reversed;
-                    }
-                }
-                else {
-                    this._frame++;
-                    if (this._frame > this._frameCount - 1) {
-                        this._frame = Math.max(0, this._frameCount - 2);
-                        this._repeatedCount++;
-                        this._reversed = !this._reversed;
-                    }
-                }
-            }
-            else {
-                this._frame++;
-                if (this._frame > this._frameCount - 1) {
-                    this._frame = 0;
-                    this._repeatedCount++;
-                }
-            }
-            if (this._frame == beginFrame && this._reversed == beginReversed) //走了一轮了
-             {
-                var roundTime = backupTime - timeInMiniseconds; //这就是一轮需要的时间
-                timeInMiniseconds -= Math.floor(timeInMiniseconds / roundTime) * roundTime; //跳过
-            }
-        }
-        this.drawFrame();
-    }
-    //从start帧开始，播放到end帧（-1表示结尾），重复times次（0表示无限循环），循环结束后，停止在endAt帧（-1表示参数end）
-    setPlaySettings(start, end, times, endAt, endHandler) {
-        if (start == undefined)
-            start = 0;
-        if (end == undefined)
-            end = -1;
-        if (times == undefined)
-            times = 0;
-        if (endAt == undefined)
-            endAt = -1;
-        this._start = start;
-        this._end = end;
-        if (this._end == -1 || this._end > this._frameCount - 1)
-            this._end = this._frameCount - 1;
-        this._times = times;
-        this._endAt = endAt;
-        if (this._endAt == -1)
-            this._endAt = this._end;
-        this._status = 0;
-        this._endHandler = endHandler;
-        this.frame = start;
-    }
-    update() {
-        throw new Error("TODO");
-        // if (!this._playing || this._frameCount == 0 || this._status == 3)
-        //     return;
-        // var dt: number = Laya.timer.delta;
-        // if (dt > 100)
-        //     dt = 100;
-        // if (this.timeScale != 1)
-        //     dt *= this.timeScale;
-        // this._frameElapsed += dt;
-        // var tt: number = this.interval + this._frames[this._frame].addDelay;
-        // if (this._frame == 0 && this._repeatedCount > 0)
-        //     tt += this.repeatDelay;
-        // if (this._frameElapsed < tt)
-        //     return;
-        // this._frameElapsed -= tt;
-        // if (this._frameElapsed > this.interval)
-        //     this._frameElapsed = this.interval;
-        // if (this.swing) {
-        //     if (this._reversed) {
-        //         this._frame--;
-        //         if (this._frame <= 0) {
-        //             this._frame = 0;
-        //             this._repeatedCount++;
-        //             this._reversed = !this._reversed;
-        //         }
-        //     }
-        //     else {
-        //         this._frame++;
-        //         if (this._frame > this._frameCount - 1) {
-        //             this._frame = Math.max(0, this._frameCount - 2);
-        //             this._repeatedCount++;
-        //             this._reversed = !this._reversed;
-        //         }
-        //     }
-        // }
-        // else {
-        //     this._frame++;
-        //     if (this._frame > this._frameCount - 1) {
-        //         this._frame = 0;
-        //         this._repeatedCount++;
-        //     }
-        // }
-        // if (this._status == 1) //new loop
-        // {
-        //     this._frame = this._start;
-        //     this._frameElapsed = 0;
-        //     this._status = 0;
-        // }
-        // else if (this._status == 2) //ending
-        // {
-        //     this._frame = this._endAt;
-        //     this._frameElapsed = 0;
-        //     this._status = 3; //ended
-        //     //play end
-        //     if (this._endHandler) {
-        //         var handler = this._endHandler;
-        //         this._endHandler = null;
-        //         handler();
-        //     }
-        // }
-        // else {
-        //     if (this._frame == this._end) {
-        //         if (this._times > 0) {
-        //             this._times--;
-        //             if (this._times == 0)
-        //                 this._status = 2;  //ending
-        //             else
-        //                 this._status = 1; //new loop
-        //         }
-        //         else {
-        //             this._status = 1; //new loop
-        //         }
-        //     }
-        // }
-        // this.drawFrame();
-    }
-    drawFrame() {
-        if (this._frameCount > 0 && this._frame < this._frames.length) {
-            var frame = this._frames[this._frame];
-            this.texture = frame.texture;
-        }
-        else
-            this.texture = null;
-        this.rebuild();
-    }
-    checkTimer() {
-        throw new Error("TODO");
-        // if (this._playing && this._frameCount > 0 && this.stage != null)
-        //     Laya.timer.frameLoop(1, this, this.update);
-        // else
-        //     Laya.timer.clear(this, this.update);
-    }
-    __addToStage() {
-        throw new Error("TODO");
-        // if (this._playing && this._frameCount > 0)
-        //     Laya.timer.frameLoop(1, this, this.update);
-    }
-    __removeFromStage() {
-        throw new Error("TODO");
-        // Laya.timer.clear(this, this.update);
+        this.size = 0;
+        this.glyphs = {};
     }
 }
 
 class Event {
 }
 
-export { AlignType, AsyncOperation, AutoSizeType, ButtonMode, ByteBuffer, ChildrenRenderOrder, Controller, DragDropManager, EaseType, Event, FillMethod, FillOrigin, FillOrigin90, FlipType, GButton, GComboBox, GComponent, GGraph, GGroup, GImage, GLabel, GList, GLoader, GMovieClip, GObject, GObjectPool, GProgressBar, GRichTextField, GRoot, GScrollBar, GSlider, GTextField, GTextInput, GTree, GTreeNode, GTween, GTweener, GroupLayoutType, Image, ListLayoutType, ListSelectionMode, LoaderFillType, MovieClip, ObjectPropID, ObjectType, OverflowType, PackageItem, PackageItemType, PopupDirection, PopupMenu, ProgressTitleType, RelationType, ScrollBarDisplayType, ScrollPane, ScrollType, ToolSet, Transition, TranslationHelper, UBBParser, UIConfig, UIObjectFactory, UIPackage, VertAlignType, Window };
+/**
+ * <p> <code>Byte</code> 类提供用于优化读取、写入以及处理二进制数据的方法和属性。</p>
+ * <p> <code>Byte</code> 类适用于需要在字节层访问数据的高级开发人员。</p>
+ */
+class Byte {
+    /**
+     * 创建一个 <code>Byte</code> 类的实例。
+     * @param	data	用于指定初始化的元素数目，或者用于初始化的TypedArray对象、ArrayBuffer对象。如果为 null ，则预分配一定的内存空间，当可用空间不足时，优先使用这部分内存，如果还不够，则重新分配所需内存。
+     */
+    constructor(data = null) {
+        /**@private 是否为小端数据。*/
+        this._xd_ = true;
+        /**@private */
+        this._allocated_ = 8;
+        /**@private */
+        this._pos_ = 0;
+        /**@private */
+        this._length = 0;
+        if (data) {
+            this._u8d_ = new Uint8Array(data);
+            this._d_ = new DataView(this._u8d_.buffer);
+            this._length = this._d_.byteLength;
+        }
+        else {
+            this._resizeBuffer(this._allocated_);
+        }
+    }
+    /**
+     * <p>获取当前主机的字节序。</p>
+     * <p>主机字节序，是 CPU 存放数据的两种不同顺序，包括小端字节序和大端字节序。</p>
+     * <p> <code>BIG_ENDIAN</code> ：大端字节序，地址低位存储值的高位，地址高位存储值的低位。有时也称之为网络字节序。<br/>
+     * <code>LITTLE_ENDIAN</code> ：小端字节序，地址低位存储值的低位，地址高位存储值的高位。</p>
+     * @return 当前系统的字节序。
+     */
+    static getSystemEndian() {
+        if (!Byte._sysEndian) {
+            var buffer = new ArrayBuffer(2);
+            new DataView(buffer).setInt16(0, 256, true);
+            Byte._sysEndian = (new Int16Array(buffer))[0] === 256 ? Byte.LITTLE_ENDIAN : Byte.BIG_ENDIAN;
+        }
+        return Byte._sysEndian;
+    }
+    /**
+     * 获取此对象的 ArrayBuffer 数据，数据只包含有效数据部分。
+     */
+    get buffer() {
+        var rstBuffer = this._d_.buffer;
+        if (rstBuffer.byteLength === this._length)
+            return rstBuffer;
+        return rstBuffer.slice(0, this._length);
+    }
+    /**
+     * <p> <code>Byte</code> 实例的字节序。取值为：<code>BIG_ENDIAN</code> 或 <code>BIG_ENDIAN</code> 。</p>
+     * <p>主机字节序，是 CPU 存放数据的两种不同顺序，包括小端字节序和大端字节序。通过 <code>getSystemEndian</code> 可以获取当前系统的字节序。</p>
+     * <p> <code>BIG_ENDIAN</code> ：大端字节序，地址低位存储值的高位，地址高位存储值的低位。有时也称之为网络字节序。<br/>
+     *  <code>LITTLE_ENDIAN</code> ：小端字节序，地址低位存储值的低位，地址高位存储值的高位。</p>
+     */
+    get endian() {
+        return this._xd_ ? Byte.LITTLE_ENDIAN : Byte.BIG_ENDIAN;
+    }
+    set endian(value) {
+        this._xd_ = (value === Byte.LITTLE_ENDIAN);
+    }
+    /**
+     * <p> <code>Byte</code> 对象的长度（以字节为单位）。</p>
+     * <p>如果将长度设置为大于当前长度的值，则用零填充字节数组的右侧；如果将长度设置为小于当前长度的值，将会截断该字节数组。</p>
+     * <p>如果要设置的长度大于当前已分配的内存空间的字节长度，则重新分配内存空间，大小为以下两者较大者：要设置的长度、当前已分配的长度的2倍，并将原有数据拷贝到新的内存空间中；如果要设置的长度小于当前已分配的内存空间的字节长度，也会重新分配内存空间，大小为要设置的长度，并将原有数据从头截断为要设置的长度存入新的内存空间中。</p>
+     */
+    set length(value) {
+        if (this._allocated_ < value)
+            this._resizeBuffer(this._allocated_ = Math.floor(Math.max(value, this._allocated_ * 2)));
+        else if (this._allocated_ > value)
+            this._resizeBuffer(this._allocated_ = value);
+        this._length = value;
+    }
+    get length() {
+        return this._length;
+    }
+    /**@private */
+    _resizeBuffer(len) {
+        try {
+            var newByteView = new Uint8Array(len);
+            if (this._u8d_ != null) {
+                if (this._u8d_.length <= len)
+                    newByteView.set(this._u8d_);
+                else
+                    newByteView.set(this._u8d_.subarray(0, len));
+            }
+            this._u8d_ = newByteView;
+            this._d_ = new DataView(newByteView.buffer);
+        }
+        catch (err) {
+            throw "Invalid typed array length:" + len;
+        }
+    }
+    /**
+     * @private
+     * <p>常用于解析固定格式的字节流。</p>
+     * <p>先从字节流的当前字节偏移位置处读取一个 <code>Uint16</code> 值，然后以此值为长度，读取此长度的字符串。</p>
+     * @return 读取的字符串。
+     */
+    getString() {
+        return this.readString();
+    }
+    /**
+     * <p>常用于解析固定格式的字节流。</p>
+     * <p>先从字节流的当前字节偏移位置处读取一个 <code>Uint16</code> 值，然后以此值为长度，读取此长度的字符串。</p>
+     * @return 读取的字符串。
+     */
+    readString() {
+        return this._rUTF(this.getUint16());
+    }
+    /**
+     * @private
+     * <p>从字节流中 <code>start</code> 参数指定的位置开始，读取 <code>len</code> 参数指定的字节数的数据，用于创建一个 <code>Float32Array</code> 对象并返回此对象。</p>
+     * <p><b>注意：</b>返回的 Float32Array 对象，在 JavaScript 环境下，是原生的 HTML5 Float32Array 对象，对此对象的读取操作都是基于运行此程序的当前主机字节序，此顺序可能与实际数据的字节序不同，如果使用此对象进行读取，需要用户知晓实际数据的字节序和当前主机字节序，如果相同，可正常读取，否则需要用户对实际数据(Float32Array.buffer)包装一层 DataView ，使用 DataView 对象可按照指定的字节序进行读取。</p>
+     * @param	start	开始位置。
+     * @param	len		需要读取的字节长度。如果要读取的长度超过可读取范围，则只返回可读范围内的值。
+     * @return  读取的 Float32Array 对象。
+     */
+    getFloat32Array(start, len) {
+        return this.readFloat32Array(start, len);
+    }
+    /**
+     * 从字节流中 <code>start</code> 参数指定的位置开始，读取 <code>len</code> 参数指定的字节数的数据，用于创建一个 <code>Float32Array</code> 对象并返回此对象。
+     * @param	start	开始位置。
+     * @param	len		需要读取的字节长度。如果要读取的长度超过可读取范围，则只返回可读范围内的值。
+     * @return  读取的 Float32Array 对象。
+     */
+    readFloat32Array(start, len) {
+        var end = start + len;
+        end = (end > this._length) ? this._length : end;
+        var v = new Float32Array(this._d_.buffer.slice(start, end));
+        this._pos_ = end;
+        return v;
+    }
+    /**
+     * @private
+     * 从字节流中 <code>start</code> 参数指定的位置开始，读取 <code>len</code> 参数指定的字节数的数据，用于创建一个 <code>Uint8Array</code> 对象并返回此对象。
+     * @param	start	开始位置。
+     * @param	len		需要读取的字节长度。如果要读取的长度超过可读取范围，则只返回可读范围内的值。
+     * @return  读取的 Uint8Array 对象。
+     */
+    getUint8Array(start, len) {
+        return this.readUint8Array(start, len);
+    }
+    /**
+     * 从字节流中 <code>start</code> 参数指定的位置开始，读取 <code>len</code> 参数指定的字节数的数据，用于创建一个 <code>Uint8Array</code> 对象并返回此对象。
+     * @param	start	开始位置。
+     * @param	len		需要读取的字节长度。如果要读取的长度超过可读取范围，则只返回可读范围内的值。
+     * @return  读取的 Uint8Array 对象。
+     */
+    readUint8Array(start, len) {
+        var end = start + len;
+        end = (end > this._length) ? this._length : end;
+        var v = new Uint8Array(this._d_.buffer.slice(start, end));
+        this._pos_ = end;
+        return v;
+    }
+    /**
+     * @private
+     * <p>从字节流中 <code>start</code> 参数指定的位置开始，读取 <code>len</code> 参数指定的字节数的数据，用于创建一个 <code>Int16Array</code> 对象并返回此对象。</p>
+     * <p><b>注意：</b>返回的 Int16Array 对象，在 JavaScript 环境下，是原生的 HTML5 Int16Array 对象，对此对象的读取操作都是基于运行此程序的当前主机字节序，此顺序可能与实际数据的字节序不同，如果使用此对象进行读取，需要用户知晓实际数据的字节序和当前主机字节序，如果相同，可正常读取，否则需要用户对实际数据(Int16Array.buffer)包装一层 DataView ，使用 DataView 对象可按照指定的字节序进行读取。</p>
+     * @param	start	开始读取的字节偏移量位置。
+     * @param	len		需要读取的字节长度。如果要读取的长度超过可读取范围，则只返回可读范围内的值。
+     * @return  读取的 Int16Array 对象。
+     */
+    getInt16Array(start, len) {
+        return this.readInt16Array(start, len);
+    }
+    /**
+     * 从字节流中 <code>start</code> 参数指定的位置开始，读取 <code>len</code> 参数指定的字节数的数据，用于创建一个 <code>Int16Array</code> 对象并返回此对象。
+     * @param	start	开始读取的字节偏移量位置。
+     * @param	len		需要读取的字节长度。如果要读取的长度超过可读取范围，则只返回可读范围内的值。
+     * @return  读取的 Uint8Array 对象。
+     */
+    readInt16Array(start, len) {
+        var end = start + len;
+        end = (end > this._length) ? this._length : end;
+        var v = new Int16Array(this._d_.buffer.slice(start, end));
+        this._pos_ = end;
+        return v;
+    }
+    /**
+     * @private
+     * 从字节流的当前字节偏移位置处读取一个 IEEE 754 单精度（32 位）浮点数。
+     * @return 单精度（32 位）浮点数。
+     */
+    getFloat32() {
+        return this.readFloat32();
+    }
+    /**
+     * 从字节流的当前字节偏移位置处读取一个 IEEE 754 单精度（32 位）浮点数。
+     * @return 单精度（32 位）浮点数。
+     */
+    readFloat32() {
+        if (this._pos_ + 4 > this._length)
+            throw "getFloat32 error - Out of bounds";
+        var v = this._d_.getFloat32(this._pos_, this._xd_);
+        this._pos_ += 4;
+        return v;
+    }
+    /**
+     * @private
+     * 从字节流的当前字节偏移量位置处读取一个 IEEE 754 双精度（64 位）浮点数。
+     * @return 双精度（64 位）浮点数。
+     */
+    getFloat64() {
+        return this.readFloat64();
+    }
+    /**
+     * 从字节流的当前字节偏移量位置处读取一个 IEEE 754 双精度（64 位）浮点数。
+     * @return 双精度（64 位）浮点数。
+     */
+    readFloat64() {
+        if (this._pos_ + 8 > this._length)
+            throw "getFloat64 error - Out of bounds";
+        var v = this._d_.getFloat64(this._pos_, this._xd_);
+        this._pos_ += 8;
+        return v;
+    }
+    /**
+     * 在字节流的当前字节偏移量位置处写入一个 IEEE 754 单精度（32 位）浮点数。
+     * @param	value	单精度（32 位）浮点数。
+     */
+    writeFloat32(value) {
+        this._ensureWrite(this._pos_ + 4);
+        this._d_.setFloat32(this._pos_, value, this._xd_);
+        this._pos_ += 4;
+    }
+    /**
+     * 在字节流的当前字节偏移量位置处写入一个 IEEE 754 双精度（64 位）浮点数。
+     * @param	value	双精度（64 位）浮点数。
+     */
+    writeFloat64(value) {
+        this._ensureWrite(this._pos_ + 8);
+        this._d_.setFloat64(this._pos_, value, this._xd_);
+        this._pos_ += 8;
+    }
+    /**
+     * @private
+     * 从字节流的当前字节偏移量位置处读取一个 Int32 值。
+     * @return Int32 值。
+     */
+    getInt32() {
+        return this.readInt32();
+    }
+    /**
+     * 从字节流的当前字节偏移量位置处读取一个 Int32 值。
+     * @return Int32 值。
+     */
+    readInt32() {
+        if (this._pos_ + 4 > this._length)
+            throw "getInt32 error - Out of bounds";
+        var float = this._d_.getInt32(this._pos_, this._xd_);
+        this._pos_ += 4;
+        return float;
+    }
+    /**
+     * @private
+     * 从字节流的当前字节偏移量位置处读取一个 Uint32 值。
+     * @return Uint32 值。
+     */
+    getUint32() {
+        return this.readUint32();
+    }
+    /**
+     * 从字节流的当前字节偏移量位置处读取一个 Uint32 值。
+     * @return Uint32 值。
+     */
+    readUint32() {
+        if (this._pos_ + 4 > this._length)
+            throw "getUint32 error - Out of bounds";
+        var v = this._d_.getUint32(this._pos_, this._xd_);
+        this._pos_ += 4;
+        return v;
+    }
+    /**
+     * 在字节流的当前字节偏移量位置处写入指定的 Int32 值。
+     * @param	value	需要写入的 Int32 值。
+     */
+    writeInt32(value) {
+        this._ensureWrite(this._pos_ + 4);
+        this._d_.setInt32(this._pos_, value, this._xd_);
+        this._pos_ += 4;
+    }
+    /**
+     * 在字节流的当前字节偏移量位置处写入 Uint32 值。
+     * @param	value	需要写入的 Uint32 值。
+     */
+    writeUint32(value) {
+        this._ensureWrite(this._pos_ + 4);
+        this._d_.setUint32(this._pos_, value, this._xd_);
+        this._pos_ += 4;
+    }
+    /**
+     * @private
+     * 从字节流的当前字节偏移量位置处读取一个 Int16 值。
+     * @return Int16 值。
+     */
+    getInt16() {
+        return this.readInt16();
+    }
+    /**
+     * 从字节流的当前字节偏移量位置处读取一个 Int16 值。
+     * @return Int16 值。
+     */
+    readInt16() {
+        if (this._pos_ + 2 > this._length)
+            throw "getInt16 error - Out of bounds";
+        var us = this._d_.getInt16(this._pos_, this._xd_);
+        this._pos_ += 2;
+        return us;
+    }
+    /**
+     * @private
+     * 从字节流的当前字节偏移量位置处读取一个 Uint16 值。
+     * @return Uint16 值。
+     */
+    getUint16() {
+        return this.readUint16();
+    }
+    /**
+     * 从字节流的当前字节偏移量位置处读取一个 Uint16 值。
+     * @return Uint16 值。
+     */
+    readUint16() {
+        if (this._pos_ + 2 > this._length)
+            throw "getUint16 error - Out of bounds";
+        var us = this._d_.getUint16(this._pos_, this._xd_);
+        this._pos_ += 2;
+        return us;
+    }
+    /**
+     * 在字节流的当前字节偏移量位置处写入指定的 Uint16 值。
+     * @param	value	需要写入的Uint16 值。
+     */
+    writeUint16(value) {
+        this._ensureWrite(this._pos_ + 2);
+        this._d_.setUint16(this._pos_, value, this._xd_);
+        this._pos_ += 2;
+    }
+    /**
+     * 在字节流的当前字节偏移量位置处写入指定的 Int16 值。
+     * @param	value	需要写入的 Int16 值。
+     */
+    writeInt16(value) {
+        this._ensureWrite(this._pos_ + 2);
+        this._d_.setInt16(this._pos_, value, this._xd_);
+        this._pos_ += 2;
+    }
+    /**
+     * @private
+     * 从字节流的当前字节偏移量位置处读取一个 Uint8 值。
+     * @return Uint8 值。
+     */
+    getUint8() {
+        return this.readUint8();
+    }
+    /**
+     * 从字节流的当前字节偏移量位置处读取一个 Uint8 值。
+     * @return Uint8 值。
+     */
+    readUint8() {
+        if (this._pos_ + 1 > this._length)
+            throw "getUint8 error - Out of bounds";
+        return this._u8d_[this._pos_++];
+    }
+    /**
+     * 在字节流的当前字节偏移量位置处写入指定的 Uint8 值。
+     * @param	value	需要写入的 Uint8 值。
+     */
+    writeUint8(value) {
+        this._ensureWrite(this._pos_ + 1);
+        this._d_.setUint8(this._pos_, value);
+        this._pos_++;
+    }
+    /**
+     * @internal
+     * 从字节流的指定字节偏移量位置处读取一个 Uint8 值。
+     * @param	pos	字节读取位置。
+     * @return Uint8 值。
+     */
+    //TODO:coverage
+    _getUInt8(pos) {
+        return this._readUInt8(pos);
+    }
+    /**
+     * @internal
+     * 从字节流的指定字节偏移量位置处读取一个 Uint8 值。
+     * @param	pos	字节读取位置。
+     * @return Uint8 值。
+     */
+    //TODO:coverage
+    _readUInt8(pos) {
+        return this._d_.getUint8(pos);
+    }
+    /**
+     * @internal
+     * 从字节流的指定字节偏移量位置处读取一个 Uint16 值。
+     * @param	pos	字节读取位置。
+     * @return Uint16 值。
+     */
+    //TODO:coverage
+    _getUint16(pos) {
+        return this._readUint16(pos);
+    }
+    /**
+     * @internal
+     * 从字节流的指定字节偏移量位置处读取一个 Uint16 值。
+     * @param	pos	字节读取位置。
+     * @return Uint16 值。
+     */
+    //TODO:coverage
+    _readUint16(pos) {
+        return this._d_.getUint16(pos, this._xd_);
+    }
+    /**
+     * @internal
+     * 使用 getFloat32() 读取6个值，用于创建并返回一个 Matrix 对象。
+     * @return  Matrix 对象。
+     */
+    //TODO:coverage
+    _getMatrix() {
+        return this._readMatrix();
+    }
+    /**
+     * @internal
+     * 使用 getFloat32() 读取6个值，用于创建并返回一个 Matrix 对象。
+     * @return  Matrix 对象。
+     */
+    //TODO:coverage
+    _readMatrix() {
+        var rst = new Phaser.GameObjects.Components.TransformMatrix(this.getFloat32(), this.getFloat32(), this.getFloat32(), this.getFloat32(), this.getFloat32(), this.getFloat32());
+        return rst;
+    }
+    /**
+     * @private
+     * 读取指定长度的 UTF 型字符串。
+     * @param	len 需要读取的长度。
+     * @return 读取的字符串。
+     */
+    _rUTF(len) {
+        var max = this._pos_ + len, c, c2, c3, f = String.fromCharCode;
+        var u = this._u8d_;
+        var strs = [];
+        var n = 0;
+        strs.length = 1000;
+        while (this._pos_ < max) {
+            c = u[this._pos_++];
+            if (c < 0x80) {
+                if (c != 0)
+                    //v += f(c);\
+                    strs[n++] = f(c);
+            }
+            else if (c < 0xE0) {
+                //v += f(((c & 0x3F) << 6) | (u[_pos_++] & 0x7F));
+                strs[n++] = f(((c & 0x3F) << 6) | (u[this._pos_++] & 0x7F));
+            }
+            else if (c < 0xF0) {
+                c2 = u[this._pos_++];
+                //v += f(((c & 0x1F) << 12) | ((c2 & 0x7F) << 6) | (u[_pos_++] & 0x7F));
+                strs[n++] = f(((c & 0x1F) << 12) | ((c2 & 0x7F) << 6) | (u[this._pos_++] & 0x7F));
+            }
+            else {
+                c2 = u[this._pos_++];
+                c3 = u[this._pos_++];
+                //v += f(((c & 0x0F) << 18) | ((c2 & 0x7F) << 12) | ((c3 << 6) & 0x7F) | (u[_pos_++] & 0x7F));
+                const _code = ((c & 0x0F) << 18) | ((c2 & 0x7F) << 12) | ((c3 & 0x7F) << 6) | (u[this._pos_++] & 0x7F);
+                if (_code >= 0x10000) {
+                    const _offset = _code - 0x10000;
+                    const _lead = 0xd800 | (_offset >> 10);
+                    const _trail = 0xdc00 | (_offset & 0x3ff);
+                    strs[n++] = f(_lead);
+                    strs[n++] = f(_trail);
+                }
+                else {
+                    strs[n++] = f(_code);
+                }
+            }
+        }
+        strs.length = n;
+        return strs.join('');
+        //return v;
+    }
+    /**
+     * @private
+     * 读取 <code>len</code> 参数指定的长度的字符串。
+     * @param	len	要读取的字符串的长度。
+     * @return 指定长度的字符串。
+     */
+    //TODO:coverage
+    getCustomString(len) {
+        return this.readCustomString(len);
+    }
+    /**
+     * @private
+     * 读取 <code>len</code> 参数指定的长度的字符串。
+     * @param	len	要读取的字符串的长度。
+     * @return 指定长度的字符串。
+     */
+    //TODO:coverage
+    readCustomString(len) {
+        var v = "", ulen = 0, c, c2, f = String.fromCharCode;
+        var u = this._u8d_;
+        while (len > 0) {
+            c = u[this._pos_];
+            if (c < 0x80) {
+                v += f(c);
+                this._pos_++;
+                len--;
+            }
+            else {
+                ulen = c - 0x80;
+                this._pos_++;
+                len -= ulen;
+                while (ulen > 0) {
+                    c = u[this._pos_++];
+                    c2 = u[this._pos_++];
+                    v += f((c2 << 8) | c);
+                    ulen--;
+                }
+            }
+        }
+        return v;
+    }
+    /**
+     * 移动或返回 Byte 对象的读写指针的当前位置（以字节为单位）。下一次调用读取方法时将在此位置开始读取，或者下一次调用写入方法时将在此位置开始写入。
+     */
+    get pos() {
+        return this._pos_;
+    }
+    set pos(value) {
+        this._pos_ = value;
+        //$MOD byteOffset是只读的，这里进行赋值没有意义。
+        //_d_.byteOffset = value;
+    }
+    /**
+     * 可从字节流的当前位置到末尾读取的数据的字节数。
+     */
+    get bytesAvailable() {
+        return this._length - this._pos_;
+    }
+    /**
+     * 清除字节数组的内容，并将 length 和 pos 属性重置为 0。调用此方法将释放 Byte 实例占用的内存。
+     */
+    clear() {
+        this._pos_ = 0;
+        this.length = 0;
+    }
+    /**
+     * @internal
+     * 获取此对象的 ArrayBuffer 引用。
+     * @return
+     */
+    __getBuffer() {
+        //this._d_.buffer.byteLength = this.length;
+        return this._d_.buffer;
+    }
+    /**
+     * <p>将 UTF-8 字符串写入字节流。类似于 writeUTF() 方法，但 writeUTFBytes() 不使用 16 位长度的字为字符串添加前缀。</p>
+     * <p>对应的读取方法为： getUTFBytes 。</p>
+     * @param value 要写入的字符串。
+     */
+    writeUTFBytes(value) {
+        // utf8-decode
+        value = value + "";
+        for (var i = 0, sz = value.length; i < sz; i++) {
+            var c = value.charCodeAt(i);
+            if (c <= 0x7F) {
+                this.writeByte(c);
+            }
+            else if (c <= 0x7FF) {
+                //优化为直接写入多个字节，而不必重复调用writeByte，免去额外的调用和逻辑开销。
+                this._ensureWrite(this._pos_ + 2);
+                this._u8d_.set([0xC0 | (c >> 6), 0x80 | (c & 0x3F)], this._pos_);
+                this._pos_ += 2;
+            }
+            else if (c >= 0xD800 && c <= 0xDBFF) {
+                i++;
+                const c2 = value.charCodeAt(i);
+                if (!Number.isNaN(c2) && c2 >= 0xDC00 && c2 <= 0xDFFF) {
+                    const _p1 = (c & 0x3FF) + 0x40;
+                    const _p2 = c2 & 0x3FF;
+                    const _b1 = 0xF0 | ((_p1 >> 8) & 0x3F);
+                    const _b2 = 0x80 | ((_p1 >> 2) & 0x3F);
+                    const _b3 = 0x80 | ((_p1 & 0x3) << 4) | ((_p2 >> 6) & 0xF);
+                    const _b4 = 0x80 | (_p2 & 0x3F);
+                    this._ensureWrite(this._pos_ + 4);
+                    this._u8d_.set([_b1, _b2, _b3, _b4], this._pos_);
+                    this._pos_ += 4;
+                }
+            }
+            else if (c <= 0xFFFF) {
+                this._ensureWrite(this._pos_ + 3);
+                this._u8d_.set([0xE0 | (c >> 12), 0x80 | ((c >> 6) & 0x3F), 0x80 | (c & 0x3F)], this._pos_);
+                this._pos_ += 3;
+            }
+            else {
+                this._ensureWrite(this._pos_ + 4);
+                this._u8d_.set([0xF0 | (c >> 18), 0x80 | ((c >> 12) & 0x3F), 0x80 | ((c >> 6) & 0x3F), 0x80 | (c & 0x3F)], this._pos_);
+                this._pos_ += 4;
+            }
+        }
+    }
+    /**
+     * <p>将 UTF-8 字符串写入字节流。先写入以字节表示的 UTF-8 字符串长度（作为 16 位整数），然后写入表示字符串字符的字节。</p>
+     * <p>对应的读取方法为： getUTFString 。</p>
+     * @param	value 要写入的字符串值。
+     */
+    writeUTFString(value) {
+        var tPos = this.pos;
+        this.writeUint16(1);
+        this.writeUTFBytes(value);
+        var dPos = this.pos - tPos - 2;
+        //trace("writeLen:",dPos,"pos:",tPos);
+        this._d_.setUint16(tPos, dPos, this._xd_);
+    }
+    /**
+     * <p>将 UTF-8 字符串写入字节流。先写入以字节表示的 UTF-8 字符串长度（作为 32 位整数），然后写入表示字符串字符的字节。</p>
+     * @param	value 要写入的字符串值。
+     */
+    writeUTFString32(value) {
+        var tPos = this.pos;
+        this.writeUint32(1);
+        this.writeUTFBytes(value);
+        var dPos = this.pos - tPos - 4;
+        //trace("writeLen:",dPos,"pos:",tPos);
+        this._d_.setUint32(tPos, dPos, this._xd_);
+    }
+    /**
+     * @private
+     * 读取 UTF-8 字符串。
+     * @return 读取的字符串。
+     */
+    readUTFString() {
+        //var tPos:int = pos;
+        //var len:int = getUint16();
+        ////trace("readLen:"+len,"pos,",tPos);
+        return this.readUTFBytes(this.getUint16());
+    }
+    /**
+     * @private
+     */
+    readUTFString32() {
+        return this.readUTFBytes(this.getUint32());
+    }
+    /**
+     * <p>从字节流中读取一个 UTF-8 字符串。假定字符串的前缀是一个无符号的短整型（以此字节表示要读取的长度）。</p>
+     * <p>对应的写入方法为： writeUTFString 。</p>
+     * @return 读取的字符串。
+     */
+    getUTFString() {
+        return this.readUTFString();
+    }
+    /**
+     * @private
+     * 读字符串，必须是 writeUTFBytes 方法写入的字符串。
+     * @param len	要读的buffer长度，默认将读取缓冲区全部数据。
+     * @return 读取的字符串。
+     */
+    readUTFBytes(len = -1) {
+        if (len === 0)
+            return "";
+        var lastBytes = this.bytesAvailable;
+        if (len > lastBytes)
+            throw "readUTFBytes error - Out of bounds";
+        len = len > 0 ? len : lastBytes;
+        return this._rUTF(len);
+    }
+    /**
+     * <p>从字节流中读取一个由 length 参数指定的长度的 UTF-8 字节序列，并返回一个字符串。</p>
+     * <p>一般读取的是由 writeUTFBytes 方法写入的字符串。</p>
+     * @param len	要读的buffer长度，默认将读取缓冲区全部数据。
+     * @return 读取的字符串。
+     */
+    getUTFBytes(len = -1) {
+        return this.readUTFBytes(len);
+    }
+    /**
+     * <p>在字节流中写入一个字节。</p>
+     * <p>使用参数的低 8 位。忽略高 24 位。</p>
+     * @param	value
+     */
+    writeByte(value) {
+        this._ensureWrite(this._pos_ + 1);
+        this._d_.setInt8(this._pos_, value);
+        this._pos_ += 1;
+    }
+    /**
+     * <p>从字节流中读取带符号的字节。</p>
+     * <p>返回值的范围是从 -128 到 127。</p>
+     * @return 介于 -128 和 127 之间的整数。
+     */
+    readByte() {
+        if (this._pos_ + 1 > this._length)
+            throw "readByte error - Out of bounds";
+        return this._d_.getInt8(this._pos_++);
+    }
+    /**
+     * @private
+     * 从字节流中读取带符号的字节。
+     */
+    getByte() {
+        return this.readByte();
+    }
+    /**
+     * @internal
+     * <p>保证该字节流的可用长度不小于 <code>lengthToEnsure</code> 参数指定的值。</p>
+     * @param	lengthToEnsure	指定的长度。
+     */
+    _ensureWrite(lengthToEnsure) {
+        if (this._length < lengthToEnsure)
+            this._length = lengthToEnsure;
+        if (this._allocated_ < lengthToEnsure)
+            this.length = lengthToEnsure;
+    }
+    /**
+     * <p>将指定 arraybuffer 对象中的以 offset 为起始偏移量， length 为长度的字节序列写入字节流。</p>
+     * <p>如果省略 length 参数，则使用默认长度 0，该方法将从 offset 开始写入整个缓冲区；如果还省略了 offset 参数，则写入整个缓冲区。</p>
+     * <p>如果 offset 或 length 小于0，本函数将抛出异常。</p>
+     * @param	arraybuffer	需要写入的 Arraybuffer 对象。
+     * @param	offset		Arraybuffer 对象的索引的偏移量（以字节为单位）
+     * @param	length		从 Arraybuffer 对象写入到 Byte 对象的长度（以字节为单位）
+     */
+    writeArrayBuffer(arraybuffer, offset = 0, length = 0) {
+        if (offset < 0 || length < 0)
+            throw "writeArrayBuffer error - Out of bounds";
+        if (length == 0)
+            length = arraybuffer.byteLength - offset;
+        this._ensureWrite(this._pos_ + length);
+        var uint8array = new Uint8Array(arraybuffer);
+        this._u8d_.set(uint8array.subarray(offset, offset + length), this._pos_);
+        this._pos_ += length;
+    }
+    /**
+     * 读取ArrayBuffer数据
+     * @param	length
+     * @return
+     */
+    readArrayBuffer(length) {
+        var rst;
+        rst = this._u8d_.buffer.slice(this._pos_, this._pos_ + length);
+        this._pos_ = this._pos_ + length;
+        return rst;
+    }
+}
+/**
+ * <p>主机字节序，是 CPU 存放数据的两种不同顺序，包括小端字节序和大端字节序。通过 <code>getSystemEndian</code> 可以获取当前系统的字节序。</p>
+ * <p> <code>BIG_ENDIAN</code> ：大端字节序，地址低位存储值的高位，地址高位存储值的低位。有时也称之为网络字节序。<br/>
+ * <code>LITTLE_ENDIAN</code> ：小端字节序，地址低位存储值的低位，地址高位存储值的高位。</p>
+ */
+Byte.BIG_ENDIAN = "bigEndian";
+/**
+ * <p>主机字节序，是 CPU 存放数据的两种不同顺序，包括小端字节序和大端字节序。通过 <code>getSystemEndian</code> 可以获取当前系统的字节序。</p>
+ * <p> <code>LITTLE_ENDIAN</code> ：小端字节序，地址低位存储值的低位，地址高位存储值的高位。<br/>
+ * <code>BIG_ENDIAN</code> ：大端字节序，地址低位存储值的高位，地址高位存储值的低位。有时也称之为网络字节序。</p>
+ */
+Byte.LITTLE_ENDIAN = "littleEndian";
+/**@private */
+Byte._sysEndian = null;
+
+/**
+     * <p><code>Handler</code> 是事件处理器类。</p>
+     * <p>推荐使用 Handler.create() 方法从对象池创建，减少对象创建消耗。创建的 Handler 对象不再使用后，可以使用 Handler.recover() 将其回收到对象池，回收后不要再使用此对象，否则会导致不可预料的错误。</p>
+     * <p><b>注意：</b>由于鼠标事件也用本对象池，不正确的回收及调用，可能会影响鼠标事件的执行。</p>
+     */
+class Handler {
+    /**
+     * 根据指定的属性值，创建一个 <code>Handler</code> 类的实例。
+     * @param	caller 执行域。
+     * @param	method 处理函数。
+     * @param	args 函数参数。
+     * @param	once 是否只执行一次。
+     */
+    constructor(caller = null, method = null, args = null, once = false) {
+        /** 表示是否只执行一次。如果为true，回调后执行recover()进行回收，回收后会被再利用，默认为false 。*/
+        this.once = false;
+        /**@private */
+        this._id = 0;
+        this.setTo(caller, method, args, once);
+    }
+    /**
+     * 设置此对象的指定属性值。
+     * @param	caller 执行域(this)。
+     * @param	method 回调方法。
+     * @param	args 携带的参数。
+     * @param	once 是否只执行一次，如果为true，执行后执行recover()进行回收。
+     * @return  返回 handler 本身。
+     */
+    setTo(caller, method, args, once = false) {
+        this._id = Handler._gid++;
+        this.caller = caller;
+        this.method = method;
+        this.args = args;
+        this.once = once;
+        return this;
+    }
+    /**
+     * 执行处理器。
+     */
+    run() {
+        if (this.method == null)
+            return null;
+        var id = this._id;
+        var result = this.method.apply(this.caller, this.args);
+        this._id === id && this.once && this.recover();
+        return result;
+    }
+    /**
+     * 执行处理器，并携带额外数据。
+     * @param	data 附加的回调数据，可以是单数据或者Array(作为多参)。
+     */
+    runWith(data) {
+        if (this.method == null)
+            return null;
+        var id = this._id;
+        let result;
+        if (data == null)
+            result = this.method.apply(this.caller, this.args);
+        else if (!this.args && !data.unshift)
+            result = this.method.call(this.caller, data);
+        else if (this.args)
+            result = this.method.apply(this.caller, this.args.concat(data));
+        else
+            result = this.method.apply(this.caller, data);
+        this._id === id && this.once && this.recover();
+        return result;
+    }
+    /**
+     * 清理对象引用。
+     */
+    clear() {
+        this.caller = null;
+        this.method = null;
+        this.args = null;
+        return this;
+    }
+    /**
+     * 清理并回收到 Handler 对象池内。
+     */
+    recover() {
+        if (this._id > 0) {
+            this._id = 0;
+            Handler._pool.push(this.clear());
+        }
+    }
+    /**
+     * 从对象池内创建一个Handler，默认会执行一次并立即回收，如果不需要自动回收，设置once参数为false。
+     * @param	caller 执行域(this)。
+     * @param	method 回调方法。
+     * @param	args 携带的参数。
+     * @param	once 是否只执行一次，如果为true，回调后执行recover()进行回收，默认为true。
+     * @return  返回创建的handler实例。
+     */
+    static create(caller, method, args = null, once = true) {
+        if (Handler._pool.length)
+            return Handler._pool.pop().setTo(caller, method, args, once);
+        return new Handler(caller, method, args, once);
+    }
+}
+/**@private handler对象池*/
+Handler._pool = [];
+/**@private */
+Handler._gid = 1;
+
+export { AlignType, AsyncOperation, AutoSizeType, BitmapFont, ButtonMode, Byte, ByteBuffer, ChildHitArea, ChildrenRenderOrder, ColorMatrix, Controller, CurveType, DOMEventManager, DefaultUIStageOptions, DisplayObjectEvent, DragDropManager, EaseType, Event, FillMethod, FillOrigin, FillOrigin90, FlipType, GButton, GComboBox, GComponent, GGraph, GGroup, GImage, GLabel, GList, GLoader, GMovieClip, GObject, GObjectPool, GPath, GPathPoint, GProgressBar, GRAPHICSTYPE, GRichTextField, GRoot, GScrollBar, GSlider, GTextField, GTextInput, GTree, GTreeNode, GTween, GTweener, Graphics, GroupLayoutType, Handler, HitArea, Image, InteractiveEvent, ListLayoutType, ListSelectionMode, LoaderFillType, MovieClip, ObjectPropID, ObjectType, OverflowType, PackageItem, PackageItemType, PixelHitTest, PixelHitTestData, PopupDirection, PopupMenu, ProgressTitleType, RelationType, ScrollBarDisplayType, ScrollPane, ScrollType, StageAlign, StageOrientation, StageScaleMode, ToolSet, Transition, TranslationHelper, TweenManager, TweenValue, UBBParser, UIConfig, UIObjectFactory, UIPackage, UIStage, VertAlignType, Window, evaluateEase, fillImage };
 //# sourceMappingURL=fairygui.esm.js.map

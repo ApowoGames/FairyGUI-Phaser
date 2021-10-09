@@ -15,6 +15,7 @@ import { GComponent } from './GComponent';
 import { DisplayObjectEvent, InteractiveEvent } from './event/DisplayObjectEvent';
 import { GTree } from './GTree';
 import { GearAnimation, GearColor, GearFontSize, GearIcon, GearLook, GearSize, GearText, GearXY } from './gears';
+import { GButton, GImage, GList, GLoader } from '.';
 export class DisplayStyle {
     static EMPTY: DisplayStyle = new DisplayStyle();
     /**水平缩放 */
@@ -799,9 +800,9 @@ export class GObject {
         return <any>this;
     }
 
-    // public get asButton(): GButton {
-    //     return <GButton><any>this;
-    // }
+    public get asButton(): GButton {
+        return <GButton><any>this;
+    }
 
     // public get asLabel(): GLabel {
     //     return <GLabel><any>this;
@@ -823,13 +824,13 @@ export class GObject {
     //     return <GTextInput><any>this;
     // }
 
-    // public get asLoader(): GLoader {
-    //     return <GLoader><any>this;
-    // }
+    public get asLoader(): GLoader {
+        return <GLoader><any>this;
+    }
 
-    // public get asList(): GList {
-    //     return <GList><any>this;
-    // }
+    public get asList(): GList {
+        return <GList><any>this;
+    }
 
     public get asTree(): GTree {
         return <GTree><any>this;
@@ -851,9 +852,9 @@ export class GObject {
     //     return <GComboBox><any>this;
     // }
 
-    // public get asImage(): GImage {
-    //     return <GImage><any>this;
-    // }
+    public get asImage(): GImage {
+        return <GImage><any>this;
+    }
 
     // public get asMovieClip(): GMovieClip {
     //     return <GMovieClip><any>this;
@@ -1471,7 +1472,7 @@ export class GObject {
     }
     //-------------------------------------------------------------------
 
-    public static cast(sprite: Phaser.GameObjects.Container): GObject {
+    public static cast(sprite: Phaser.GameObjects.GameObject): GObject {
         return <GObject>(sprite["$owner"]);
     }
 }

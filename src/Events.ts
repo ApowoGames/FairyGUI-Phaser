@@ -1,3 +1,4 @@
+import { GRoot } from ".";
 import { InteractiveEvent } from "./event/DisplayObjectEvent";
 
 export class Events {
@@ -18,17 +19,16 @@ export class Events {
 
     public static $event: InteractiveEvent = new InteractiveEvent();
 
-    public static createEvent(type: string, target: Phaser.GameObjects.GameObject, source?: { target?: Phaser.GameObjects.Container, touchId?: number }): InteractiveEvent {
-        // this.$event.setTo(type, target, source ? (source.target || target) : target);
-        // this.$event.touchId = source ? (source.touchId || 0) : 0;
-        // this.$event.nativeEvent = source;
-        // this.$event["_stoped"] = false;
-        throw new Error("TODO");
+    public static createEvent(type: string, target: Phaser.GameObjects.GameObject, source?: { target?: Phaser.GameObjects.GameObject, touchId?: number }): InteractiveEvent {
+        this.$event.setTo(type, target, source ? (source.target || target) : target);
+        this.$event.touchId = source ? (source.touchId || 0) : 0;
+        this.$event.nativeEvent = source;
+        this.$event["_stoped"] = false;
         return this.$event;
     }
 
     public static dispatch(type: string, target: Phaser.GameObjects.GameObject, source?: { target?: Phaser.GameObjects.GameObject, touchId?: number }): void {
-        // target.event(type, this.createEvent(type, target, source));
-        throw new Error("TODO");
+        target.emit(type, this.createEvent(type, target, source));
+        // GRoot.inst.emitter.emit(type, target);
     }
 }

@@ -28,6 +28,7 @@ export declare class ScrollPane {
     private _inertiaDisabled?;
     private _floating?;
     private _dontClipMargin?;
+    private maskScrollRect;
     private _xPos;
     private _yPos;
     private _viewSize;
@@ -58,6 +59,11 @@ export declare class ScrollPane {
     private _vtScrollBar?;
     private _header?;
     private _footer?;
+    private _tweenUpdateTimeEvent;
+    private _tweenUpdateTime;
+    private _refreshTimeEvent;
+    private _refreshTime;
+    private _timeDelta;
     static draggingPane: ScrollPane;
     constructor(owner: GComponent);
     setup(buffer: ByteBuffer): void;

@@ -84,12 +84,11 @@ export class UIObjectFactory {
                 case ObjectType.Graph:
                     return new GGraph(GRoot.inst.scene);
                 case ObjectType.Loader:
-                    // if (UIObjectFactory.loaderType)
-                    // return new UIObjectFactory.loaderType();
-                    // else
-                    // return new GLoader();
-                    return;
-
+                    // test
+                    if (UIObjectFactory.loaderType)
+                        return new UIObjectFactory.loaderType();
+                    else
+                        return new GLoader(GRoot.inst.scene);
                 case ObjectType.Button:
                     return new GButton(GRoot.inst.scene);
                 case ObjectType.Label:

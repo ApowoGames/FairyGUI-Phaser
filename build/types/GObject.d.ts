@@ -7,6 +7,7 @@ import { Relations } from './Relations';
 import { PackageItem } from './PackageItem';
 import { GComponent } from './GComponent';
 import { GTree } from './GTree';
+import { GButton, GImage, GList, GLoader } from '.';
 export declare class DisplayStyle {
     static EMPTY: DisplayStyle;
     /**水平缩放 */
@@ -193,8 +194,12 @@ export declare class GObject {
     removeFromParent(): void;
     get root(): any;
     get asCom(): GComponent;
+    get asButton(): GButton;
+    get asLoader(): GLoader;
+    get asList(): GList;
     get asTree(): GTree;
     get asGroup(): GGroup;
+    get asImage(): GImage;
     get text(): string;
     set text(value: string);
     get icon(): string;
@@ -267,7 +272,7 @@ export declare class GObject {
     private __begin;
     private __moving;
     private __end;
-    static cast(sprite: Phaser.GameObjects.Container): GObject;
+    static cast(sprite: Phaser.GameObjects.GameObject): GObject;
 }
 export declare const BlendMode: {
     2: Phaser.BlendModes;

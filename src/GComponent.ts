@@ -331,7 +331,7 @@ export class GComponent extends GObject {
                     if (g.inContainer)
                         displayIndex++;
                 }
-                if (displayIndex === this._container.displayList.length)
+                if (displayIndex === this._container.list.length)
                     displayIndex--;
                 this._container.addAt(child.displayObject, displayIndex);
             }
@@ -341,7 +341,7 @@ export class GComponent extends GObject {
                     if (g.inContainer)
                         displayIndex++;
                 }
-                if (displayIndex === this._container.displayList.length)
+                if (displayIndex === this._container.list.length)
                     displayIndex--;
                 this._container.addAt(child.displayObject, displayIndex);
             }

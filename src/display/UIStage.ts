@@ -1,3 +1,4 @@
+import { GRoot } from "..";
 import { DisplayObjectEvent } from "../event/DisplayObjectEvent";
 import { UISceneDisplay } from "../GRoot";
 import { DOMEventManager } from "../utils/DOMEventManager";
@@ -137,7 +138,7 @@ export class UIStage extends Phaser.Events.EventEmitter {
         this.dialogContainer = this.scene.add.container(0, 0);
         this.tipsContainer = this.scene.add.container(0, 0);
         this.maskContainer = this.scene.add.container(0, 0);
-        this.rootContainer.setInteractive();
+        this.rootContainer.setInteractive(new Phaser.Geom.Rectangle(0, 0, GRoot.inst.width, GRoot.inst.height), Phaser.Geom.Rectangle.Contains);
         this.scene.sys.displayList.add(this.rootContainer);
         this.scene.sys.displayList.add(this.uiContainer);
         this.scene.sys.displayList.add(this.dialogContainer);

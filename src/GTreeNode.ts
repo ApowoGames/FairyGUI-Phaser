@@ -247,7 +247,7 @@ export class GTreeNode {
     public _setTree(value: GTree): void {
         this._tree = value;
         if (this._tree && this._tree.treeNodeWillExpand && this._expanded)
-            this._tree.treeNodeWillExpand(this, true);
+            this._tree.treeNodeWillExpand.runWith([this, true]);
 
         if (this._children) {
             var cnt: number = this._children.length;

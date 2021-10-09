@@ -2,7 +2,7 @@ import { GObject } from './GObject';
 import { ByteBuffer } from './utils/ByteBuffer';
 export declare class GMovieClip extends GObject {
     private _movieClip;
-    constructor();
+    constructor(scene: Phaser.Scene);
     get color(): string;
     set color(value: string);
     createDisplayObject(): void;

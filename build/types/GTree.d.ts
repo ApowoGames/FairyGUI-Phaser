@@ -2,16 +2,16 @@ import { ByteBuffer } from './utils/ByteBuffer';
 import { GObject } from './GObject';
 import { GTreeNode } from './GTreeNode';
 import { GList } from './GList';
-import { GComponent } from './GComponent';
+import { Handler } from './utils/Handler';
 export declare class GTree extends GList {
     /**
      * (node: GTreeNode, obj: GComponent) => void
      */
-    treeNodeRender: (node: GTreeNode, obj: GComponent) => void;
+    treeNodeRender: Handler;
     /**
      * (node: GTreeNode, expanded: boolean) => void;
      */
-    treeNodeWillExpand: (node: GTreeNode, expanded: boolean) => void;
+    treeNodeWillExpand: Handler;
     private _indent;
     private _clickToExpand;
     private _rootNode;
@@ -29,6 +29,7 @@ export declare class GTree extends GList {
     expandAll(folderNode?: GTreeNode): void;
     collapseAll(folderNode?: GTreeNode): void;
     private createCell;
+    _afterInserted(node: GTreeNode): void;
     private getInsertIndexForNode;
     _afterRemoved(node: GTreeNode): void;
     _afterExpanded(node: GTreeNode): void;

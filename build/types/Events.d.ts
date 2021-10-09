@@ -16,7 +16,7 @@ export declare class Events {
     static GEAR_STOP: string;
     static $event: InteractiveEvent;
     static createEvent(type: string, target: Phaser.GameObjects.GameObject, source?: {
-        target?: Phaser.GameObjects.Container;
+        target?: Phaser.GameObjects.GameObject;
         touchId?: number;
     }): InteractiveEvent;
     static dispatch(type: string, target: Phaser.GameObjects.GameObject, source?: {

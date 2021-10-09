@@ -41,9 +41,9 @@ export class GRoot extends GComponent {
         super();
     }
 
-    // public get displayObject(): Phaser.GameObjects.Container {
-    //     return this._uiStage.dis;
-    // }
+    public get emitter(): Phaser.Events.EventEmitter {
+        return this._uiStage;
+    }
 
     public static get inst(): GRoot {
         if (GRoot._inst == null)

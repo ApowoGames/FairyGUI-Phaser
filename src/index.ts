@@ -34,15 +34,10 @@ export { AsyncOperation } from "./AsyncOperation";
 export { TranslationHelper } from "./TranslationHelper";
 export * from "./FieldTypes"
 
-export { Image } from "./display/Image";
-export { MovieClip } from "./display/MovieClip";
+export * from "./display";
 
-export { Event } from "./event/Event";
+export * from "./event";
 
-export { GTween } from "./tween/GTween";
-export { GTweener } from "./tween/GTweener";
-export { EaseType } from "./tween/EaseType";
+export * from "./tween";
 
-export { UBBParser } from "./utils/UBBParser";
-export { ByteBuffer } from "./utils/ByteBuffer";
-export * from "./utils/ToolSet"
+export * from "./utils"

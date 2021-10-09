@@ -21,7 +21,7 @@ export declare class MovieClip extends Image {
     private _frameElapsed;
     private _reversed;
     private _repeatedCount;
-    constructor();
+    constructor(scene: Phaser.Scene);
     get frames(): Frame[];
     set frames(value: Frame[]);
     get frameCount(): number;

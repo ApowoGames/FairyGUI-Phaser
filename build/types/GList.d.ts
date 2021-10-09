@@ -3,15 +3,16 @@ import { GObjectPool } from './GObjectPool';
 import { Controller } from './Controller';
 import { GComponent } from "./GComponent";
 import { GObject } from "./GObject";
+import { Handler } from './utils/Handler';
 export declare class GList extends GComponent {
     /**
      * this.itemRenderer(number index, GObject item);
      */
-    itemRenderer: (index: number, item: GObject) => void;
+    itemRenderer: Handler;
     /**
      * this.itemProvider(index:number):string;
      */
-    itemProvider: (index: number) => string;
+    itemProvider: Handler;
     scrollItemToViewOnClick: boolean;
     foldInvisibleItems: boolean;
     private _layout;
@@ -39,6 +40,9 @@ export declare class GList extends GComponent {
     private _virtualItems?;
     private _eventLocked?;
     private itemInfoVer;
+    private _timeDelta;
+    private _refreshListEvent;
+    private _refreshListTime;
     constructor(scene?: Phaser.Scene);
     dispose(): void;
     get layout(): number;

@@ -241,14 +241,14 @@ export class GBasicTextField extends GTextField {
     }
 
     public get textWidth(): number {
-        // if (this._textField["_isChanged"])
-        //     this._textField.typeset();
+        if (this._textField["_isChanged"])
+            this._textField.typeset();
         return this._textWidth;
     }
 
     public ensureSizeCorrect(): void {
-        if (!this._underConstruct)
-            this.typeset();
+        if (!this._underConstruct && this._textField["_isChanged"])
+            this._textField.typeset();
     }
 
     public typeset(): void {

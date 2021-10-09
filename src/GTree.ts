@@ -4,16 +4,18 @@ import { Controller } from './Controller';
 import { GTreeNode } from './GTreeNode';
 import { GList } from './GList';
 import { GComponent } from './GComponent';
+import { Events } from './Events';
+import { Handler } from './utils/Handler';
 export class GTree extends GList {
 
     /**
      * (node: GTreeNode, obj: GComponent) => void
      */
-    public treeNodeRender: (node: GTreeNode, obj: GComponent) => void;
+    public treeNodeRender: Handler;
     /**
      * (node: GTreeNode, expanded: boolean) => void;
      */
-    public treeNodeWillExpand: (node: GTreeNode, expanded: boolean) => void;
+    public treeNodeWillExpand: Handler;
 
     private _indent: number;
     private _clickToExpand: number;
@@ -123,48 +125,49 @@ export class GTree extends GList {
     }
 
     private createCell(node: GTreeNode): void {
-        throw new Error("TODO")
-        //     var child: GComponent = <GComponent>this.getFromPool(node._resURL ? node._resURL : this.defaultItem);
-        //     if (!child)
-        //         throw new Error("cannot create tree node object.");
+        this.getFromPool(node._resURL ? node._resURL : this.defaultItem).then((obj) => {
+            var child: GComponent = <GComponent>obj;
+            if (!child)
+                throw new Error("cannot create tree node object.");
 
-        //     child._treeNode = node;
-        //     node._cell = child;
+            child._treeNode = node;
+            node._cell = child;
 
-        //     var indentObj: GObject = child.getChild("indent");
-        //     if (indentObj)
-        //         indentObj.width = (node.level - 1) * this._indent;
+            var indentObj: GObject = child.getChild("indent");
+            if (indentObj)
+                indentObj.width = (node.level - 1) * this._indent;
 
-        //     var cc: Controller;
+            var cc: Controller;
 
-        //     cc = child.getController("expanded");
-        //     if (cc) {
-        //         cc.on(Events.STATE_CHANGED, this, this.__expandedStateChanged);
-        //         cc.selectedIndex = node.expanded ? 1 : 0;
-        //     }
+            cc = child.getController("expanded");
+            if (cc) {
+                cc.on(Events.STATE_CHANGED, this.__expandedStateChanged, this);
+                cc.selectedIndex = node.expanded ? 1 : 0;
+            }
 
-        //     cc = child.getController("leaf");
-        //     if (cc)
-        //         cc.selectedIndex = node.isFolder ? 0 : 1;
+            cc = child.getController("leaf");
+            if (cc)
+                cc.selectedIndex = node.isFolder ? 0 : 1;
 
-        //     if (node.isFolder)
-        //         child.on(Laya.Event.MOUSE_DOWN, this, this.__cellMouseDown);
+            if (node.isFolder)
+                child.on("pointerdown", this.__cellMouseDown, this);
 
-        //     if (this.treeNodeRender)
-        //         this.treeNodeRender.runWith([node, child]);
-        // }
+            if (this.treeNodeRender)
+                this.treeNodeRender.runWith([node, child]);
+        });
+    }
 
-        // public _afterInserted(node: GTreeNode): void {
-        //     if (!node._cell)
-        //         this.createCell(node);
+    public _afterInserted(node: GTreeNode): void {
+        if (!node._cell)
+            this.createCell(node);
 
-        //     var index: number = this.getInsertIndexForNode(node);
-        //     this.addChildAt(node._cell, index);
-        //     if (this.treeNodeRender)
-        //         this.treeNodeRender.runWith([node, node._cell]);
+        var index: number = this.getInsertIndexForNode(node);
+        this.addChildAt(node._cell, index);
+        if (this.treeNodeRender)
+            this.treeNodeRender.runWith([node, node._cell]);
 
-        //     if (node.isFolder && node.expanded)
-        //         this.checkChildren(node, index);
+        if (node.isFolder && node.expanded)
+            this.checkChildren(node, index);
     }
 
     private getInsertIndexForNode(node: GTreeNode): number {
@@ -196,13 +199,13 @@ export class GTree extends GList {
         }
 
         if (this.treeNodeWillExpand != null)
-            this.treeNodeWillExpand(node, true);
+            this.treeNodeWillExpand.runWith([node, true]);
 
         if (!node._cell)
             return;
 
         if (this.treeNodeRender)
-            this.treeNodeRender(node, node._cell);
+            this.treeNodeRender.runWith([node, node._cell]);
 
         var cc: Controller = node._cell.getController("expanded");
         if (cc)
@@ -219,13 +222,13 @@ export class GTree extends GList {
         }
 
         if (this.treeNodeWillExpand)
-            this.treeNodeWillExpand(node, false);
+            this.treeNodeWillExpand.runWith([node, false]);
 
         if (!node._cell)
             return;
 
         if (this.treeNodeRender)
-            this.treeNodeRender(node, node._cell);
+            this.treeNodeRender.runWith([node, node._cell]);
 
         var cc: Controller = node._cell.getController("expanded");
         if (cc)

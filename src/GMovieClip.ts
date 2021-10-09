@@ -6,7 +6,7 @@ import { ByteBuffer } from './utils/ByteBuffer';
 export class GMovieClip extends GObject {
     private _movieClip: MovieClip;
 
-    constructor() {
+    constructor(scene: Phaser.Scene) {
         super();
     }
 
@@ -19,10 +19,9 @@ export class GMovieClip extends GObject {
     }
 
     public createDisplayObject(): void {
-        throw new Error("TODO");
-        // this._displayObject = this._movieClip = new MovieClip();
+        this._displayObject = this._movieClip = new MovieClip(this.scene);
         // this._movieClip.mouseEnabled = false;
-        // this._displayObject["$owner"] = this;
+        this._displayObject["$owner"] = this;
     }
 
     public get playing(): boolean {
@@ -118,12 +117,12 @@ export class GMovieClip extends GObject {
             this.sourceHeight = displayItem.height;
             this.initWidth = this.sourceWidth;
             this.initHeight = this.sourceHeight;
-    
+
             this.setSize(this.sourceWidth, this.sourceHeight);
-    
+
             displayItem = displayItem.getHighResolution();
             displayItem.load();
-    
+
             this._movieClip.interval = displayItem.interval;
             this._movieClip.swing = displayItem.swing;
             this._movieClip.repeatDelay = displayItem.repeatDelay;

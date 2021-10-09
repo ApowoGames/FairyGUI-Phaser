@@ -106,7 +106,7 @@ export class GGraph extends GObject {
         // if (this._type == 1) {
         //     if (this._cornerRadius) {
         //         var paths: any[] = [
-            
+
         //             ["moveTo", this._cornerRadius[0], 0],
         //             ["lineTo", w - this._cornerRadius[1], 0],
         //             ["arcTo", w, 0, w, this._cornerRadius[1], this._cornerRadius[1]],
