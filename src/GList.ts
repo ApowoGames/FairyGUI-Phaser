@@ -9,8 +9,6 @@ import { GComponent } from "./GComponent";
 import { GObject } from "./GObject";
 import { Events } from './Events';
 import { Handler } from './utils/Handler';
-import { DisplayObjectEvent, InteractiveEvent } from './event';
-
 export class GList extends GComponent {
     /**
      * this.itemRenderer(number index, GObject item);
@@ -61,7 +59,7 @@ export class GList extends GComponent {
         this._trackBounds = true;
         this._pool = new GObjectPool();
         this._layout = ListLayoutType.SingleColumn;
-        this._autoResizeItem = true;
+        this._autoResizeItem = false;
         this._lastSelectedIndex = -1;
         this._selectionMode = ListSelectionMode.Single;
         this.opaque = true;
@@ -252,7 +250,7 @@ export class GList extends GComponent {
             child.changeStateOnClick = false;
         }
         // todo click
-        child.on("pointerup", this.__clickItem, this);
+        this.scene.input.on("pointerup", this.__clickItem, this);
 
         return child;
     }
@@ -284,7 +282,7 @@ export class GList extends GComponent {
                 if (dispose) {
                     obj.dispose();
                 } else {
-                    obj.off("pointerup", this.__clickItem, this);
+                    this.scene.input.off("pointerup", this.__clickItem, this);
                 }
                 reslove(obj);
             });
@@ -664,10 +662,10 @@ export class GList extends GComponent {
     }
 
     private __clickItem(pointer: Phaser.Input.Pointer, gameObject: Phaser.GameObjects.GameObject): void {
-        if (this._scrollPane && this._scrollPane.isDragged)
+        if ((this._scrollPane && this._scrollPane.isDragged) || !gameObject || !gameObject[0])
             return;
 
-        var item: GObject = <GObject>(gameObject["$owner"]);
+        var item: GObject = <GObject>(gameObject[0]["$owner"]);
         this.setSelectionOnEvent(item, { target: gameObject });
 
         if (this._scrollPane && this.scrollItemToViewOnClick)
@@ -852,7 +850,7 @@ export class GList extends GComponent {
             if (this._layout == ListLayoutType.SingleColumn || this._layout == ListLayoutType.FlowHorizontal) {
                 saved = yValue;
                 s_n = yValue;
-                index = this.getIndexOnPos1(false);
+                index = this.getIndexOnPos1(false) - 1 < 0 ? 0 : this.getIndexOnPos1(false) - 1;
                 yValue = s_n;
                 if (index < this._virtualItems.length && index < this._realNumItems) {
                     size = this._virtualItems[index].height;
@@ -1264,11 +1262,13 @@ export class GList extends GComponent {
                     pos2 -= (this._virtualItems[i].height + this._lineGap);
                     if (pos2 <= s_n) {
                         s_n = pos2;
+                        //console.log("0 ===>", i);
                         return i;
                     }
                 }
 
                 s_n = 0;
+                //console.log("1 ===>", i);
                 return 0;
             }
             else {
@@ -1276,12 +1276,14 @@ export class GList extends GComponent {
                     pos3 = pos2 + this._virtualItems[i].height + this._lineGap;
                     if (pos3 > s_n) {
                         s_n = pos2;
+                        //console.log("2 ===>", i);
                         return i;
                     }
                     pos2 = pos3;
                 }
 
                 s_n = pos2;
+                //console.log("3 ===>", i);
                 return this._realNumItems - this._curLineItemCount;
             }
         }
@@ -1291,12 +1293,14 @@ export class GList extends GComponent {
                 pos3 = pos2 + this._virtualItems[i].height + this._lineGap;
                 if (pos3 > s_n) {
                     s_n = pos2;
+                    //console.log("4 ===>", i);
                     return i;
                 }
                 pos2 = pos3;
             }
 
             s_n = pos2;
+            //console.log("5 ===>", i);
             return this._realNumItems - this._curLineItemCount;
         }
     }
@@ -1456,12 +1460,12 @@ export class GList extends GComponent {
 
             //寻找当前位置的第一条项目
             s_n = pos;
-            var newFirstIndex: number = this.getIndexOnPos1(forceUpdate);
+            var newFirstIndex: number = this.getIndexOnPos1(forceUpdate) - 1 < 0 ? 0 : this.getIndexOnPos1(forceUpdate) - 1;
             pos = s_n;
-            if (newFirstIndex == this._firstIndex && !forceUpdate) {
-                reslove(false);
-                return;
-            }
+            // if (newFirstIndex == this._firstIndex && !forceUpdate) {
+            //     reslove(false);
+            //     return;
+            // }
 
 
             var oldFirstIndex: number = this._firstIndex;
@@ -1517,6 +1521,7 @@ export class GList extends GComponent {
                         ii.obj.setSize(partSize, ii.obj.height, true);
 
                     this.itemRenderer.runWith([curIndex % this._numItems, ii.obj]);
+                    // console.log("handle1 ===>", curIndex);
                     if (curIndex % this._curLineItemCount == 0) {
                         deltaSize += Math.ceil(ii.obj.height) - ii.height;
                         if (curIndex == newFirstIndex && oldFirstIndex > newFirstIndex) {
@@ -1605,9 +1610,14 @@ export class GList extends GComponent {
                         fun1();
                     }
                     else {
-                        console.log("await scroll1");
                         this._pool.getObject(url).then((obj) => {
                             ii.obj = obj;
+                            // const g = this.scene.make.graphics(undefined, false);
+                            // g.clear();
+                            // g.fillStyle(0xFFCC00);
+                            // g.fillRoundedRect(0, 0, ii.obj.initWidth, ii.obj.initHeight - 4);
+                            // (<Phaser.GameObjects.Container>ii.obj.displayObject).addAt(g, 0);
+                            ii.obj.displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, ii.obj.initWidth, ii.obj.initHeight), Phaser.Geom.Rectangle.Contains);
                             if (forward)
                                 this.addChildAt(ii.obj, curIndex - newFirstIndex);
                             else
@@ -1625,7 +1635,12 @@ export class GList extends GComponent {
                     fun1();
                 }
             }
-            fun0();
+            if (curIndex < this._realNumItems && (end || curY < max)) {
+                fun0();
+            } else {
+                fun2();
+            }
+
         });
     }
 
@@ -2016,8 +2031,8 @@ export class GList extends GComponent {
     }
 
     protected updateBounds(): void {
-        if (this._virtual)
-            return;
+        // if (this._virtual)
+        //     return;
 
         var i: number;
         var child: GObject;
@@ -2473,6 +2488,10 @@ export class GList extends GComponent {
         var i: number = buffer.readShort();
         if (i != -1)
             this._selectionController = this._parent.getControllerAt(i);
+        const g = this.scene.make.graphics(undefined, false);
+        g.fillStyle(0xFFCC00, .4);
+        g.fillRect(0, 0, this.initWidth, this.initHeight);
+        (<Phaser.GameObjects.Container>this.displayObject).add(g);
     }
 }
 

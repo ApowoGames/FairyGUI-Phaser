@@ -27,7 +27,7 @@ export class GObjectPool {
         return new Promise((reslove, reject) => {
             url = UIPackage.normalizeURL(url);
             if (url == null) {
-                console.log("getObject null", url);
+                // console.log("getObject null", url);
                 return reslove(null);
             }
 
@@ -35,12 +35,12 @@ export class GObjectPool {
             var arr: Array<GObject> = this._pool[url];
             if (arr && arr.length > 0) {
                 this._count--;
-                console.log("getObject arr.shift");
+                // console.log("getObject arr.shift");
                 return reslove(arr.shift());
             }
 
             UIPackage.createObjectFromURL(url).then((obj) => {
-                console.log("getObject create");
+                // console.log("getObject create");
                 return reslove(obj);
             });
         });

@@ -57,6 +57,13 @@ export class GButton extends GComponent {
         //console.log("button create===>", this);
     }
 
+    public createDisplayObject(): void {
+        this._displayObject = this.scene.make.container(undefined, false);
+        // GRoot.inst.addToStage(this._displayObject);
+        this._displayObject["$owner"] = this;
+        this._container = this._displayObject;
+    }
+
     public get icon(): string {
         return this._icon;
     }
@@ -427,7 +434,11 @@ export class GButton extends GComponent {
 
     public setup_afterAdd(buffer: ByteBuffer, beginPos: number): void {
         super.setup_afterAdd(buffer, beginPos);
-
+        // const g = this.scene.make.graphics(undefined, false);
+        // g.clear();
+        // g.fillStyle(0xFFCC00);
+        // g.fillRoundedRect(0, 0, this.initWidth, this.initHeight);
+        // this._displayObject.addAt(g, 0);
         if (!buffer.seek(beginPos, 6))
             return;
 
@@ -466,11 +477,10 @@ export class GButton extends GComponent {
             this._soundVolumeScale = buffer.readFloat();
         this.selected = buffer.readBool();
         this.addListen();
-        // const g = this.scene.make.graphics(undefined, false);
-        // g.clear();
-        // g.fillStyle(0xFFCC00);
-        // g.fillRoundedRect(0, 0, this.initWidth, this.initHeight);
-        // this._displayObject.addAt(g, 0);
+    }
+
+    public async constructFromResource2(objectPool: GObject[], poolIndex: number): Promise<void> {
+        return super.constructFromResource2(objectPool, poolIndex);
     }
 
     private __rollover(): void {

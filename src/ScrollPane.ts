@@ -16,6 +16,7 @@ import { Events } from './Events';
 export class ScrollPane {
     private _owner: GComponent;
     private _container: Phaser.GameObjects.Container;
+    private _mask: Phaser.GameObjects.Graphics;
     private _maskContainer: Phaser.GameObjects.Container;
     private _alignContainer?: Phaser.GameObjects.Container;
 
@@ -85,15 +86,19 @@ export class ScrollPane {
     private _refreshTime: Phaser.Time.TimerEvent;
     private _timeDelta: number = 0.01;
     public static draggingPane: ScrollPane;
+    // === 用于检查点击是否在区域的矩形
+    private mRectangle: Phaser.Geom.Rectangle;
 
     constructor(owner: GComponent) {
         this._owner = owner;
         this._refreshTimeEvent = { delay: this._timeDelta, callback: this.refresh, callbackScope: this };
         const _tweenUp = this._timeDelta / owner.scene.game.config.fps.target;
         this._tweenUpdateTimeEvent = { delay: _tweenUp, callback: this.tweenUpdate, callbackScope: this, loop: true };
+        this._mask = this._owner.scene.make.graphics(undefined, false);
         this._maskContainer = this._owner.scene.make.container(undefined);
+        // this._maskContainer.setPosition(this._owner.x, this._owner.y);
         (<Phaser.GameObjects.Container>this._owner.displayObject).add(this._maskContainer);
-
+        // (<Phaser.GameObjects.Container>this._maskContainer).setMask(this._mask.createGeometryMask());
         this._container = this._owner._container;
         this._container.setPosition(0, 0);
         this._maskContainer.add(this._container);
@@ -124,8 +129,8 @@ export class ScrollPane {
         this._mouseWheelStep = this._scrollStep * 2;
         this._decelerationRate = UIConfig.defaultScrollDecelerationRate;
 
-        this._owner.on("pointerdown", this.__mouseDown, this);
-        this._owner.on("wheel", this.__mouseWheel, this);
+        this._owner.scene.input.on("pointerdown", this.__mouseDown, this);
+        // this._owner.on("wheel", this.__mouseWheel, this);
     }
 
     public setup(buffer: ByteBuffer): void {
@@ -162,8 +167,8 @@ export class ScrollPane {
         else
             this._bouncebackEffect = UIConfig.defaultScrollBounceEffect;
         if ((flags & 256) != 0) this._inertiaDisabled = true;
-        if ((flags & 512) == 0) // this.maskScrollRect = new Phaser.Geom.Rectangle();//this._maskContainer["scrollRect"] = new Phaser.Geom.Rectangle();
-            if ((flags & 1024) != 0) this._floating = true;
+        if ((flags & 512) == 0) this.maskScrollRect = new Phaser.Geom.Rectangle();//this._maskContainer["scrollRect"] = new Phaser.Geom.Rectangle();
+        if ((flags & 1024) != 0) this._floating = true;
         if ((flags & 2048) != 0) this._dontClipMargin = true;
 
         if (scrollBarDisplay == ScrollBarDisplayType.Default)
@@ -627,14 +632,13 @@ export class ScrollPane {
     public cancelDragging(): void {
         this._owner.scene.input.off("pointermove", this.__mouseMove, this);
         this._owner.scene.input.off("pointerup", this.__mouseUp, this);
-        this._owner.scene.input.off("pointerout", this.__mouseUp, this);
-
+        // this._owner.scene.input.off("pointerout", this.__mouseUp, this);
         if (ScrollPane.draggingPane == this)
             ScrollPane.draggingPane = null;
 
         _gestureFlag = 0;
         this._dragged = false;
-        // this._maskContainer.disableInteractive();
+        this._maskContainer.disableInteractive();
     }
 
     public lockHeader(size: number): void {
@@ -788,6 +792,7 @@ export class ScrollPane {
 
         this._contentSize.x = aWidth;
         this._contentSize.y = aHeight;
+        console.log("contentsize ===>", aWidth, aHeight);
         this.handleSizeChanged();
     }
 
@@ -873,6 +878,7 @@ export class ScrollPane {
                 this._hzScrollBar.setDisplayPerc(Math.min(1, this._viewSize.x / this._contentSize.x));
         }
 
+        console.log("handlesize ===>", this._owner.displayObject);
         this.updateScrollBarVisible();
 
         if (this.maskScrollRect) {
@@ -889,7 +895,13 @@ export class ScrollPane {
                     rect.height += (this._owner.margin.top + this._owner.margin.bottom);
                 }
                 this.maskScrollRect = rect;
+                this._maskContainer.clearMask();
+                this._mask.clear();
+                this._mask.fillStyle(0xFFCC00, .4);
+                this._mask.fillRect(0, 0, this.maskScrollRect.width + 60, this.maskScrollRect.height + 80);
                 this._maskContainer.setInteractive(this.maskScrollRect, Phaser.Geom.Rectangle.Contains);
+                this._maskContainer.add(this._mask);
+                this._maskContainer.setMask(this._mask.createGeometryMask());
             }
         }
 
@@ -1046,23 +1058,49 @@ export class ScrollPane {
             this.killTween();
             this._dragged = true;
         }
-        else
+        else {
             this._dragged = false;
+        }
 
-        var pt: Phaser.Geom.Point = this._owner.globalToLocal(pointer.worldX, pointer.worldY, s_vec2);
+        // ==== check pointer in owner.displayobject
+        if (this.checkInBounds(pointer)) {
+            var pt: Phaser.Geom.Point = new Phaser.Geom.Point(pointer.downX, pointer.downY); //this._owner.globalToLocal(pointer.worldX, pointer.worldY, s_vec2);
 
-        this._containerPos.setTo(this._container.x, this._container.y);
-        this._beginTouchPos.setTo(pt.x, pt.y);
-        this._lastTouchPos.setTo(pt.x, pt.y);
-        this._lastTouchGlobalPos.setTo(pointer.worldX, pointer.worldY);
-        this._isHoldAreaDone = false;
-        this._velocity.setTo(0, 0);
-        this._velocityScale = 1;
-        this._lastMoveTime = this._owner.scene.time.now;// Laya.timer.currTimer / 1000;
+            this._containerPos.setTo(this._container.x, this._container.y);
+            this._beginTouchPos.setTo(pt.x, pt.y);
+            this._lastTouchPos.setTo(pointer.downX, pointer.downY);
+            this._lastTouchGlobalPos.setTo(pointer.worldX, pointer.worldY);
+            this._isHoldAreaDone = false;
+            this._velocity.setTo(0, 0);
+            this._velocityScale = 1;
+            this._lastMoveTime = this._owner.scene.time.now;// Laya.timer.currTimer / 1000;
 
-        this._owner.scene.input.on("pointermove", this.__mouseMove, this);
-        this._owner.scene.input.on("pointerup", this.__mouseUp, this);
-        this._owner.scene.input.on("pointerout", this.__mouseUp, this);
+            this._owner.scene.input.on("pointermove", this.__mouseMove, this);
+            this._owner.scene.input.on("pointerup", this.__mouseUp, this);
+            // this._owner.scene.input.on("pointerout", this.__mouseUp, this);
+        }
+
+    }
+
+    private checkInBounds(pointer: Phaser.Input.Pointer): boolean {
+        if (!this.mRectangle) {
+            this.mRectangle = new Phaser.Geom.Rectangle(0, 0, 0, 0);
+        }
+        const gameObject = <Phaser.GameObjects.Container>this.owner.displayObject;
+        const worldMatrix = gameObject.getWorldTransformMatrix();
+        const zoom = worldMatrix.scaleX ? worldMatrix.scaleX : 1;
+        this.mRectangle.left = 0;
+        this.mRectangle.right = gameObject.width;
+        this.mRectangle.top = 0;
+        this.mRectangle.bottom = gameObject.height;
+        const x = (pointer.x - worldMatrix.tx) / zoom;
+        const y = (pointer.y - worldMatrix.ty) / zoom;
+        // 点击在范围内
+        if (this.mRectangle.left <= x && this.mRectangle.right >= x && this.mRectangle.top <= y && this.mRectangle.bottom >= y) {
+            return true;
+        }
+
+        return false;
     }
 
     private __mouseMove(pointer: Phaser.Input.Pointer): void {
@@ -1072,10 +1110,13 @@ export class ScrollPane {
         if (ScrollPane.draggingPane && ScrollPane.draggingPane != this || GObject.draggingObject) //已经有其他拖动
             return;
 
+        if (!this.checkInBounds(pointer)) {
+            this.__mouseUp();
+            return;
+        }
         var sensitivity: number = UIConfig.touchScrollSensitivity;
 
-        var pt: Phaser.Geom.Point = this._owner.globalToLocal(pointer.worldX, pointer.worldY, s_vec2);
-
+        var pt: Phaser.Geom.Point = new Phaser.Geom.Point(pointer.x, pointer.y);// this._owner.globalToLocal(pointer.worldX, pointer.worldY, s_vec2);
         var diff: number, diff2: number;
         var sv: boolean, sh: boolean, st: boolean;
 
@@ -1132,7 +1173,6 @@ export class ScrollPane {
 
         var newPosX: number = Math.floor(this._containerPos.x + pt.x - this._beginTouchPos.x);
         var newPosY: number = Math.floor(this._containerPos.y + pt.y - this._beginTouchPos.y);
-
         if (sv) {
             if (newPosY > 0) {
                 if (!this._bouncebackEffect)
@@ -1206,7 +1246,7 @@ export class ScrollPane {
             this._velocityScale = Math.abs(deltaGlobalPositionX / deltaPositionX);
         else if (deltaPositionY != 0)
             this._velocityScale = Math.abs(deltaGlobalPositionY / deltaPositionY);
-
+        // console.log("update v 1===>", this._velocityScale);
         this._lastTouchPos.setTo(pt.x, pt.y);
         this._lastTouchGlobalPos.setTo(pointer.worldX, pointer.worldY);
         this._lastMoveTime = now;
@@ -1246,7 +1286,7 @@ export class ScrollPane {
 
         this._owner.scene.input.off("pointermove", this.__mouseMove, this);
         this._owner.scene.input.off("pointerup", this.__mouseUp, this);
-        this._owner.scene.input.off("pointerout", this.__mouseUp, this);
+        // this._owner.scene.input.off("pointerout", this.__mouseUp, this);
 
         if (ScrollPane.draggingPane == this)
             ScrollPane.draggingPane = null;
@@ -1744,9 +1784,7 @@ export class ScrollPane {
     private tweenUpdate(): void {
         var nx: number = this.runTween("x");
         var ny: number = this.runTween("y");
-        console.log(nx, ny);
         this._container.setPosition(nx, ny);
-
         if (this._tweening == 2) {
             if (this._overlapSize.x > 0)
                 this._xPos = ToolSet.clamp(-nx, 0, this._overlapSize.x);
@@ -1838,6 +1876,9 @@ export class ScrollPane {
         else
             newValue = this._container[axis];
 
+        // if (axis === "y") {
+        //     console.log("runTween", axis, newValue);
+        // }
         return newValue;
     }
 }

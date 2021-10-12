@@ -31,6 +31,7 @@ export declare class GButton extends GComponent {
     static DISABLED: string;
     static SELECTED_DISABLED: string;
     constructor(scene?: Phaser.Scene);
+    createDisplayObject(): void;
     get icon(): string;
     set icon(value: string);
     get selectedIcon(): string;
@@ -74,6 +75,7 @@ export declare class GButton extends GComponent {
     removeListen(): void;
     setup_beforeAdd(buffer: ByteBuffer, beginPos: number): void;
     setup_afterAdd(buffer: ByteBuffer, beginPos: number): void;
+    constructFromResource2(objectPool: GObject[], poolIndex: number): Promise<void>;
     private __rollover;
     private __rollout;
     private __mousedown;

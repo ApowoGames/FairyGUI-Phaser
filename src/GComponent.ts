@@ -14,6 +14,7 @@ import { Controller } from './Controller';
 import { Graphics } from './display/Graphics';
 import { GObject } from './GObject';
 import { Decls, UIPackage } from './UIPackage';
+import { GRoot } from '.';
 export class GComponent extends GObject {
     private _sortingChildCount: number = 0;
     private _opaque: boolean;
@@ -47,8 +48,9 @@ export class GComponent extends GObject {
     }
 
     public createDisplayObject(): void {
-        super.createDisplayObject();
-        // this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this._width, this._height), Phaser.Geom.Rectangle.Contains);
+        this._displayObject = this.scene.make.container(undefined, false);
+        GRoot.inst.addToStage(this._displayObject);
+        this._displayObject["$owner"] = this;
         this._container = this._displayObject;
     }
 
@@ -459,7 +461,7 @@ export class GComponent extends GObject {
                             index++;
                     }
                     this._container.addAt(child.displayObject, index);
-                    console.log("add display", child);
+                    // console.log("add display", child);
                 }
                 else if (this._childrenRenderOrder == ChildrenRenderOrder.Descent) {
                     for (i = cnt - 1; i >= 0; i--) {
@@ -819,7 +821,7 @@ export class GComponent extends GObject {
 
         if (!this._boundsChanged) {
             this._boundsChanged = true;
-
+            this.__render();
             //Laya.timer.callLater(this, this.__render);
         }
     }
@@ -877,14 +879,14 @@ export class GComponent extends GObject {
             aw = ar - ax;
             ah = ab - ay;
         }
-        this.setBounds(ax, ay, aw, ah);
+        this.setBounds(ax, ay, this.initWidth, this.initHeight);
     }
 
     public setBounds(ax: number, ay: number, aw: number, ah: number): void {
         this._boundsChanged = false;
 
         if (this._scrollPane)
-            this._scrollPane.setContentSize(Math.round(ax + aw), Math.round(ay + ah));
+            this._scrollPane.setContentSize(aw, ah);
     }
 
     public get viewWidth(): number {

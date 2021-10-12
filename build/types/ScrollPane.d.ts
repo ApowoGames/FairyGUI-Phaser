@@ -6,6 +6,7 @@ import { GComponent } from "./GComponent";
 export declare class ScrollPane {
     private _owner;
     private _container;
+    private _mask;
     private _maskContainer;
     private _alignContainer?;
     private _scrollType;
@@ -65,6 +66,7 @@ export declare class ScrollPane {
     private _refreshTime;
     private _timeDelta;
     static draggingPane: ScrollPane;
+    private mRectangle;
     constructor(owner: GComponent);
     setup(buffer: ByteBuffer): void;
     dispose(): void;
@@ -139,6 +141,7 @@ export declare class ScrollPane {
     private refresh;
     private refresh2;
     private __mouseDown;
+    private checkInBounds;
     private __mouseMove;
     private __mouseUp;
     private __click;

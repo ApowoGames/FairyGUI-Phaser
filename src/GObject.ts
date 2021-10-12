@@ -15,7 +15,7 @@ import { GComponent } from './GComponent';
 import { DisplayObjectEvent, InteractiveEvent } from './event/DisplayObjectEvent';
 import { GTree } from './GTree';
 import { GearAnimation, GearColor, GearFontSize, GearIcon, GearLook, GearSize, GearText, GearXY } from './gears';
-import { GButton, GImage, GList, GLoader } from '.';
+import { GButton, GImage, GList, GLoader, GRoot } from '.';
 export class DisplayStyle {
     static EMPTY: DisplayStyle = new DisplayStyle();
     /**水平缩放 */
@@ -931,7 +931,7 @@ export class GObject {
     }
 
     public off(type: string, listener: Function, context: any = this, once: boolean = false): void {
-        this._displayObject.off(type, listener, this, context);
+        this._displayObject.off(type, listener, once, context);
     }
 
     public get draggable(): boolean {
@@ -989,6 +989,7 @@ export class GObject {
             point = new Phaser.Geom.Point(point.x, point.y);
         }
         let ele: Phaser.GameObjects.Container = this._displayObject;
+        if (!ele) return point;
         while (ele) {
             if (!ele.parentContainer) break;
             ele = ele.parentContainer;
@@ -1160,7 +1161,8 @@ export class GObject {
 
     public createDisplayObject(): void {
         this._displayObject = this.scene.make.container(undefined, false);
-        (<any>this._scene).stage.addChild(this._displayObject, 1);
+        GRoot.inst.addToStage(this._displayObject);
+        // (<any>this._scene).stage.addChild(this._displayObject, 1);
         this._displayObject["$owner"] = this;
     }
 

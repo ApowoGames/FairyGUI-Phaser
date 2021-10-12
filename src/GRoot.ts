@@ -91,11 +91,15 @@ export class GRoot extends GComponent {
 
         this._uiStage = new UIStage(scene);
         (<any>this._scene).stage = this._uiStage;
+        this._width = stageOptions.designWidth;
+        this._height = stageOptions.designHeight;
+        // 初始化场景
+        this.createDisplayObject();
         // this._uiStage.addChild(this._container, UISceneDisplay.LAYER_ROOT);
         this.addListen();
     }
 
-    public addToStage(child: Phaser.GameObjects.GameObject, type: UISceneDisplay, index: number = -1) {
+    public addToStage(child: Phaser.GameObjects.GameObject, type: UISceneDisplay = UISceneDisplay.LAYER_ROOT, index: number = -1) {
         if (!this._uiStage) return;
         this._uiStage.addChild(child, type, index);
     }
@@ -200,7 +204,15 @@ export class GRoot extends GComponent {
     }
 
     public createDisplayObject() {
-        // this._container = this._scene.add.container(0, 0);
+        // this._displayObject = this.scene.make.container(undefined, false);
+        // this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this._width, this._height), Phaser.Geom.Rectangle.Contains);
+        // this._displayObject["$owner"] = this;
+        // this._displayObject.setSize(this._width, this._height);
+        // this._container = this._displayObject;
+        // const g = this.scene.make.graphics(undefined, false);
+        // g.fillStyle(0xffcc00, 1);
+        // g.fillRect(0, 0, this._width, this._height);
+        // this._container.add(g);
     }
 
     private onStageDown(pointer: Phaser.Input.Pointer) {

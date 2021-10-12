@@ -44,7 +44,7 @@ export declare class GRoot extends GComponent {
      * @param stageOptions
      */
     attachTo(scene: Phaser.Scene, stageOptions?: any): void;
-    addToStage(child: Phaser.GameObjects.GameObject, type: UISceneDisplay, index?: number): void;
+    addToStage(child: Phaser.GameObjects.GameObject, type?: UISceneDisplay, index?: number): void;
     removeFromStage(child: Phaser.GameObjects.GameObject, type: UISceneDisplay): void;
     getResUrl(key: string): string;
     getResUIUrl(key: string): string;

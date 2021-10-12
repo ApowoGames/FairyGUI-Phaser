@@ -81,7 +81,6 @@ export class GImage extends GObject {
         this._displayObject = this._image = new Image(this.scene);
         // (<any>this._scene).stage.addChild(this._displayObject, 1);
         this._displayObject["$owner"] = this;
-
     }
 
     public setSize(wv: number, hv: number, ignorePivot?: boolean): void {
