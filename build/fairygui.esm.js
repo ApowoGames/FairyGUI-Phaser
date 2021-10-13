@@ -5374,9 +5374,32 @@ class Image extends Phaser.GameObjects.Container {
         const name = _texture.key + "_" + value.name + "_" + this["$owner"].width + "_" + this["$owner"].height;
         this.patchKey = name;
         if (!this._scale9Grid) {
-            const img = this.scene.make.image(undefined, false);
-            img.setTexture(_texture.key);
-            this.add(img);
+            if (this.width !== _texture.frames["__BASE"].cutWidth || this.height !== _texture.frames["__BASE"].cutHeight) {
+                // 手动将packitem数据组织成frame格式添加到大图集的frames中，内部会去重
+                _texture.add(name, 0, value.x, value.y, value.width, value.height);
+                if (!this.scene.textures.exists(name)) {
+                    const canvas = this.scene.textures.createCanvas(name, value.width, value.height);
+                    canvas.drawFrame(_texture.key, name, 0, 0);
+                    if (canvas && this._sourceTexture != canvas) {
+                        this._sourceTexture = canvas;
+                        this.originFrame = this._sourceTexture.frames["__BASE"];
+                        this.setSize(value.width, value.height);
+                    }
+                }
+                else {
+                    let texture = this.scene.textures.get(name);
+                    if (texture && this._sourceTexture != texture) {
+                        this._sourceTexture = texture;
+                        this.originFrame = this._sourceTexture.frames["__BASE"];
+                        this.setSize(value.width, value.height);
+                    }
+                }
+            }
+            else {
+                const img = this.scene.make.image(undefined, false);
+                img.setTexture(_texture.key);
+                this.add(img);
+            }
         }
         else {
             // 手动将packitem数据组织成frame格式添加到大图集的frames中，内部会去重
