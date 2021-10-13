@@ -215,8 +215,8 @@ export declare class GObject {
     get hitArea(): any;
     set hitArea(value: any);
     dispose(): void;
-    onClick(listener: Function): void;
-    offClick(listener: Function, once?: boolean): void;
+    onClick(listener: Function, context: any): void;
+    offClick(listener: Function, context: any, once?: boolean): void;
     hasClickListener(): boolean;
     on(type: string, listener: Function, context?: any): void;
     off(type: string, listener: Function, context?: any, once?: boolean): void;

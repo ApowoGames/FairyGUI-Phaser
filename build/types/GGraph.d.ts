@@ -11,6 +11,7 @@ export declare class GGraph extends GObject {
     private _startAngle?;
     private _polygonPoints?;
     private _distances?;
+    private _graphics;
     constructor(scene?: Phaser.Scene);
     drawRect(lineSize: number, lineColor: string, fillColor: string, cornerRadius?: number[]): void;
     drawEllipse(lineSize: number, lineColor: string, fillColor: string): void;
@@ -21,6 +22,7 @@ export declare class GGraph extends GObject {
     get color(): string;
     set color(value: string);
     private updateGraph;
+    dealWithPolyPoints(basePosX?: number, basePosY?: number): void;
     replaceMe(target: GObject): void;
     addBeforeMe(target: GObject): void;
     addAfterMe(target: GObject): void;

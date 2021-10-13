@@ -914,12 +914,12 @@ export class GObject {
         }
     }
 
-    public onClick(listener: Function): void {
-        this.on(InteractiveEvent.POINTER_UP, listener);
+    public onClick(listener: Function, context: any): void {
+        this.on(InteractiveEvent.POINTER_DOWN, listener, context);
     }
 
-    public offClick(listener: Function, once: boolean = false): void {
-        this.off(InteractiveEvent.POINTER_UP, listener, once);
+    public offClick(listener: Function, context: any, once: boolean = false): void {
+        this.off(InteractiveEvent.POINTER_DOWN, listener, once, context);
     }
 
     public hasClickListener(): boolean {

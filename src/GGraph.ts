@@ -1,6 +1,8 @@
 import { ByteBuffer } from './utils/ByteBuffer';
 import { ObjectPropID } from './FieldTypes';
 import { GObject } from './GObject';
+import { HitArea, ToolSet } from '.';
+import { Utils } from './utils/Utils';
 export class GGraph extends GObject {
     private _type: number;
     private _lineSize: number;
@@ -13,6 +15,7 @@ export class GGraph extends GObject {
     private _polygonPoints?: number[];
     private _distances?: number[];
 
+    private _graphics: Phaser.GameObjects.Graphics;
     constructor(scene?: Phaser.Scene) {
         super(scene);
 
@@ -81,17 +84,17 @@ export class GGraph extends GObject {
     }
 
     private updateGraph(): void {
-        // this._displayObject.mouseEnabled = this.touchable;
-        // var gr: Laya.Graphics = this._displayObject.graphics;
-        // gr.clear();
+        this._displayObject.mouseEnabled = this.touchable;
+        if (this._graphics) this._graphics.clear();
+        this._graphics = this.scene.make.graphics(undefined, false);
+        var w: number = this.width;
+        var h: number = this.height;
+        if (w == 0 || h == 0)
+            return;
 
-        // var w: number = this.width;
-        // var h: number = this.height;
-        // if (w == 0 || h == 0)
-        //     return;
-
-        // var fillColor: string = this._fillColor;
-        // var lineColor: string = this._lineColor;
+        const fillColor = Utils.toNumColor(this._fillColor);
+        const lineColor =  Utils.toNumColor(this._lineColor);
+        // ============= 暂时屏蔽 rgba颜色值转换，没必要，简单最好
         // if (/*Render.isWebGL &&*/ ToolSet.startsWith(fillColor, "rgba")) {
         //     //webgl下laya未支持rgba格式
         //     var arr: any[] = fillColor.substring(5, fillColor.lastIndexOf(")")).split(",");
@@ -99,63 +102,111 @@ export class GGraph extends GObject {
         //     if (a == 0)
         //         fillColor = null;
         //     else {
-        //         fillColor = Laya.Utils.toHexColor((parseInt(arr[0]) << 16) + (parseInt(arr[1]) << 8) + parseInt(arr[2]));
+        //         fillColor = Utils.toHexColor((parseInt(arr[0]) << 16) + (parseInt(arr[1]) << 8) + parseInt(arr[2]));
         //         this.alpha = a;
         //     }
         // }
-        // if (this._type == 1) {
-        //     if (this._cornerRadius) {
-        //         var paths: any[] = [
+        this._graphics.fillStyle(fillColor, this.alpha);
+        this._graphics.lineStyle(this._lineSize, lineColor);
+        if (this._type == 1) {
+            // 画圆角
+            if (this._cornerRadius) {
+                var paths: any[] = [
 
-        //             ["moveTo", this._cornerRadius[0], 0],
-        //             ["lineTo", w - this._cornerRadius[1], 0],
-        //             ["arcTo", w, 0, w, this._cornerRadius[1], this._cornerRadius[1]],
-        //             ["lineTo", w, h - this._cornerRadius[3]],
-        //             ["arcTo", w, h, w - this._cornerRadius[3], h, this._cornerRadius[3]],
-        //             ["lineTo", this._cornerRadius[2], h],
-        //             ["arcTo", 0, h, 0, h - this._cornerRadius[2], this._cornerRadius[2]],
-        //             ["lineTo", 0, this._cornerRadius[0]],
-        //             ["arcTo", 0, 0, this._cornerRadius[0], 0, this._cornerRadius[0]],
-        //             ["closePath"]
-        //         ];
-        //         gr.drawPath(0, 0, paths, fillColor ? { fillStyle: fillColor } : null, this._lineSize > 0 ? { strokeStyle: lineColor, lineWidth: this._lineSize } : null);
-        //     }
-        //     else
-        //         gr.drawRect(0, 0, w, h, fillColor, this._lineSize > 0 ? lineColor : null, this._lineSize);
-        // } else if (this._type == 2) {
-        //     gr.drawCircle(w / 2, h / 2, w / 2, fillColor, this._lineSize > 0 ? lineColor : null, this._lineSize);
-        // }
-        // else if (this._type == 3) {
-        //     gr.drawPoly(0, 0, this._polygonPoints, fillColor, this._lineSize > 0 ? lineColor : null, this._lineSize);
-        // }
-        // else if (this._type == 4) {
-        //     if (!this._polygonPoints)
-        //         this._polygonPoints = [];
-        //     var radius: number = Math.min(this._width, this._height) / 2;
-        //     this._polygonPoints.length = 0;
-        //     var angle: number = Laya.Utils.toRadian(this._startAngle);
-        //     var deltaAngle: number = 2 * Math.PI / this._sides;
-        //     var dist: number;
-        //     for (var i: number = 0; i < this._sides; i++) {
-        //         if (this._distances) {
-        //             dist = this._distances[i];
-        //             if (isNaN(dist))
-        //                 dist = 1;
-        //         }
-        //         else
-        //             dist = 1;
+                    ["moveTo", this._cornerRadius[0], 0],
+                    ["lineTo", w - this._cornerRadius[1], 0],
+                    ["arcTo", w, 0, w, this._cornerRadius[1], this._cornerRadius[1]],
+                    ["lineTo", w, h - this._cornerRadius[3]],
+                    ["arcTo", w, h, w - this._cornerRadius[3], h, this._cornerRadius[3]],
+                    ["lineTo", this._cornerRadius[2], h],
+                    ["arcTo", 0, h, 0, h - this._cornerRadius[2], this._cornerRadius[2]],
+                    ["lineTo", 0, this._cornerRadius[0]],
+                    ["arcTo", 0, 0, this._cornerRadius[0], 0, this._cornerRadius[0]],
+                    ["closePath"]
+                ];
 
-        //         var xv: number = radius + radius * dist * Math.cos(angle);
-        //         var yv: number = radius + radius * dist * Math.sin(angle);
-        //         this._polygonPoints.push(xv, yv);
+                this._graphics.fillRoundedRect(0, 0, w, h, this._cornerRadius[0]);
+                if (this._lineSize > 0) {
+                    this._graphics.strokeRoundedRect(0, 0, w, h, this._cornerRadius[0]);
+                }
+                // gr.drawPath(0, 0, paths, fillColor ? { fillStyle: fillColor } : null, this._lineSize > 0 ? { strokeStyle: lineColor, lineWidth: this._lineSize } : null);
+            }
+            else
+                this._graphics.fillRect(0, 0, w, h);
+            if (this._lineSize > 0) {
+                this._graphics.strokeRect(0, 0, w, h);
+            }
+            // gr.drawRect(0, 0, w, h, fillColor, this._lineSize > 0 ? lineColor : null, this._lineSize);
+        } else if (this._type == 2) {
+            this._graphics.fillCircle(w / 2, h / 2, w / 2);
+            if (this._lineSize > 0) {
+                this._graphics.strokeCircle(w / 2, h / 2, w / 2);
+            }
+            // gr.drawCircle(w / 2, h / 2, w / 2, fillColor, this._lineSize > 0 ? lineColor : null, this._lineSize);
+        }
+        else if (this._type == 3) {
+            // ==== 优先处理点数据 偏移量，并以点形式保存
+            this.dealWithPolyPoints(0, 0);
 
-        //         angle += deltaAngle;
-        //     }
 
-        //     gr.drawPoly(0, 0, this._polygonPoints, fillColor, this._lineSize > 0 ? lineColor : null, this._lineSize);
-        // }
+            // gr.drawPoly(0, 0, this._polygonPoints, fillColor, this._lineSize > 0 ? lineColor : null, this._lineSize);
+        }
+        else if (this._type == 4) {
+            if (!this._polygonPoints)
+                this._polygonPoints = [];
+            var radius: number = Math.min(this._width, this._height) / 2;
+            this._polygonPoints.length = 0;
+            var angle: number = Utils.toRadian(this._startAngle);
+            var deltaAngle: number = 2 * Math.PI / this._sides;
+            var dist: number;
+            for (var i: number = 0; i < this._sides; i++) {
+                if (this._distances) {
+                    dist = this._distances[i];
+                    if (isNaN(dist))
+                        dist = 1;
+                }
+                else
+                    dist = 1;
+
+                var xv: number = radius + radius * dist * Math.cos(angle);
+                var yv: number = radius + radius * dist * Math.sin(angle);
+                this._polygonPoints.push(xv, yv);
+
+                angle += deltaAngle;
+            }
+            this.dealWithPolyPoints(0, 0);
+            // gr.drawPoly(0, 0, this._polygonPoints, fillColor, this._lineSize > 0 ? lineColor : null, this._lineSize);
+        }
 
         // this._displayObject.repaint();
+        this._displayObject.addAt(this._graphics);
+    }
+
+    public dealWithPolyPoints(basePosX: number = 0, basePosY: number = 0) {
+        var offset = (this._lineSize >= 1 && this._lineColor) ? (this._lineSize % 2 === 0 ? 0 : 0.5) : 0;
+        const points = this._polygonPoints;
+        const points1 = [];
+        var ci: number = 0;
+        for (var i: number = 0, sz: number = points.length / 2; i < sz; i++) {
+            var x1: number = points[ci] + basePosX + offset, y1: number = points[ci + 1] + basePosY + offset;
+            points[ci] = x1;
+            points[ci + 1] = y1;
+            const point = new Phaser.Geom.Point(x1, y1);
+            points1.push(point);
+            ci += 2;
+        }
+        // ==== 开始画点路径
+        this._graphics.beginPath();
+        for (let i: number = 0; i < points1.length; i++) {
+            const point = points1[i];
+            this._graphics.moveTo(0, 0);
+            this._graphics.lineTo(point.x, point.y);
+        }
+        this._graphics.fillPath();
+        if (this._lineSize > 0) {
+            this._graphics.strokePath();
+        }
+        this._graphics.closePath();
     }
 
     public replaceMe(target: GObject): void {
@@ -199,15 +250,14 @@ export class GGraph extends GObject {
     public setNativeObject(obj: any): void {
         this._type = 0;
         // this._displayObject.mouseEnabled = this.touchable;
-        // this._displayObject.graphics.clear();
-        // this._displayObject.addChild(obj);
+        this._displayObject.graphics.clear();
+        this._displayObject.addChild(obj);
     }
 
     public createDisplayObject(): void {
         super.createDisplayObject();
-        // this._displayObject.mouseEnabled = false;
-
-        // this._hitArea = new Laya.HitArea();
+        (<Phaser.GameObjects.Container>this._displayObject).disableInteractive();
+        // this._hitArea = new HitArea();
         // this._hitArea.hit = this._displayObject.graphics;
         // this._displayObject.hitArea = this._hitArea;
     }
@@ -272,5 +322,6 @@ export class GGraph extends GObject {
 
             this.updateGraph();
         }
+        this._touchable = false;
     }
 }

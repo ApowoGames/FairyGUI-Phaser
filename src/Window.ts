@@ -73,10 +73,10 @@ export class Window extends GComponent {
 
     public set closeButton(value: GObject) {
         if (this._closeButton)
-            this._closeButton.offClick(this.closeEventHandler);
+            this._closeButton.offClick(this.closeEventHandler, this);
         this._closeButton = value;
         if (this._closeButton)
-            this._closeButton.onClick(this.closeEventHandler);
+            this._closeButton.onClick(this.closeEventHandler, this);
     }
 
     public get dragArea(): GObject {
@@ -174,7 +174,7 @@ export class Window extends GComponent {
                     this.layoutModalWaitPane();
                 });
 
-           
+
             // this.addChild(this._modalWaitPane);
         }
     }

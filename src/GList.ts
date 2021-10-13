@@ -2488,10 +2488,10 @@ export class GList extends GComponent {
         var i: number = buffer.readShort();
         if (i != -1)
             this._selectionController = this._parent.getControllerAt(i);
-        const g = this.scene.make.graphics(undefined, false);
-        g.fillStyle(0xFFCC00, .4);
-        g.fillRect(0, 0, this.initWidth, this.initHeight);
-        (<Phaser.GameObjects.Container>this.displayObject).add(g);
+        // const g = this.scene.make.graphics(undefined, false);
+        // g.fillStyle(0xFFCC00, .4);
+        // g.fillRect(0, 0, this.initWidth, this.initHeight);
+        // (<Phaser.GameObjects.Container>this.displayObject).add(g);
     }
 }
 
