@@ -7093,7 +7093,11 @@
             return this.name;
         }
         load() {
-            return this.owner.getItemAsset(this);
+            return new Promise((resolve, reject) => {
+                this.owner.getItemAsset(this).then((obj) => {
+                    resolve(obj);
+                });
+            });
         }
     }
 
@@ -7717,7 +7721,7 @@
                             }
                             else {
                                 let texture = GRoot.inst.scene.textures.get(sprite.atlas.file);
-                                if (texture) {
+                                if (texture && texture.key !== "__MISSING") {
                                     item.texture = texture;
                                     item.x = sprite.rect.x;
                                     item.y = sprite.rect.y;

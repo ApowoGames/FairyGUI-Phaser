@@ -621,7 +621,7 @@ export class UIPackage {
                             reslove(item);
                         } else {
                             let texture = GRoot.inst.scene.textures.get(sprite.atlas.file);
-                            if (texture) {
+                            if (texture && texture.key !== "__MISSING") {
                                 item.texture = texture;
                                 item.x = sprite.rect.x;
                                 item.y = sprite.rect.y;

@@ -77,6 +77,10 @@ export class PackageItem {
     }
 
     public load(): Promise<Object> {
-        return this.owner.getItemAsset(this);
+        return new Promise((resolve, reject) => {
+            this.owner.getItemAsset(this).then((obj) => {
+                resolve(obj);
+            });
+        });
     }
 }
