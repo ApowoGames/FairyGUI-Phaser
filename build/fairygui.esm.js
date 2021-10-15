@@ -1,4 +1,4 @@
-import 'tooqingphaser';
+import 'phaser';
 
 var ButtonMode;
 (function (ButtonMode) {
