@@ -16083,6 +16083,8 @@
                     }
                     childCount = this._children.length;
                     for (i = 0; i < childCount; i++) {
+                        if (!this._virtualItems[newFirstIndex + i])
+                            continue;
                         var obj = this._virtualItems[newFirstIndex + i].obj;
                         if (!obj)
                             continue;

@@ -1500,6 +1500,7 @@ export class GList extends GComponent {
 
                 childCount = this._children.length;
                 for (i = 0; i < childCount; i++) {
+                    if (!this._virtualItems[newFirstIndex + i]) continue;
                     var obj: GObject = this._virtualItems[newFirstIndex + i].obj;
                     if (!obj) continue;
                     if (this._children[i] != obj)
