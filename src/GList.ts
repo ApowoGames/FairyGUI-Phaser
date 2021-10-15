@@ -1489,6 +1489,7 @@ export class GList extends GComponent {
                 // 等待数据组织完成再处理
                 for (i = 0; i < childCount; i++) {
                     ii = this._virtualItems[oldFirstIndex + i];
+                    if (!ii) continue;
                     if (ii.updateFlag != this.itemInfoVer && ii.obj) {
                         if (ii.obj instanceof GButton)
                             ii.selected = ii.obj.selected;
@@ -1500,6 +1501,7 @@ export class GList extends GComponent {
                 childCount = this._children.length;
                 for (i = 0; i < childCount; i++) {
                     var obj: GObject = this._virtualItems[newFirstIndex + i].obj;
+                    if (!obj) continue;
                     if (this._children[i] != obj)
                         this.setChildIndex(obj, i);
                 }
