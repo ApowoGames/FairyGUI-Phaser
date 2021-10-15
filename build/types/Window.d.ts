@@ -1,7 +1,7 @@
 import { GRoot } from './GRoot';
 import { IUISource } from './IUISource';
 import { GObject } from './GObject';
-import "phaser";
+import "phaser3";
 import { GComponent } from "./GComponent";
 export declare class Window extends GComponent {
     private _contentPane;
