@@ -1578,6 +1578,7 @@ export class GList extends GComponent {
                     if (forward) {
                         for (j = reuseIndex; j >= oldFirstIndex; j--) {
                             ii2 = this._virtualItems[j];
+                            if (!ii2) continue;
                             if (ii2.obj && ii2.updateFlag != this.itemInfoVer && ii2.obj.resourceURL == url) {
                                 if (ii2.obj instanceof GButton)
                                     ii2.selected = ii2.obj.selected;
@@ -1592,6 +1593,7 @@ export class GList extends GComponent {
                     else {
                         for (j = reuseIndex; j <= lastIndex; j++) {
                             ii2 = this._virtualItems[j];
+                            if (!ii2) continue;
                             if (ii2.obj && ii2.updateFlag != this.itemInfoVer && ii2.obj.resourceURL == url) {
                                 if (ii2.obj instanceof GButton)
                                     ii2.selected = ii2.obj.selected;
