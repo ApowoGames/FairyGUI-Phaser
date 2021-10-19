@@ -15,7 +15,7 @@ import { GComponent } from './GComponent';
 import { DisplayObjectEvent, InteractiveEvent } from './event/DisplayObjectEvent';
 import { GTree } from './GTree';
 import { GearAnimation, GearColor, GearFontSize, GearIcon, GearLook, GearSize, GearText, GearXY } from './gears';
-import { GButton, GImage, GList, GLoader, GRoot } from '.';
+import { GButton, GImage, GList, GLoader, GMovieClip, GRoot } from '.';
 export class DisplayStyle {
     static EMPTY: DisplayStyle = new DisplayStyle();
     /**水平缩放 */
@@ -46,8 +46,8 @@ export class GObject {
     public packageItem: PackageItem;
     public static draggingObject: GObject;
 
-    private _x: number = 0;
-    private _y: number = 0;
+    protected _x: number = 0;
+    protected _y: number = 0;
     private _alpha: number = 1;
     private _rotation: number = 0;
     private _visible: boolean = true;
@@ -60,16 +60,16 @@ export class GObject {
     private _scaleY: number = 1;
     private _skewX: number = 0;
     private _skewY: number = 0;
-    private _pivotX: number = 0;
-    private _pivotY: number = 0;
-    private _pivotAsAnchor: boolean;
-    private _pivotOffsetX: number = 0;
-    private _pivotOffsetY: number = 0;
+    protected _pivotX: number = 0;
+    protected _pivotY: number = 0;
+    protected _pivotAsAnchor: boolean;
+    protected _pivotOffsetX: number = 0;
+    protected _pivotOffsetY: number = 0;
     private _sortingOrder: number = 0;
     private _internalVisible: boolean = true;
     private _handlingController?: boolean;
     private _tooltips?: string;
-    private _pixelSnapping?: boolean;
+    protected _pixelSnapping?: boolean;
 
     private _relations: Relations;
     private _group?: GGroup;
@@ -856,9 +856,9 @@ export class GObject {
         return <GImage><any>this;
     }
 
-    // public get asMovieClip(): GMovieClip {
-    //     return <GMovieClip><any>this;
-    // }
+    public get asMovieClip(): GMovieClip {
+        return <GMovieClip><any>this;
+    }
 
     public get text(): string {
         return null;

@@ -7,7 +7,7 @@ export class GMovieClip extends GObject {
     private _movieClip: MovieClip;
 
     constructor(scene: Phaser.Scene) {
-        super();
+        super(scene);
     }
 
     public get color(): string {
@@ -52,14 +52,6 @@ export class GMovieClip extends GObject {
 
     public set timeScale(value: number) {
         this._movieClip.timeScale = value;
-    }
-
-    public rewind(): void {
-        this._movieClip.rewind();
-    }
-
-    public syncStatus(anotherMc: GMovieClip): void {
-        this._movieClip.syncStatus(anotherMc._movieClip);
     }
 
     public advance(timeInMiniseconds: number): void {
@@ -118,17 +110,21 @@ export class GMovieClip extends GObject {
             this.initWidth = this.sourceWidth;
             this.initHeight = this.sourceHeight;
 
-            this.setSize(this.sourceWidth, this.sourceHeight);
-
             displayItem = displayItem.getHighResolution();
-            displayItem.load();
-
-            this._movieClip.interval = displayItem.interval;
-            this._movieClip.swing = displayItem.swing;
-            this._movieClip.repeatDelay = displayItem.repeatDelay;
-            this._movieClip.frames = displayItem.frames;
-            reslove();
+            displayItem.load().then((packageItem: PackageItem) => {
+                // this._movieClip.setSize(packageItem.width, packageItem.height);
+                this._movieClip.interval = packageItem.interval;
+                this._movieClip.swing = packageItem.swing;
+                this._movieClip.repeatDelay = packageItem.repeatDelay;
+                this._movieClip.frames = packageItem.frames;
+                reslove();
+            });
         });
+    }
+
+    protected handleSizeChanged(): void {
+        this._displayObject.setSize(this._width, this._height);
+        // this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this._width, this._height), Phaser.Geom.Rectangle.Contains);
     }
 
     public setup_beforeAdd(buffer: ByteBuffer, beginPos: number): void {
@@ -141,5 +137,20 @@ export class GMovieClip extends GObject {
         buffer.readByte(); //flip
         this._movieClip.frame = buffer.readInt();
         this._movieClip.playing = buffer.readBool();
+    }
+    protected handleXYChanged(): void {
+        var xv: number = this._x + this._xOffset;
+        var yv: number = this._y + this._yOffset;
+        if (this._pivotAsAnchor) {
+            xv -= this._pivotX * this._width;
+            yv -= this._pivotY * this._height;
+        }
+        if (this._pixelSnapping) {
+            xv = Math.round(xv);
+            yv = Math.round(yv);
+        }
+        let tmpX = xv + this._pivotOffsetX + this._movieClip.frames[0].width >> 1;
+        let tmpY = yv + this._pivotOffsetY + this._movieClip.frames[0].height >> 1;
+        this._displayObject.setPosition(tmpX, tmpY);
     }
 }

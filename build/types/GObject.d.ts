@@ -7,7 +7,7 @@ import { Relations } from './Relations';
 import { PackageItem } from './PackageItem';
 import { GComponent } from './GComponent';
 import { GTree } from './GTree';
-import { GButton, GImage, GList, GLoader } from '.';
+import { GButton, GImage, GList, GLoader, GMovieClip } from '.';
 export declare class DisplayStyle {
     static EMPTY: DisplayStyle;
     /**水平缩放 */
@@ -37,8 +37,8 @@ export declare class GObject {
     data: Object;
     packageItem: PackageItem;
     static draggingObject: GObject;
-    private _x;
-    private _y;
+    protected _x: number;
+    protected _y: number;
     private _alpha;
     private _rotation;
     private _visible;
@@ -50,16 +50,16 @@ export declare class GObject {
     private _scaleY;
     private _skewX;
     private _skewY;
-    private _pivotX;
-    private _pivotY;
-    private _pivotAsAnchor;
-    private _pivotOffsetX;
-    private _pivotOffsetY;
+    protected _pivotX: number;
+    protected _pivotY: number;
+    protected _pivotAsAnchor: boolean;
+    protected _pivotOffsetX: number;
+    protected _pivotOffsetY: number;
     private _sortingOrder;
     private _internalVisible;
     private _handlingController?;
     private _tooltips?;
-    private _pixelSnapping?;
+    protected _pixelSnapping?: boolean;
     private _relations;
     private _group?;
     private _gears;
@@ -200,6 +200,7 @@ export declare class GObject {
     get asTree(): GTree;
     get asGroup(): GGroup;
     get asImage(): GImage;
+    get asMovieClip(): GMovieClip;
     get text(): string;
     set text(value: string);
     get icon(): string;

@@ -7,8 +7,21 @@ const __BASE = "__BASE";
 const patches = ["[0][0]", "[1][0]", "[2][0]", "[0][1]", "[1][1]", "[2][1]", "[0][2]", "[1][2]", "[2][2]"];
 export class Image extends Phaser.GameObjects.Container {
     protected _sourceTexture: Phaser.Textures.Texture;
+    protected _frame: number = 0;
     protected _scaleByTile?: boolean;
     protected _scale9Grid?: Phaser.Geom.Rectangle;
+    protected _sourceFrames: Phaser.Textures.Frame[] = [];
+    protected _playing: boolean = true;
+    protected _frameCount: number = 0;
+    protected _frames: Phaser.Textures.Frame[];
+    protected _start: number = 0;
+    protected _end: number = 0;
+    protected _times: number = 0;
+    protected _endAt: number = 0;
+    protected _status: number = 0; //0-none, 1-next loop, 2-ending, 3-ended
+
+    protected _frameImgs: Map<string, Phaser.GameObjects.Image> = new Map();
+    protected _curImg: Phaser.GameObjects.Image;
 
     private _tileGridIndice: number = 0;
     private _sizeGrid: number[];
@@ -145,8 +158,8 @@ export class Image extends Phaser.GameObjects.Container {
             }
             // todo 重绘
             // this.scene.add.image(0, 0, this._sourceTexture);
-            const frames = value.getFrameNames();
-            const baseFrameName = frames[0];
+            // const frames = value.getFrameNames();
+            // const baseFrameName = frames[0];
             // this._renderTexture.drawFrame(value.key, baseFrameName, 0, 0);
             // this.repaint();
             this.markChanged(1);
@@ -314,7 +327,7 @@ export class Image extends Phaser.GameObjects.Container {
         }
     }
 
-    private markChanged(flag: number): void {
+    protected markChanged(flag: number): void {
         if (!this._needRebuild) {
             this._needRebuild = flag;
 
@@ -333,37 +346,69 @@ export class Image extends Phaser.GameObjects.Container {
     }
 
     private doDraw(): void {
-        var w: number = this["_width"];
-        var h: number = this["_height"];
-        var g: Graphics = new Graphics(this.scene);
+        var w: number = this.width;
+        var h: number = this.height;
+        // var g: Graphics = new Graphics(this.scene);
         var tex: Phaser.Textures.Texture = this._sourceTexture;
 
-        g.clear();
+        // g.clear();
 
         if (tex == null || w == 0 || h == 0) {
             return;
         }
+        if (this._curImg) {
+            this._curImg.visible = false;
+        }
 
+        let img: Phaser.GameObjects.Image;
+        let curFrame: Phaser.Textures.Frame;
         if (this._scaleByTile) {
             // todo draw texture
+            curFrame = this._frames["__BASE"];
+            img = this._frameImgs.get(curFrame.name);
+            if (!img) {
+                img = new Phaser.GameObjects.Image(this.scene, 0, 0, tex.key);
+                img.setOrigin(0);
+                img.setPosition(curFrame.x, curFrame.y);
+                this.add(img);
+            } else {
+                img.visible = true;
+            }
+
             //  g.fillTexture(tex, 0, 0, w, h);
         }
         else if (this._scale9Grid) {
-            if (!this._sizeGrid) {
-                var tw: number = tex.source[0].width;
-                var th: number = tex.source[0].height;
-                var left: number = this._scale9Grid.x;
-                var right: number = Math.max(tw - this._scale9Grid.right, 0);
-                var top: number = this._scale9Grid.y;
-                var bottom: number = Math.max(th - this._scale9Grid.bottom, 0);
-                this._sizeGrid = [top, right, bottom, left, this._tileGridIndice];
-            }
+            this.texture = tex;
+            // if (!this._sizeGrid) {
+            //     var tw: number = tex.source[0].width;
+            //     var th: number = tex.source[0].height;
+            //     this.setSize(tw, th);
+            //     var left: number = this._scale9Grid.x;
+            //     var right: number = Math.max(tw - this._scale9Grid.right, 0);
+            //     var top: number = this._scale9Grid.y;
+            //     var bottom: number = Math.max(th - this._scale9Grid.bottom, 0);
+            //     this._sizeGrid = [top, right, bottom, left, this._tileGridIndice];
+            // }
 
             // todo draw9Grid
             //g.draw9Grid(tex, 0, 0, w, h, this._sizeGrid);
         }
         else {
             // todo drawImage
+            if (this._frames) {
+                const curFrame = this._frames[this._frame];
+                const curFrameName = curFrame.name;
+                // if (!GRoot.inst.scene.textures.exists(curFrameName)) {
+                //     const canvas = GRoot.inst.scene.textures.createCanvas(curFrameName, w, h);
+                //     canvas.drawFrame(tex.key, curFrameName, 0, 0);
+                // }
+
+                img = new Phaser.GameObjects.Image(this.scene, 0, 0, tex.key, curFrameName);
+                img.setOrigin(0);
+                img.setPosition(this.width - img.width >> 1, this.height - img.height >> 1);
+                img.setSize(w, h);
+                this.add(img);
+            }
             //g.drawImage(tex, 0, 0, w, h);
         }
     }

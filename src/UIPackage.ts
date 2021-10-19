@@ -664,6 +664,7 @@ export class UIPackage {
                     }
                     break;
                 case PackageItemType.Font:
+                    console.error("no do font");
                     // if (!item.decoded) {
                     //     item.decoded = true;
                     // this.loadFont(item);
@@ -671,16 +672,21 @@ export class UIPackage {
                     // return item.bitmapFont;
                     break;
                 case PackageItemType.MovieClip:
-                    // if (!item.decoded) {
-                    //     item.decoded = true;
-                    //     this.loadMovieClip(item);
-                    // }
-                    // return item.frames;
+                    if (!item.decoded) {
+                        item.decoded = true;
+                        this.loadMovieClip(item).then(() => {
+                            reslove(item);
+                            return;
+                        });
+                    } else {
+                        reslove(item);
+                    }
                     break;
                 case PackageItemType.Component:
                     reslove(item.rawData);
                     break;
                 case PackageItemType.Misc:
+                    console.error("no do misc");
                     // if (item.file)
                     //     return AssetProxy.inst.getRes(item.file);
                     // else
@@ -716,8 +722,78 @@ export class UIPackage {
         }
     }
 
-    private loadMovieClip(item: PackageItem): void {
+    private loadMovieClip(item: PackageItem): Promise<any> {
+        return new Promise((reslove, rejcet) => {
+            var buffer: ByteBuffer = item.rawData;
 
+            buffer.seek(0, 0);
+
+            item.interval = buffer.readInt();
+            item.swing = buffer.readBool();
+            item.repeatDelay = buffer.readInt();
+
+            buffer.seek(0, 1);
+
+            var frameCount: number = buffer.readShort();
+            item.frames = [];
+
+            var spriteId: string;
+            var sprite: AtlasSprite;
+            var fx: number;
+            var fy: number;
+
+            const fun0 = (i: number) => {
+                // 超过mc的影片帧数则返回
+                if (i >= frameCount) {
+                    reslove(item);
+                    return;
+                }
+                //for (var i: number = index; i < frameCount; i++) {
+                var nextPos: number = buffer.readShort();
+                nextPos += buffer.position;
+
+                fx = buffer.readInt();
+                fy = buffer.readInt();
+                buffer.readInt(); //width
+                buffer.readInt(); //height
+                let frame = { addDelay: buffer.readInt() };
+                spriteId = buffer.readS();
+
+                if (spriteId != null && (sprite = this._sprites[spriteId]) != null) {
+                    fun1(i, nextPos).then((resolveIndex) => {
+                        item.frames[i]["addDelay"] = frame.addDelay;
+                        fun0(resolveIndex + 1);
+                    });
+                }
+                // else {
+                //     item.frames[i] = frame;
+                //     buffer.position = nextPos;
+                //     fun0(i + 1);
+                // }
+                // }
+            }
+            const fun1 = (i: number, nextPos: number): Promise<number> => {
+                return new Promise((resolve) => {
+                    this.getItemAsset(sprite.atlas).then((texture: Phaser.Textures.Texture) => {
+                        const atlasTexture: Phaser.Textures.Texture = texture;
+                        const atlasX = this._sprites[spriteId].rect.x;
+                        const atlasY = this._sprites[spriteId].rect.y;
+                        const frameWid = this._sprites[spriteId].rect.width;
+                        const frameHei = this._sprites[spriteId].rect.height
+                        atlasTexture.add(spriteId, 0, atlasX, atlasY, frameWid, frameHei);
+                        // if (!GRoot.inst.scene.textures.exists(spriteId)) {
+                        //     const canvas = GRoot.inst.scene.textures.createCanvas(spriteId, item.width, item.height);
+                        //     canvas.drawFrame(atlasTexture.key, spriteId, 0, 0);
+                        // }
+                        const frame = atlasTexture.frames[spriteId];
+                        item.frames[i] = frame;
+                        buffer.position = nextPos;
+                        resolve(i);
+                    });
+                })
+            }
+            fun0(0);
+        });
     }
 
     private loadFont(item: PackageItem): void {

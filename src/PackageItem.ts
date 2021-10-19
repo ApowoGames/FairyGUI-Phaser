@@ -1,5 +1,4 @@
 import { BitmapFont } from './display/BitmapFont';
-import { Frame } from './display/MovieClip';
 import { PixelHitTestData } from './utils/PixelHitTest';
 import { ByteBuffer } from './utils/ByteBuffer';
 import { UIPackage } from './UIPackage';
@@ -38,7 +37,7 @@ export class PackageItem {
     public interval?: number;
     public repeatDelay?: number;
     public swing?: boolean;
-    public frames?: Frame[];
+    public frames?: Phaser.Textures.Frame[];
 
     //componenet
     public extensionType?: any;

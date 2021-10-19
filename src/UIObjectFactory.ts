@@ -1,3 +1,4 @@
+import { GMovieClip } from './GMovieClip';
 import { GComponent } from "./GComponent";
 import { GList } from './GList';
 import { GGroup } from './GGroup';
@@ -61,7 +62,7 @@ export class UIObjectFactory {
                     return new GImage(GRoot.inst.scene);
 
                 case ObjectType.MovieClip:
-                // return new GMovieClip();
+                    return new GMovieClip(GRoot.inst.scene);
 
                 case ObjectType.Component:
                     return new GComponent(GRoot.inst.scene);

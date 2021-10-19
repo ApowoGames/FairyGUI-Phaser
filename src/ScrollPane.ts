@@ -967,7 +967,7 @@ export class ScrollPane {
             this._aniFlag = -1;
 
         this._needRefresh = true;
-        this._refreshTime = this._owner.scene.time.addEvent(this._refreshTimeEvent);
+        if (!this._refreshTime) this._refreshTime = this._owner.scene.time.addEvent(this._refreshTimeEvent);
         // Laya.timer.callLater(this, this.refresh);
     }
 

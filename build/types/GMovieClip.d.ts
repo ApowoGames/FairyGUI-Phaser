@@ -12,12 +12,12 @@ export declare class GMovieClip extends GObject {
     set frame(value: number);
     get timeScale(): number;
     set timeScale(value: number);
-    rewind(): void;
-    syncStatus(anotherMc: GMovieClip): void;
     advance(timeInMiniseconds: number): void;
     setPlaySettings(start?: number, end?: number, times?: number, endAt?: number, endHandler?: () => void): void;
     getProp(index: number): any;
     setProp(index: number, value: any): void;
     constructFromResource(): Promise<void>;
+    protected handleSizeChanged(): void;
     setup_beforeAdd(buffer: ByteBuffer, beginPos: number): void;
+    protected handleXYChanged(): void;
 }

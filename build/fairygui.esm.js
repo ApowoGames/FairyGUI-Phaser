@@ -3672,9 +3672,9 @@ class GObject {
     get asImage() {
         return this;
     }
-    // public get asMovieClip(): GMovieClip {
-    //     return <GMovieClip><any>this;
-    // }
+    get asMovieClip() {
+        return this;
+    }
     get text() {
         return null;
     }
@@ -5247,6 +5247,16 @@ const patches = ["[0][0]", "[1][0]", "[2][0]", "[0][1]", "[1][1]", "[2][1]", "[0
 class Image extends Phaser.GameObjects.Container {
     constructor(scene) {
         super(scene);
+        this._frame = 0;
+        this._sourceFrames = [];
+        this._playing = true;
+        this._frameCount = 0;
+        this._start = 0;
+        this._end = 0;
+        this._times = 0;
+        this._endAt = 0;
+        this._status = 0; //0-none, 1-next loop, 2-ending, 3-ended
+        this._frameImgs = new Map();
         this._tileGridIndice = 0;
         this._needRebuild = 0;
         this._fillMethod = 0;
@@ -5358,8 +5368,8 @@ class Image extends Phaser.GameObjects.Container {
             }
             // todo 重绘
             // this.scene.add.image(0, 0, this._sourceTexture);
-            const frames = value.getFrameNames();
-            frames[0];
+            // const frames = value.getFrameNames();
+            // const baseFrameName = frames[0];
             // this._renderTexture.drawFrame(value.key, baseFrameName, 0, 0);
             // this.repaint();
             this.markChanged(1);
@@ -5525,29 +5535,66 @@ class Image extends Phaser.GameObjects.Container {
         this._needRebuild = 0;
     }
     doDraw() {
-        var w = this["_width"];
-        var h = this["_height"];
-        var g = new Graphics(this.scene);
+        var w = this.width;
+        var h = this.height;
+        // var g: Graphics = new Graphics(this.scene);
         var tex = this._sourceTexture;
-        g.clear();
+        // g.clear();
         if (tex == null || w == 0 || h == 0) {
             return;
         }
-        if (this._scaleByTile) ;
-        else if (this._scale9Grid) {
-            if (!this._sizeGrid) {
-                var tw = tex.source[0].width;
-                var th = tex.source[0].height;
-                var left = this._scale9Grid.x;
-                var right = Math.max(tw - this._scale9Grid.right, 0);
-                var top = this._scale9Grid.y;
-                var bottom = Math.max(th - this._scale9Grid.bottom, 0);
-                this._sizeGrid = [top, right, bottom, left, this._tileGridIndice];
+        if (this._curImg) {
+            this._curImg.visible = false;
+        }
+        let img;
+        let curFrame;
+        if (this._scaleByTile) {
+            // todo draw texture
+            curFrame = this._frames["__BASE"];
+            img = this._frameImgs.get(curFrame.name);
+            if (!img) {
+                img = new Phaser.GameObjects.Image(this.scene, 0, 0, tex.key);
+                img.setOrigin(0);
+                img.setPosition(curFrame.x, curFrame.y);
+                this.add(img);
             }
+            else {
+                img.visible = true;
+            }
+            //  g.fillTexture(tex, 0, 0, w, h);
+        }
+        else if (this._scale9Grid) {
+            this.texture = tex;
+            // if (!this._sizeGrid) {
+            //     var tw: number = tex.source[0].width;
+            //     var th: number = tex.source[0].height;
+            //     this.setSize(tw, th);
+            //     var left: number = this._scale9Grid.x;
+            //     var right: number = Math.max(tw - this._scale9Grid.right, 0);
+            //     var top: number = this._scale9Grid.y;
+            //     var bottom: number = Math.max(th - this._scale9Grid.bottom, 0);
+            //     this._sizeGrid = [top, right, bottom, left, this._tileGridIndice];
+            // }
             // todo draw9Grid
             //g.draw9Grid(tex, 0, 0, w, h, this._sizeGrid);
         }
-        else ;
+        else {
+            // todo drawImage
+            if (this._frames) {
+                const curFrame = this._frames[this._frame];
+                const curFrameName = curFrame.name;
+                // if (!GRoot.inst.scene.textures.exists(curFrameName)) {
+                //     const canvas = GRoot.inst.scene.textures.createCanvas(curFrameName, w, h);
+                //     canvas.drawFrame(tex.key, curFrameName, 0, 0);
+                // }
+                img = new Phaser.GameObjects.Image(this.scene, 0, 0, tex.key, curFrameName);
+                img.setOrigin(0);
+                img.setPosition(this.width - img.width >> 1, this.height - img.height >> 1);
+                img.setSize(w, h);
+                this.add(img);
+            }
+            //g.drawImage(tex, 0, 0, w, h);
+        }
     }
     doFill() {
         var w = this["_width"];
@@ -5695,48 +5742,41 @@ class GImage extends GObject {
 }
 
 class MovieClip extends Image {
+    // private _movieUpdateEvent: any;
+    // private _movieTime: Phaser.Time.TimerEvent;
     constructor(scene) {
         super(scene);
-        this.interval = 0;
         this.repeatDelay = 0;
         this.timeScale = 1;
-        this._playing = true;
-        this._frameCount = 0;
-        this._frame = 0;
-        this._start = 0;
-        this._end = 0;
-        this._times = 0;
-        this._endAt = 0;
-        this._status = 0; //0-none, 1-next loop, 2-ending, 3-ended
+        this._interval = 100;
         this._frameElapsed = 0; //当前帧延迟
         this._repeatedCount = 0;
         // this.mouseEnabled = false;
+        this._sprite = this.scene.make.sprite(undefined, false);
         this.setPlaySettings();
+        // this._movieUpdateEvent = { delay: this.interval, callback: this.update, callbackScope: this }
         // this.on(Laya.Event.DISPLAY, this, this.__addToStage);
         // this.on(Laya.Event.UNDISPLAY, this, this.__removeFromStage);
+    }
+    set interval(val) {
+        this._interval = val;
+        // this._movieUpdateEvent = { delay: this._interval, callback: this.update, callbackScope: this, loop: true}
+    }
+    get interval() {
+        return this._interval;
     }
     get frames() {
         return this._frames;
     }
     set frames(value) {
+        const key = value[0].texture.key;
+        const len = value.length;
+        const name = value[0].name.split("_")[0];
+        const repeat = this._times > 0 ? this._times : -1;
+        this._curKey = key + "_mc";
+        this._sprite.anims.create({ key: this._curKey, frames: this._sprite.anims.generateFrameNames(key, { prefix: name + "_", start: 0, end: len - 1 }), frameRate: this.scene.game.config.fps.target / 5, repeat });
         this._frames = value;
-        this._scaleByTile = false;
-        this._scale9Grid = null;
-        if (this._frames) {
-            this._frameCount = this._frames.length;
-            if (this._end == -1 || this._end > this._frameCount - 1)
-                this._end = this._frameCount - 1;
-            if (this._endAt == -1 || this._endAt > this._frameCount - 1)
-                this._endAt = this._frameCount - 1;
-            if (this._frame < 0 || this._frame > this._frameCount - 1)
-                this._frame = this._frameCount - 1;
-            this._frameElapsed = 0;
-            this._repeatedCount = 0;
-            this._reversed = false;
-        }
-        else
-            this._frameCount = 0;
-        this.drawFrame();
+        this.add(this._sprite);
         this.checkTimer();
     }
     get frameCount() {
@@ -5764,65 +5804,65 @@ class MovieClip extends Image {
         }
     }
     //从start帧开始，播放到end帧（-1表示结尾），重复times次（0表示无限循环），循环结束后，停止在endAt帧（-1表示参数end）
-    rewind() {
-        this._frame = 0;
-        this._frameElapsed = 0;
-        this._reversed = false;
-        this._repeatedCount = 0;
-        this.drawFrame();
-    }
-    syncStatus(anotherMc) {
-        this._frame = anotherMc._frame;
-        this._frameElapsed = anotherMc._frameElapsed;
-        this._reversed = anotherMc._reversed;
-        this._repeatedCount = anotherMc._repeatedCount;
-        this.drawFrame();
-    }
+    // public rewind(): void {
+    //     this._frame = 0;
+    //     this._frameElapsed = 0;
+    //     this._reversed = false;
+    //     this._repeatedCount = 0;
+    //     this.drawFrame();
+    // }
+    // public syncStatus(anotherMc: MovieClip): void {
+    //     this._frame = anotherMc._frame;
+    //     this._frameElapsed = anotherMc._frameElapsed;
+    //     this._reversed = anotherMc._reversed;
+    //     this._repeatedCount = anotherMc._repeatedCount;
+    //     this.drawFrame();
+    // }
     advance(timeInMiniseconds) {
-        var beginFrame = this._frame;
-        var beginReversed = this._reversed;
-        var backupTime = timeInMiniseconds;
-        while (true) {
-            var tt = this.interval + this._frames[this._frame].addDelay;
-            if (this._frame == 0 && this._repeatedCount > 0)
-                tt += this.repeatDelay;
-            if (timeInMiniseconds < tt) {
-                this._frameElapsed = 0;
-                break;
-            }
-            timeInMiniseconds -= tt;
-            if (this.swing) {
-                if (this._reversed) {
-                    this._frame--;
-                    if (this._frame <= 0) {
-                        this._frame = 0;
-                        this._repeatedCount++;
-                        this._reversed = !this._reversed;
-                    }
-                }
-                else {
-                    this._frame++;
-                    if (this._frame > this._frameCount - 1) {
-                        this._frame = Math.max(0, this._frameCount - 2);
-                        this._repeatedCount++;
-                        this._reversed = !this._reversed;
-                    }
-                }
-            }
-            else {
-                this._frame++;
-                if (this._frame > this._frameCount - 1) {
-                    this._frame = 0;
-                    this._repeatedCount++;
-                }
-            }
-            if (this._frame == beginFrame && this._reversed == beginReversed) //走了一轮了
-             {
-                var roundTime = backupTime - timeInMiniseconds; //这就是一轮需要的时间
-                timeInMiniseconds -= Math.floor(timeInMiniseconds / roundTime) * roundTime; //跳过
-            }
-        }
-        this.drawFrame();
+        //     var beginFrame: number = this._frame;
+        //     var beginReversed: boolean = this._reversed;
+        //     var backupTime: number = timeInMiniseconds;
+        //     while (true) {
+        //         var tt: number = this.interval + this._frames[this._frame]["addDelay"];
+        //         if (this._frame == 0 && this._repeatedCount > 0)
+        //             tt += this.repeatDelay;
+        //         if (timeInMiniseconds < tt) {
+        //             this._frameElapsed = 0;
+        //             break;
+        //         }
+        //         timeInMiniseconds -= tt;
+        //         if (this.swing) {
+        //             if (this._reversed) {
+        //                 this._frame--;
+        //                 if (this._frame <= 0) {
+        //                     this._frame = 0;
+        //                     this._repeatedCount++;
+        //                     this._reversed = !this._reversed;
+        //                 }
+        //             }
+        //             else {
+        //                 this._frame++;
+        //                 if (this._frame > this._frameCount - 1) {
+        //                     this._frame = Math.max(0, this._frameCount - 2);
+        //                     this._repeatedCount++;
+        //                     this._reversed = !this._reversed;
+        //                 }
+        //             }
+        //         }
+        //         else {
+        //             this._frame++;
+        //             if (this._frame > this._frameCount - 1) {
+        //                 this._frame = 0;
+        //                 this._repeatedCount++;
+        //             }
+        //         }
+        //         if (this._frame == beginFrame && this._reversed == beginReversed) //走了一轮了
+        //         {
+        //             var roundTime: number = backupTime - timeInMiniseconds; //这就是一轮需要的时间
+        //             timeInMiniseconds -= Math.floor(timeInMiniseconds / roundTime) * roundTime; //跳过
+        //         }
+        //     }
+        //     this.drawFrame();
     }
     //从start帧开始，播放到end帧（-1表示结尾），重复times次（0表示无限循环），循环结束后，停止在endAt帧（-1表示参数end）
     setPlaySettings(start, end, times, endAt, endHandler) {
@@ -5846,82 +5886,83 @@ class MovieClip extends Image {
         this._endHandler = endHandler;
         this.frame = start;
     }
-    update() {
-        if (!this._playing || this._frameCount == 0 || this._status == 3)
-            return;
-        var dt = 100; //Laya.timer.delta;
-        if (dt > 100)
-            dt = 100;
-        if (this.timeScale != 1)
-            dt *= this.timeScale;
-        this._frameElapsed += dt;
-        var tt = this.interval + this._frames[this._frame].addDelay;
-        if (this._frame == 0 && this._repeatedCount > 0)
-            tt += this.repeatDelay;
-        if (this._frameElapsed < tt)
-            return;
-        this._frameElapsed -= tt;
-        if (this._frameElapsed > this.interval)
-            this._frameElapsed = this.interval;
-        if (this.swing) {
-            if (this._reversed) {
-                this._frame--;
-                if (this._frame <= 0) {
-                    this._frame = 0;
-                    this._repeatedCount++;
-                    this._reversed = !this._reversed;
-                }
-            }
-            else {
-                this._frame++;
-                if (this._frame > this._frameCount - 1) {
-                    this._frame = Math.max(0, this._frameCount - 2);
-                    this._repeatedCount++;
-                    this._reversed = !this._reversed;
-                }
-            }
-        }
-        else {
-            this._frame++;
-            if (this._frame > this._frameCount - 1) {
-                this._frame = 0;
-                this._repeatedCount++;
-            }
-        }
-        if (this._status == 1) //new loop
-         {
-            this._frame = this._start;
-            this._frameElapsed = 0;
-            this._status = 0;
-        }
-        else if (this._status == 2) //ending
-         {
-            this._frame = this._endAt;
-            this._frameElapsed = 0;
-            this._status = 3; //ended
-            //play end
-            if (this._endHandler) {
-                var handler = this._endHandler;
-                this._endHandler = null;
-                handler();
-            }
-        }
-        else {
-            if (this._frame == this._end) {
-                if (this._times > 0) {
-                    this._times--;
-                    if (this._times == 0)
-                        this._status = 2; //ending
-                    else
-                        this._status = 1; //new loop
-                }
-                else {
-                    this._status = 1; //new loop
-                }
-            }
-        }
-        this.drawFrame();
-    }
+    // public update(): void {
+    //     if (!this._playing || this._frameCount == 0 || this._status == 3)
+    //         return;
+    //     var frameRate: number = this.scene.game.config.fps.target;
+    //     var dt: number = frameRate;//Laya.timer.delta;
+    //     if (dt > 100)
+    //         dt = 100;
+    //     if (this.timeScale != 1)
+    //         dt *= this.timeScale;
+    //     this._frameElapsed += dt;
+    //     var tt: number = this.interval + this._frames[this._frame]["addDelay"];
+    //     if (this._frame == 0 && this._repeatedCount > 0)
+    //         tt += this.repeatDelay;
+    //     if (this._frameElapsed < tt)
+    //         return;
+    //     this._frameElapsed -= tt;
+    //     if (this._frameElapsed > this.interval)
+    //         this._frameElapsed = this.interval;
+    //     if (this.swing) {
+    //         if (this._reversed) {
+    //             this._frame--;
+    //             if (this._frame <= 0) {
+    //                 this._frame = 0;
+    //                 this._repeatedCount++;
+    //                 this._reversed = !this._reversed;
+    //             }
+    //         }
+    //         else {
+    //             this._frame++;
+    //             if (this._frame > this._frameCount - 1) {
+    //                 this._frame = Math.max(0, this._frameCount - 2);
+    //                 this._repeatedCount++;
+    //                 this._reversed = !this._reversed;
+    //             }
+    //         }
+    //     }
+    //     else {
+    //         this._frame++;
+    //         if (this._frame > this._frameCount - 1) {
+    //             this._frame = 0;
+    //             this._repeatedCount++;
+    //         }
+    //     }
+    //     if (this._status == 1) //new loop
+    //     {
+    //         this._frame = this._start;
+    //         this._frameElapsed = 0;
+    //         this._status = 0;
+    //     }
+    //     else if (this._status == 2) //ending
+    //     {
+    //         this._frame = this._endAt;
+    //         this._frameElapsed = 0;
+    //         this._status = 3; //ended
+    //         //play end
+    //         if (this._endHandler) {
+    //             var handler = this._endHandler;
+    //             this._endHandler = null;
+    //             handler();
+    //         }
+    //     }
+    //     else {
+    //         if (this._frame == this._end) {
+    //             if (this._times > 0) {
+    //                 this._times--;
+    //                 if (this._times == 0)
+    //                     this._status = 2;  //ending
+    //                 else
+    //                     this._status = 1; //new loop
+    //             }
+    //             else {
+    //                 this._status = 1; //new loop
+    //             }
+    //         }
+    //     }
+    //     this.drawFrame();
+    // }
     drawFrame() {
         if (this._frameCount > 0 && this._frame < this._frames.length) {
             var frame = this._frames[this._frame];
@@ -5931,27 +5972,38 @@ class MovieClip extends Image {
             this.texture = null;
         this.rebuild();
     }
+    rebuild() {
+    }
+    destroy() {
+        // if (this._movieTime) {
+        //     this._movieTime.remove(false);
+        //     this._movieTime = null;
+        // }
+        super.destroy();
+    }
     checkTimer() {
+        if (this._sprite.anims.isPlaying)
+            return;
+        this._sprite.play(this._curKey);
+        // if (this._playing && this._frameCount > 0 && GRoot.inst.scene != null) {
+        //     if (!this._movieTime) this._movieTime = this.scene.time.addEvent(this._movieUpdateEvent);
+        // } else {
+        //     if (this._movieTime) {
+        //         this._movieTime.remove(false);
+        //         this._movieTime = null;
+        //     }
+        // }
         //  throw new Error("TODO");
-        // if (this._playing && this._frameCount > 0 && this.stage != null)
+        // if (this._playing && this._frameCount > 0 && GRoot.inst.scene != null)
         //     Laya.timer.frameLoop(1, this, this.update);
         // else
         //     Laya.timer.clear(this, this.update);
-    }
-    __addToStage() {
-        throw new Error("TODO");
-        // if (this._playing && this._frameCount > 0)
-        //     Laya.timer.frameLoop(1, this, this.update);
-    }
-    __removeFromStage() {
-        throw new Error("TODO");
-        // Laya.timer.clear(this, this.update);
     }
 }
 
 class GMovieClip extends GObject {
     constructor(scene) {
-        super();
+        super(scene);
     }
     get color() {
         return this._movieClip.color;
@@ -5987,12 +6039,6 @@ class GMovieClip extends GObject {
     }
     set timeScale(value) {
         this._movieClip.timeScale = value;
-    }
-    rewind() {
-        this._movieClip.rewind();
-    }
-    syncStatus(anotherMc) {
-        this._movieClip.syncStatus(anotherMc._movieClip);
     }
     advance(timeInMiniseconds) {
         this._movieClip.advance(timeInMiniseconds);
@@ -6044,15 +6090,20 @@ class GMovieClip extends GObject {
             this.sourceHeight = displayItem.height;
             this.initWidth = this.sourceWidth;
             this.initHeight = this.sourceHeight;
-            this.setSize(this.sourceWidth, this.sourceHeight);
             displayItem = displayItem.getHighResolution();
-            displayItem.load();
-            this._movieClip.interval = displayItem.interval;
-            this._movieClip.swing = displayItem.swing;
-            this._movieClip.repeatDelay = displayItem.repeatDelay;
-            this._movieClip.frames = displayItem.frames;
-            reslove();
+            displayItem.load().then((packageItem) => {
+                // this._movieClip.setSize(packageItem.width, packageItem.height);
+                this._movieClip.interval = packageItem.interval;
+                this._movieClip.swing = packageItem.swing;
+                this._movieClip.repeatDelay = packageItem.repeatDelay;
+                this._movieClip.frames = packageItem.frames;
+                reslove();
+            });
         });
+    }
+    handleSizeChanged() {
+        this._displayObject.setSize(this._width, this._height);
+        // this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this._width, this._height), Phaser.Geom.Rectangle.Contains);
     }
     setup_beforeAdd(buffer, beginPos) {
         super.setup_beforeAdd(buffer, beginPos);
@@ -6062,6 +6113,21 @@ class GMovieClip extends GObject {
         buffer.readByte(); //flip
         this._movieClip.frame = buffer.readInt();
         this._movieClip.playing = buffer.readBool();
+    }
+    handleXYChanged() {
+        var xv = this._x + this._xOffset;
+        var yv = this._y + this._yOffset;
+        if (this._pivotAsAnchor) {
+            xv -= this._pivotX * this._width;
+            yv -= this._pivotY * this._height;
+        }
+        if (this._pixelSnapping) {
+            xv = Math.round(xv);
+            yv = Math.round(yv);
+        }
+        let tmpX = xv + this._pivotOffsetX + this._movieClip.frames[0].width >> 1;
+        let tmpY = yv + this._pivotOffsetY + this._movieClip.frames[0].height >> 1;
+        this._displayObject.setPosition(tmpX, tmpY);
     }
 }
 
@@ -7761,6 +7827,7 @@ class UIPackage {
                     }
                     break;
                 case PackageItemType.Font:
+                    console.error("no do font");
                     // if (!item.decoded) {
                     //     item.decoded = true;
                     // this.loadFont(item);
@@ -7768,16 +7835,22 @@ class UIPackage {
                     // return item.bitmapFont;
                     break;
                 case PackageItemType.MovieClip:
-                    // if (!item.decoded) {
-                    //     item.decoded = true;
-                    //     this.loadMovieClip(item);
-                    // }
-                    // return item.frames;
+                    if (!item.decoded) {
+                        item.decoded = true;
+                        this.loadMovieClip(item).then(() => {
+                            reslove(item);
+                            return;
+                        });
+                    }
+                    else {
+                        reslove(item);
+                    }
                     break;
                 case PackageItemType.Component:
                     reslove(item.rawData);
                     break;
                 case PackageItemType.Misc:
+                    console.error("no do misc");
                     // if (item.file)
                     //     return AssetProxy.inst.getRes(item.file);
                     // else
@@ -7810,6 +7883,67 @@ class UIPackage {
         }
     }
     loadMovieClip(item) {
+        return new Promise((reslove, rejcet) => {
+            var buffer = item.rawData;
+            buffer.seek(0, 0);
+            item.interval = buffer.readInt();
+            item.swing = buffer.readBool();
+            item.repeatDelay = buffer.readInt();
+            buffer.seek(0, 1);
+            var frameCount = buffer.readShort();
+            item.frames = [];
+            var spriteId;
+            var sprite;
+            const fun0 = (i) => {
+                // 超过mc的影片帧数则返回
+                if (i >= frameCount) {
+                    reslove(item);
+                    return;
+                }
+                //for (var i: number = index; i < frameCount; i++) {
+                var nextPos = buffer.readShort();
+                nextPos += buffer.position;
+                buffer.readInt();
+                buffer.readInt();
+                buffer.readInt(); //width
+                buffer.readInt(); //height
+                let frame = { addDelay: buffer.readInt() };
+                spriteId = buffer.readS();
+                if (spriteId != null && (sprite = this._sprites[spriteId]) != null) {
+                    fun1(i, nextPos).then((resolveIndex) => {
+                        item.frames[i]["addDelay"] = frame.addDelay;
+                        fun0(resolveIndex + 1);
+                    });
+                }
+                // else {
+                //     item.frames[i] = frame;
+                //     buffer.position = nextPos;
+                //     fun0(i + 1);
+                // }
+                // }
+            };
+            const fun1 = (i, nextPos) => {
+                return new Promise((resolve) => {
+                    this.getItemAsset(sprite.atlas).then((texture) => {
+                        const atlasTexture = texture;
+                        const atlasX = this._sprites[spriteId].rect.x;
+                        const atlasY = this._sprites[spriteId].rect.y;
+                        const frameWid = this._sprites[spriteId].rect.width;
+                        const frameHei = this._sprites[spriteId].rect.height;
+                        atlasTexture.add(spriteId, 0, atlasX, atlasY, frameWid, frameHei);
+                        // if (!GRoot.inst.scene.textures.exists(spriteId)) {
+                        //     const canvas = GRoot.inst.scene.textures.createCanvas(spriteId, item.width, item.height);
+                        //     canvas.drawFrame(atlasTexture.key, spriteId, 0, 0);
+                        // }
+                        const frame = atlasTexture.frames[spriteId];
+                        item.frames[i] = frame;
+                        buffer.position = nextPos;
+                        resolve(i);
+                    });
+                });
+            };
+            fun0(0);
+        });
     }
     loadFont(item) {
     }
@@ -8591,7 +8725,8 @@ class ScrollPane {
         else if (this._aniFlag == 1 && !ani)
             this._aniFlag = -1;
         this._needRefresh = true;
-        this._refreshTime = this._owner.scene.time.addEvent(this._refreshTimeEvent);
+        if (!this._refreshTime)
+            this._refreshTime = this._owner.scene.time.addEvent(this._refreshTimeEvent);
         // Laya.timer.callLater(this, this.refresh);
     }
     refresh() {
@@ -18450,7 +18585,7 @@ class UIObjectFactory {
                 case ObjectType.Image:
                     return new GImage(GRoot.inst.scene);
                 case ObjectType.MovieClip:
-                // return new GMovieClip();
+                    return new GMovieClip(GRoot.inst.scene);
                 case ObjectType.Component:
                     return new GComponent(GRoot.inst.scene);
                 case ObjectType.Text:

@@ -1,5 +1,4 @@
 import { BitmapFont } from './display/BitmapFont';
-import { Frame } from './display/MovieClip';
 import { PixelHitTestData } from './utils/PixelHitTest';
 import { ByteBuffer } from './utils/ByteBuffer';
 import { UIPackage } from './UIPackage';
@@ -30,7 +29,7 @@ export declare class PackageItem {
     interval?: number;
     repeatDelay?: number;
     swing?: boolean;
-    frames?: Frame[];
+    frames?: Phaser.Textures.Frame[];
     extensionType?: any;
     bitmapFont?: BitmapFont;
     skeletonAnchor?: Phaser.Geom.Point;

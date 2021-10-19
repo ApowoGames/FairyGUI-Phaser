@@ -1,8 +1,20 @@
 import { PackageItem } from '../PackageItem';
 export declare class Image extends Phaser.GameObjects.Container {
     protected _sourceTexture: Phaser.Textures.Texture;
+    protected _frame: number;
     protected _scaleByTile?: boolean;
     protected _scale9Grid?: Phaser.Geom.Rectangle;
+    protected _sourceFrames: Phaser.Textures.Frame[];
+    protected _playing: boolean;
+    protected _frameCount: number;
+    protected _frames: Phaser.Textures.Frame[];
+    protected _start: number;
+    protected _end: number;
+    protected _times: number;
+    protected _endAt: number;
+    protected _status: number;
+    protected _frameImgs: Map<string, Phaser.GameObjects.Image>;
+    protected _curImg: Phaser.GameObjects.Image;
     private _tileGridIndice;
     private _sizeGrid;
     private _needRebuild;
@@ -46,7 +58,7 @@ export declare class Image extends Phaser.GameObjects.Container {
     set fillAmount(value: number);
     get color(): string;
     set color(value: string);
-    private markChanged;
+    protected markChanged(flag: number): void;
     protected rebuild(): void;
     private doDraw;
     private doFill;
