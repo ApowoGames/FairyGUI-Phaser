@@ -6,7 +6,7 @@ import { GComponent } from "./GComponent";
 import { DisplayObjectEvent } from './event/DisplayObjectEvent';
 import { UIConfig } from './UIConfig';
 import { UIPackage } from './UIPackage';
-import { Window } from '.';
+import { PopupDirection, Window } from '.';
 
 export class GRootMouseStatus {
     public touchDown: boolean = false;
@@ -218,7 +218,7 @@ export class GRoot extends GComponent {
         else if (win.y + win.height < 0)
             win.y = 0;
 
-       //  this.adjustModalLayer();
+        //  this.adjustModalLayer();
     }
 
     public hideWindow(win: Window): void {
@@ -269,6 +269,61 @@ export class GRoot extends GComponent {
         //     GRoot.contentScaleLevel = 1; //x2
         // else
         //     GRoot.contentScaleLevel = 0;
+    }
+
+    public showPopup(popup: GObject, target?: GObject, dir?: PopupDirection | boolean): void {
+        if (this._popupStack.length > 0) {
+            var k: number = this._popupStack.indexOf(popup);
+            if (k != -1) {
+                for (var i: number = this._popupStack.length - 1; i >= k; i--)
+                    this.removeChild(this._popupStack.pop());
+            }
+        }
+        this._popupStack.push(popup);
+
+        if (target) {
+            var p: GObject = target;
+            while (p) {
+                if (p.parent == this) {
+                    if (popup.sortingOrder < p.sortingOrder) {
+                        popup.sortingOrder = p.sortingOrder;
+                    }
+                    break;
+                }
+                p = p.parent;
+            }
+        }
+
+        this.addChild(popup);
+        this.adjustModalLayer();
+
+        var pos: Phaser.Geom.Point;
+        var sizeW: number = 0, sizeH: number = 0;
+        if (target) {
+            pos = target.localToGlobal();
+            sizeW = target.width;
+            sizeH = target.height;
+        }
+        else {
+            console.log("show 100,100");
+            pos = this.globalToLocal(100, 100);
+        }
+        var xx: number, yy: number;
+        xx = pos.x;
+        if (xx + popup.width > this.width)
+            xx = xx + sizeW - popup.width;
+        yy = pos.y + sizeH;
+        if (((dir === undefined || dir === PopupDirection.Auto) && pos.y + popup.height > this.height)
+            || dir === false || dir === PopupDirection.Up) {
+            yy = pos.y - popup.height - 1;
+            if (yy < 0) {
+                yy = 0;
+                xx += sizeW / 2;
+            }
+        }
+
+        popup.x = xx;
+        popup.y = yy;
     }
 
     private adjustModalLayer(): void {

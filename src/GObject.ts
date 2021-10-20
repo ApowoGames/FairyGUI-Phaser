@@ -15,7 +15,7 @@ import { GComponent } from './GComponent';
 import { DisplayObjectEvent, InteractiveEvent } from './event/DisplayObjectEvent';
 import { GTree } from './GTree';
 import { GearAnimation, GearColor, GearFontSize, GearIcon, GearLook, GearSize, GearText, GearXY } from './gears';
-import { GButton, GImage, GList, GLoader, GMovieClip, GRoot } from '.';
+import { GButton, GGraph, GImage, GList, GLoader, GMovieClip, GRichTextField, GRoot, GTextField, GTextInput } from '.';
 export class DisplayStyle {
     static EMPTY: DisplayStyle = new DisplayStyle();
     /**水平缩放 */
@@ -812,17 +812,17 @@ export class GObject {
     //     return <GProgressBar><any>this;
     // }
 
-    // public get asTextField(): GTextField {
-    //     return <GTextField><any>this;
-    // }
+    public get asTextField(): GTextField {
+        return <GTextField><any>this;
+    }
 
-    // public get asRichTextField(): GRichTextField {
-    //     return <GRichTextField><any>this;
-    // }
+    public get asRichTextField(): GRichTextField {
+        return <GRichTextField><any>this;
+    }
 
-    // public get asTextInput(): GTextInput {
-    //     return <GTextInput><any>this;
-    // }
+    public get asTextInput(): GTextInput {
+        return <GTextInput><any>this;
+    }
 
     public get asLoader(): GLoader {
         return <GLoader><any>this;
@@ -836,9 +836,9 @@ export class GObject {
         return <GTree><any>this;
     }
 
-    // public get asGraph(): GGraph {
-    //     return <GGraph><any>this;
-    // }
+    public get asGraph(): GGraph {
+        return <GGraph><any>this;
+    }
 
     public get asGroup(): GGroup {
         return <GGroup><any>this;

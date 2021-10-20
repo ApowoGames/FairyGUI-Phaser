@@ -43,15 +43,23 @@ export class MovieClip extends Image {
     }
 
     public set frames(value: Phaser.Textures.Frame[]) {
-        const key = value[0].texture.key;
-        const len = value.length;
-        const name = value[0].name.split("_")[0];
-        const repeat = this._times > 0 ? this._times : -1;
-        this._curKey = key + "_mc"
-        this._sprite.anims.create({ key: this._curKey, frames: this._sprite.anims.generateFrameNames(key, { prefix: name + "_", start: 0, end: len - 1 }), frameRate: this.scene.game.config.fps.target / 5, repeat });
         this._frames = value;
-        this.add(this._sprite);
-        this.checkTimer();
+        if (value) {
+            const key = value[0].texture.key;
+            const len = value.length;
+            const name = value[0].name.split("_")[0];
+            const repeat = this._times > 0 ? this._times : -1;
+            this._curKey = key + "_mc"
+            this._sprite.anims.create({ key: this._curKey, frames: this._sprite.anims.generateFrameNames(key, { prefix: name + "_", start: 0, end: len - 1 }), frameRate: this.scene.game.config.fps.target / 5, repeat });
+            this.add(this._sprite);
+            this.checkTimer();
+        } else {
+            if (this._sprite) {
+                this._sprite.stop();
+                this.remove(this._sprite);
+            }
+            this.checkTimer(false);
+        }
     }
 
     public get frameCount(): number {
@@ -80,7 +88,7 @@ export class MovieClip extends Image {
     public set playing(value: boolean) {
         if (this._playing != value) {
             this._playing = value;
-            this.checkTimer();
+            this.checkTimer(value);
         }
     }
 
@@ -260,7 +268,7 @@ export class MovieClip extends Image {
     // }
 
     private drawFrame(): void {
-        if (this._frameCount > 0 && this._frame < this._frames.length) {
+        if (this._frames && this._frameCount > 0 && this._frame < this._frames.length) {
             var frame: Phaser.Textures.Frame = this._frames[this._frame];
             this.texture = frame.texture;
         }
@@ -280,9 +288,14 @@ export class MovieClip extends Image {
         super.destroy();
     }
 
-    private checkTimer(): void {
-        if (this._sprite.anims.isPlaying) return;
-        this._sprite.play(this._curKey);
+    private checkTimer(playBoo: boolean = true): void {
+        if (playBoo) {
+            if (this._sprite.anims.isPlaying) return;
+            this._sprite.play(this._curKey);
+        } else {
+            this._sprite.stop();
+        }
+
         // if (this._playing && this._frameCount > 0 && GRoot.inst.scene != null) {
         //     if (!this._movieTime) this._movieTime = this.scene.time.addEvent(this._movieUpdateEvent);
         // } else {

@@ -1,7 +1,7 @@
 export declare class UBBParser {
     private _text;
     private _readPos;
-    protected _handlers: {
+    _handlers: {
         [index: string]: (tagName: string, end: boolean, attr: string) => string;
     };
     defaultImgWidth: number;

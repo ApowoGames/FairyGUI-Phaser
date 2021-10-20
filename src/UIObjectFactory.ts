@@ -18,6 +18,7 @@ import { GTree } from './GTree';
 import { GRoot } from "./GRoot";
 import { GBasicTextField } from "./GBasicTextField";
 import { GGraph } from "./GGraph";
+import { GRichTextField, GTextInput } from '.';
 
 export class UIObjectFactory {
     public static extensions: { [index: string]: new () => GComponent } = {};
@@ -71,11 +72,10 @@ export class UIObjectFactory {
                     return new GBasicTextField(GRoot.inst.scene);
 
                 case ObjectType.RichText:
-                // return new GRichTextField(GRoot.inst.scene);
+                    return new GRichTextField(GRoot.inst.scene);
 
                 case ObjectType.InputText:
-                // return new GTextInput(GRoot.inst.scene);
-
+                    return new GTextInput(GRoot.inst.scene);
                 case ObjectType.Group:
                     return new GGroup(GRoot.inst.scene);
 

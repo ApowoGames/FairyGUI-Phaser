@@ -1,6 +1,6 @@
 import { GObject } from './GObject';
 import { GComponent } from "./GComponent";
-import { Window } from '.';
+import { PopupDirection, Window } from '.';
 export declare class GRootMouseStatus {
     touchDown: boolean;
     mouseX: number;
@@ -65,5 +65,6 @@ export declare class GRoot extends GComponent {
     private onStageMove;
     private $winResize;
     private updateContentScaleLevel;
+    showPopup(popup: GObject, target?: GObject, dir?: PopupDirection | boolean): void;
     private adjustModalLayer;
 }

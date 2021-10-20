@@ -1,6 +1,7 @@
 import { ByteBuffer } from './utils/ByteBuffer';
 import { UIConfig } from './UIConfig';
 import { GTextField } from './GTextField';
+import { InputTextField } from './display/InputTextField';
 export class GTextInput extends GTextField {
     private _input: any;
     private _prompt: string;
@@ -10,10 +11,9 @@ export class GTextInput extends GTextField {
     }
 
     public createDisplayObject(): void {
-        throw new Error("TODO");
-        // this._displayObject = this._input = new Laya.Input();
-        // this._displayObject.mouseEnabled = true;
-        // this._displayObject["$owner"] = this;
+        this._displayObject = this._input = new InputTextField(this.scene);
+        this._displayObject.mouseEnabled = true;
+        this._displayObject["$owner"] = this;
     }
 
     public get nativeInput(): any {

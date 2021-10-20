@@ -3643,15 +3643,15 @@
         // public get asProgress(): GProgressBar {
         //     return <GProgressBar><any>this;
         // }
-        // public get asTextField(): GTextField {
-        //     return <GTextField><any>this;
-        // }
-        // public get asRichTextField(): GRichTextField {
-        //     return <GRichTextField><any>this;
-        // }
-        // public get asTextInput(): GTextInput {
-        //     return <GTextInput><any>this;
-        // }
+        get asTextField() {
+            return this;
+        }
+        get asRichTextField() {
+            return this;
+        }
+        get asTextInput() {
+            return this;
+        }
         get asLoader() {
             return this;
         }
@@ -3661,9 +3661,9 @@
         get asTree() {
             return this;
         }
-        // public get asGraph(): GGraph {
-        //     return <GGraph><any>this;
-        // }
+        get asGraph() {
+            return this;
+        }
         get asGroup() {
             return this;
         }
@@ -5788,15 +5788,24 @@
             return this._frames;
         }
         set frames(value) {
-            const key = value[0].texture.key;
-            const len = value.length;
-            const name = value[0].name.split("_")[0];
-            const repeat = this._times > 0 ? this._times : -1;
-            this._curKey = key + "_mc";
-            this._sprite.anims.create({ key: this._curKey, frames: this._sprite.anims.generateFrameNames(key, { prefix: name + "_", start: 0, end: len - 1 }), frameRate: this.scene.game.config.fps.target / 5, repeat });
             this._frames = value;
-            this.add(this._sprite);
-            this.checkTimer();
+            if (value) {
+                const key = value[0].texture.key;
+                const len = value.length;
+                const name = value[0].name.split("_")[0];
+                const repeat = this._times > 0 ? this._times : -1;
+                this._curKey = key + "_mc";
+                this._sprite.anims.create({ key: this._curKey, frames: this._sprite.anims.generateFrameNames(key, { prefix: name + "_", start: 0, end: len - 1 }), frameRate: this.scene.game.config.fps.target / 5, repeat });
+                this.add(this._sprite);
+                this.checkTimer();
+            }
+            else {
+                if (this._sprite) {
+                    this._sprite.stop();
+                    this.remove(this._sprite);
+                }
+                this.checkTimer(false);
+            }
         }
         get frameCount() {
             return this._frameCount;
@@ -5819,7 +5828,7 @@
         set playing(value) {
             if (this._playing != value) {
                 this._playing = value;
-                this.checkTimer();
+                this.checkTimer(value);
             }
         }
         //从start帧开始，播放到end帧（-1表示结尾），重复times次（0表示无限循环），循环结束后，停止在endAt帧（-1表示参数end）
@@ -5983,7 +5992,7 @@
         //     this.drawFrame();
         // }
         drawFrame() {
-            if (this._frameCount > 0 && this._frame < this._frames.length) {
+            if (this._frames && this._frameCount > 0 && this._frame < this._frames.length) {
                 var frame = this._frames[this._frame];
                 this.texture = frame.texture;
             }
@@ -6000,10 +6009,15 @@
             // }
             super.destroy();
         }
-        checkTimer() {
-            if (this._sprite.anims.isPlaying)
-                return;
-            this._sprite.play(this._curKey);
+        checkTimer(playBoo = true) {
+            if (playBoo) {
+                if (this._sprite.anims.isPlaying)
+                    return;
+                this._sprite.play(this._curKey);
+            }
+            else {
+                this._sprite.stop();
+            }
             // if (this._playing && this._frameCount > 0 && GRoot.inst.scene != null) {
             //     if (!this._movieTime) this._movieTime = this.scene.time.addEvent(this._movieUpdateEvent);
             // } else {
@@ -12222,6 +12236,56 @@
             // else
             //     GRoot.contentScaleLevel = 0;
         }
+        showPopup(popup, target, dir) {
+            if (this._popupStack.length > 0) {
+                var k = this._popupStack.indexOf(popup);
+                if (k != -1) {
+                    for (var i = this._popupStack.length - 1; i >= k; i--)
+                        this.removeChild(this._popupStack.pop());
+                }
+            }
+            this._popupStack.push(popup);
+            if (target) {
+                var p = target;
+                while (p) {
+                    if (p.parent == this) {
+                        if (popup.sortingOrder < p.sortingOrder) {
+                            popup.sortingOrder = p.sortingOrder;
+                        }
+                        break;
+                    }
+                    p = p.parent;
+                }
+            }
+            this.addChild(popup);
+            this.adjustModalLayer();
+            var pos;
+            var sizeW = 0, sizeH = 0;
+            if (target) {
+                pos = target.localToGlobal();
+                sizeW = target.width;
+                sizeH = target.height;
+            }
+            else {
+                console.log("show 100,100");
+                pos = this.globalToLocal(100, 100);
+            }
+            var xx, yy;
+            xx = pos.x;
+            if (xx + popup.width > this.width)
+                xx = xx + sizeW - popup.width;
+            yy = pos.y + sizeH;
+            if (((dir === undefined || dir === exports.PopupDirection.Auto) && pos.y + popup.height > this.height)
+                || dir === false || dir === exports.PopupDirection.Up) {
+                yy = pos.y - popup.height - 1;
+                if (yy < 0) {
+                    yy = 0;
+                    xx += sizeW / 2;
+                }
+            }
+            popup.x = xx;
+            popup.y = yy;
+        }
         adjustModalLayer() {
             var cnt = this.numChildren;
             if (this._modalWaitPane != null && this._modalWaitPane.parent != null)
@@ -13782,14 +13846,14 @@
             if (this._mode == exports.ButtonMode.Common)
                 this.setState(GButton.UP);
         }
-        addListen() {
-            this.removeListen();
+        addListener() {
+            this.removeListener();
             this._displayObject.on(InteractiveEvent.POINTER_OVER, this.__rollover, this);
             this._displayObject.on(InteractiveEvent.POINTER_OUT, this.__rollout, this);
             this._displayObject.on(InteractiveEvent.POINTER_DOWN, this.__mousedown, this);
             this._displayObject.on(InteractiveEvent.POINTER_UP, this.__click, this);
         }
-        removeListen() {
+        removeListener() {
             this._displayObject.off(InteractiveEvent.POINTER_OVER, this.__rollover, this);
             this._displayObject.off(InteractiveEvent.POINTER_OUT, this.__rollout, this);
             this._displayObject.off(InteractiveEvent.POINTER_DOWN, this.__mousedown, this);
@@ -13808,7 +13872,7 @@
             if (!buffer.seek(beginPos, 6))
                 return;
             const type = buffer.readByte();
-            this.addListen();
+            this.addListener();
             if (type != this.packageItem.objectType)
                 return;
             var str;
@@ -14878,27 +14942,26 @@
             return this._gripDragging;
         }
         constructExtension(buffer) {
-            throw new Error("TODO");
-            // buffer.seek(0, 6);
-            // this._fixedGripSize = buffer.readBool();
-            // this._grip = this.getChild("grip");
-            // if (!this._grip) {
-            //     Laya.Log.print("需要定义grip");
-            //     return;
-            // }
-            // this._bar = this.getChild("bar");
-            // if (!this._bar) {
-            //     Laya.Log.print("需要定义bar");
-            //     return;
-            // }
-            // this._arrowButton1 = this.getChild("arrow1");
-            // this._arrowButton2 = this.getChild("arrow2");
-            // this._grip.on(Laya.Event.MOUSE_DOWN, this, this.__gripMouseDown);
-            // if (this._arrowButton1)
-            //     this._arrowButton1.on(Laya.Event.MOUSE_DOWN, this, this.__arrowButton1Click);
-            // if (this._arrowButton2)
-            //     this._arrowButton2.on(Laya.Event.MOUSE_DOWN, this, this.__arrowButton2Click);
-            // this.on(Laya.Event.MOUSE_DOWN, this, this.__barMouseDown);
+            buffer.seek(0, 6);
+            this._fixedGripSize = buffer.readBool();
+            this._grip = this.getChild("grip");
+            if (!this._grip) {
+                console.log("需要定义grip");
+                return;
+            }
+            this._bar = this.getChild("bar");
+            if (!this._bar) {
+                console.log("需要定义bar");
+                return;
+            }
+            this._arrowButton1 = this.getChild("arrow1");
+            this._arrowButton2 = this.getChild("arrow2");
+            this._grip.on("pointerdown", this.__gripMouseDown, this);
+            if (this._arrowButton1)
+                this._arrowButton1.on("pointerdown", this.__arrowButton1Click, this);
+            if (this._arrowButton2)
+                this._arrowButton2.on("pointerdown", this.__arrowButton2Click, this);
+            this.on("pointerdown", this.__barMouseDown, this);
         }
         __gripMouseDown(evt) {
             throw new Error("TODO");
@@ -18650,9 +18713,9 @@
                     case exports.ObjectType.Text:
                         return new GBasicTextField(GRoot.inst.scene);
                     case exports.ObjectType.RichText:
-                    // return new GRichTextField(GRoot.inst.scene);
+                        return new GRichTextField(GRoot.inst.scene);
                     case exports.ObjectType.InputText:
-                    // return new GTextInput(GRoot.inst.scene);
+                        return new GTextInput(GRoot.inst.scene);
                     case exports.ObjectType.Group:
                         return new GGroup(GRoot.inst.scene);
                     case exports.ObjectType.List:

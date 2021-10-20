@@ -7,7 +7,7 @@ import { Relations } from './Relations';
 import { PackageItem } from './PackageItem';
 import { GComponent } from './GComponent';
 import { GTree } from './GTree';
-import { GButton, GImage, GList, GLoader, GMovieClip, GRoot } from '.';
+import { GButton, GGraph, GImage, GList, GLoader, GMovieClip, GRichTextField, GRoot, GTextField, GTextInput } from '.';
 export declare class DisplayStyle {
     static EMPTY: DisplayStyle;
     /**水平缩放 */
@@ -195,9 +195,13 @@ export declare class GObject {
     get root(): GRoot;
     get asCom(): GComponent;
     get asButton(): GButton;
+    get asTextField(): GTextField;
+    get asRichTextField(): GRichTextField;
+    get asTextInput(): GTextInput;
     get asLoader(): GLoader;
     get asList(): GList;
     get asTree(): GTree;
+    get asGraph(): GGraph;
     get asGroup(): GGroup;
     get asImage(): GImage;
     get asMovieClip(): GMovieClip;

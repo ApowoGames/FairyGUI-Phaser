@@ -609,7 +609,7 @@ export class GBasicTextField extends GTextField {
     }
 }
 
-class TextExt extends Phaser.GameObjects.Text {
+export class TextExt extends Phaser.GameObjects.Text {
     private _owner: GBasicTextField;
     private _lock: boolean;
     private _sizeDirty: boolean;

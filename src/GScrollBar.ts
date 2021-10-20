@@ -63,34 +63,33 @@ export class GScrollBar extends GComponent {
     }
 
     protected constructExtension(buffer: ByteBuffer): void {
-        throw new Error("TODO");
-        // buffer.seek(0, 6);
+        buffer.seek(0, 6);
 
-        // this._fixedGripSize = buffer.readBool();
+        this._fixedGripSize = buffer.readBool();
 
-        // this._grip = this.getChild("grip");
-        // if (!this._grip) {
-        //     Laya.Log.print("需要定义grip");
-        //     return;
-        // }
+        this._grip = this.getChild("grip");
+        if (!this._grip) {
+            console.log("需要定义grip");
+            return;
+        }
 
-        // this._bar = this.getChild("bar");
-        // if (!this._bar) {
-        //     Laya.Log.print("需要定义bar");
-        //     return;
-        // }
+        this._bar = this.getChild("bar");
+        if (!this._bar) {
+            console.log("需要定义bar");
+            return;
+        }
 
-        // this._arrowButton1 = this.getChild("arrow1");
-        // this._arrowButton2 = this.getChild("arrow2");
+        this._arrowButton1 = this.getChild("arrow1");
+        this._arrowButton2 = this.getChild("arrow2");
 
-        // this._grip.on(Laya.Event.MOUSE_DOWN, this, this.__gripMouseDown);
+        this._grip.on("pointerdown", this.__gripMouseDown, this);
 
-        // if (this._arrowButton1)
-        //     this._arrowButton1.on(Laya.Event.MOUSE_DOWN, this, this.__arrowButton1Click);
-        // if (this._arrowButton2)
-        //     this._arrowButton2.on(Laya.Event.MOUSE_DOWN, this, this.__arrowButton2Click);
+        if (this._arrowButton1)
+            this._arrowButton1.on("pointerdown", this.__arrowButton1Click, this);
+        if (this._arrowButton2)
+            this._arrowButton2.on("pointerdown", this.__arrowButton2Click, this);
 
-        // this.on(Laya.Event.MOUSE_DOWN, this, this.__barMouseDown);
+        this.on("pointerdown", this.__barMouseDown, this);
     }
 
     private __gripMouseDown(evt: any): void {
