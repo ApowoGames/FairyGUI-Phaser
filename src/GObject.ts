@@ -783,16 +783,16 @@ export class GObject {
     }
 
     public get root() {
-        // if (this instanceof GRoot)
-        //     return this;
+        if (this instanceof GRoot)
+            return this;
 
-        // let p: GObject = this._parent;
-        // while (p) {
-        //     if (p instanceof GRoot)
-        //         return p;
-        //     p = p.parent;
-        // }
-        // return GRoot.inst;
+        let p: GObject = this._parent;
+        while (p) {
+            if (p instanceof GRoot)
+                return p;
+            p = p.parent;
+        }
+        return GRoot.inst;
         return null;
     }
 
@@ -1309,9 +1309,9 @@ export class GObject {
             this.visible = false;
         // console.log("visible object ===>", this);
         if (!buffer.readBool()) {
-            this._touchable = false;
+            this.touchable = false;
         } else {
-            this._touchable = true;
+            this.touchable = true;
         }
         if (buffer.readBool())
             this.grayed = true;

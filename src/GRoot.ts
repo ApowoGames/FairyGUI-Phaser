@@ -6,6 +6,7 @@ import { GComponent } from "./GComponent";
 import { DisplayObjectEvent } from './event/DisplayObjectEvent';
 import { UIConfig } from './UIConfig';
 import { UIPackage } from './UIPackage';
+import { Window } from '.';
 
 export class GRootMouseStatus {
     public touchDown: boolean = false;
@@ -203,6 +204,27 @@ export class GRoot extends GComponent {
         // this.addChild(this._tooltipWin);
     }
 
+    public showWindow(win: Window): void {
+        this.addChild(win);
+        win.requestFocus();
+
+        if (win.x > this.width)
+            win.x = this.width - win.width;
+        else if (win.x + win.width < 0)
+            win.x = 0;
+
+        if (win.y > this.height)
+            win.y = this.height - win.height;
+        else if (win.y + win.height < 0)
+            win.y = 0;
+
+       //  this.adjustModalLayer();
+    }
+
+    public hideWindow(win: Window): void {
+        win.hide();
+    }
+
     public createDisplayObject() {
         // this._displayObject = this.scene.make.container(undefined, false);
         // this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this._width, this._height), Phaser.Geom.Rectangle.Contains);
@@ -247,5 +269,26 @@ export class GRoot extends GComponent {
         //     GRoot.contentScaleLevel = 1; //x2
         // else
         //     GRoot.contentScaleLevel = 0;
+    }
+
+    private adjustModalLayer(): void {
+        var cnt: number = this.numChildren;
+
+        if (this._modalWaitPane != null && this._modalWaitPane.parent != null)
+            this.setChildIndex(this._modalWaitPane, cnt - 1);
+
+        for (var i: number = cnt - 1; i >= 0; i--) {
+            var g: GObject = this.getChildAt(i);
+            if ((g instanceof Window) && g.modal) {
+                if (this._modalLayer.parent == null)
+                    this.addChildAt(this._modalLayer, i);
+                else
+                    this.setChildIndexBefore(this._modalLayer, i);
+                return;
+            }
+        }
+
+        // if (this._modalLayer.parent)
+        //     this.removeChild(this._modalLayer);
     }
 }

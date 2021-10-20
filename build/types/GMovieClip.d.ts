@@ -14,6 +14,7 @@ export declare class GMovieClip extends GObject {
     set timeScale(value: number);
     advance(timeInMiniseconds: number): void;
     setPlaySettings(start?: number, end?: number, times?: number, endAt?: number, endHandler?: () => void): void;
+    set touchable(value: boolean);
     getProp(index: number): any;
     setProp(index: number, value: any): void;
     constructFromResource(): Promise<void>;

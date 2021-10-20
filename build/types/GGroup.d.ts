@@ -16,6 +16,7 @@ export declare class GGroup extends GObject {
     _updating: number;
     constructor(scene?: Phaser.Scene);
     dispose(): void;
+    set touchable(value: boolean);
     get layout(): number;
     set layout(value: number);
     get lineGap(): number;

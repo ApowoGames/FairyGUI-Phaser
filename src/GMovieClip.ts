@@ -63,10 +63,18 @@ export class GMovieClip extends GObject {
         this._movieClip.setPlaySettings(start, end, times, endAt, endHandler);
     }
 
+    public set touchable(value: boolean) {
+        this._touchable = false;
+        // if (this._touchable != value) {
+        //     this.setTouchable(value);
+        // }
+    }
+
     public getProp(index: number): any {
         switch (index) {
             case ObjectPropID.Color:
                 return this.color;
+
             case ObjectPropID.Playing:
                 return this.playing;
             case ObjectPropID.Frame:

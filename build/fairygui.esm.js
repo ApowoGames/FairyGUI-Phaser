@@ -660,7 +660,8 @@ class ToolSet {
     // public static setColorFilter(obj: Laya.Sprite, color?: string | number[] | boolean): void {
     static setColorFilter(obj, color) {
         // TODO
-        console.log("todo color filter");
+        obj.setTint(color);
+        // console.log("todo color filter");
         // throw new Error("TODO");
         // var filter: Laya.ColorFilter = (<any>obj).$_colorFilter_; //cached instance
         // var filters: any[] = obj.filters;
@@ -3616,16 +3617,15 @@ class GObject {
             this._parent.removeChild(this);
     }
     get root() {
-        // if (this instanceof GRoot)
-        //     return this;
-        // let p: GObject = this._parent;
-        // while (p) {
-        //     if (p instanceof GRoot)
-        //         return p;
-        //     p = p.parent;
-        // }
-        // return GRoot.inst;
-        return null;
+        if (this instanceof GRoot)
+            return this;
+        let p = this._parent;
+        while (p) {
+            if (p instanceof GRoot)
+                return p;
+            p = p.parent;
+        }
+        return GRoot.inst;
     }
     get asCom() {
         return this;
@@ -4066,10 +4066,10 @@ class GObject {
             this.visible = false;
         // console.log("visible object ===>", this);
         if (!buffer.readBool()) {
-            this._touchable = false;
+            this.touchable = false;
         }
         else {
-            this._touchable = true;
+            this.touchable = true;
         }
         if (buffer.readBool())
             this.grayed = true;
@@ -4243,6 +4243,12 @@ class GGroup extends GObject {
     dispose() {
         this._boundsChanged = false;
         super.dispose();
+    }
+    set touchable(value) {
+        this._touchable = false;
+        // if (this._touchable != value) {
+        //     this.setTouchable(value);
+        // }
     }
     get layout() {
         return this._layout;
@@ -5272,6 +5278,15 @@ class Image extends Phaser.GameObjects.Container {
         // this.mouseEnabled = false;
         this._color = "#FFFFFF";
     }
+    setTint(color) {
+        const _color = Utils.toNumColor(color);
+        this.list.forEach((img) => {
+            if (img) {
+                img.clearTint();
+                img.setTint(_color);
+            }
+        });
+    }
     setSize(width, height) {
         this.width = width;
         this.height = height;
@@ -6046,6 +6061,12 @@ class GMovieClip extends GObject {
     //从start帧开始，播放到end帧（-1表示结尾），重复times次（0表示无限循环），循环结束后，停止在endAt帧（-1表示参数end）
     setPlaySettings(start, end, times, endAt, endHandler) {
         this._movieClip.setPlaySettings(start, end, times, endAt, endHandler);
+    }
+    set touchable(value) {
+        this._touchable = false;
+        // if (this._touchable != value) {
+        //     this.setTouchable(value);
+        // }
     }
     getProp(index) {
         switch (index) {
@@ -12141,6 +12162,22 @@ class GRoot extends GComponent {
         // this._tooltipWin.y = yy;
         // this.addChild(this._tooltipWin);
     }
+    showWindow(win) {
+        this.addChild(win);
+        win.requestFocus();
+        if (win.x > this.width)
+            win.x = this.width - win.width;
+        else if (win.x + win.width < 0)
+            win.x = 0;
+        if (win.y > this.height)
+            win.y = this.height - win.height;
+        else if (win.y + win.height < 0)
+            win.y = 0;
+        //  this.adjustModalLayer();
+    }
+    hideWindow(win) {
+        win.hide();
+    }
     createDisplayObject() {
         // this._displayObject = this.scene.make.container(undefined, false);
         // this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this._width, this._height), Phaser.Geom.Rectangle.Contains);
@@ -12180,6 +12217,23 @@ class GRoot extends GComponent {
         //     GRoot.contentScaleLevel = 1; //x2
         // else
         //     GRoot.contentScaleLevel = 0;
+    }
+    adjustModalLayer() {
+        var cnt = this.numChildren;
+        if (this._modalWaitPane != null && this._modalWaitPane.parent != null)
+            this.setChildIndex(this._modalWaitPane, cnt - 1);
+        for (var i = cnt - 1; i >= 0; i--) {
+            var g = this.getChildAt(i);
+            if ((g instanceof Window) && g.modal) {
+                if (this._modalLayer.parent == null)
+                    this.addChildAt(this._modalLayer, i);
+                else
+                    this.setChildIndexBefore(this._modalLayer, i);
+                return;
+            }
+        }
+        // if (this._modalLayer.parent)
+        //     this.removeChild(this._modalLayer);
     }
 }
 GRoot.contentScaleLevel = 0;
@@ -13749,7 +13803,9 @@ class GButton extends GComponent {
         // this._displayObject.addAt(g, 0);
         if (!buffer.seek(beginPos, 6))
             return;
-        if (buffer.readByte() != this.packageItem.objectType)
+        const type = buffer.readByte();
+        this.addListen();
+        if (type != this.packageItem.objectType)
             return;
         var str;
         var iv;
@@ -13780,7 +13836,6 @@ class GButton extends GComponent {
         if (buffer.readBool())
             this._soundVolumeScale = buffer.readFloat();
         this.selected = buffer.readBool();
-        this.addListen();
     }
     constructFromResource2(objectPool, poolIndex) {
         const _super = Object.create(null, {
@@ -17689,10 +17744,10 @@ class Window extends GComponent {
         this._contentArea = value;
     }
     show() {
-        // GRoot.inst.showWindow(this);
+        GRoot.inst.showWindow(this);
     }
     showOn(root) {
-        // root.showWindow(this);
+        root.showWindow(this);
     }
     hide() {
         if (this.isShowing)

@@ -29,6 +29,13 @@ export class GGroup extends GObject {
         super.dispose();
     }
 
+    public set touchable(value: boolean) {
+        this._touchable = false;
+        // if (this._touchable != value) {
+        //     this.setTouchable(value);
+        // }
+    }
+
     public get layout(): number {
         return this._layout;
     }

@@ -109,11 +109,11 @@ export class Window extends GComponent {
     }
 
     public show(): void {
-        // GRoot.inst.showWindow(this);
+        GRoot.inst.showWindow(this);
     }
 
     public showOn(root: GRoot): void {
-        // root.showWindow(this);
+        root.showWindow(this);
     }
 
     public hide(): void {

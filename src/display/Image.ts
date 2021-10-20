@@ -1,4 +1,5 @@
 import { PackageItem } from '../PackageItem';
+import { Utils } from '../utils/Utils';
 import { ToolSet } from './../utils/ToolSet';
 import { fillImage } from './FillUtils';
 import { Graphics } from "./Graphics";
@@ -55,6 +56,17 @@ export class Image extends Phaser.GameObjects.Container {
         // this.patchKey = Math.random() * 1000 + "";
         // this.mouseEnabled = false;
         this._color = "#FFFFFF";
+    }
+
+    public setTint(color:string) {
+        const _color = Utils.toNumColor(color);
+        this.list.forEach((img: Phaser.GameObjects.Image) => {
+            if (img) {
+                img.clearTint();
+                img.setTint(_color);
+            }
+        });
+
     }
 
     public setSize(width: number, height: number): this {

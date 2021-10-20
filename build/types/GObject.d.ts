@@ -7,7 +7,7 @@ import { Relations } from './Relations';
 import { PackageItem } from './PackageItem';
 import { GComponent } from './GComponent';
 import { GTree } from './GTree';
-import { GButton, GImage, GList, GLoader, GMovieClip } from '.';
+import { GButton, GImage, GList, GLoader, GMovieClip, GRoot } from '.';
 export declare class DisplayStyle {
     static EMPTY: DisplayStyle;
     /**水平缩放 */
@@ -192,7 +192,7 @@ export declare class GObject {
     get parent(): GComponent;
     set parent(val: GComponent);
     removeFromParent(): void;
-    get root(): any;
+    get root(): GRoot;
     get asCom(): GComponent;
     get asButton(): GButton;
     get asLoader(): GLoader;

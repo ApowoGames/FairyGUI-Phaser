@@ -1,5 +1,6 @@
 import { GObject } from './GObject';
 import { GComponent } from "./GComponent";
+import { Window } from '.';
 export declare class GRootMouseStatus {
     touchDown: boolean;
     mouseX: number;
@@ -56,10 +57,13 @@ export declare class GRoot extends GComponent {
     playOneShotSound(url: string, volumeScale?: number): void;
     showTooltips(msg: string): void;
     showTooltipsWin(tooltipWin: GObject, xx?: number, yy?: number): void;
+    showWindow(win: Window): void;
+    hideWindow(win: Window): void;
     createDisplayObject(): void;
     private onStageDown;
     private onStageUp;
     private onStageMove;
     private $winResize;
     private updateContentScaleLevel;
+    private adjustModalLayer;
 }

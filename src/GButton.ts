@@ -413,15 +413,15 @@ export class GButton extends GComponent {
             this.setState(GButton.UP);
     }
 
-    public addListen() {
-        this.removeListen();
+    public addListener() {
+        this.removeListener();
         this._displayObject.on(InteractiveEvent.POINTER_OVER, this.__rollover, this);
         this._displayObject.on(InteractiveEvent.POINTER_OUT, this.__rollout, this);
         this._displayObject.on(InteractiveEvent.POINTER_DOWN, this.__mousedown, this);
         this._displayObject.on(InteractiveEvent.POINTER_UP, this.__click, this);
     }
 
-    public removeListen() {
+    public removeListener() {
         this._displayObject.off(InteractiveEvent.POINTER_OVER, this.__rollover, this);
         this._displayObject.off(InteractiveEvent.POINTER_OUT, this.__rollout, this);
         this._displayObject.off(InteractiveEvent.POINTER_DOWN, this.__mousedown, this);
@@ -442,7 +442,9 @@ export class GButton extends GComponent {
         if (!buffer.seek(beginPos, 6))
             return;
 
-        if (buffer.readByte() != this.packageItem.objectType)
+        const type = buffer.readByte();
+        this.addListener();
+        if (type != this.packageItem.objectType)
             return;
 
         var str: string;
@@ -476,7 +478,6 @@ export class GButton extends GComponent {
         if (buffer.readBool())
             this._soundVolumeScale = buffer.readFloat();
         this.selected = buffer.readBool();
-        this.addListen();
     }
 
     public async constructFromResource2(objectPool: GObject[], poolIndex: number): Promise<void> {
