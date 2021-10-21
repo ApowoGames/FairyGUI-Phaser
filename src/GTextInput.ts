@@ -2,8 +2,49 @@ import { ByteBuffer } from './utils/ByteBuffer';
 import { UIConfig } from './UIConfig';
 import { GTextField } from './GTextField';
 import { InputTextField } from './display/InputTextField';
+import { UBBParser } from '.';
+
+
+export class Input extends Text {
+    /** 常规文本域。*/
+    static TYPE_TEXT: string = "text";
+    /** password 类型用于密码域输入。*/
+    static TYPE_PASSWORD: string = "password";
+    /** email 类型用于应该包含 e-mail 地址的输入域。*/
+    static TYPE_EMAIL: string = "email";
+    /** url 类型用于应该包含 URL 地址的输入域。*/
+    static TYPE_URL: string = "url";
+    /** number 类型用于应该包含数值的输入域。*/
+    static TYPE_NUMBER: string = "number";
+    /**
+     * <p>range 类型用于应该包含一定范围内数字值的输入域。</p>
+     * <p>range 类型显示为滑动条。</p>
+     * <p>您还能够设定对所接受的数字的限定。</p>
+     */
+    static TYPE_RANGE: string = "range";
+    /**  选取日、月、年。*/
+    static TYPE_DATE: string = "date";
+    /** month - 选取月、年。*/
+    static TYPE_MONTH: string = "month";
+    /** week - 选取周和年。*/
+    static TYPE_WEEK: string = "week";
+    /** time - 选取时间（小时和分钟）。*/
+    static TYPE_TIME: string = "time";
+    /** datetime - 选取时间、日、月、年（UTC 时间）。*/
+    static TYPE_DATE_TIME: string = "datetime";
+    /** datetime-local - 选取时间、日、月、年（本地时间）。*/
+    static TYPE_DATE_TIME_LOCAL: string = "datetime-local";
+    /**
+     * <p>search 类型用于搜索域，比如站点搜索或 Google 搜索。</p>
+     * <p>search 域显示为常规的文本域。</p>
+     */
+    static TYPE_SEARCH: string = "search";
+}
+
+
 export class GTextInput extends GTextField {
     private _input: any;
+    
     private _prompt: string;
 
     constructor(scene: Phaser.Scene) {
@@ -12,8 +53,9 @@ export class GTextInput extends GTextField {
 
     public createDisplayObject(): void {
         this._displayObject = this._input = new InputTextField(this.scene);
-        this._displayObject.mouseEnabled = true;
+        // this._displayObject.mouseEnabled = true;
         this._displayObject["$owner"] = this;
+        this._displayObject.createInput();
     }
 
     public get nativeInput(): any {
@@ -156,12 +198,11 @@ export class GTextInput extends GTextField {
     }
 
     public set promptText(value: string) {
-        throw "TODO";
-        // this._prompt = value;
-        // var str: string = UBBParser.inst.parse(value, true);
-        // this._input.prompt = str;
-        // if (UBBParser.inst.lastColor)
-        //     this._input.promptColor = UBBParser.inst.lastColor;
+        this._prompt = value;
+        var str: string = UBBParser.inst.parse(value, true);
+        this._input.prompt = str;
+        if (UBBParser.inst.lastColor)
+            this._input.promptColor = UBBParser.inst.lastColor;
     }
 
     public get promptText(): string {
@@ -208,12 +249,10 @@ export class GTextInput extends GTextField {
             this._input.maxChars = iv;
         iv = buffer.readInt();
         if (iv != 0) {
-            // TODO keyboardType
-            throw new Error("TODO");
-            // if (iv == 4)
-            //     this.keyboardType = Laya.Input.TYPE_NUMBER;
-            // else if (iv == 3)
-            //     this.keyboardType = Laya.Input.TYPE_URL;
+            if (iv == 4)
+                this.keyboardType = Input.TYPE_NUMBER;
+            else if (iv == 3)
+                this.keyboardType = Input.TYPE_URL;
         }
         if (buffer.readBool())
             this.password = true;

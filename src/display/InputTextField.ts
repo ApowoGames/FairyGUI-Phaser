@@ -11,20 +11,20 @@ const ElementEvents = {
 };
 
 export class InputTextField extends Phaser.GameObjects.DOMElement {
+    private onTextChanged: Function;
     constructor(scene: Phaser.Scene) {
         super(scene);
-        this.createInput();
     }
 
-    private createInput() {
+    public createInput() {
         let e: InputElement;
-        // if (this.singleLine) {
-        //     e = document.createElement("input");
-        // } else {
-        //     e = document.createElement("textarea");
-        //     e.style.resize = "none";
-        //     e.style.overflow = "scroll";
-        // }
+        if (this["$owner"].singleLine) {
+            e = document.createElement("input");
+        } else {
+            e = document.createElement("textarea");
+            e.style.resize = "none";
+            e.style.overflow = "scroll";
+        }
 
         e.id = 'InputText';
         e.style.outline = "none";
@@ -111,7 +111,7 @@ export class InputTextField extends Phaser.GameObjects.DOMElement {
     }
 
     setTextChangedCallback(callback) {
-        // this.onTextChanged = callback;
+        this.onTextChanged = callback;
         return this;
     }
 

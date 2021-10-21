@@ -199,8 +199,11 @@ export class GBasicTextField extends GTextField {
     }
 
     public set singleLine(value: boolean) {
-        // todo singleline
-        // this._singleLine = value;
+        this._singleLine = value;
+        if(!this._widthAutoSize && !this._singleLine){
+            // 设置换行宽度，是否忽略空格
+            this._textField.setWordWrapWidth(this._textWidth, true);
+        }
         // this._textField.wordWrap = !this._widthAutoSize && !this._singleLine;
     }
 
