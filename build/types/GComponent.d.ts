@@ -11,6 +11,10 @@ export declare class GComponent extends GObject {
     private _opaque;
     private _applyingController?;
     private _mask?;
+    protected _renderEvent: any;
+    protected _renderTime: Phaser.Time.TimerEvent;
+    protected _buildNativeEvent: any;
+    protected _buildNativeTime: Phaser.Time.TimerEvent;
     protected _margin: Margin;
     protected _trackBounds: boolean;
     protected _boundsChanged: boolean;

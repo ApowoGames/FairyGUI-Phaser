@@ -127,6 +127,7 @@ export declare class GList extends GComponent {
     private getIndexOnPos3;
     private handleScroll;
     private handleScroll1;
+    setBoundsChangedFlag(): void;
     private handleScroll2;
     private handleScroll3;
     private handleArchOrder1;

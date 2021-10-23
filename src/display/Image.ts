@@ -145,7 +145,7 @@ export class Image extends Phaser.GameObjects.Container {
 
     createPatchFrame(patch, x, y, width, height) {
         if (this._sourceTexture.frames.hasOwnProperty(patch)) {
-            console.log("patch cf", patch);
+            // console.log("patch cf", patch);
             return;
         }
         this._sourceTexture.add(patch, this.originFrame.sourceIndex, this.originFrame.cutX + x, this.originFrame.cutY + y, width, height);

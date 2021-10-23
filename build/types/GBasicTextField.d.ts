@@ -56,6 +56,16 @@ export declare class GBasicTextField extends GTextField {
     protected doAlign(): void;
     flushVars(): void;
 }
+export declare class TextExt extends Phaser.GameObjects.Text {
+    private _owner;
+    private _lock;
+    private _sizeDirty;
+    constructor(owner: GBasicTextField);
+    baseTypeset(): void;
+    typeset(): void;
+    setChanged(): void;
+    protected set isChanged(value: boolean);
+}
 export interface LineInfo {
     width: number;
     height: number;

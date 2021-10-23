@@ -55,7 +55,7 @@ export class GList extends GComponent {
     private _refreshListTime: Phaser.Time.TimerEvent;
     constructor(scene?: Phaser.Scene) {
         super(scene);
-        this._refreshListEvent = { delay: this._timeDelta, callback: this._refreshVirtualList, callbackScope: this };
+        this._refreshListEvent = { delay: this._timeDelta / this.scene.game.config.fps.target, callback: this._refreshVirtualList, callbackScope: this };
         this._trackBounds = true;
         this._pool = new GObjectPool();
         this._layout = ListLayoutType.SingleColumn;
@@ -250,6 +250,7 @@ export class GList extends GComponent {
             child.changeStateOnClick = false;
         }
         // todo click
+        // this.scene.input.on("pointerdown",this.);
         this.scene.input.on("pointerup", this.__clickItem, this);
 
         return child;
@@ -843,14 +844,15 @@ export class GList extends GComponent {
         if (this._virtual) {
             if (!result)
                 result = new Phaser.Geom.Point();
-
+            const singleHei = this._virtualItems[0].height * this._virtualItems.length + this._lineGap * (this._virtualItems.length - 1);
+            const viewNum = Math.floor(this._scrollPane.viewHeight / singleHei);
             var saved: number;
             var index: number;
             var size: number;
             if (this._layout == ListLayoutType.SingleColumn || this._layout == ListLayoutType.FlowHorizontal) {
                 saved = yValue;
                 s_n = yValue;
-                index = this.getIndexOnPos1(false) - 1 < 0 ? 0 : this.getIndexOnPos1(false) - 1;
+                index = this.getIndexOnPos1(false) - viewNum < 0 ? 0 : this.getIndexOnPos1(false) - viewNum;
                 yValue = s_n;
                 if (index < this._virtualItems.length && index < this._realNumItems) {
                     size = this._virtualItems[index].height;
@@ -1453,6 +1455,8 @@ export class GList extends GComponent {
     }
 
     private handleScroll1(forceUpdate: boolean): Promise<boolean> {
+        const singleHei = this._virtualItems[0].height * this._virtualItems.length + this._lineGap * (this._virtualItems.length - 1);
+        const viewNum = Math.floor(this._scrollPane.viewHeight / singleHei);
         return new Promise((reslove, reject) => {
             var pos: number = this._scrollPane.scrollingPosY;
             var max: number = pos + this._scrollPane.viewHeight;
@@ -1460,12 +1464,12 @@ export class GList extends GComponent {
 
             //寻找当前位置的第一条项目
             s_n = pos;
-            var newFirstIndex: number = this.getIndexOnPos1(forceUpdate) - 1 < 0 ? 0 : this.getIndexOnPos1(forceUpdate) - 1;
+            var newFirstIndex: number = this.getIndexOnPos1(forceUpdate) - viewNum < 0 ? 0 : this.getIndexOnPos1(forceUpdate) - viewNum;
             pos = s_n;
-            // if (newFirstIndex == this._firstIndex && !forceUpdate) {
-            //     reslove(false);
-            //     return;
-            // }
+            if (newFirstIndex == this._firstIndex && !forceUpdate) {
+                reslove(false);
+                return;
+            }
 
 
             var oldFirstIndex: number = this._firstIndex;
@@ -1538,7 +1542,7 @@ export class GList extends GComponent {
 
                 ii.updateFlag = this.itemInfoVer;
                 ii.obj.setXY(curX, curY);
-                if (curIndex == newFirstIndex) //要显示多一条才不会穿帮
+                if (curIndex == newFirstIndex) //要显示多1条才不会穿帮
                     max += ii.height;
 
                 curX += ii.width + this._columnGap;
@@ -1649,6 +1653,18 @@ export class GList extends GComponent {
         });
     }
 
+    public setBoundsChangedFlag(): void {
+        if (!this._scrollPane && !this._trackBounds)
+            return;
+
+        if (!this._boundsChanged) {
+            this._boundsChanged = true;
+
+            if (!this._renderTime) this.scene.time.addEvent(this._renderEvent);
+            //Laya.timer.callLater(this, this.__render);
+        }
+    }
+
     private async handleScroll2(forceUpdate: boolean): Promise<boolean> {
         var pos: number = this._scrollPane.scrollingPosX;
         var max: number = pos + this._scrollPane.viewWidth;
@@ -1658,6 +1674,7 @@ export class GList extends GComponent {
         s_n = pos;
         var newFirstIndex: number = this.getIndexOnPos2(forceUpdate);
         pos = s_n;
+        console.log("pos ===>", pos, newFirstIndex);
         if (newFirstIndex == this._firstIndex && !forceUpdate)
             return false;
 
@@ -1769,7 +1786,7 @@ export class GList extends GComponent {
                 max += ii.width;
 
             curY += ii.height + this._lineGap;
-
+            // console.log("curY ===>", curY);
             if (curIndex % this._curLineItemCount == this._curLineItemCount - 1) {
                 curY = 0;
                 curX += ii.width + this._columnGap;
@@ -2040,6 +2057,7 @@ export class GList extends GComponent {
         //     return;
 
         var i: number;
+
         var child: GObject;
         var curX: number = 0;
         var curY: number = 0;
@@ -2064,6 +2082,7 @@ export class GList extends GComponent {
 
                 if (curY != 0)
                     curY += this._lineGap;
+                // console.log("curY 0===>", curY, i);
                 child.y = curY;
                 if (this._autoResizeItem)
                     child.setSize(viewWidth, child.height, true);
@@ -2072,7 +2091,7 @@ export class GList extends GComponent {
                     maxWidth = child.width;
             }
             ch = curY;
-
+            // console.log("curY total===>", curY);
             if (ch <= viewHeight && this._autoResizeItem && this._scrollPane && this._scrollPane._displayInDemand && this._scrollPane.vtScrollBar) {
                 viewWidth += this._scrollPane.vtScrollBar.width;
                 for (i = 0; i < cnt; i++) {

@@ -249,7 +249,7 @@ export class ScrollPane {
             if (this._tweenUpdateTime) {
                 this._tweenUpdateTime.remove(false);
                 this._tweenUpdateTime = null;
-                console.log("remove tweenupdate");
+                // console.log("remove tweenupdate");
             }
             // Laya.timer.clear(this, this.tweenUpdate);
         }
@@ -792,7 +792,7 @@ export class ScrollPane {
 
         this._contentSize.x = aWidth;
         this._contentSize.y = aHeight;
-        console.log("contentsize ===>", aWidth, aHeight);
+        // console.log("contentsize ===>", aWidth, aHeight);
         this.handleSizeChanged();
     }
 
@@ -878,7 +878,7 @@ export class ScrollPane {
                 this._hzScrollBar.setDisplayPerc(Math.min(1, this._viewSize.x / this._contentSize.x));
         }
 
-        console.log("handlesize ===>", this._owner.displayObject);
+        // console.log("handlesize ===>", this._owner.displayObject);
         this.updateScrollBarVisible();
 
         if (this.maskScrollRect) {
@@ -979,7 +979,7 @@ export class ScrollPane {
         if (this._refreshTime) {
             this._refreshTime.remove(false);
             this._refreshTime = null;
-            console.log("remove refreshTime");
+            // console.log("remove refreshTime");
         }
         // Laya.timer.clear(this, this.refresh);
 
@@ -999,7 +999,7 @@ export class ScrollPane {
             if (this._refreshTime) {
                 this._refreshTime.remove(false);
                 this._refreshTime = null;
-                console.log("remove refreshTime");
+                // console.log("remove refreshTime");
             }
             // Laya.timer.clear(this, this.refresh);
 
@@ -1725,7 +1725,7 @@ export class ScrollPane {
         if (this._tweenUpdateTime) {
             this._tweenUpdateTime.remove(false);
             this._tweenUpdateTime = null;
-            console.log("remove tweenupdate");
+            //console.log("remove tweenupdate");
         }
         // Laya.timer.clear(this, this.tweenUpdate);
 
@@ -1802,7 +1802,7 @@ export class ScrollPane {
             if (this._tweenUpdateTime) {
                 this._tweenUpdateTime.remove(false);
                 this._tweenUpdateTime = null;
-                console.log("remove tweenupdate");
+                // console.log("remove tweenupdate");
             }
             // Laya.timer.clear(this, this.tweenUpdate);
 
