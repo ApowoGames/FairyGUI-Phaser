@@ -17390,30 +17390,33 @@
             this.readItems(buffer);
         }
         readItems(buffer) {
-            var cnt;
-            var i;
-            var nextPos;
-            var str;
-            cnt = buffer.readShort();
-            for (i = 0; i < cnt; i++) {
-                nextPos = buffer.readShort();
-                nextPos += buffer.position;
-                str = buffer.readS();
-                if (str == null) {
-                    str = this._defaultItem;
-                    if (!str) {
+            return new Promise((resolve, reject) => {
+                var cnt;
+                var i;
+                var nextPos;
+                var str;
+                cnt = buffer.readShort();
+                for (i = 0; i < cnt; i++) {
+                    nextPos = buffer.readShort();
+                    nextPos += buffer.position;
+                    str = buffer.readS();
+                    if (str == null) {
+                        str = this._defaultItem;
+                        if (!str) {
+                            buffer.position = nextPos;
+                            continue;
+                        }
+                    }
+                    this.getFromPool(str).then((obj) => {
+                        if (obj) {
+                            this.addChild(obj);
+                            this.setupItem(buffer, obj);
+                        }
                         buffer.position = nextPos;
-                        continue;
-                    }
+                    });
                 }
-                this.getFromPool(str).then((obj) => {
-                    if (obj) {
-                        this.addChild(obj);
-                        this.setupItem(buffer, obj);
-                    }
-                    buffer.position = nextPos;
-                });
-            }
+                resolve();
+            });
         }
         setupItem(buffer, obj) {
             var str;
@@ -17528,37 +17531,49 @@
             this._level = value;
         }
         addChild(child) {
-            this.addChildAt(child, this._children.length);
-            return child;
+            return new Promise((resolve, rejcet) => {
+                this.addChildAt(child, this._children.length).then((treeNode) => {
+                    resolve(treeNode);
+                });
+            });
         }
         addChildAt(child, index) {
-            if (!child)
-                throw new Error("child is null");
-            var numChildren = this._children.length;
-            if (index >= 0 && index <= numChildren) {
-                if (child._parent == this) {
-                    this.setChildIndex(child, index);
+            return new Promise((resolve, rejcet) => {
+                if (!child)
+                    throw new Error("child is null");
+                var numChildren = this._children.length;
+                if (index >= 0 && index <= numChildren) {
+                    if (child._parent == this) {
+                        this.setChildIndex(child, index);
+                        resolve(child);
+                        return;
+                    }
+                    else {
+                        if (child._parent)
+                            child._parent.removeChild(child);
+                        var cnt = this._children.length;
+                        if (index == cnt)
+                            this._children.push(child);
+                        else
+                            this._children.splice(index, 0, child);
+                        child._parent = this;
+                        child._level = this._level + 1;
+                        child._setTree(this._tree);
+                        if (this._tree && this == this._tree.rootNode || this._cell && this._cell.parent && this._expanded) {
+                            this._tree._afterInserted(child).then(() => {
+                                resolve(child);
+                            });
+                        }
+                        else {
+                            resolve(child);
+                        }
+                    }
+                    return;
                 }
                 else {
-                    if (child._parent)
-                        child._parent.removeChild(child);
-                    var cnt = this._children.length;
-                    if (index == cnt)
-                        this._children.push(child);
-                    else
-                        this._children.splice(index, 0, child);
-                    child._parent = this;
-                    child._level = this._level + 1;
-                    child._setTree(this._tree);
-                    if (this._tree && this == this._tree.rootNode || this._cell && this._cell.parent && this._expanded)
-                        throw new Error("TODO");
-                    // this._tree._afterInserted(child);
+                    throw new RangeError("Invalid child index");
                 }
-                return child;
-            }
-            else {
-                throw new RangeError("Invalid child index");
-            }
+            });
         }
         removeChild(child) {
             var childIndex = this._children.indexOf(child);
@@ -17697,25 +17712,23 @@
             this._clickToExpand = value;
         }
         getSelectedNode() {
-            throw new Error("TODO");
-            // if (this.selectedIndex != -1)
-            //     return this.getChildAt(this.selectedIndex)._treeNode;
-            // else
-            //     return null;
+            if (this.selectedIndex != -1)
+                return this.getChildAt(this.selectedIndex)._treeNode;
+            else
+                return null;
         }
         getSelectedNodes(result) {
-            throw new Error("TODO");
-            // if (!result)
-            //     result = new Array<GTreeNode>();
-            // s_list.length = 0;
-            // super.getSelection(s_list);
-            // var cnt: number = s_list.length;
-            // var ret: Array<GTreeNode> = new Array<GTreeNode>();
-            // for (var i: number = 0; i < cnt; i++) {
-            //     var node: GTreeNode = this.getChildAt(s_list[i])._treeNode;
-            //     ret.push(node);
-            // }
-            // return ret;
+            if (!result)
+                result = new Array();
+            s_list.length = 0;
+            super.getSelection(s_list);
+            var cnt = s_list.length;
+            var ret = new Array();
+            for (var i = 0; i < cnt; i++) {
+                var node = this.getChildAt(s_list[i])._treeNode;
+                ret.push(node);
+            }
+            return ret;
         }
         selectNode(node, scrollItToView) {
             var parentNode = node.parent;
@@ -17756,39 +17769,57 @@
             }
         }
         createCell(node) {
-            this.getFromPool(node._resURL ? node._resURL : this.defaultItem).then((obj) => {
-                var child = obj;
-                if (!child)
-                    throw new Error("cannot create tree node object.");
-                child._treeNode = node;
-                node._cell = child;
-                var indentObj = child.getChild("indent");
-                if (indentObj)
-                    indentObj.width = (node.level - 1) * this._indent;
-                var cc;
-                cc = child.getController("expanded");
-                if (cc) {
-                    cc.on(Events.STATE_CHANGED, this.__expandedStateChanged, this);
-                    cc.selectedIndex = node.expanded ? 1 : 0;
-                }
-                cc = child.getController("leaf");
-                if (cc)
-                    cc.selectedIndex = node.isFolder ? 0 : 1;
-                if (node.isFolder)
-                    child.on("pointerdown", this.__cellMouseDown, this);
-                if (this.treeNodeRender)
-                    this.treeNodeRender.runWith([node, child]);
+            return new Promise((resolve, reject) => {
+                this.getFromPool(node._resURL ? node._resURL : this.defaultItem).then((obj) => {
+                    var child = obj;
+                    if (!child) {
+                        throw new Error("cannot create tree node object.");
+                    }
+                    child._treeNode = node;
+                    node._cell = child;
+                    var indentObj = child.getChild("indent");
+                    if (indentObj)
+                        indentObj.width = (node.level - 1) * this._indent;
+                    var cc;
+                    cc = child.getController("expanded");
+                    if (cc) {
+                        cc.on(Events.STATE_CHANGED, this.__expandedStateChanged, this);
+                        cc.selectedIndex = node.expanded ? 1 : 0;
+                    }
+                    cc = child.getController("leaf");
+                    if (cc)
+                        cc.selectedIndex = node.isFolder ? 0 : 1;
+                    if (node.isFolder)
+                        child.on("pointerdown", this.__cellMouseDown, this);
+                    if (this.treeNodeRender)
+                        this.treeNodeRender.runWith([node, child]);
+                    resolve();
+                });
             });
         }
         _afterInserted(node) {
-            if (!node._cell)
-                this.createCell(node);
-            var index = this.getInsertIndexForNode(node);
-            this.addChildAt(node._cell, index);
-            if (this.treeNodeRender)
-                this.treeNodeRender.runWith([node, node._cell]);
-            if (node.isFolder && node.expanded)
-                this.checkChildren(node, index);
+            return new Promise((resolve, reject) => {
+                if (!node._cell) {
+                    this.createCell(node).then(() => {
+                        var index = this.getInsertIndexForNode(node);
+                        this.addChildAt(node._cell, index);
+                        if (this.treeNodeRender)
+                            this.treeNodeRender.runWith([node, node._cell]);
+                        if (node.isFolder && node.expanded)
+                            this.checkChildren(node, index);
+                        resolve();
+                    });
+                }
+                else {
+                    var index = this.getInsertIndexForNode(node);
+                    this.addChildAt(node._cell, index);
+                    if (this.treeNodeRender)
+                        this.treeNodeRender.runWith([node, node._cell]);
+                    if (node.isFolder && node.expanded)
+                        this.checkChildren(node, index);
+                    resolve();
+                }
+            });
         }
         getInsertIndexForNode(node) {
             var prevNode = node.getPrevSibling();
@@ -17916,14 +17947,23 @@
             }
         }
         __cellMouseDown(evt) {
-            throw new Error("TODO");
+            var node = GObject.cast(evt.currentTarget)._treeNode;
+            this._expandedStatusInEvt = node.expanded;
         }
         __expandedStateChanged(cc) {
             var node = cc.parent._treeNode;
             node.expanded = cc.selectedIndex == 1;
         }
         dispatchItemEvent(item, evt) {
-            throw new Error("TODO");
+            if (this._clickToExpand != 0) {
+                var node = item._treeNode;
+                if (node && node.isFolder && this._expandedStatusInEvt == node.expanded) {
+                    if (this._clickToExpand == 2) ;
+                    else
+                        node.expanded = !node.expanded;
+                }
+            }
+            super.dispatchItemEvent(item, evt);
         }
         setup_beforeAdd(buffer, beginPos) {
             super.setup_beforeAdd(buffer, beginPos);
@@ -17932,51 +17972,108 @@
             this._clickToExpand = buffer.readByte();
         }
         readItems(buffer) {
-            var cnt;
-            var i;
-            var nextPos;
-            var str;
-            var isFolder;
-            var lastNode;
-            var level;
-            var prevLevel = 0;
-            cnt = buffer.readShort();
-            for (i = 0; i < cnt; i++) {
-                nextPos = buffer.readShort();
-                nextPos += buffer.position;
-                str = buffer.readS();
-                if (str == null) {
-                    str = this.defaultItem;
-                    if (!str) {
-                        buffer.position = nextPos;
-                        continue;
+            return new Promise((resolve, reject) => {
+                var cnt;
+                var nextPos;
+                var str;
+                var isFolder;
+                var lastNode;
+                var level;
+                var prevLevel = 0;
+                cnt = buffer.readShort();
+                const fun0 = (i) => {
+                    if (i > cnt) {
+                        resolve();
+                        return;
                     }
-                }
-                isFolder = buffer.readBool();
-                level = buffer.readByte();
-                var node = new GTreeNode(isFolder, str);
-                node.expanded = true;
-                if (i == 0)
-                    this._rootNode.addChild(node);
-                else {
-                    if (level > prevLevel)
-                        lastNode.addChild(node);
-                    else if (level < prevLevel) {
-                        for (var j = level; j <= prevLevel; j++)
-                            lastNode = lastNode.parent;
-                        lastNode.addChild(node);
+                    nextPos = buffer.readShort();
+                    nextPos += buffer.position;
+                    str = buffer.readS();
+                    if (str == null) {
+                        str = this.defaultItem;
+                        if (!str) {
+                            buffer.position = nextPos;
+                            fun0(i + 1);
+                            return;
+                        }
                     }
-                    else
-                        lastNode.parent.addChild(node);
-                }
-                lastNode = node;
-                prevLevel = level;
-                this.setupItem(buffer, node.cell);
-                buffer.position = nextPos;
-            }
+                    isFolder = buffer.readBool();
+                    level = buffer.readByte();
+                    var node = new GTreeNode(isFolder, str);
+                    node.expanded = true;
+                    if (i == 0) {
+                        this._rootNode.addChild(node).then(() => {
+                            lastNode = node;
+                            prevLevel = level;
+                            this.setupItem(buffer, node.cell);
+                            buffer.position = nextPos;
+                            fun0(i + 1);
+                        });
+                    }
+                    else {
+                        if (level > prevLevel)
+                            lastNode.addChild(node).then(() => {
+                                fun0(i + 1);
+                            });
+                        else if (level < prevLevel) {
+                            for (var j = level; j <= prevLevel; j++)
+                                lastNode = lastNode.parent;
+                            lastNode.addChild(node).then(() => {
+                                lastNode = node;
+                                prevLevel = level;
+                                this.setupItem(buffer, node.cell);
+                                buffer.position = nextPos;
+                                fun0(i + 1);
+                            });
+                        }
+                        else
+                            lastNode.parent.addChild(node).then(() => {
+                                lastNode = node;
+                                prevLevel = level;
+                                this.setupItem(buffer, node.cell);
+                                buffer.position = nextPos;
+                                fun0(i + 1);
+                            });
+                    }
+                };
+                fun0(0);
+                // for (i = 0; i < cnt; i++) {
+                //     nextPos = buffer.readShort();
+                //     nextPos += buffer.position;
+                //     str = buffer.readS();
+                //     if (str == null) {
+                //         str = this.defaultItem;
+                //         if (!str) {
+                //             buffer.position = nextPos;
+                //             continue;
+                //         }
+                //     }
+                //     isFolder = buffer.readBool();
+                //     level = buffer.readByte();
+                //     var node: GTreeNode = new GTreeNode(isFolder, str);
+                //     node.expanded = true;
+                //     if (i == 0)
+                //         this._rootNode.addChild(node);
+                //     else {
+                //         if (level > prevLevel)
+                //             lastNode.addChild(node);
+                //         else if (level < prevLevel) {
+                //             for (var j: number = level; j <= prevLevel; j++)
+                //                 lastNode = lastNode.parent;
+                //             lastNode.addChild(node);
+                //         }
+                //         else
+                //             lastNode.parent.addChild(node);
+                //     }
+                //     lastNode = node;
+                //     prevLevel = level;
+                //     this.setupItem(buffer, node.cell);
+                //     buffer.position = nextPos;
+                // }
+            });
         }
     }
-    new Array();
+    var s_list = new Array();
 
     class Window extends GComponent {
         constructor() {

@@ -2449,35 +2449,37 @@ export class GList extends GComponent {
         this.readItems(buffer);
     }
 
-    protected readItems(buffer: ByteBuffer): void {
-        var cnt: number;
-        var i: number;
-        var nextPos: number;
-        var str: string;
+    protected readItems(buffer: ByteBuffer): Promise<void> {
+        return new Promise((resolve, reject) => {
+            var cnt: number;
+            var i: number;
+            var nextPos: number;
+            var str: string;
 
-        cnt = buffer.readShort();
-        for (i = 0; i < cnt; i++) {
-            nextPos = buffer.readShort();
-            nextPos += buffer.position;
+            cnt = buffer.readShort();
+            for (i = 0; i < cnt; i++) {
+                nextPos = buffer.readShort();
+                nextPos += buffer.position;
 
-            str = buffer.readS();
-            if (str == null) {
-                str = this._defaultItem;
-                if (!str) {
+                str = buffer.readS();
+                if (str == null) {
+                    str = this._defaultItem;
+                    if (!str) {
+                        buffer.position = nextPos;
+                        continue;
+                    }
+                }
+
+                this.getFromPool(str).then((obj) => {
+                    if (obj) {
+                        this.addChild(obj);
+                        this.setupItem(buffer, obj);
+                    }
                     buffer.position = nextPos;
-                    continue;
-                }
+                });
             }
-
-            this.getFromPool(str).then((obj) => {
-                if (obj) {
-                    this.addChild(obj);
-                    this.setupItem(buffer, obj);
-                }
-                buffer.position = nextPos;
-            });
-
-        }
+            resolve();
+        });
     }
 
     protected setupItem(buffer: ByteBuffer, obj: GObject): void {

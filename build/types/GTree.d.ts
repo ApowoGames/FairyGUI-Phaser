@@ -29,7 +29,7 @@ export declare class GTree extends GList {
     expandAll(folderNode?: GTreeNode): void;
     collapseAll(folderNode?: GTreeNode): void;
     private createCell;
-    _afterInserted(node: GTreeNode): void;
+    _afterInserted(node: GTreeNode): Promise<void>;
     private getInsertIndexForNode;
     _afterRemoved(node: GTreeNode): void;
     _afterExpanded(node: GTreeNode): void;
@@ -43,5 +43,5 @@ export declare class GTree extends GList {
     private __expandedStateChanged;
     protected dispatchItemEvent(item: GObject, evt: any): void;
     setup_beforeAdd(buffer: ByteBuffer, beginPos: number): void;
-    protected readItems(buffer: ByteBuffer): void;
+    protected readItems(buffer: ByteBuffer): Promise<void>;
 }

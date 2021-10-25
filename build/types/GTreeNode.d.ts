@@ -21,8 +21,8 @@ export declare class GTreeNode {
     get cell(): GComponent;
     get level(): number;
     _setLevel(value: number): void;
-    addChild(child: GTreeNode): GTreeNode;
-    addChildAt(child: GTreeNode, index: number): GTreeNode;
+    addChild(child: GTreeNode): Promise<GTreeNode>;
+    addChildAt(child: GTreeNode, index: number): Promise<GTreeNode>;
     removeChild(child: GTreeNode): GTreeNode;
     removeChildAt(index: number): GTreeNode;
     removeChildren(beginIndex?: number, endIndex?: number): void;
