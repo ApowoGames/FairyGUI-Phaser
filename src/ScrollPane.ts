@@ -1113,7 +1113,8 @@ export class ScrollPane {
             return;
 
         if (!this.checkInBounds(pointer)) {
-            this.__mouseUp();
+            // 防止出框后回弹
+            // this.__mouseUp();
             return;
         }
         var sensitivity: number = UIConfig.touchScrollSensitivity;

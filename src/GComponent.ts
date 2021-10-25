@@ -512,7 +512,7 @@ export class GComponent extends GObject {
         }
     }
 
-    private buildNativeDisplayList(): void {
+    protected buildNativeDisplayList(): void {
         if (!this._displayObject)
             return;
         var cnt: number = this._children.length;
@@ -1329,14 +1329,14 @@ export class GComponent extends GObject {
         }
     }
 
-    private ___added(): void {
+    protected ___added(): void {
         var cnt: number = this._transitions.length;
         for (var i: number = 0; i < cnt; ++i) {
             this._transitions[i].onOwnerAddedToStage();
         }
     }
 
-    private ___removed(): void {
+    protected ___removed(): void {
         var cnt: number = this._transitions.length;
         for (var i: number = 0; i < cnt; ++i) {
             this._transitions[i].onOwnerRemovedFromStage();

@@ -8712,7 +8712,7 @@
                     // this._maskContainer.add(this._mask);
                     // const g = this._mask.createGeometryMask();
                     // console.log("g====>", g);
-                    // this._maskContainer.setMask(this._mask.createGeometryMask());
+                    this._maskContainer.setMask(this._mask.createGeometryMask());
                 }
             }
             if (this._scrollType == exports.ScrollType.Horizontal || this._scrollType == exports.ScrollType.Both)
@@ -8888,7 +8888,8 @@
             if (ScrollPane.draggingPane && ScrollPane.draggingPane != this || GObject.draggingObject) //已经有其他拖动
                 return;
             if (!this.checkInBounds(pointer)) {
-                this.__mouseUp();
+                // 防止出框后回弹
+                // this.__mouseUp();
                 return;
             }
             var sensitivity = UIConfig.touchScrollSensitivity;
@@ -15258,8 +15259,11 @@
             this._verticalAlign = "top";
             this._container = scene.make.container(undefined, false);
             this._displayObject.add(this._container);
+            // todo click 优先添加监听，防止scrollpane的pointerup将参数修改，影响glist _clickItem逻辑
+            this.scene.input.on("pointerup", this.__clickItem, this);
         }
         dispose() {
+            this.scene.input.off("pointerup", this.__clickItem, this);
             this._pool.clear();
             super.dispose();
         }
@@ -15408,9 +15412,8 @@
                 child.selected = false;
                 child.changeStateOnClick = false;
             }
-            // todo click
-            // this.scene.input.on("pointerdown",this.);
-            this.scene.input.on("pointerup", this.__clickItem, this);
+            // // todo click
+            // this.scene.input.on("pointerup", this.__clickItem, this);
             return child;
         }
         addItem(url) {
@@ -15436,9 +15439,6 @@
                 super.removeChildAt(index).then((obj) => {
                     if (dispose) {
                         obj.dispose();
-                    }
-                    else {
-                        this.scene.input.off("pointerup", this.__clickItem, this);
                     }
                     reslove(obj);
                 });
@@ -15790,11 +15790,31 @@
         __clickItem(pointer, gameObject) {
             if ((this._scrollPane && this._scrollPane.isDragged) || !gameObject || !gameObject[0])
                 return;
-            var item = (gameObject[0]["$owner"]);
-            this.setSelectionOnEvent(item, { target: gameObject });
+            let item = (gameObject[0]["$owner"]);
+            // 如果clickitem的父对象为空，不可能为glist则直接跳出
+            if (!item.parent)
+                return;
+            let boo = false;
+            let target = gameObject[0];
+            while (!boo) {
+                if (item.parent instanceof GList) {
+                    target = item.displayObject;
+                    boo = true;
+                }
+                else {
+                    item = item.parent;
+                    if (!item.parent)
+                        boo = true;
+                    boo = false;
+                }
+            }
+            // 如果clickitem的父对象为空，不可能为glist则直接跳出
+            if (!item.parent)
+                return;
+            this.setSelectionOnEvent(item, { target });
             if (this._scrollPane && this.scrollItemToViewOnClick)
                 this._scrollPane.scrollToView(item, true);
-            this.dispatchItemEvent(item, Events.createEvent(Events.CLICK_ITEM, this.displayObject, { target: gameObject, touchId: pointer.id }));
+            this.dispatchItemEvent(item, Events.createEvent(Events.CLICK_ITEM, this.displayObject, { target, touchId: pointer.id }));
         }
         dispatchItemEvent(item, evt) {
             this.displayObject.emit(Events.CLICK_ITEM, [item, evt]);
@@ -15949,15 +15969,14 @@
             if (this._virtual) {
                 if (!result)
                     result = new Phaser.Geom.Point();
-                const singleHei = this._virtualItems[0].height * this._virtualItems.length + this._lineGap * (this._virtualItems.length - 1);
-                const viewNum = Math.floor(this._scrollPane.viewHeight / singleHei);
                 var saved;
                 var index;
                 var size;
                 if (this._layout == exports.ListLayoutType.SingleColumn || this._layout == exports.ListLayoutType.FlowHorizontal) {
                     saved = yValue;
                     s_n = yValue;
-                    index = this.getIndexOnPos1(false) - viewNum < 0 ? 0 : this.getIndexOnPos1(false) - viewNum;
+                    const pos1 = this.getIndexOnPos1(false);
+                    index = pos1 < 0 ? 0 : pos1;
                     yValue = s_n;
                     if (index < this._virtualItems.length && index < this._realNumItems) {
                         size = this._virtualItems[index].height;
@@ -16354,7 +16373,7 @@
                 }
                 s_n = pos2;
                 //console.log("5 ===>", i);
-                return this._realNumItems - this._curLineItemCount;
+                return 0; //this._realNumItems - this._curLineItemCount;
             }
         }
         getIndexOnPos2(forceUpdate) {
@@ -16495,15 +16514,16 @@
             }
         }
         handleScroll1(forceUpdate) {
-            const singleHei = this._virtualItems[0].height * this._virtualItems.length + this._lineGap * (this._virtualItems.length - 1);
-            const viewNum = Math.floor(this._scrollPane.viewHeight / singleHei);
             return new Promise((reslove, reject) => {
                 var pos = this._scrollPane.scrollingPosY;
                 var max = pos + this._scrollPane.viewHeight;
                 var end = max == this._scrollPane.contentHeight; //这个标志表示当前需要滚动到最末，无论内容变化大小
                 //寻找当前位置的第一条项目
                 s_n = pos;
-                var newFirstIndex = this.getIndexOnPos1(forceUpdate) - viewNum < 0 ? 0 : this.getIndexOnPos1(forceUpdate) - viewNum;
+                // const singleHei = this._virtualItems[0].height * this._virtualItems.length + this._lineGap * (this._virtualItems.length - 1);
+                // const viewNum = Math.floor(this._scrollPane.viewHeight / singleHei);
+                const pos1 = this.getIndexOnPos1(forceUpdate);
+                var newFirstIndex = pos1 < 0 ? 0 : pos1;
                 pos = s_n;
                 if (newFirstIndex == this._firstIndex && !forceUpdate) {
                     reslove(false);
@@ -16527,6 +16547,7 @@
                 this.itemInfoVer++;
                 const fun2 = () => {
                     // 等待数据组织完成再处理
+                    childCount = this.numChildren;
                     for (i = 0; i < childCount; i++) {
                         ii = this._virtualItems[oldFirstIndex + i];
                         if (!ii)

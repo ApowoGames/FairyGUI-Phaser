@@ -3,12 +3,13 @@ import { UIConfig } from './UIConfig';
 import { GButton } from './GButton';
 import { GObjectPool } from './GObjectPool';
 import { Controller } from './Controller';
-import { UIPackage } from './UIPackage';
+import { Decls, UIPackage } from './UIPackage';
 import { ListLayoutType, ListSelectionMode, ChildrenRenderOrder, OverflowType } from './FieldTypes';
 import { GComponent } from "./GComponent";
 import { GObject } from "./GObject";
 import { Events } from './Events';
 import { Handler } from './utils/Handler';
+import { Graphics, HitArea, ObjectType, PackageItem, PixelHitTest, Transition, TranslationHelper } from '.';
 export class GList extends GComponent {
     /**
      * this.itemRenderer(number index, GObject item);
@@ -69,9 +70,13 @@ export class GList extends GComponent {
 
         this._container = scene.make.container(undefined, false);
         this._displayObject.add(this._container);
+
+        // todo click 优先添加监听，防止scrollpane的pointerup将参数修改，影响glist _clickItem逻辑
+        this.scene.input.on("pointerup", this.__clickItem, this);
     }
 
     public dispose(): void {
+        this.scene.input.off("pointerup", this.__clickItem, this);
         this._pool.clear();
         super.dispose();
     }
@@ -249,9 +254,9 @@ export class GList extends GComponent {
             child.selected = false;
             child.changeStateOnClick = false;
         }
-        // todo click
-        // this.scene.input.on("pointerdown",this.);
-        this.scene.input.on("pointerup", this.__clickItem, this);
+        // // todo click
+        // this.scene.input.on("pointerup", this.__clickItem, this);
+
 
         return child;
     }
@@ -283,7 +288,7 @@ export class GList extends GComponent {
                 if (dispose) {
                     obj.dispose();
                 } else {
-                    this.scene.input.off("pointerup", this.__clickItem, this);
+                    // this.scene.input.off("pointerup", this.__clickItem, this);
                 }
                 reslove(obj);
             });
@@ -665,14 +670,29 @@ export class GList extends GComponent {
     private __clickItem(pointer: Phaser.Input.Pointer, gameObject: Phaser.GameObjects.GameObject): void {
         if ((this._scrollPane && this._scrollPane.isDragged) || !gameObject || !gameObject[0])
             return;
-
-        var item: GObject = <GObject>(gameObject[0]["$owner"]);
-        this.setSelectionOnEvent(item, { target: gameObject });
+        let item: GObject = <GObject>(gameObject[0]["$owner"]);
+        // 如果clickitem的父对象为空，不可能为glist则直接跳出
+        if (!item.parent) return;
+        let boo = false;
+        let target = gameObject[0];
+        while (!boo) {
+            if (item.parent instanceof GList) {
+                target = item.displayObject;
+                boo = true;
+            } else {
+                item = item.parent;
+                if (!item.parent) boo = true;
+                boo = false;
+            }
+        }
+        // 如果clickitem的父对象为空，不可能为glist则直接跳出
+        if (!item.parent) return;
+        this.setSelectionOnEvent(item, { target });
 
         if (this._scrollPane && this.scrollItemToViewOnClick)
             this._scrollPane.scrollToView(item, true);
 
-        this.dispatchItemEvent(item, Events.createEvent(Events.CLICK_ITEM, this.displayObject, { target: gameObject, touchId: pointer.id }));
+        this.dispatchItemEvent(item, Events.createEvent(Events.CLICK_ITEM, this.displayObject, { target, touchId: pointer.id }));
     }
 
     protected dispatchItemEvent(item: GObject, evt: any): void {
@@ -844,15 +864,14 @@ export class GList extends GComponent {
         if (this._virtual) {
             if (!result)
                 result = new Phaser.Geom.Point();
-            const singleHei = this._virtualItems[0].height * this._virtualItems.length + this._lineGap * (this._virtualItems.length - 1);
-            const viewNum = Math.floor(this._scrollPane.viewHeight / singleHei);
             var saved: number;
             var index: number;
             var size: number;
             if (this._layout == ListLayoutType.SingleColumn || this._layout == ListLayoutType.FlowHorizontal) {
                 saved = yValue;
                 s_n = yValue;
-                index = this.getIndexOnPos1(false) - viewNum < 0 ? 0 : this.getIndexOnPos1(false) - viewNum;
+                const pos1 = this.getIndexOnPos1(false);
+                index = pos1 < 0 ? 0 : pos1;
                 yValue = s_n;
                 if (index < this._virtualItems.length && index < this._realNumItems) {
                     size = this._virtualItems[index].height;
@@ -1303,7 +1322,7 @@ export class GList extends GComponent {
 
             s_n = pos2;
             //console.log("5 ===>", i);
-            return this._realNumItems - this._curLineItemCount;
+            return 0;//this._realNumItems - this._curLineItemCount;
         }
     }
 
@@ -1455,8 +1474,6 @@ export class GList extends GComponent {
     }
 
     private handleScroll1(forceUpdate: boolean): Promise<boolean> {
-        const singleHei = this._virtualItems[0].height * this._virtualItems.length + this._lineGap * (this._virtualItems.length - 1);
-        const viewNum = Math.floor(this._scrollPane.viewHeight / singleHei);
         return new Promise((reslove, reject) => {
             var pos: number = this._scrollPane.scrollingPosY;
             var max: number = pos + this._scrollPane.viewHeight;
@@ -1464,7 +1481,10 @@ export class GList extends GComponent {
 
             //寻找当前位置的第一条项目
             s_n = pos;
-            var newFirstIndex: number = this.getIndexOnPos1(forceUpdate) - viewNum < 0 ? 0 : this.getIndexOnPos1(forceUpdate) - viewNum;
+            // const singleHei = this._virtualItems[0].height * this._virtualItems.length + this._lineGap * (this._virtualItems.length - 1);
+            // const viewNum = Math.floor(this._scrollPane.viewHeight / singleHei);
+            const pos1 = this.getIndexOnPos1(forceUpdate);
+            var newFirstIndex: number = pos1 < 0 ? 0 : pos1;
             pos = s_n;
             if (newFirstIndex == this._firstIndex && !forceUpdate) {
                 reslove(false);
@@ -1491,6 +1511,7 @@ export class GList extends GComponent {
             this.itemInfoVer++;
             const fun2 = () => {
                 // 等待数据组织完成再处理
+                childCount = this.numChildren;
                 for (i = 0; i < childCount; i++) {
                     ii = this._virtualItems[oldFirstIndex + i];
                     if (!ii) continue;
