@@ -135,7 +135,7 @@ export declare class GList extends GComponent {
     private handleAlign;
     protected updateBounds(): void;
     setup_beforeAdd(buffer: ByteBuffer, beginPos: number): void;
-    protected readItems(buffer: ByteBuffer): void;
+    protected readItems(buffer: ByteBuffer): Promise<void>;
     protected setupItem(buffer: ByteBuffer, obj: GObject): void;
     setup_afterAdd(buffer: ByteBuffer, beginPos: number): void;
 }

@@ -6,6 +6,7 @@ export declare class GMovieClip extends GObject {
     get color(): string;
     set color(value: string);
     createDisplayObject(): void;
+    getChild(): GObject;
     get playing(): boolean;
     set playing(value: boolean);
     get frame(): number;
