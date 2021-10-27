@@ -82,44 +82,54 @@ export class GTreeNode {
         this._level = value;
     }
 
-    public addChild(child: GTreeNode): GTreeNode {
-        this.addChildAt(child, this._children.length);
-        return child;
+    public addChild(child: GTreeNode): Promise<GTreeNode> {
+        return new Promise((resolve, rejcet) => {
+            this.addChildAt(child, this._children.length).then((treeNode) => {
+                resolve(treeNode);
+            });
+        });
     }
 
-    public addChildAt(child: GTreeNode, index: number): GTreeNode {
-        if (!child)
-            throw new Error("child is null");
+    public addChildAt(child: GTreeNode, index: number): Promise<GTreeNode> {
+        return new Promise((resolve, rejcet) => {
+            if (!child)
+                throw new Error("child is null");
 
-        var numChildren: number = this._children.length;
+            var numChildren: number = this._children.length;
 
-        if (index >= 0 && index <= numChildren) {
-            if (child._parent == this) {
-                this.setChildIndex(child, index);
+            if (index >= 0 && index <= numChildren) {
+                if (child._parent == this) {
+                    this.setChildIndex(child, index);
+                    resolve(child);
+                    return;
+                }
+                else {
+                    if (child._parent)
+                        child._parent.removeChild(child);
+
+                    var cnt: number = this._children.length;
+                    if (index == cnt)
+                        this._children.push(child);
+                    else
+                        this._children.splice(index, 0, child);
+
+                    child._parent = this;
+                    child._level = this._level + 1;
+                    child._setTree(this._tree);
+                    if (this._tree && this == this._tree.rootNode || this._cell && this._cell.parent && this._expanded) {
+                        this._tree._afterInserted(child).then(() => {
+                            resolve(child);
+                        });
+                    } else {
+                        resolve(child);
+                    }
+                }
+                return;
             }
             else {
-                if (child._parent)
-                    child._parent.removeChild(child);
-
-                var cnt: number = this._children.length;
-                if (index == cnt)
-                    this._children.push(child);
-                else
-                    this._children.splice(index, 0, child);
-
-                child._parent = this;
-                child._level = this._level + 1;
-                child._setTree(this._tree);
-                if (this._tree && this == this._tree.rootNode || this._cell && this._cell.parent && this._expanded)
-                    throw new Error("TODO");
-                // this._tree._afterInserted(child);
+                throw new RangeError("Invalid child index");
             }
-
-            return child;
-        }
-        else {
-            throw new RangeError("Invalid child index");
-        }
+        });
     }
 
     public removeChild(child: GTreeNode): GTreeNode {

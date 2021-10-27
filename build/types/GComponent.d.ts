@@ -11,6 +11,10 @@ export declare class GComponent extends GObject {
     private _opaque;
     private _applyingController?;
     private _mask?;
+    protected _renderEvent: any;
+    protected _renderTime: Phaser.Time.TimerEvent;
+    protected _buildNativeEvent: any;
+    protected _buildNativeTime: Phaser.Time.TimerEvent;
     protected _margin: Margin;
     protected _trackBounds: boolean;
     protected _boundsChanged: boolean;
@@ -53,7 +57,7 @@ export declare class GComponent extends GObject {
     removeController(c: Controller): void;
     get controllers(): Controller[];
     childStateChanged(child: GObject): void;
-    private buildNativeDisplayList;
+    protected buildNativeDisplayList(): void;
     applyController(c: Controller): void;
     applyAllControllers(): void;
     adjustRadioGroupDepth(obj: GObject, c: Controller): void;
@@ -102,6 +106,6 @@ export declare class GComponent extends GObject {
     protected onConstruct(): void;
     protected constructFromXML(xml: Object): void;
     setup_afterAdd(buffer: ByteBuffer, beginPos: number): void;
-    private ___added;
-    private ___removed;
+    protected ___added(): void;
+    protected ___removed(): void;
 }

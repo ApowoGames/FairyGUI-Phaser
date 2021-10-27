@@ -24,6 +24,10 @@ export class GMovieClip extends GObject {
         this._displayObject["$owner"] = this;
     }
 
+    public getChild(): GObject {
+       return null;
+    }
+
     public get playing(): boolean {
         return this._movieClip.playing;
     }

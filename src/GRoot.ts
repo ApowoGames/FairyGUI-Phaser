@@ -305,7 +305,7 @@ export class GRoot extends GComponent {
             sizeH = target.height;
         }
         else {
-            console.log("show 100,100");
+            // console.log("show 100,100");
             pos = this.globalToLocal(100, 100);
         }
         var xx: number, yy: number;

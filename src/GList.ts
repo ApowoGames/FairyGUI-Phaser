@@ -3,12 +3,13 @@ import { UIConfig } from './UIConfig';
 import { GButton } from './GButton';
 import { GObjectPool } from './GObjectPool';
 import { Controller } from './Controller';
-import { UIPackage } from './UIPackage';
+import { Decls, UIPackage } from './UIPackage';
 import { ListLayoutType, ListSelectionMode, ChildrenRenderOrder, OverflowType } from './FieldTypes';
 import { GComponent } from "./GComponent";
 import { GObject } from "./GObject";
 import { Events } from './Events';
 import { Handler } from './utils/Handler';
+import { Graphics, HitArea, ObjectType, PackageItem, PixelHitTest, Transition, TranslationHelper } from '.';
 export class GList extends GComponent {
     /**
      * this.itemRenderer(number index, GObject item);
@@ -55,7 +56,7 @@ export class GList extends GComponent {
     private _refreshListTime: Phaser.Time.TimerEvent;
     constructor(scene?: Phaser.Scene) {
         super(scene);
-        this._refreshListEvent = { delay: this._timeDelta, callback: this._refreshVirtualList, callbackScope: this };
+        this._refreshListEvent = { delay: this._timeDelta / this.scene.game.config.fps.target, callback: this._refreshVirtualList, callbackScope: this };
         this._trackBounds = true;
         this._pool = new GObjectPool();
         this._layout = ListLayoutType.SingleColumn;
@@ -69,9 +70,13 @@ export class GList extends GComponent {
 
         this._container = scene.make.container(undefined, false);
         this._displayObject.add(this._container);
+
+        // todo click 优先添加监听，防止scrollpane的pointerup将参数修改，影响glist _clickItem逻辑
+        this.scene.input.on("pointerup", this.__clickItem, this);
     }
 
     public dispose(): void {
+        this.scene.input.off("pointerup", this.__clickItem, this);
         this._pool.clear();
         super.dispose();
     }
@@ -249,8 +254,9 @@ export class GList extends GComponent {
             child.selected = false;
             child.changeStateOnClick = false;
         }
-        // todo click
-        this.scene.input.on("pointerup", this.__clickItem, this);
+        // // todo click
+        // this.scene.input.on("pointerup", this.__clickItem, this);
+
 
         return child;
     }
@@ -282,7 +288,7 @@ export class GList extends GComponent {
                 if (dispose) {
                     obj.dispose();
                 } else {
-                    this.scene.input.off("pointerup", this.__clickItem, this);
+                    // this.scene.input.off("pointerup", this.__clickItem, this);
                 }
                 reslove(obj);
             });
@@ -664,14 +670,29 @@ export class GList extends GComponent {
     private __clickItem(pointer: Phaser.Input.Pointer, gameObject: Phaser.GameObjects.GameObject): void {
         if ((this._scrollPane && this._scrollPane.isDragged) || !gameObject || !gameObject[0])
             return;
-
-        var item: GObject = <GObject>(gameObject[0]["$owner"]);
-        this.setSelectionOnEvent(item, { target: gameObject });
+        let item: GObject = <GObject>(gameObject[0]["$owner"]);
+        // 如果clickitem的父对象为空，不可能为glist则直接跳出
+        if (!item.parent) return;
+        let boo = false;
+        let target = gameObject[0];
+        while (!boo) {
+            if (item.parent instanceof GList) {
+                target = item.displayObject;
+                boo = true;
+            } else {
+                item = item.parent;
+                if (!item.parent) boo = true;
+                boo = false;
+            }
+        }
+        // 如果clickitem的父对象为空，不可能为glist则直接跳出
+        if (!item.parent) return;
+        this.setSelectionOnEvent(item, { target });
 
         if (this._scrollPane && this.scrollItemToViewOnClick)
             this._scrollPane.scrollToView(item, true);
 
-        this.dispatchItemEvent(item, Events.createEvent(Events.CLICK_ITEM, this.displayObject, { target: gameObject, touchId: pointer.id }));
+        this.dispatchItemEvent(item, Events.createEvent(Events.CLICK_ITEM, this.displayObject, { target, touchId: pointer.id }));
     }
 
     protected dispatchItemEvent(item: GObject, evt: any): void {
@@ -843,14 +864,14 @@ export class GList extends GComponent {
         if (this._virtual) {
             if (!result)
                 result = new Phaser.Geom.Point();
-
             var saved: number;
             var index: number;
             var size: number;
             if (this._layout == ListLayoutType.SingleColumn || this._layout == ListLayoutType.FlowHorizontal) {
                 saved = yValue;
                 s_n = yValue;
-                index = this.getIndexOnPos1(false) - 1 < 0 ? 0 : this.getIndexOnPos1(false) - 1;
+                const pos1 = this.getIndexOnPos1(false);
+                index = pos1 < 0 ? 0 : pos1;
                 yValue = s_n;
                 if (index < this._virtualItems.length && index < this._realNumItems) {
                     size = this._virtualItems[index].height;
@@ -1301,7 +1322,7 @@ export class GList extends GComponent {
 
             s_n = pos2;
             //console.log("5 ===>", i);
-            return this._realNumItems - this._curLineItemCount;
+            return 0;//this._realNumItems - this._curLineItemCount;
         }
     }
 
@@ -1460,12 +1481,15 @@ export class GList extends GComponent {
 
             //寻找当前位置的第一条项目
             s_n = pos;
-            var newFirstIndex: number = this.getIndexOnPos1(forceUpdate) - 1 < 0 ? 0 : this.getIndexOnPos1(forceUpdate) - 1;
+            // const singleHei = this._virtualItems[0].height * this._virtualItems.length + this._lineGap * (this._virtualItems.length - 1);
+            // const viewNum = Math.floor(this._scrollPane.viewHeight / singleHei);
+            const pos1 = this.getIndexOnPos1(forceUpdate);
+            var newFirstIndex: number = pos1 < 0 ? 0 : pos1;
             pos = s_n;
-            // if (newFirstIndex == this._firstIndex && !forceUpdate) {
-            //     reslove(false);
-            //     return;
-            // }
+            if (newFirstIndex == this._firstIndex && !forceUpdate) {
+                reslove(false);
+                return;
+            }
 
 
             var oldFirstIndex: number = this._firstIndex;
@@ -1487,6 +1511,7 @@ export class GList extends GComponent {
             this.itemInfoVer++;
             const fun2 = () => {
                 // 等待数据组织完成再处理
+                childCount = this.numChildren;
                 for (i = 0; i < childCount; i++) {
                     ii = this._virtualItems[oldFirstIndex + i];
                     if (!ii) continue;
@@ -1538,7 +1563,7 @@ export class GList extends GComponent {
 
                 ii.updateFlag = this.itemInfoVer;
                 ii.obj.setXY(curX, curY);
-                if (curIndex == newFirstIndex) //要显示多一条才不会穿帮
+                if (curIndex == newFirstIndex) //要显示多1条才不会穿帮
                     max += ii.height;
 
                 curX += ii.width + this._columnGap;
@@ -1649,6 +1674,18 @@ export class GList extends GComponent {
         });
     }
 
+    public setBoundsChangedFlag(): void {
+        if (!this._scrollPane && !this._trackBounds)
+            return;
+
+        if (!this._boundsChanged) {
+            this._boundsChanged = true;
+
+            if (!this._renderTime) this.scene.time.addEvent(this._renderEvent);
+            //Laya.timer.callLater(this, this.__render);
+        }
+    }
+
     private async handleScroll2(forceUpdate: boolean): Promise<boolean> {
         var pos: number = this._scrollPane.scrollingPosX;
         var max: number = pos + this._scrollPane.viewWidth;
@@ -1658,6 +1695,7 @@ export class GList extends GComponent {
         s_n = pos;
         var newFirstIndex: number = this.getIndexOnPos2(forceUpdate);
         pos = s_n;
+        console.log("pos ===>", pos, newFirstIndex);
         if (newFirstIndex == this._firstIndex && !forceUpdate)
             return false;
 
@@ -1769,7 +1807,7 @@ export class GList extends GComponent {
                 max += ii.width;
 
             curY += ii.height + this._lineGap;
-
+            // console.log("curY ===>", curY);
             if (curIndex % this._curLineItemCount == this._curLineItemCount - 1) {
                 curY = 0;
                 curX += ii.width + this._columnGap;
@@ -2040,6 +2078,7 @@ export class GList extends GComponent {
         //     return;
 
         var i: number;
+
         var child: GObject;
         var curX: number = 0;
         var curY: number = 0;
@@ -2064,6 +2103,7 @@ export class GList extends GComponent {
 
                 if (curY != 0)
                     curY += this._lineGap;
+                // console.log("curY 0===>", curY, i);
                 child.y = curY;
                 if (this._autoResizeItem)
                     child.setSize(viewWidth, child.height, true);
@@ -2072,7 +2112,7 @@ export class GList extends GComponent {
                     maxWidth = child.width;
             }
             ch = curY;
-
+            // console.log("curY total===>", curY);
             if (ch <= viewHeight && this._autoResizeItem && this._scrollPane && this._scrollPane._displayInDemand && this._scrollPane.vtScrollBar) {
                 viewWidth += this._scrollPane.vtScrollBar.width;
                 for (i = 0; i < cnt; i++) {
@@ -2409,35 +2449,37 @@ export class GList extends GComponent {
         this.readItems(buffer);
     }
 
-    protected readItems(buffer: ByteBuffer): void {
-        var cnt: number;
-        var i: number;
-        var nextPos: number;
-        var str: string;
+    protected readItems(buffer: ByteBuffer): Promise<void> {
+        return new Promise((resolve, reject) => {
+            var cnt: number;
+            var i: number;
+            var nextPos: number;
+            var str: string;
 
-        cnt = buffer.readShort();
-        for (i = 0; i < cnt; i++) {
-            nextPos = buffer.readShort();
-            nextPos += buffer.position;
+            cnt = buffer.readShort();
+            for (i = 0; i < cnt; i++) {
+                nextPos = buffer.readShort();
+                nextPos += buffer.position;
 
-            str = buffer.readS();
-            if (str == null) {
-                str = this._defaultItem;
-                if (!str) {
+                str = buffer.readS();
+                if (str == null) {
+                    str = this._defaultItem;
+                    if (!str) {
+                        buffer.position = nextPos;
+                        continue;
+                    }
+                }
+
+                this.getFromPool(str).then((obj) => {
+                    if (obj) {
+                        this.addChild(obj);
+                        this.setupItem(buffer, obj);
+                    }
                     buffer.position = nextPos;
-                    continue;
-                }
+                });
             }
-
-            this.getFromPool(str).then((obj) => {
-                if (obj) {
-                    this.addChild(obj);
-                    this.setupItem(buffer, obj);
-                }
-                buffer.position = nextPos;
-            });
-
-        }
+            resolve();
+        });
     }
 
     protected setupItem(buffer: ByteBuffer, obj: GObject): void {

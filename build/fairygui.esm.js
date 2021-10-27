@@ -5360,7 +5360,7 @@ class Image extends Phaser.GameObjects.Container {
     }
     createPatchFrame(patch, x, y, width, height) {
         if (this._sourceTexture.frames.hasOwnProperty(patch)) {
-            console.log("patch cf", patch);
+            // console.log("patch cf", patch);
             return;
         }
         this._sourceTexture.add(patch, this.originFrame.sourceIndex, this.originFrame.cutX + x, this.originFrame.cutY + y, width, height);
@@ -6043,6 +6043,9 @@ class GMovieClip extends GObject {
         this._displayObject = this._movieClip = new MovieClip(this.scene);
         // this._movieClip.mouseEnabled = false;
         this._displayObject["$owner"] = this;
+    }
+    getChild() {
+        return null;
     }
     get playing() {
         return this._movieClip.playing;
@@ -8164,7 +8167,7 @@ class ScrollPane {
             if (this._tweenUpdateTime) {
                 this._tweenUpdateTime.remove(false);
                 this._tweenUpdateTime = null;
-                console.log("remove tweenupdate");
+                // console.log("remove tweenupdate");
             }
             // Laya.timer.clear(this, this.tweenUpdate);
         }
@@ -8607,7 +8610,7 @@ class ScrollPane {
             return;
         this._contentSize.x = aWidth;
         this._contentSize.y = aHeight;
-        console.log("contentsize ===>", aWidth, aHeight);
+        // console.log("contentsize ===>", aWidth, aHeight);
         this.handleSizeChanged();
     }
     changeContentSizeOnScrolling(deltaWidth, deltaHeight, deltaPosX, deltaPosY) {
@@ -8683,7 +8686,7 @@ class ScrollPane {
             else
                 this._hzScrollBar.setDisplayPerc(Math.min(1, this._viewSize.x / this._contentSize.x));
         }
-        console.log("handlesize ===>", this._owner.displayObject);
+        // console.log("handlesize ===>", this._owner.displayObject);
         this.updateScrollBarVisible();
         if (this.maskScrollRect) {
             var rect = new Phaser.Geom.Rectangle(); //this._maskContainer["scrollRect"];
@@ -8771,7 +8774,7 @@ class ScrollPane {
         if (this._refreshTime) {
             this._refreshTime.remove(false);
             this._refreshTime = null;
-            console.log("remove refreshTime");
+            // console.log("remove refreshTime");
         }
         // Laya.timer.clear(this, this.refresh);
         if (this._pageMode || this._snapToItem) {
@@ -8788,7 +8791,7 @@ class ScrollPane {
             if (this._refreshTime) {
                 this._refreshTime.remove(false);
                 this._refreshTime = null;
-                console.log("remove refreshTime");
+                // console.log("remove refreshTime");
             }
             // Laya.timer.clear(this, this.refresh);
             this.refresh2();
@@ -8883,7 +8886,8 @@ class ScrollPane {
         if (ScrollPane.draggingPane && ScrollPane.draggingPane != this || GObject.draggingObject) //已经有其他拖动
             return;
         if (!this.checkInBounds(pointer)) {
-            this.__mouseUp();
+            // 防止出框后回弹
+            // this.__mouseUp();
             return;
         }
         var sensitivity = UIConfig.touchScrollSensitivity;
@@ -9420,7 +9424,7 @@ class ScrollPane {
         if (this._tweenUpdateTime) {
             this._tweenUpdateTime.remove(false);
             this._tweenUpdateTime = null;
-            console.log("remove tweenupdate");
+            //console.log("remove tweenupdate");
         }
         // Laya.timer.clear(this, this.tweenUpdate);
         this.updateScrollBarVisible();
@@ -9486,7 +9490,7 @@ class ScrollPane {
             if (this._tweenUpdateTime) {
                 this._tweenUpdateTime.remove(false);
                 this._tweenUpdateTime = null;
-                console.log("remove tweenupdate");
+                // console.log("remove tweenupdate");
             }
             // Laya.timer.clear(this, this.tweenUpdate);
             this.loopCheckingCurrent();
@@ -10951,8 +10955,19 @@ class GComponent extends GObject {
         GRoot.inst.addToStage(this._displayObject);
         this._displayObject["$owner"] = this;
         this._container = this._displayObject;
+        const _delay = 0.001;
+        this._renderEvent = { delay: _delay, callback: this.__render, callbackScope: this };
+        this._buildNativeEvent = { delay: _delay, callback: this.buildNativeDisplayList, callbackScope: this };
     }
     dispose() {
+        if (!this._renderTime) {
+            this._renderTime.remove(false);
+            this._renderTime = null;
+        }
+        if (!this._buildNativeTime) {
+            this._buildNativeTime.remove(false);
+            this._buildNativeTime = null;
+        }
         var i;
         var cnt;
         cnt = this._transitions.length;
@@ -11047,8 +11062,11 @@ class GComponent extends GObject {
                 child.group = null;
                 if (child.inContainer) {
                     this._container.remove(child.displayObject);
-                    // if (this._childrenRenderOrder == ChildrenRenderOrder.Arch)
-                    //     Laya.timer.callLater(this, this.buildNativeDisplayList);
+                    if (this._childrenRenderOrder == ChildrenRenderOrder.Arch) {
+                        if (!this._buildNativeTime)
+                            this._buildNativeTime = this.scene.time.addEvent(this._buildNativeEvent);
+                    }
+                    //Laya.timer.callLater(this, this.buildNativeDisplayList);
                 }
                 if (dispose)
                     child.dispose();
@@ -11194,9 +11212,11 @@ class GComponent extends GObject {
                     displayIndex--;
                 this._container.addAt(child.displayObject, displayIndex);
             }
-            // else {
-            //     Laya.timer.callLater(this, this.buildNativeDisplayList);
-            // }
+            else {
+                if (!this._buildNativeTime)
+                    this._buildNativeTime = this.scene.time.addEvent(this._buildNativeEvent);
+                //Laya.timer.callLater(this, this.buildNativeDisplayList);
+            }
             this.setBoundsChangedFlag();
         }
         return index;
@@ -11300,6 +11320,8 @@ class GComponent extends GObject {
                 }
                 else {
                     this._container.add(child.displayObject);
+                    if (!this._buildNativeTime)
+                        this._buildNativeTime = this.scene.time.addEvent(this._buildNativeEvent);
                     // Laya.timer.callLater(this, this.buildNativeDisplayList);
                 }
             }
@@ -11307,9 +11329,11 @@ class GComponent extends GObject {
         else {
             if (child.displayObject.parentContainer) {
                 this._container.remove(child.displayObject);
-                console.log("remove display", child);
-                //     if (this._childrenRenderOrder == ChildrenRenderOrder.Arch)
-                //         Laya.timer.callLater(this, this.buildNativeDisplayList);
+                // console.log("remove display", child);
+                if (this._childrenRenderOrder == ChildrenRenderOrder.Arch) {
+                    if (!this._buildNativeTime)
+                        this._buildNativeTime = this.scene.time.addEvent(this._buildNativeEvent);
+                }
             }
         }
     }
@@ -11600,7 +11624,8 @@ class GComponent extends GObject {
             return;
         if (!this._boundsChanged) {
             this._boundsChanged = true;
-            this.__render();
+            if (!this._renderTime)
+                this.scene.time.addEvent(this._renderEvent);
             //Laya.timer.callLater(this, this.__render);
         }
     }
@@ -12261,7 +12286,7 @@ class GRoot extends GComponent {
             sizeH = target.height;
         }
         else {
-            console.log("show 100,100");
+            // console.log("show 100,100");
             pos = this.globalToLocal(100, 100);
         }
         var xx, yy;
@@ -12932,9 +12957,9 @@ class InputTextField extends TextField {
         this._inputNode = null;
         this._element.destroy();
         this._element = null;
-        this.updateText();
-        this.setVisible(true);
         this._editing = false;
+        this.updateTextField();
+        this.setVisible(true);
     }
     createElement() {
         this._element = new Phaser.GameObjects.DOMElement(this.scene);
@@ -12952,8 +12977,8 @@ class InputTextField extends TextField {
         e.style.display = "none";
         e.style.background = 'transparent';
         e.style.transformOrigin = e.style["WebkitTransformOrigin"] = "0 0 0";
-        e.style.width = `${this.width}px`;
-        e.style.height = `${this.height}px`;
+        e.style.width = `${this._width}px`;
+        e.style.height = `${this._height}px`;
         this._element.setElement(e);
         this._element.setOrigin(this.originX, this.originY);
         this._element.setPosition(this.x, this.y);
@@ -13047,9 +13072,11 @@ class InputTextField extends TextField {
             width = Math.floor(width);
             height = Math.floor(height);
         }
-        if (this.width === width && this.height === height) {
+        if (this._width === width && this._height === height) {
             return;
         }
+        this._width = width;
+        this._height = height;
         super.setSize(width, height);
         if (this._inputNode) {
             const style = this._inputNode.style;
@@ -15726,7 +15753,7 @@ class GList extends GComponent {
         this._virtualListChanged = 0; //1-content changed, 2-size changed
         this.itemInfoVer = 0; //用来标志item是否在本次处理中已经被重用了
         this._timeDelta = 500;
-        this._refreshListEvent = { delay: this._timeDelta, callback: this._refreshVirtualList, callbackScope: this };
+        this._refreshListEvent = { delay: this._timeDelta / this.scene.game.config.fps.target, callback: this._refreshVirtualList, callbackScope: this };
         this._trackBounds = true;
         this._pool = new GObjectPool();
         this._layout = ListLayoutType.SingleColumn;
@@ -15739,8 +15766,11 @@ class GList extends GComponent {
         this._verticalAlign = "top";
         this._container = scene.make.container(undefined, false);
         this._displayObject.add(this._container);
+        // todo click 优先添加监听，防止scrollpane的pointerup将参数修改，影响glist _clickItem逻辑
+        this.scene.input.on("pointerup", this.__clickItem, this);
     }
     dispose() {
+        this.scene.input.off("pointerup", this.__clickItem, this);
         this._pool.clear();
         super.dispose();
     }
@@ -15889,8 +15919,8 @@ class GList extends GComponent {
             child.selected = false;
             child.changeStateOnClick = false;
         }
-        // todo click
-        this.scene.input.on("pointerup", this.__clickItem, this);
+        // // todo click
+        // this.scene.input.on("pointerup", this.__clickItem, this);
         return child;
     }
     addItem(url) {
@@ -15916,9 +15946,6 @@ class GList extends GComponent {
             super.removeChildAt(index).then((obj) => {
                 if (dispose) {
                     obj.dispose();
-                }
-                else {
-                    this.scene.input.off("pointerup", this.__clickItem, this);
                 }
                 reslove(obj);
             });
@@ -16270,11 +16297,31 @@ class GList extends GComponent {
     __clickItem(pointer, gameObject) {
         if ((this._scrollPane && this._scrollPane.isDragged) || !gameObject || !gameObject[0])
             return;
-        var item = (gameObject[0]["$owner"]);
-        this.setSelectionOnEvent(item, { target: gameObject });
+        let item = (gameObject[0]["$owner"]);
+        // 如果clickitem的父对象为空，不可能为glist则直接跳出
+        if (!item.parent)
+            return;
+        let boo = false;
+        let target = gameObject[0];
+        while (!boo) {
+            if (item.parent instanceof GList) {
+                target = item.displayObject;
+                boo = true;
+            }
+            else {
+                item = item.parent;
+                if (!item.parent)
+                    boo = true;
+                boo = false;
+            }
+        }
+        // 如果clickitem的父对象为空，不可能为glist则直接跳出
+        if (!item.parent)
+            return;
+        this.setSelectionOnEvent(item, { target });
         if (this._scrollPane && this.scrollItemToViewOnClick)
             this._scrollPane.scrollToView(item, true);
-        this.dispatchItemEvent(item, Events.createEvent(Events.CLICK_ITEM, this.displayObject, { target: gameObject, touchId: pointer.id }));
+        this.dispatchItemEvent(item, Events.createEvent(Events.CLICK_ITEM, this.displayObject, { target, touchId: pointer.id }));
     }
     dispatchItemEvent(item, evt) {
         this.displayObject.emit(Events.CLICK_ITEM, [item, evt]);
@@ -16435,7 +16482,8 @@ class GList extends GComponent {
             if (this._layout == ListLayoutType.SingleColumn || this._layout == ListLayoutType.FlowHorizontal) {
                 saved = yValue;
                 s_n = yValue;
-                index = this.getIndexOnPos1(false) - 1 < 0 ? 0 : this.getIndexOnPos1(false) - 1;
+                const pos1 = this.getIndexOnPos1(false);
+                index = pos1 < 0 ? 0 : pos1;
                 yValue = s_n;
                 if (index < this._virtualItems.length && index < this._realNumItems) {
                     size = this._virtualItems[index].height;
@@ -16832,7 +16880,7 @@ class GList extends GComponent {
             }
             s_n = pos2;
             //console.log("5 ===>", i);
-            return this._realNumItems - this._curLineItemCount;
+            return 0; //this._realNumItems - this._curLineItemCount;
         }
     }
     getIndexOnPos2(forceUpdate) {
@@ -16979,12 +17027,15 @@ class GList extends GComponent {
             var end = max == this._scrollPane.contentHeight; //这个标志表示当前需要滚动到最末，无论内容变化大小
             //寻找当前位置的第一条项目
             s_n = pos;
-            var newFirstIndex = this.getIndexOnPos1(forceUpdate) - 1 < 0 ? 0 : this.getIndexOnPos1(forceUpdate) - 1;
+            // const singleHei = this._virtualItems[0].height * this._virtualItems.length + this._lineGap * (this._virtualItems.length - 1);
+            // const viewNum = Math.floor(this._scrollPane.viewHeight / singleHei);
+            const pos1 = this.getIndexOnPos1(forceUpdate);
+            var newFirstIndex = pos1 < 0 ? 0 : pos1;
             pos = s_n;
-            // if (newFirstIndex == this._firstIndex && !forceUpdate) {
-            //     reslove(false);
-            //     return;
-            // }
+            if (newFirstIndex == this._firstIndex && !forceUpdate) {
+                reslove(false);
+                return;
+            }
             var oldFirstIndex = this._firstIndex;
             this._firstIndex = newFirstIndex;
             var curIndex = newFirstIndex;
@@ -17003,6 +17054,7 @@ class GList extends GComponent {
             this.itemInfoVer++;
             const fun2 = () => {
                 // 等待数据组织完成再处理
+                childCount = this.numChildren;
                 for (i = 0; i < childCount; i++) {
                     ii = this._virtualItems[oldFirstIndex + i];
                     if (!ii)
@@ -17052,7 +17104,7 @@ class GList extends GComponent {
                 }
                 ii.updateFlag = this.itemInfoVer;
                 ii.obj.setXY(curX, curY);
-                if (curIndex == newFirstIndex) //要显示多一条才不会穿帮
+                if (curIndex == newFirstIndex) //要显示多1条才不会穿帮
                     max += ii.height;
                 curX += ii.width + this._columnGap;
                 if (curIndex % this._curLineItemCount == this._curLineItemCount - 1) {
@@ -17157,6 +17209,16 @@ class GList extends GComponent {
             }
         });
     }
+    setBoundsChangedFlag() {
+        if (!this._scrollPane && !this._trackBounds)
+            return;
+        if (!this._boundsChanged) {
+            this._boundsChanged = true;
+            if (!this._renderTime)
+                this.scene.time.addEvent(this._renderEvent);
+            //Laya.timer.callLater(this, this.__render);
+        }
+    }
     handleScroll2(forceUpdate) {
         return __awaiter(this, void 0, void 0, function* () {
             var pos = this._scrollPane.scrollingPosX;
@@ -17166,6 +17228,7 @@ class GList extends GComponent {
             s_n = pos;
             var newFirstIndex = this.getIndexOnPos2(forceUpdate);
             pos = s_n;
+            console.log("pos ===>", pos, newFirstIndex);
             if (newFirstIndex == this._firstIndex && !forceUpdate)
                 return false;
             var oldFirstIndex = this._firstIndex;
@@ -17265,6 +17328,7 @@ class GList extends GComponent {
                 if (curIndex == newFirstIndex) //要显示多一条才不会穿帮
                     max += ii.width;
                 curY += ii.height + this._lineGap;
+                // console.log("curY ===>", curY);
                 if (curIndex % this._curLineItemCount == this._curLineItemCount - 1) {
                     curY = 0;
                     curX += ii.width + this._columnGap;
@@ -17525,6 +17589,7 @@ class GList extends GComponent {
                     continue;
                 if (curY != 0)
                     curY += this._lineGap;
+                // console.log("curY 0===>", curY, i);
                 child.y = curY;
                 if (this._autoResizeItem)
                     child.setSize(viewWidth, child.height, true);
@@ -17533,6 +17598,7 @@ class GList extends GComponent {
                     maxWidth = child.width;
             }
             ch = curY;
+            // console.log("curY total===>", curY);
             if (ch <= viewHeight && this._autoResizeItem && this._scrollPane && this._scrollPane._displayInDemand && this._scrollPane.vtScrollBar) {
                 viewWidth += this._scrollPane.vtScrollBar.width;
                 for (i = 0; i < cnt; i++) {
@@ -17831,30 +17897,33 @@ class GList extends GComponent {
         this.readItems(buffer);
     }
     readItems(buffer) {
-        var cnt;
-        var i;
-        var nextPos;
-        var str;
-        cnt = buffer.readShort();
-        for (i = 0; i < cnt; i++) {
-            nextPos = buffer.readShort();
-            nextPos += buffer.position;
-            str = buffer.readS();
-            if (str == null) {
-                str = this._defaultItem;
-                if (!str) {
+        return new Promise((resolve, reject) => {
+            var cnt;
+            var i;
+            var nextPos;
+            var str;
+            cnt = buffer.readShort();
+            for (i = 0; i < cnt; i++) {
+                nextPos = buffer.readShort();
+                nextPos += buffer.position;
+                str = buffer.readS();
+                if (str == null) {
+                    str = this._defaultItem;
+                    if (!str) {
+                        buffer.position = nextPos;
+                        continue;
+                    }
+                }
+                this.getFromPool(str).then((obj) => {
+                    if (obj) {
+                        this.addChild(obj);
+                        this.setupItem(buffer, obj);
+                    }
                     buffer.position = nextPos;
-                    continue;
-                }
+                });
             }
-            this.getFromPool(str).then((obj) => {
-                if (obj) {
-                    this.addChild(obj);
-                    this.setupItem(buffer, obj);
-                }
-                buffer.position = nextPos;
-            });
-        }
+            resolve();
+        });
     }
     setupItem(buffer, obj) {
         var str;
@@ -17969,37 +18038,49 @@ class GTreeNode {
         this._level = value;
     }
     addChild(child) {
-        this.addChildAt(child, this._children.length);
-        return child;
+        return new Promise((resolve, rejcet) => {
+            this.addChildAt(child, this._children.length).then((treeNode) => {
+                resolve(treeNode);
+            });
+        });
     }
     addChildAt(child, index) {
-        if (!child)
-            throw new Error("child is null");
-        var numChildren = this._children.length;
-        if (index >= 0 && index <= numChildren) {
-            if (child._parent == this) {
-                this.setChildIndex(child, index);
+        return new Promise((resolve, rejcet) => {
+            if (!child)
+                throw new Error("child is null");
+            var numChildren = this._children.length;
+            if (index >= 0 && index <= numChildren) {
+                if (child._parent == this) {
+                    this.setChildIndex(child, index);
+                    resolve(child);
+                    return;
+                }
+                else {
+                    if (child._parent)
+                        child._parent.removeChild(child);
+                    var cnt = this._children.length;
+                    if (index == cnt)
+                        this._children.push(child);
+                    else
+                        this._children.splice(index, 0, child);
+                    child._parent = this;
+                    child._level = this._level + 1;
+                    child._setTree(this._tree);
+                    if (this._tree && this == this._tree.rootNode || this._cell && this._cell.parent && this._expanded) {
+                        this._tree._afterInserted(child).then(() => {
+                            resolve(child);
+                        });
+                    }
+                    else {
+                        resolve(child);
+                    }
+                }
+                return;
             }
             else {
-                if (child._parent)
-                    child._parent.removeChild(child);
-                var cnt = this._children.length;
-                if (index == cnt)
-                    this._children.push(child);
-                else
-                    this._children.splice(index, 0, child);
-                child._parent = this;
-                child._level = this._level + 1;
-                child._setTree(this._tree);
-                if (this._tree && this == this._tree.rootNode || this._cell && this._cell.parent && this._expanded)
-                    throw new Error("TODO");
-                // this._tree._afterInserted(child);
+                throw new RangeError("Invalid child index");
             }
-            return child;
-        }
-        else {
-            throw new RangeError("Invalid child index");
-        }
+        });
     }
     removeChild(child) {
         var childIndex = this._children.indexOf(child);
@@ -18138,25 +18219,23 @@ class GTree extends GList {
         this._clickToExpand = value;
     }
     getSelectedNode() {
-        throw new Error("TODO");
-        // if (this.selectedIndex != -1)
-        //     return this.getChildAt(this.selectedIndex)._treeNode;
-        // else
-        //     return null;
+        if (this.selectedIndex != -1)
+            return this.getChildAt(this.selectedIndex)._treeNode;
+        else
+            return null;
     }
     getSelectedNodes(result) {
-        throw new Error("TODO");
-        // if (!result)
-        //     result = new Array<GTreeNode>();
-        // s_list.length = 0;
-        // super.getSelection(s_list);
-        // var cnt: number = s_list.length;
-        // var ret: Array<GTreeNode> = new Array<GTreeNode>();
-        // for (var i: number = 0; i < cnt; i++) {
-        //     var node: GTreeNode = this.getChildAt(s_list[i])._treeNode;
-        //     ret.push(node);
-        // }
-        // return ret;
+        if (!result)
+            result = new Array();
+        s_list.length = 0;
+        super.getSelection(s_list);
+        var cnt = s_list.length;
+        var ret = new Array();
+        for (var i = 0; i < cnt; i++) {
+            var node = this.getChildAt(s_list[i])._treeNode;
+            ret.push(node);
+        }
+        return ret;
     }
     selectNode(node, scrollItToView) {
         var parentNode = node.parent;
@@ -18197,39 +18276,59 @@ class GTree extends GList {
         }
     }
     createCell(node) {
-        this.getFromPool(node._resURL ? node._resURL : this.defaultItem).then((obj) => {
-            var child = obj;
-            if (!child)
-                throw new Error("cannot create tree node object.");
-            child._treeNode = node;
-            node._cell = child;
-            var indentObj = child.getChild("indent");
-            if (indentObj)
-                indentObj.width = (node.level - 1) * this._indent;
-            var cc;
-            cc = child.getController("expanded");
-            if (cc) {
-                cc.on(Events.STATE_CHANGED, this.__expandedStateChanged, this);
-                cc.selectedIndex = node.expanded ? 1 : 0;
-            }
-            cc = child.getController("leaf");
-            if (cc)
-                cc.selectedIndex = node.isFolder ? 0 : 1;
-            if (node.isFolder)
-                child.on("pointerdown", this.__cellMouseDown, this);
-            if (this.treeNodeRender)
-                this.treeNodeRender.runWith([node, child]);
+        return new Promise((resolve, reject) => {
+            this.getFromPool(node._resURL ? node._resURL : this.defaultItem).then((obj) => {
+                var child = obj;
+                if (!child) {
+                    throw new Error("cannot create tree node object.");
+                }
+                child._treeNode = node;
+                node._cell = child;
+                var indentObj = child.getChild("indent");
+                if (indentObj)
+                    indentObj.width = (node.level - 1) * this._indent;
+                var cc;
+                cc = child.getController("expanded");
+                if (cc) {
+                    cc.on(Events.STATE_CHANGED, this.__expandedStateChanged, this);
+                    cc.selectedIndex = node.expanded ? 1 : 0;
+                }
+                cc = child.getController("leaf");
+                if (cc)
+                    cc.selectedIndex = node.isFolder ? 0 : 1;
+                if (node.isFolder)
+                    child.on("pointerdown", this.__cellMouseDown, this);
+                if (this.treeNodeRender)
+                    this.treeNodeRender.runWith([node, child]);
+                resolve();
+            });
         });
     }
     _afterInserted(node) {
-        if (!node._cell)
-            this.createCell(node);
-        var index = this.getInsertIndexForNode(node);
-        this.addChildAt(node._cell, index);
-        if (this.treeNodeRender)
-            this.treeNodeRender.runWith([node, node._cell]);
-        if (node.isFolder && node.expanded)
-            this.checkChildren(node, index);
+        return new Promise((resolve, reject) => {
+            const fun0 = () => {
+                var index = this.getInsertIndexForNode(node);
+                this.addChildAt(node._cell, index);
+                if (this.treeNodeRender)
+                    this.treeNodeRender.runWith([node, node._cell]);
+                if (node.isFolder && node.expanded) {
+                    this.checkChildren(node, index).then(() => {
+                        resolve();
+                    });
+                }
+                else {
+                    resolve();
+                }
+            };
+            if (!node._cell) {
+                this.createCell(node).then(() => {
+                    fun0();
+                });
+            }
+            else {
+                fun0();
+            }
+        });
     }
     getInsertIndexForNode(node) {
         var prevNode = node.getPrevSibling();
@@ -18317,18 +18416,67 @@ class GTree extends GList {
         return cnt;
     }
     checkChildren(folderNode, index) {
-        var cnt = folderNode.numChildren;
-        for (var i = 0; i < cnt; i++) {
-            index++;
-            var node = folderNode.getChildAt(i);
-            if (!node._cell)
-                this.createCell(node);
-            if (!node._cell.parent)
-                this.addChildAt(node._cell, index);
-            if (node.isFolder && node.expanded)
-                index = this.checkChildren(node, index);
-        }
-        return index;
+        return new Promise((resolve, reject) => {
+            var cnt = folderNode.numChildren;
+            const fun0 = (i) => {
+                if (i >= cnt) {
+                    resolve(index);
+                    return;
+                }
+                index++;
+                var node = folderNode.getChildAt(i);
+                if (!node._cell) {
+                    this.createCell(node).then(() => {
+                        fun1(node.cell, index);
+                        if (node.isFolder && node.expanded) {
+                            fun2(node, index).then((index) => {
+                                fun0(index);
+                            });
+                        }
+                        else {
+                            fun0(index);
+                        }
+                    });
+                }
+                else {
+                    if (node.isFolder && node.expanded) {
+                        fun2(node, index).then((index) => {
+                            fun0(index);
+                        });
+                    }
+                    else {
+                        fun0(index);
+                    }
+                }
+            };
+            const fun1 = (cell, index) => {
+                if (!cell.parent)
+                    this.addChildAt(cell, index);
+            };
+            const fun2 = (node, index) => {
+                return new Promise((resolve, reject) => {
+                    this.checkChildren(node, index).then((newIndex) => {
+                        index = newIndex;
+                        resolve(index);
+                    });
+                });
+            };
+            fun0(0);
+        });
+        // for (var i: number = 0; i < cnt; i++) {
+        //     index++;
+        //     var node: GTreeNode = folderNode.getChildAt(i);
+        //     if (!node._cell) {
+        //         this.createCell(node).then(() => {
+        //             fun1();
+        //         });
+        //     }
+        //     if (!node._cell.parent)
+        //         this.addChildAt(node._cell, index);
+        //     if (node.isFolder && node.expanded)
+        //         index = this.checkChildren(node, index);
+        // }
+        // return index;
     }
     hideFolderNode(folderNode) {
         var cnt = folderNode.numChildren;
@@ -18357,14 +18505,23 @@ class GTree extends GList {
         }
     }
     __cellMouseDown(evt) {
-        throw new Error("TODO");
+        var node = GObject.cast(evt.currentTarget)._treeNode;
+        this._expandedStatusInEvt = node.expanded;
     }
     __expandedStateChanged(cc) {
         var node = cc.parent._treeNode;
         node.expanded = cc.selectedIndex == 1;
     }
     dispatchItemEvent(item, evt) {
-        throw new Error("TODO");
+        if (this._clickToExpand != 0) {
+            var node = item._treeNode;
+            if (node && node.isFolder && this._expandedStatusInEvt == node.expanded) {
+                if (this._clickToExpand == 2) ;
+                else
+                    node.expanded = !node.expanded;
+            }
+        }
+        super.dispatchItemEvent(item, evt);
     }
     setup_beforeAdd(buffer, beginPos) {
         super.setup_beforeAdd(buffer, beginPos);
@@ -18373,51 +18530,108 @@ class GTree extends GList {
         this._clickToExpand = buffer.readByte();
     }
     readItems(buffer) {
-        var cnt;
-        var i;
-        var nextPos;
-        var str;
-        var isFolder;
-        var lastNode;
-        var level;
-        var prevLevel = 0;
-        cnt = buffer.readShort();
-        for (i = 0; i < cnt; i++) {
-            nextPos = buffer.readShort();
-            nextPos += buffer.position;
-            str = buffer.readS();
-            if (str == null) {
-                str = this.defaultItem;
-                if (!str) {
-                    buffer.position = nextPos;
-                    continue;
+        return new Promise((resolve, reject) => {
+            var cnt;
+            var nextPos;
+            var str;
+            var isFolder;
+            var lastNode;
+            var level;
+            var prevLevel = 0;
+            cnt = buffer.readShort();
+            const fun0 = (i) => {
+                if (i > cnt) {
+                    resolve();
+                    return;
                 }
-            }
-            isFolder = buffer.readBool();
-            level = buffer.readByte();
-            var node = new GTreeNode(isFolder, str);
-            node.expanded = true;
-            if (i == 0)
-                this._rootNode.addChild(node);
-            else {
-                if (level > prevLevel)
-                    lastNode.addChild(node);
-                else if (level < prevLevel) {
-                    for (var j = level; j <= prevLevel; j++)
-                        lastNode = lastNode.parent;
-                    lastNode.addChild(node);
+                nextPos = buffer.readShort();
+                nextPos += buffer.position;
+                str = buffer.readS();
+                if (str == null) {
+                    str = this.defaultItem;
+                    if (!str) {
+                        buffer.position = nextPos;
+                        fun0(i + 1);
+                        return;
+                    }
                 }
-                else
-                    lastNode.parent.addChild(node);
-            }
-            lastNode = node;
-            prevLevel = level;
-            this.setupItem(buffer, node.cell);
-            buffer.position = nextPos;
-        }
+                isFolder = buffer.readBool();
+                level = buffer.readByte();
+                var node = new GTreeNode(isFolder, str);
+                node.expanded = true;
+                if (i == 0) {
+                    this._rootNode.addChild(node).then(() => {
+                        lastNode = node;
+                        prevLevel = level;
+                        this.setupItem(buffer, node.cell);
+                        buffer.position = nextPos;
+                        fun0(i + 1);
+                    });
+                }
+                else {
+                    if (level > prevLevel)
+                        lastNode.addChild(node).then(() => {
+                            fun0(i + 1);
+                        });
+                    else if (level < prevLevel) {
+                        for (var j = level; j <= prevLevel; j++)
+                            lastNode = lastNode.parent;
+                        lastNode.addChild(node).then(() => {
+                            lastNode = node;
+                            prevLevel = level;
+                            this.setupItem(buffer, node.cell);
+                            buffer.position = nextPos;
+                            fun0(i + 1);
+                        });
+                    }
+                    else
+                        lastNode.parent.addChild(node).then(() => {
+                            lastNode = node;
+                            prevLevel = level;
+                            this.setupItem(buffer, node.cell);
+                            buffer.position = nextPos;
+                            fun0(i + 1);
+                        });
+                }
+            };
+            fun0(0);
+            // for (i = 0; i < cnt; i++) {
+            //     nextPos = buffer.readShort();
+            //     nextPos += buffer.position;
+            //     str = buffer.readS();
+            //     if (str == null) {
+            //         str = this.defaultItem;
+            //         if (!str) {
+            //             buffer.position = nextPos;
+            //             continue;
+            //         }
+            //     }
+            //     isFolder = buffer.readBool();
+            //     level = buffer.readByte();
+            //     var node: GTreeNode = new GTreeNode(isFolder, str);
+            //     node.expanded = true;
+            //     if (i == 0)
+            //         this._rootNode.addChild(node);
+            //     else {
+            //         if (level > prevLevel)
+            //             lastNode.addChild(node);
+            //         else if (level < prevLevel) {
+            //             for (var j: number = level; j <= prevLevel; j++)
+            //                 lastNode = lastNode.parent;
+            //             lastNode.addChild(node);
+            //         }
+            //         else
+            //             lastNode.parent.addChild(node);
+            //     }
+            //     lastNode = node;
+            //     prevLevel = level;
+            //     this.setupItem(buffer, node.cell);
+            //     buffer.position = nextPos;
+            // }
+        });
     }
 }
-new Array();
+var s_list = new Array();
 
 class Window extends GComponent {
     constructor() {

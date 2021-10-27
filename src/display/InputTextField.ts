@@ -24,6 +24,8 @@ export class InputTextField extends TextField {
 
     private _element: Phaser.GameObjects.DOMElement;
     private _inputNode: InputElement;
+    private _width: number;
+    private _height: number;
     constructor(owner: GBasicTextField) {
         super(owner);
 
@@ -66,9 +68,9 @@ export class InputTextField extends TextField {
         this._element.destroy();
         this._element = null;
 
-        this.updateText();
-        this.setVisible(true);
         this._editing = false;
+        this.updateTextField();
+        this.setVisible(true);
     }
 
     private createElement() {
@@ -91,8 +93,8 @@ export class InputTextField extends TextField {
         e.style.display = "none";
         e.style.background = 'transparent';
         e.style.transformOrigin = e.style["WebkitTransformOrigin"] = "0 0 0";
-        e.style.width = `${this.width}px`;
-        e.style.height = `${this.height}px`;
+        e.style.width = `${this._width}px`;
+        e.style.height = `${this._height}px`;
         this._element.setElement(e);
         this._element.setOrigin(this.originX, this.originY);
         this._element.setPosition(this.x, this.y);
@@ -199,9 +201,11 @@ export class InputTextField extends TextField {
             width = Math.floor(width);
             height = Math.floor(height);
         }
-        if (this.width === width && this.height === height) {
+        if (this._width === width && this._height === height) {
             return;
         }
+        this._width = width;
+        this._height = height;
         super.setSize(width, height);
         if (this._inputNode) {
             const style = (<InputElement>this._inputNode).style;

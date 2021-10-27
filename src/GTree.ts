@@ -53,28 +53,25 @@ export class GTree extends GList {
     }
 
     public getSelectedNode(): GTreeNode {
-        throw new Error("TODO");
-        // if (this.selectedIndex != -1)
-        //     return this.getChildAt(this.selectedIndex)._treeNode;
-        // else
-        //     return null;
+        if (this.selectedIndex != -1)
+            return this.getChildAt(this.selectedIndex)._treeNode;
+        else
+            return null;
     }
 
     public getSelectedNodes(result?: Array<GTreeNode>): Array<GTreeNode> {
-        throw new Error("TODO");
+        if (!result)
+            result = new Array<GTreeNode>();
 
-        // if (!result)
-        //     result = new Array<GTreeNode>();
-
-        // s_list.length = 0;
-        // super.getSelection(s_list);
-        // var cnt: number = s_list.length;
-        // var ret: Array<GTreeNode> = new Array<GTreeNode>();
-        // for (var i: number = 0; i < cnt; i++) {
-        //     var node: GTreeNode = this.getChildAt(s_list[i])._treeNode;
-        //     ret.push(node);
-        // }
-        // return ret;
+        s_list.length = 0;
+        super.getSelection(s_list);
+        var cnt: number = s_list.length;
+        var ret: Array<GTreeNode> = new Array<GTreeNode>();
+        for (var i: number = 0; i < cnt; i++) {
+            var node: GTreeNode = this.getChildAt(s_list[i])._treeNode;
+            ret.push(node);
+        }
+        return ret;
     }
 
     public selectNode(node: GTreeNode, scrollItToView?: boolean): void {
@@ -124,50 +121,68 @@ export class GTree extends GList {
         }
     }
 
-    private createCell(node: GTreeNode): void {
-        this.getFromPool(node._resURL ? node._resURL : this.defaultItem).then((obj) => {
-            var child: GComponent = <GComponent>obj;
-            if (!child)
-                throw new Error("cannot create tree node object.");
+    private createCell(node: GTreeNode): Promise<void> {
+        return new Promise((resolve, reject) => {
+            this.getFromPool(node._resURL ? node._resURL : this.defaultItem).then((obj) => {
+                var child: GComponent = <GComponent>obj;
+                if (!child) {
+                    throw new Error("cannot create tree node object.");
+                }
 
-            child._treeNode = node;
-            node._cell = child;
 
-            var indentObj: GObject = child.getChild("indent");
-            if (indentObj)
-                indentObj.width = (node.level - 1) * this._indent;
+                child._treeNode = node;
+                node._cell = child;
 
-            var cc: Controller;
+                var indentObj: GObject = child.getChild("indent");
+                if (indentObj)
+                    indentObj.width = (node.level - 1) * this._indent;
 
-            cc = child.getController("expanded");
-            if (cc) {
-                cc.on(Events.STATE_CHANGED, this.__expandedStateChanged, this);
-                cc.selectedIndex = node.expanded ? 1 : 0;
-            }
+                var cc: Controller;
 
-            cc = child.getController("leaf");
-            if (cc)
-                cc.selectedIndex = node.isFolder ? 0 : 1;
+                cc = child.getController("expanded");
+                if (cc) {
+                    cc.on(Events.STATE_CHANGED, this.__expandedStateChanged, this);
+                    cc.selectedIndex = node.expanded ? 1 : 0;
+                }
 
-            if (node.isFolder)
-                child.on("pointerdown", this.__cellMouseDown, this);
+                cc = child.getController("leaf");
+                if (cc)
+                    cc.selectedIndex = node.isFolder ? 0 : 1;
 
-            if (this.treeNodeRender)
-                this.treeNodeRender.runWith([node, child]);
+                if (node.isFolder)
+                    child.on("pointerdown", this.__cellMouseDown, this);
+
+                if (this.treeNodeRender)
+                    this.treeNodeRender.runWith([node, child]);
+                resolve();
+            });
         });
     }
 
-    public _afterInserted(node: GTreeNode): void {
-        if (!node._cell)
-            this.createCell(node);
+    public _afterInserted(node: GTreeNode): Promise<void> {
+        return new Promise((resolve, reject) => {
+            const fun0 = () => {
+                var index: number = this.getInsertIndexForNode(node);
+                this.addChildAt(node._cell, index);
+                if (this.treeNodeRender)
+                    this.treeNodeRender.runWith([node, node._cell]);''
 
-        var index: number = this.getInsertIndexForNode(node);
-        this.addChildAt(node._cell, index);
-        if (this.treeNodeRender)
-            this.treeNodeRender.runWith([node, node._cell]);
-
-        if (node.isFolder && node.expanded)
-            this.checkChildren(node, index);
+                if (node.isFolder && node.expanded) {
+                    this.checkChildren(node, index).then(() => {
+                        resolve();
+                    });
+                } else {
+                    resolve();
+                }
+            }
+            if (!node._cell) {
+                this.createCell(node).then(() => {
+                    fun0();
+                });
+            } else {
+                fun0();
+            }
+        });
     }
 
     private getInsertIndexForNode(node: GTreeNode): number {
@@ -274,22 +289,76 @@ export class GTree extends GList {
         return cnt;
     }
 
-    private checkChildren(folderNode: GTreeNode, index: number): number {
-        var cnt: number = folderNode.numChildren;
-        for (var i: number = 0; i < cnt; i++) {
-            index++;
-            var node: GTreeNode = folderNode.getChildAt(i);
-            if (!node._cell)
-                this.createCell(node);
+    private checkChildren(folderNode: GTreeNode, index: number): Promise<number> {
+        return new Promise((resolve, reject) => {
+            var cnt: number = folderNode.numChildren;
+            const fun0 = (i: number) => {
+                if (i >= cnt) {
+                    resolve(index);
+                    return;
+                }
+                index++;
+                var node: GTreeNode = folderNode.getChildAt(i);
+                if (!node._cell) {
+                    this.createCell(node).then(() => {
+                        fun1(node.cell, index);
+                        if (node.isFolder && node.expanded) {
+                            fun2(node, index).then((index) => {
+                                fun0(index);
+                            });
+                        } else {
+                            fun0(index);
+                        }
+                    });
+                } else {
+                    if (node.isFolder && node.expanded) {
+                        fun2(node, index).then((index) => {
+                            fun0(index);
+                        });
+                    } else {
+                        fun0(index);
+                    }
+                }
+            };
 
-            if (!node._cell.parent)
-                this.addChildAt(node._cell, index);
+            const fun1 = (cell, index) => {
+                if (!cell.parent)
+                    this.addChildAt(cell, index);
+            };
 
-            if (node.isFolder && node.expanded)
-                index = this.checkChildren(node, index);
-        }
+            const fun2 = (node, index): Promise<number> => {
+                return new Promise((resolve, reject) => {
+                    this.checkChildren(node, index).then((newIndex) => {
+                        index = newIndex;
+                        resolve(index);
+                    });
+                });
+            }
 
-        return index;
+
+            fun0(0);
+        });
+
+
+        // for (var i: number = 0; i < cnt; i++) {
+        //     index++;
+        //     var node: GTreeNode = folderNode.getChildAt(i);
+        //     if (!node._cell) {
+        //         this.createCell(node).then(() => {
+        //             fun1();
+        //         });
+        //     }
+
+        //     if (!node._cell.parent)
+        //         this.addChildAt(node._cell, index);
+
+        //     if (node.isFolder && node.expanded)
+        //         index = this.checkChildren(node, index);
+        // }
+
+
+
+        // return index;
     }
 
     private hideFolderNode(folderNode: GTreeNode): void {
@@ -322,7 +391,6 @@ export class GTree extends GList {
     }
 
     private __cellMouseDown(evt: any): void {
-        throw new Error("TODO");
         var node: GTreeNode = GObject.cast(evt.currentTarget)._treeNode;
         this._expandedStatusInEvt = node.expanded;
     }
@@ -333,7 +401,6 @@ export class GTree extends GList {
     }
 
     protected dispatchItemEvent(item: GObject, evt: any): void {
-        throw new Error("TODO");
         if (this._clickToExpand != 0) {
             var node: GTreeNode = item._treeNode;
             if (node && node.isFolder && this._expandedStatusInEvt == node.expanded) {
@@ -358,55 +425,122 @@ export class GTree extends GList {
         this._clickToExpand = buffer.readByte();
     }
 
-    protected readItems(buffer: ByteBuffer): void {
-        var cnt: number;
-        var i: number;
-        var nextPos: number;
-        var str: string;
-        var isFolder: boolean;
-        var lastNode: GTreeNode;
-        var level: number;
-        var prevLevel: number = 0;
+    protected readItems(buffer: ByteBuffer): Promise<void> {
+        return new Promise((resolve, reject) => {
+            var cnt: number;
+            var i: number;
+            var nextPos: number;
+            var str: string;
+            var isFolder: boolean;
+            var lastNode: GTreeNode;
+            var level: number;
+            var prevLevel: number = 0;
 
-        cnt = buffer.readShort();
-        for (i = 0; i < cnt; i++) {
-            nextPos = buffer.readShort();
-            nextPos += buffer.position;
-
-            str = buffer.readS();
-            if (str == null) {
-                str = this.defaultItem;
-                if (!str) {
-                    buffer.position = nextPos;
-                    continue;
+            cnt = buffer.readShort();
+            const fun0 = (i) => {
+                if (i > cnt) {
+                    resolve();
+                    return;
                 }
-            }
+                nextPos = buffer.readShort();
+                nextPos += buffer.position;
 
-            isFolder = buffer.readBool();
-            level = buffer.readByte();
-
-            var node: GTreeNode = new GTreeNode(isFolder, str);
-            node.expanded = true;
-            if (i == 0)
-                this._rootNode.addChild(node);
-            else {
-                if (level > prevLevel)
-                    lastNode.addChild(node);
-                else if (level < prevLevel) {
-                    for (var j: number = level; j <= prevLevel; j++)
-                        lastNode = lastNode.parent;
-                    lastNode.addChild(node);
+                str = buffer.readS();
+                if (str == null) {
+                    str = this.defaultItem;
+                    if (!str) {
+                        buffer.position = nextPos;
+                        fun0(i + 1);
+                        return;
+                    }
                 }
-                else
-                    lastNode.parent.addChild(node);
-            }
-            lastNode = node;
-            prevLevel = level;
 
-            this.setupItem(buffer, node.cell);
+                isFolder = buffer.readBool();
+                level = buffer.readByte();
 
-            buffer.position = nextPos;
-        }
+                var node: GTreeNode = new GTreeNode(isFolder, str);
+                node.expanded = true;
+
+                if (i == 0) {
+                    this._rootNode.addChild(node).then(() => {
+                        lastNode = node;
+                        prevLevel = level;
+
+                        this.setupItem(buffer, node.cell);
+
+                        buffer.position = nextPos;
+                        fun0(i + 1);
+                    });
+                } else {
+                    if (level > prevLevel)
+                        lastNode.addChild(node).then(() => {
+                            fun0(i + 1);
+                        });
+                    else if (level < prevLevel) {
+                        for (var j: number = level; j <= prevLevel; j++)
+                            lastNode = lastNode.parent;
+                        lastNode.addChild(node).then(() => {
+                            lastNode = node;
+                            prevLevel = level;
+
+                            this.setupItem(buffer, node.cell);
+
+                            buffer.position = nextPos;
+                            fun0(i + 1);
+                        });
+                    }
+                    else
+                        lastNode.parent.addChild(node).then(() => {
+                            lastNode = node;
+                            prevLevel = level;
+
+                            this.setupItem(buffer, node.cell);
+
+                            buffer.position = nextPos;
+                            fun0(i + 1);
+                        });
+                }
+            };
+            fun0(0);
+            // for (i = 0; i < cnt; i++) {
+            //     nextPos = buffer.readShort();
+            //     nextPos += buffer.position;
+
+            //     str = buffer.readS();
+            //     if (str == null) {
+            //         str = this.defaultItem;
+            //         if (!str) {
+            //             buffer.position = nextPos;
+            //             continue;
+            //         }
+            //     }
+
+            //     isFolder = buffer.readBool();
+            //     level = buffer.readByte();
+
+            //     var node: GTreeNode = new GTreeNode(isFolder, str);
+            //     node.expanded = true;
+            //     if (i == 0)
+            //         this._rootNode.addChild(node);
+            //     else {
+            //         if (level > prevLevel)
+            //             lastNode.addChild(node);
+            //         else if (level < prevLevel) {
+            //             for (var j: number = level; j <= prevLevel; j++)
+            //                 lastNode = lastNode.parent;
+            //             lastNode.addChild(node);
+            //         }
+            //         else
+            //             lastNode.parent.addChild(node);
+            //     }
+            //     lastNode = node;
+            //     prevLevel = level;
+
+            //     this.setupItem(buffer, node.cell);
+
+            //     buffer.position = nextPos;
+            // }
+        });
     }
 }
 

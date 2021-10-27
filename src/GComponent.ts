@@ -21,6 +21,12 @@ export class GComponent extends GObject {
     private _applyingController?: Controller;
     private _mask?: Graphics;
 
+    protected _renderEvent: any;//Phaser.Time.TimerEvent;
+    protected _renderTime: Phaser.Time.TimerEvent;
+
+    protected _buildNativeEvent: any;
+    protected _buildNativeTime: Phaser.Time.TimerEvent;
+
     protected _margin: Margin;
     protected _trackBounds: boolean;
     protected _boundsChanged: boolean;
@@ -52,9 +58,20 @@ export class GComponent extends GObject {
         GRoot.inst.addToStage(this._displayObject);
         this._displayObject["$owner"] = this;
         this._container = this._displayObject;
+        const _delay = 0.001;
+        this._renderEvent = { delay: _delay, callback: this.__render, callbackScope: this };
+        this._buildNativeEvent = { delay: _delay, callback: this.buildNativeDisplayList, callbackScope: this };
     }
 
     public dispose(): void {
+        if (!this._renderTime) {
+            this._renderTime.remove(false);
+            this._renderTime = null;
+        }
+        if (!this._buildNativeTime) {
+            this._buildNativeTime.remove(false);
+            this._buildNativeTime = null;
+        }
         var i: number;
         var cnt: number;
 
@@ -169,8 +186,10 @@ export class GComponent extends GObject {
                 child.group = null;
                 if (child.inContainer) {
                     this._container.remove(child.displayObject);
-                    // if (this._childrenRenderOrder == ChildrenRenderOrder.Arch)
-                    //     Laya.timer.callLater(this, this.buildNativeDisplayList);
+                    if (this._childrenRenderOrder == ChildrenRenderOrder.Arch) {
+                        if (!this._buildNativeTime) this._buildNativeTime = this.scene.time.addEvent(this._buildNativeEvent);
+                    }
+                    //Laya.timer.callLater(this, this.buildNativeDisplayList);
                 }
 
                 if (dispose)
@@ -347,9 +366,10 @@ export class GComponent extends GObject {
                     displayIndex--;
                 this._container.addAt(child.displayObject, displayIndex);
             }
-            // else {
-            //     Laya.timer.callLater(this, this.buildNativeDisplayList);
-            // }
+            else {
+                if (!this._buildNativeTime) this._buildNativeTime = this.scene.time.addEvent(this._buildNativeEvent);
+                //Laya.timer.callLater(this, this.buildNativeDisplayList);
+            }
 
             this.setBoundsChangedFlag();
         }
@@ -476,7 +496,7 @@ export class GComponent extends GObject {
                 }
                 else {
                     this._container.add(child.displayObject);
-
+                    if (!this._buildNativeTime) this._buildNativeTime = this.scene.time.addEvent(this._buildNativeEvent);
                     // Laya.timer.callLater(this, this.buildNativeDisplayList);
                 }
             }
@@ -484,14 +504,15 @@ export class GComponent extends GObject {
         else {
             if (child.displayObject.parentContainer) {
                 this._container.remove(child.displayObject);
-                console.log("remove display", child);
-                //     if (this._childrenRenderOrder == ChildrenRenderOrder.Arch)
-                //         Laya.timer.callLater(this, this.buildNativeDisplayList);
+                // console.log("remove display", child);
+                if (this._childrenRenderOrder == ChildrenRenderOrder.Arch) {
+                    if (!this._buildNativeTime) this._buildNativeTime = this.scene.time.addEvent(this._buildNativeEvent);
+                }
             }
         }
     }
 
-    private buildNativeDisplayList(): void {
+    protected buildNativeDisplayList(): void {
         if (!this._displayObject)
             return;
         var cnt: number = this._children.length;
@@ -820,7 +841,8 @@ export class GComponent extends GObject {
 
         if (!this._boundsChanged) {
             this._boundsChanged = true;
-            this.__render();
+
+            if (!this._renderTime) this.scene.time.addEvent(this._renderEvent);
             //Laya.timer.callLater(this, this.__render);
         }
     }
@@ -1306,14 +1328,14 @@ export class GComponent extends GObject {
         }
     }
 
-    private ___added(): void {
+    protected ___added(): void {
         var cnt: number = this._transitions.length;
         for (var i: number = 0; i < cnt; ++i) {
             this._transitions[i].onOwnerAddedToStage();
         }
     }
 
-    private ___removed(): void {
+    protected ___removed(): void {
         var cnt: number = this._transitions.length;
         for (var i: number = 0; i < cnt; ++i) {
             this._transitions[i].onOwnerRemovedFromStage();

@@ -11,6 +11,8 @@ export declare class InputTextField extends TextField {
     private _promptText;
     private _element;
     private _inputNode;
+    private _width;
+    private _height;
     constructor(owner: GBasicTextField);
     private onFocusHandler;
     private onBlurHandler;
