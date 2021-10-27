@@ -3,13 +3,12 @@ import { UIConfig } from './UIConfig';
 import { GButton } from './GButton';
 import { GObjectPool } from './GObjectPool';
 import { Controller } from './Controller';
-import { Decls, UIPackage } from './UIPackage';
+import { UIPackage } from './UIPackage';
 import { ListLayoutType, ListSelectionMode, ChildrenRenderOrder, OverflowType } from './FieldTypes';
 import { GComponent } from "./GComponent";
 import { GObject } from "./GObject";
 import { Events } from './Events';
 import { Handler } from './utils/Handler';
-import { Graphics, HitArea, ObjectType, PackageItem, PixelHitTest, Transition, TranslationHelper } from '.';
 export class GList extends GComponent {
     /**
      * this.itemRenderer(number index, GObject item);
@@ -23,39 +22,39 @@ export class GList extends GComponent {
     public scrollItemToViewOnClick: boolean;
     public foldInvisibleItems: boolean;
 
-    private _layout: number;
-    private _lineCount: number = 0;
-    private _columnCount: number = 0;
-    private _lineGap: number = 0;
-    private _columnGap: number = 0;
-    private _defaultItem: string;
-    private _autoResizeItem: boolean;
-    private _selectionMode: number;
-    private _align: string;
-    private _verticalAlign: string;
-    private _selectionController?: Controller;
+    protected _layout: number;
+    protected _lineCount: number = 0;
+    protected _columnCount: number = 0;
+    protected _lineGap: number = 0;
+    protected _columnGap: number = 0;
+    protected _defaultItem: string;
+    protected _autoResizeItem: boolean;
+    protected _selectionMode: number;
+    protected _align: string;
+    protected _verticalAlign: string;
+    protected _selectionController?: Controller;
 
-    private _lastSelectedIndex: number = 0;
-    private _pool: GObjectPool;
+    protected _lastSelectedIndex: number = 0;
+    protected _pool: GObjectPool;
 
     //Virtual List support
-    private _virtual?: boolean;
-    private _loop?: boolean;
-    private _numItems: number = 0;
-    private _realNumItems: number;
-    private _firstIndex: number = 0; //the top left index
-    private _curLineItemCount: number = 0; //item count in one line
-    private _curLineItemCount2: number; //只用在页面模式，表示垂直方向的项目数
-    private _itemSize?: Phaser.Geom.Point;
-    private _virtualListChanged: number = 0; //1-content changed, 2-size changed
-    private _virtualItems?: Array<ItemInfo>;
-    private _eventLocked?: boolean;
-    private itemInfoVer: number = 0; //用来标志item是否在本次处理中已经被重用了
-    private _timeDelta: number = 500;
-    private _refreshListEvent: any;//Phaser.Time.TimerEvent;
-    private _refreshListTime: Phaser.Time.TimerEvent;
-    constructor(scene?: Phaser.Scene) {
-        super(scene);
+    protected _virtual?: boolean;
+    protected _loop?: boolean;
+    protected _numItems: number = 0;
+    protected _realNumItems: number;
+    protected _firstIndex: number = 0; //the top left index
+    protected _curLineItemCount: number = 0; //item count in one line
+    protected _curLineItemCount2: number; //只用在页面模式，表示垂直方向的项目数
+    protected _itemSize?: Phaser.Geom.Point;
+    protected _virtualListChanged: number = 0; //1-content changed, 2-size changed
+    protected _virtualItems?: Array<ItemInfo>;
+    protected _eventLocked?: boolean;
+    protected itemInfoVer: number = 0; //用来标志item是否在本次处理中已经被重用了
+    protected _timeDelta: number = 500;
+    protected _refreshListEvent: any;//Phaser.Time.TimerEvent;
+    protected _refreshListTime: Phaser.Time.TimerEvent;
+    constructor(scene: Phaser.Scene, type) {
+        super(scene, type);
         this._refreshListEvent = { delay: this._timeDelta / this.scene.game.config.fps.target, callback: this._refreshVirtualList, callbackScope: this };
         this._trackBounds = true;
         this._pool = new GObjectPool();
@@ -76,6 +75,7 @@ export class GList extends GComponent {
     }
 
     public dispose(): void {
+        this.off(Events.SCROLL, this.__scrolled, this);
         this.scene.input.off("pointerup", this.__clickItem, this);
         this._pool.clear();
         super.dispose();
@@ -449,7 +449,7 @@ export class GList extends GComponent {
         }
     }
 
-    private clearSelectionExcept(g: GObject): void {
+    protected clearSelectionExcept(g: GObject): void {
         var i: number;
         if (this._virtual) {
             for (i = 0; i < this._realNumItems; i++) {
@@ -667,12 +667,12 @@ export class GList extends GComponent {
         }
     }
 
-    private __clickItem(pointer: Phaser.Input.Pointer, gameObject: Phaser.GameObjects.GameObject): void {
+    protected __clickItem(pointer: Phaser.Input.Pointer, gameObject: Phaser.GameObjects.GameObject): void {
         if ((this._scrollPane && this._scrollPane.isDragged) || !gameObject || !gameObject[0])
             return;
         let item: GObject = <GObject>(gameObject[0]["$owner"]);
         // 如果clickitem的父对象为空，不可能为glist则直接跳出
-        if (!item.parent) return;
+        if (!item || !item.parent) return;
         let boo = false;
         let target = gameObject[0];
         while (!boo) {
@@ -699,7 +699,7 @@ export class GList extends GComponent {
         this.displayObject.emit(Events.CLICK_ITEM, [item, evt]);
     }
 
-    private setSelectionOnEvent(item: GObject, evt: any): void {
+    protected setSelectionOnEvent(item: GObject, evt: any): void {
         if (!(item instanceof GButton) || this._selectionMode == ListSelectionMode.None)
             return;
 
@@ -844,7 +844,7 @@ export class GList extends GComponent {
             this.selectedIndex = c.selectedIndex;
     }
 
-    private updateSelectionController(index: number): void {
+    protected updateSelectionController(index: number): void {
         if (this._selectionController && !this._selectionController.changing
             && index < this._selectionController.pageCount) {
             var c: Controller = this._selectionController;
@@ -854,7 +854,7 @@ export class GList extends GComponent {
         }
     }
 
-    private shouldSnapToNext(dir: number, delta: number, size: number): boolean {
+    protected shouldSnapToNext(dir: number, delta: number, size: number): boolean {
         return dir < 0 && delta > UIConfig.defaultScrollSnappingThreshold * size
             || dir > 0 && delta > (1 - UIConfig.defaultScrollSnappingThreshold) * size
             || dir == 0 && delta > size / 2;
@@ -1017,7 +1017,7 @@ export class GList extends GComponent {
         this._setVirtual(true);
     }
 
-    private _setVirtual(loop: boolean): void {
+    protected _setVirtual(loop: boolean): void {
         if (!this._virtual) {
             if (this._scrollPane == null)
                 throw new Error("Virtual list must be scrollable!");
@@ -1143,7 +1143,7 @@ export class GList extends GComponent {
         this.setVirtualListChangedFlag(false);
     }
 
-    private checkVirtualList(): void {
+    protected checkVirtualList(): void {
         if (this._virtualListChanged != 0) {
             this._refreshVirtualList();
             if (this._refreshListTime) {
@@ -1154,7 +1154,7 @@ export class GList extends GComponent {
         }
     }
 
-    private setVirtualListChangedFlag(layoutChanged?: boolean): void {
+    protected setVirtualListChangedFlag(layoutChanged?: boolean): void {
         if (layoutChanged)
             this._virtualListChanged = 2;
         else if (this._virtualListChanged == 0)
@@ -1163,7 +1163,7 @@ export class GList extends GComponent {
         // Laya.timer.callLater(this, this._refreshVirtualList);
     }
 
-    private _refreshVirtualList(): void {
+    protected _refreshVirtualList(): void {
         if (!this._displayObject)
             return;
 
@@ -1262,11 +1262,11 @@ export class GList extends GComponent {
         this.handleScroll(true);
     }
 
-    private __scrolled(evt: any): void {
+    protected __scrolled(evt: any): void {
         this.handleScroll(false);
     }
 
-    private getIndexOnPos1(forceUpdate: boolean): number {
+    protected getIndexOnPos1(forceUpdate: boolean): number {
         if (this._realNumItems < this._curLineItemCount) {
             s_n = 0;
             return 0;
@@ -1326,7 +1326,7 @@ export class GList extends GComponent {
         }
     }
 
-    private getIndexOnPos2(forceUpdate: boolean): number {
+    protected getIndexOnPos2(forceUpdate: boolean): number {
         if (this._realNumItems < this._curLineItemCount) {
             s_n = 0;
             return 0;
@@ -1380,7 +1380,7 @@ export class GList extends GComponent {
         }
     }
 
-    private getIndexOnPos3(forceUpdate: boolean): number {
+    protected getIndexOnPos3(forceUpdate: boolean): number {
         if (this._realNumItems < this._curLineItemCount) {
             s_n = 0;
             return 0;
@@ -1405,7 +1405,7 @@ export class GList extends GComponent {
         return startIndex + this._curLineItemCount - 1;
     }
 
-    private handleScroll(forceUpdate: boolean): void {
+    protected handleScroll(forceUpdate: boolean): void {
         if (this._eventLocked)
             return;
 
@@ -1473,7 +1473,7 @@ export class GList extends GComponent {
         }
     }
 
-    private handleScroll1(forceUpdate: boolean): Promise<boolean> {
+    protected handleScroll1(forceUpdate: boolean): Promise<boolean> {
         return new Promise((reslove, reject) => {
             var pos: number = this._scrollPane.scrollingPosY;
             var max: number = pos + this._scrollPane.viewHeight;
@@ -1686,7 +1686,7 @@ export class GList extends GComponent {
         }
     }
 
-    private async handleScroll2(forceUpdate: boolean): Promise<boolean> {
+    protected async handleScroll2(forceUpdate: boolean): Promise<boolean> {
         var pos: number = this._scrollPane.scrollingPosX;
         var max: number = pos + this._scrollPane.viewWidth;
         var end: boolean = pos == this._scrollPane.contentWidth;//这个标志表示当前需要滚动到最末，无论内容变化大小
@@ -1841,7 +1841,7 @@ export class GList extends GComponent {
             return false;
     }
 
-    private async handleScroll3(forceUpdate: boolean): Promise<void> {
+    protected async handleScroll3(forceUpdate: boolean): Promise<void> {
         var pos: number = this._scrollPane.scrollingPosX;
 
         //寻找当前位置的第一条项目
@@ -2004,7 +2004,7 @@ export class GList extends GComponent {
         }
     }
 
-    private handleArchOrder1(): void {
+    protected handleArchOrder1(): void {
         if (this.childrenRenderOrder == ChildrenRenderOrder.Arch) {
             var mid: number = this._scrollPane.posY + this.viewHeight / 2;
             var minDist: number = Number.POSITIVE_INFINITY;
@@ -2025,7 +2025,7 @@ export class GList extends GComponent {
         }
     }
 
-    private handleArchOrder2(): void {
+    protected handleArchOrder2(): void {
         if (this.childrenRenderOrder == ChildrenRenderOrder.Arch) {
             var mid: number = this._scrollPane.posX + this.viewWidth / 2;
             var minDist: number = Number.POSITIVE_INFINITY;
@@ -2046,7 +2046,7 @@ export class GList extends GComponent {
         }
     }
 
-    private handleAlign(contentWidth: number, contentHeight: number): void {
+    protected handleAlign(contentWidth: number, contentHeight: number): void {
         var newOffsetX: number = 0;
         var newOffsetY: number = 0;
 

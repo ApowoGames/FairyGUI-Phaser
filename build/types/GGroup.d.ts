@@ -14,7 +14,7 @@ export declare class GGroup extends GObject {
     private _totalSize;
     private _numChildren;
     _updating: number;
-    constructor(scene?: Phaser.Scene);
+    constructor(scene: Phaser.Scene, type: any);
     dispose(): void;
     set touchable(value: boolean);
     get layout(): number;

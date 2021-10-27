@@ -17,7 +17,7 @@ export declare class GProgressBar extends GComponent {
     private _barMaxHeightDelta;
     private _barStartX;
     private _barStartY;
-    constructor(scene?: Phaser.Scene);
+    constructor(scene: Phaser.Scene, type: any);
     get titleType(): number;
     set titleType(value: number);
     get min(): number;

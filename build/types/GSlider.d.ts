@@ -22,7 +22,7 @@ export declare class GSlider extends GComponent {
     changeOnClick: boolean;
     /**是否可拖动开关**/
     canDrag: boolean;
-    constructor(scene?: Phaser.Scene);
+    constructor(scene: Phaser.Scene, type: any);
     get titleType(): number;
     set titleType(value: number);
     get wholeNumbers(): boolean;

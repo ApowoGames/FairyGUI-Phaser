@@ -21,7 +21,7 @@ export declare class GComboBox extends GComponent {
     private _selectionController?;
     private _down;
     private _over;
-    constructor(scene?: Phaser.Scene);
+    constructor(scene: Phaser.Scene, type: any);
     get text(): string;
     set text(value: string);
     get titleColor(): string;

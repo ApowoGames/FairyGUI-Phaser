@@ -1,11 +1,12 @@
 import { ByteBuffer } from './utils/ByteBuffer';
-import { GObject } from './GObject';
+import { BlendMode, GObject } from './GObject';
 import { Controller } from './Controller';
 import { GTreeNode } from './GTreeNode';
 import { GList } from './GList';
 import { GComponent } from './GComponent';
 import { Events } from './Events';
 import { Handler } from './utils/Handler';
+import { OverflowType, ToolSet } from '.';
 export class GTree extends GList {
 
     /**
@@ -22,14 +23,20 @@ export class GTree extends GList {
     private _rootNode: GTreeNode;
     private _expandedStatusInEvt: boolean;
 
-    constructor(scene?: Phaser.Scene) {
-        super(scene);
+    constructor(scene: Phaser.Scene, type) {
+        super(scene, type);
 
         this._indent = 15;
 
         this._rootNode = new GTreeNode(true);
         this._rootNode._setTree(this);
         this._rootNode.expanded = true;
+        this.scene.input.on("gameobjectdown", this.__cellMouseDown, this);
+    }
+
+    public dispose(): void {
+        this.scene.input.off("gameobjectdown", this.__cellMouseDown, this);
+        super.dispose();
     }
 
     public get rootNode(): GTreeNode {
@@ -149,8 +156,8 @@ export class GTree extends GList {
                 if (cc)
                     cc.selectedIndex = node.isFolder ? 0 : 1;
 
-                if (node.isFolder)
-                    child.on("pointerdown", this.__cellMouseDown, this);
+                // if (node.isFolder)
+                //     child.on("pointerdown", this.__cellMouseDown, this);
 
                 if (this.treeNodeRender)
                     this.treeNodeRender.runWith([node, child]);
@@ -165,7 +172,7 @@ export class GTree extends GList {
                 var index: number = this.getInsertIndexForNode(node);
                 this.addChildAt(node._cell, index);
                 if (this.treeNodeRender)
-                    this.treeNodeRender.runWith([node, node._cell]);''
+                    this.treeNodeRender.runWith([node, node._cell]); ''
 
                 if (node.isFolder && node.expanded) {
                     this.checkChildren(node, index).then(() => {
@@ -311,6 +318,7 @@ export class GTree extends GList {
                         }
                     });
                 } else {
+                    fun1(node.cell, index);
                     if (node.isFolder && node.expanded) {
                         fun2(node, index).then((index) => {
                             fun0(index);
@@ -390,8 +398,11 @@ export class GTree extends GList {
         }
     }
 
-    private __cellMouseDown(evt: any): void {
-        var node: GTreeNode = GObject.cast(evt.currentTarget)._treeNode;
+    private __cellMouseDown(evt: Phaser.Input.Pointer, curTarget): void {
+        const owner: GObject = GObject.cast(curTarget);
+        if (!owner) return;
+        var node: GTreeNode = owner._treeNode;
+        if (!node) return;
         this._expandedStatusInEvt = node.expanded;
     }
 
@@ -416,19 +427,142 @@ export class GTree extends GList {
         super.dispatchItemEvent(item, evt);
     }
 
-    public setup_beforeAdd(buffer: ByteBuffer, beginPos: number): void {
-        super.setup_beforeAdd(buffer, beginPos);
+    public setup_beforeAdd(buffer: ByteBuffer, beginPos: number): Promise<void> {
+        return new Promise((resolve, reject) => {
+            buffer.seek(beginPos, 0);
+            buffer.skip(5);
 
-        buffer.seek(beginPos, 9);
+            var f1: number;
+            var f2: number;
 
-        this._indent = buffer.readInt();
-        this._clickToExpand = buffer.readByte();
+            this._id = buffer.readS();
+            this._name = buffer.readS();
+            f1 = buffer.readInt();
+            f2 = buffer.readInt();
+            this.setXY(f1, f2);
+
+            if (buffer.readBool()) {
+                this.initWidth = buffer.readInt();
+                this.initHeight = buffer.readInt();
+            }
+
+            if (buffer.readBool()) {
+                this.minWidth = buffer.readInt();
+                this.maxWidth = buffer.readInt();
+                this.minHeight = buffer.readInt();
+                this.maxHeight = buffer.readInt();
+            }
+
+            if (buffer.readBool()) {
+                f1 = buffer.readFloat();
+                f2 = buffer.readFloat();
+                this.setScale(f1, f2);
+            }
+
+            if (buffer.readBool()) {
+                f1 = buffer.readFloat();
+                f2 = buffer.readFloat();
+                this.setSkew(f1, f2);
+            }
+
+            if (buffer.readBool()) {
+                f1 = buffer.readFloat();
+                f2 = buffer.readFloat();
+                this.setPivot(f1, f2, buffer.readBool());
+            }
+
+            f1 = buffer.readFloat();
+            if (f1 != 1) {
+                if (f1 > 1) f1 = 1;
+                this.alpha = f1;
+            }
+
+            f1 = buffer.readFloat();
+            if (f1 != 0)
+                this.rotation = f1;
+
+            if (!buffer.readBool())
+                this.visible = false;
+            // console.log("visible object ===>", this);
+            if (!buffer.readBool()) {
+                this.touchable = false;
+            } else {
+                this.touchable = true;
+            }
+            if (buffer.readBool())
+                this.grayed = true;
+            var bm: number = buffer.readByte();
+            if (BlendMode[bm])
+                this.blendMode = BlendMode[bm];
+
+            var filter: number = buffer.readByte();
+            if (filter == 1) {
+                ToolSet.setColorFilter(this._displayObject,
+                    [buffer.readFloat(), buffer.readFloat(), buffer.readFloat(), buffer.readFloat()]);
+            }
+
+            var str: string = buffer.readS();
+            if (str != null)
+                this.data = str;
+            buffer.seek(beginPos, 5);
+
+            var i1: number;
+
+            this._layout = buffer.readByte();
+            this._selectionMode = buffer.readByte();
+            i1 = buffer.readByte();
+            this._align = i1 == 0 ? "left" : (i1 == 1 ? "center" : "right");
+            i1 = buffer.readByte();
+            this._verticalAlign = i1 == 0 ? "top" : (i1 == 1 ? "middle" : "bottom");
+            this._lineGap = buffer.readShort();
+            this._columnGap = buffer.readShort();
+            this._lineCount = buffer.readShort();
+            this._columnCount = buffer.readShort();
+            this._autoResizeItem = buffer.readBool();
+            this._childrenRenderOrder = buffer.readByte();
+            this._apexIndex = buffer.readShort();
+
+            if (buffer.readBool()) {
+                this._margin.top = buffer.readInt();
+                this._margin.bottom = buffer.readInt();
+                this._margin.left = buffer.readInt();
+                this._margin.right = buffer.readInt();
+            }
+
+            var overflow: number = buffer.readByte();
+            if (overflow == OverflowType.Scroll) {
+                var savedPos: number = buffer.position;
+                buffer.seek(beginPos, 7);
+                this.setupScroll(buffer);
+                buffer.position = savedPos;
+            }
+            else
+                this.setupOverflow(overflow);
+
+            if (buffer.readBool()) //clipSoftness
+                buffer.skip(8);
+
+            if (buffer.version >= 2) {
+                this.scrollItemToViewOnClick = buffer.readBool();
+                this.foldInvisibleItems = buffer.readBool();
+            }
+
+            buffer.seek(beginPos, 8);
+
+            this._defaultItem = buffer.readS();
+            this.readItems(buffer).then(() => {
+                buffer.seek(beginPos, 9);
+
+                this._indent = buffer.readInt();
+                this._clickToExpand = buffer.readByte();
+                resolve();
+            });
+        });
     }
 
     protected readItems(buffer: ByteBuffer): Promise<void> {
         return new Promise((resolve, reject) => {
             var cnt: number;
-            var i: number;
             var nextPos: number;
             var str: string;
             var isFolder: boolean;
@@ -438,7 +572,7 @@ export class GTree extends GList {
 
             cnt = buffer.readShort();
             const fun0 = (i) => {
-                if (i > cnt) {
+                if (i >= cnt) {
                     resolve();
                     return;
                 }
@@ -450,7 +584,7 @@ export class GTree extends GList {
                     str = this.defaultItem;
                     if (!str) {
                         buffer.position = nextPos;
-                        fun0(i + 1);
+                        fun0(++i);
                         return;
                     }
                 }
@@ -469,12 +603,18 @@ export class GTree extends GList {
                         this.setupItem(buffer, node.cell);
 
                         buffer.position = nextPos;
-                        fun0(i + 1);
+                        fun0(++i);
                     });
                 } else {
                     if (level > prevLevel)
                         lastNode.addChild(node).then(() => {
-                            fun0(i + 1);
+                            lastNode = node;
+                            prevLevel = level;
+
+                            this.setupItem(buffer, node.cell);
+
+                            buffer.position = nextPos;
+                            fun0(++i);
                         });
                     else if (level < prevLevel) {
                         for (var j: number = level; j <= prevLevel; j++)
@@ -486,7 +626,7 @@ export class GTree extends GList {
                             this.setupItem(buffer, node.cell);
 
                             buffer.position = nextPos;
-                            fun0(i + 1);
+                            fun0(++i);
                         });
                     }
                     else
@@ -497,7 +637,7 @@ export class GTree extends GList {
                             this.setupItem(buffer, node.cell);
 
                             buffer.position = nextPos;
-                            fun0(i + 1);
+                            fun0(++i);
                         });
                 }
             };

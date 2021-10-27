@@ -4,8 +4,8 @@ import { GTextField } from './GTextField';
 export class GRichTextField extends GTextField {
     private _div: any;
 
-    constructor(scene:Phaser.Scene) {
-        super(scene);
+    constructor(scene: Phaser.Scene, type) {
+        super(scene, type);
         this._text = "";
     }
 

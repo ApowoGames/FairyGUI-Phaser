@@ -30,7 +30,7 @@ export declare class GButton extends GComponent {
     static SELECTED_OVER: string;
     static DISABLED: string;
     static SELECTED_DISABLED: string;
-    constructor(scene?: Phaser.Scene);
+    constructor(scene: Phaser.Scene, type: any);
     createDisplayObject(): void;
     get icon(): string;
     set icon(value: string);

@@ -44,11 +44,11 @@ export class Input extends Text {
 
 export class GTextInput extends GTextField {
     private _input: any;
-    
+
     private _prompt: string;
 
-    constructor(scene: Phaser.Scene) {
-        super(scene);
+    constructor(scene: Phaser.Scene, type) {
+        super(scene, type);
     }
 
     public createDisplayObject(): void {

@@ -30,8 +30,8 @@ export class GComboBox extends GComponent {
     private _down: boolean;
     private _over: boolean;
 
-    constructor(scene?: Phaser.Scene) {
-        super(scene);
+    constructor(scene: Phaser.Scene, type) {
+        super(scene, type);
         this._visibleItemCount = UIConfig.defaultComboBoxVisibleItemCount;
         this._itemsUpdated = true;
         this._selectedIndex = -1;

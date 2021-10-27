@@ -41,8 +41,8 @@ export class GComponent extends GObject {
     public _scrollPane?: ScrollPane;
     public _alignOffset: Phaser.Geom.Point;
 
-    constructor(scene?: Phaser.Scene) {
-        super(scene);
+    constructor(scene?: Phaser.Scene, type?: number) {
+        super(scene, type);
         this._children = [];
         this._controllers = [];
         this._transitions = [];
@@ -731,8 +731,7 @@ export class GComponent extends GObject {
         // this._displayObject.mouseThrough = false;
         // this._displayObject.hitTestPrior = true;
         // }
-        const maskObj = new GObject();
-        maskObj.scene = this.scene;
+        const maskObj = new GObject(this.scene, ObjectType.Graph);
         maskObj.setDisplayObject(this._mask);
         this.hitArea = new ChildHitArea(maskObj, reversed);
         if (reversed) {
@@ -1164,13 +1163,24 @@ export class GComponent extends GObject {
                             hasAsync = true;
                             child = Decls.UIObjectFactory.newObject(pi);
                             child.constructFromResource().then(() => {
-                                hasAsync = false;
                                 child._underConstruct = true;
-                                child.setup_beforeAdd(buffer, curPos);
-                                child.parent = this;
-                                this._children.push(child);
-                                buffer.position = curPos + dataLen;
-                                fun(++delayNum);
+                                if (child.type == ObjectType.Tree) {
+                                    // @ts-ignore
+                                    child.setup_beforeAdd(buffer, curPos).then(() => {
+                                        hasAsync = false;
+                                        child.parent = this;
+                                        this._children.push(child);
+                                        buffer.position = curPos + dataLen;
+                                        fun(++delayNum);
+                                    })
+                                } else {
+                                    hasAsync = false;
+                                    child.setup_beforeAdd(buffer, curPos);
+                                    child.parent = this;
+                                    this._children.push(child);
+                                    buffer.position = curPos + dataLen;
+                                    fun(++delayNum);
+                                }
                             });
                             return;
                         }
@@ -1179,10 +1189,27 @@ export class GComponent extends GObject {
                         }
                     }
                     child._underConstruct = true;
-                    child.setup_beforeAdd(buffer, curPos);
-                    child.parent = this;
-                    this._children.push(child);
-                    buffer.position = curPos + dataLen;
+                    if (child.type == ObjectType.Tree) {
+                        delayNum = i;
+                        hasAsync = true;
+                        // @ts-ignore
+                        child.setup_beforeAdd(buffer, curPos).then(() => {
+                            hasAsync = false;
+                            child.parent = this;
+                            this._children.push(child);
+                            buffer.position = curPos + dataLen;
+                            fun(++delayNum);
+                        })
+                    } else {
+                        child.setup_beforeAdd(buffer, curPos);
+                        child.parent = this;
+                        this._children.push(child);
+                        buffer.position = curPos + dataLen;
+                    }
+                    // child.setup_beforeAdd(buffer, curPos);
+                    // child.parent = this;
+                    // this._children.push(child);
+                    // buffer.position = curPos + dataLen;
                 }
                 if (hasAsync) {
                     return;

@@ -6,8 +6,8 @@ import { ByteBuffer } from './utils/ByteBuffer';
 export class GMovieClip extends GObject {
     private _movieClip: MovieClip;
 
-    constructor(scene: Phaser.Scene) {
-        super(scene);
+    constructor(scene: Phaser.Scene, type: number) {
+        super(scene, type);
     }
 
     public get color(): string {
@@ -25,7 +25,7 @@ export class GMovieClip extends GObject {
     }
 
     public getChild(): GObject {
-       return null;
+        return null;
     }
 
     public get playing(): boolean {

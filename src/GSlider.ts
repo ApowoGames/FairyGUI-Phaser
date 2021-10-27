@@ -31,8 +31,8 @@ export class GSlider extends GComponent {
     /**是否可拖动开关**/
     public canDrag: boolean = true;
 
-    constructor(scene?: Phaser.Scene) {
-        super(scene);
+    constructor(scene: Phaser.Scene, type) {
+        super(scene, type);
 
         this._titleType = ProgressTitleType.Percent;
         this._value = 50;

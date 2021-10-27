@@ -20,8 +20,8 @@ export class GBasicTextField extends GTextField {
     private _bitmapFont?: BitmapFont;
     private _lines?: Array<LineInfo>;
 
-    constructor(scene?: Phaser.Scene) {
-        super(scene);
+    constructor(scene: Phaser.Scene, type: number) {
+        super(scene, type);
 
         this._text = "";
         this._color = "#000000";
@@ -200,7 +200,7 @@ export class GBasicTextField extends GTextField {
 
     public set singleLine(value: boolean) {
         this._singleLine = value;
-        if(!this._widthAutoSize && !this._singleLine){
+        if (!this._widthAutoSize && !this._singleLine) {
             // 设置换行宽度，是否忽略空格
             this._textField.setWordWrapWidth(this._textWidth, true);
         }

@@ -38,7 +38,7 @@ export declare class Input extends Text {
 export declare class GTextInput extends GTextField {
     private _input;
     private _prompt;
-    constructor(scene: Phaser.Scene);
+    constructor(scene: Phaser.Scene, type: any);
     createDisplayObject(): void;
     get nativeInput(): any;
     set text(value: string);

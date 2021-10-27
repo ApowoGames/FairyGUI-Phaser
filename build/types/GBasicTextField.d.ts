@@ -13,7 +13,7 @@ export declare class GBasicTextField extends GTextField {
     private _textHeight;
     private _bitmapFont?;
     private _lines?;
-    constructor(scene?: Phaser.Scene);
+    constructor(scene: Phaser.Scene, type: number);
     createDisplayObject(): void;
     get nativeText(): Phaser.GameObjects.Text;
     set text(value: string);

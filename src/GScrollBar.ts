@@ -17,8 +17,8 @@ export class GScrollBar extends GComponent {
     private _dragOffset: Phaser.Geom.Point;
     private _gripDragging: boolean;
 
-    constructor(scene?: Phaser.Scene) {
-        super(scene);
+    constructor(scene: Phaser.Scene, type) {
+        super(scene, type);
         this._dragOffset = new Phaser.Geom.Point();
         this._scrollPerc = 0;
     }

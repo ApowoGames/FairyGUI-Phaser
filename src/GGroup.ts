@@ -18,8 +18,8 @@ export class GGroup extends GObject {
 
     public _updating: number = 0;
 
-    constructor(scene?: Phaser.Scene) {
-        super(scene);
+    constructor(scene: Phaser.Scene, type) {
+        super(scene, type);
         //console.log("group create", this);
     }
 

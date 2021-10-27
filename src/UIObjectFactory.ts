@@ -60,50 +60,50 @@ export class UIObjectFactory {
         if (typeof type === 'number') {
             switch (type) {
                 case ObjectType.Image:
-                    return new GImage(GRoot.inst.scene);
+                    return new GImage(GRoot.inst.scene, type);
 
                 case ObjectType.MovieClip:
-                    return new GMovieClip(GRoot.inst.scene);
+                    return new GMovieClip(GRoot.inst.scene, type);
 
                 case ObjectType.Component:
-                    return new GComponent(GRoot.inst.scene);
+                    return new GComponent(GRoot.inst.scene, type);
 
                 case ObjectType.Text:
-                    return new GBasicTextField(GRoot.inst.scene);
+                    return new GBasicTextField(GRoot.inst.scene, type);
 
                 case ObjectType.RichText:
-                    return new GRichTextField(GRoot.inst.scene);
+                    return new GRichTextField(GRoot.inst.scene, type);
 
                 case ObjectType.InputText:
-                    return new GTextInput(GRoot.inst.scene);
+                    return new GTextInput(GRoot.inst.scene, type);
                 case ObjectType.Group:
-                    return new GGroup(GRoot.inst.scene);
+                    return new GGroup(GRoot.inst.scene, type);
 
                 case ObjectType.List:
-                    return new GList(GRoot.inst.scene);
+                    return new GList(GRoot.inst.scene, type);
 
                 case ObjectType.Graph:
-                    return new GGraph(GRoot.inst.scene);
+                    return new GGraph(GRoot.inst.scene, type);
                 case ObjectType.Loader:
                     // test
-                    if (UIObjectFactory.loaderType)
-                        return new UIObjectFactory.loaderType();
-                    else
-                        return new GLoader(GRoot.inst.scene);
+                    // if (UIObjectFactory.loaderType)
+                    //     return new UIObjectFactory.loaderType();
+                    // else
+                    return new GLoader(GRoot.inst.scene, type);
                 case ObjectType.Button:
-                    return new GButton(GRoot.inst.scene);
+                    return new GButton(GRoot.inst.scene, type);
                 case ObjectType.Label:
-                    return new GLabel(GRoot.inst.scene);
+                    return new GLabel(GRoot.inst.scene, type);
                 case ObjectType.ProgressBar:
-                    return new GProgressBar(GRoot.inst.scene);
+                    return new GProgressBar(GRoot.inst.scene, type);
                 case ObjectType.Slider:
-                    return new GSlider(GRoot.inst.scene);
+                    return new GSlider(GRoot.inst.scene, type);
                 case ObjectType.ScrollBar:
-                    return new GScrollBar(GRoot.inst.scene);
+                    return new GScrollBar(GRoot.inst.scene, type);
                 case ObjectType.ComboBox:
-                    return new GComboBox(GRoot.inst.scene);
+                    return new GComboBox(GRoot.inst.scene, type);
                 case ObjectType.Tree:
-                    return new GTree(GRoot.inst.scene);
+                    return new GTree(GRoot.inst.scene, type);
 
                 default:
                     return null;

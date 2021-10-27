@@ -3026,7 +3026,7 @@
     }
     DisplayStyle.EMPTY = new DisplayStyle();
     class GObject {
-        constructor(scene) {
+        constructor(scene, type) {
             this._x = 0;
             this._y = 0;
             this._alpha = 1;
@@ -3060,7 +3060,9 @@
             this._rawWidth = 0;
             this._rawHeight = 0;
             this._sizePercentInGroup = 0;
+            this._objectType = 0;
             this._id = "" + _gInstanceCounter++;
+            this.type = type;
             this._name = "";
             // todo 优先传入scene在创建display
             if (scene)
@@ -3070,6 +3072,12 @@
             this._displayStyle = new DisplayStyle();
             this._relations = new Relations(this);
             this._gears = new Array(10);
+        }
+        set type(val) {
+            this._objectType = val;
+        }
+        get type() {
+            return this._objectType;
         }
         get dpr() {
             return this._dpr;
@@ -4231,8 +4239,8 @@
     var sDraggingQuery;
 
     class GGroup extends GObject {
-        constructor(scene) {
-            super(scene);
+        constructor(scene, type) {
+            super(scene, type);
             this._layout = 0;
             this._lineGap = 0;
             this._columnGap = 0;
@@ -4641,8 +4649,8 @@
     Utils._extReg = /\.(\w+)\??/g;
 
     class GGraph extends GObject {
-        constructor(scene) {
-            super(scene);
+        constructor(scene, type) {
+            super(scene, type);
             this._type = 0;
             this._lineSize = 1;
             this._lineColor = "#000000";
@@ -5635,8 +5643,8 @@
     }
 
     class GImage extends GObject {
-        constructor(scene) {
-            super(scene);
+        constructor(scene, type) {
+            super(scene, type);
             this._flip = 0;
         }
         get image() {
@@ -6035,8 +6043,8 @@
     }
 
     class GMovieClip extends GObject {
-        constructor(scene) {
-            super(scene);
+        constructor(scene, type) {
+            super(scene, type);
         }
         get color() {
             return this._movieClip.color;
@@ -10943,8 +10951,8 @@
     }
 
     class GComponent extends GObject {
-        constructor(scene) {
-            super(scene);
+        constructor(scene, type) {
+            super(scene, type);
             this._sortingChildCount = 0;
             this._children = [];
             this._controllers = [];
@@ -11534,8 +11542,7 @@
             // this._displayObject.mouseThrough = false;
             // this._displayObject.hitTestPrior = true;
             // }
-            const maskObj = new GObject();
-            maskObj.scene = this.scene;
+            const maskObj = new GObject(this.scene, exports.ObjectType.Graph);
             maskObj.setDisplayObject(this._mask);
             this.hitArea = new ChildHitArea(maskObj, reversed);
             if (reversed) {
@@ -11902,13 +11909,25 @@
                                     hasAsync = true;
                                     child = Decls.UIObjectFactory.newObject(pi);
                                     child.constructFromResource().then(() => {
-                                        hasAsync = false;
                                         child._underConstruct = true;
-                                        child.setup_beforeAdd(buffer, curPos);
-                                        child.parent = this;
-                                        this._children.push(child);
-                                        buffer.position = curPos + dataLen;
-                                        fun(++delayNum);
+                                        if (child.type == exports.ObjectType.Tree) {
+                                            // @ts-ignore
+                                            child.setup_beforeAdd(buffer, curPos).then(() => {
+                                                hasAsync = false;
+                                                child.parent = this;
+                                                this._children.push(child);
+                                                buffer.position = curPos + dataLen;
+                                                fun(++delayNum);
+                                            });
+                                        }
+                                        else {
+                                            hasAsync = false;
+                                            child.setup_beforeAdd(buffer, curPos);
+                                            child.parent = this;
+                                            this._children.push(child);
+                                            buffer.position = curPos + dataLen;
+                                            fun(++delayNum);
+                                        }
                                     });
                                     return;
                                 }
@@ -11917,10 +11936,28 @@
                                 }
                             }
                             child._underConstruct = true;
-                            child.setup_beforeAdd(buffer, curPos);
-                            child.parent = this;
-                            this._children.push(child);
-                            buffer.position = curPos + dataLen;
+                            if (child.type == exports.ObjectType.Tree) {
+                                delayNum = i;
+                                hasAsync = true;
+                                // @ts-ignore
+                                child.setup_beforeAdd(buffer, curPos).then(() => {
+                                    hasAsync = false;
+                                    child.parent = this;
+                                    this._children.push(child);
+                                    buffer.position = curPos + dataLen;
+                                    fun(++delayNum);
+                                });
+                            }
+                            else {
+                                child.setup_beforeAdd(buffer, curPos);
+                                child.parent = this;
+                                this._children.push(child);
+                                buffer.position = curPos + dataLen;
+                            }
+                            // child.setup_beforeAdd(buffer, curPos);
+                            // child.parent = this;
+                            // this._children.push(child);
+                            // buffer.position = curPos + dataLen;
                         }
                         if (hasAsync) {
                             return;
@@ -12339,8 +12376,8 @@
         TextType[TextType["INPUT"] = 2] = "INPUT";
     })(TextType || (TextType = {}));
     class GTextField extends GObject {
-        constructor(scene) {
-            super(scene);
+        constructor(scene, type) {
+            super(scene, type);
             this._align = "";
             this._valign = "";
             // console.log("text create", this);
@@ -12722,8 +12759,8 @@
     UBBParser.inst = new UBBParser();
 
     class GRichTextField extends GTextField {
-        constructor(scene) {
-            super(scene);
+        constructor(scene, type) {
+            super(scene, type);
             this._text = "";
         }
         createDisplayObject() {
@@ -13070,8 +13107,8 @@
      */
     Input.TYPE_SEARCH = "search";
     class GTextInput extends GTextField {
-        constructor(scene) {
-            super(scene);
+        constructor(scene, type) {
+            super(scene, type);
         }
         createDisplayObject() {
             this._displayObject = this._input = new InputTextField(this.scene);
@@ -13287,8 +13324,8 @@
     }
 
     class GLoader extends GObject {
-        constructor(scene) {
-            super(scene);
+        constructor(scene, type) {
+            super(scene, type);
             this._url = "";
             this._fill = exports.LoaderFillType.None;
             this._align = "left";
@@ -13727,8 +13764,8 @@
     GLoader._errorSignPool = new GObjectPool();
 
     class GButton extends GComponent {
-        constructor(scene) {
-            super(scene);
+        constructor(scene, type) {
+            super(scene, type);
             this._soundVolumeScale = 0;
             this._downEffect = 0;
             this._mode = exports.ButtonMode.Common;
@@ -14205,8 +14242,8 @@
     GButton.SELECTED_DISABLED = "selectedDisabled";
 
     class GLabel extends GComponent {
-        constructor(scene) {
-            super(scene);
+        constructor(scene, type) {
+            super(scene, type);
         }
         get icon() {
             if (this._iconObject)
@@ -14368,8 +14405,8 @@
     }
 
     class GComboBox extends GComponent {
-        constructor(scene) {
-            super(scene);
+        constructor(scene, type) {
+            super(scene, type);
             this._visibleItemCount = UIConfig.defaultComboBoxVisibleItemCount;
             this._itemsUpdated = true;
             this._selectedIndex = -1;
@@ -14753,8 +14790,8 @@
     }
 
     class GSlider extends GComponent {
-        constructor(scene) {
-            super(scene);
+        constructor(scene, type) {
+            super(scene, type);
             this._min = 0;
             this._max = 0;
             this._value = 0;
@@ -14940,8 +14977,8 @@
     new Phaser.Geom.Point();
 
     class GProgressBar extends GComponent {
-        constructor(scene) {
-            super(scene);
+        constructor(scene, type) {
+            super(scene, type);
             this._min = 0;
             this._max = 0;
             this._value = 0;
@@ -15106,8 +15143,8 @@
     }
 
     class GScrollBar extends GComponent {
-        constructor(scene) {
-            super(scene);
+        constructor(scene, type) {
+            super(scene, type);
             this._dragOffset = new Phaser.Geom.Point();
             this._scrollPerc = 0;
         }
@@ -15236,8 +15273,8 @@
     new Phaser.Geom.Point();
 
     class GList extends GComponent {
-        constructor(scene) {
-            super(scene);
+        constructor(scene, type) {
+            super(scene, type);
             this._lineCount = 0;
             this._columnCount = 0;
             this._lineGap = 0;
@@ -15266,6 +15303,7 @@
             this.scene.input.on("pointerup", this.__clickItem, this);
         }
         dispose() {
+            this.off(Events.SCROLL, this.__scrolled, this);
             this.scene.input.off("pointerup", this.__clickItem, this);
             this._pool.clear();
             super.dispose();
@@ -15795,7 +15833,7 @@
                 return;
             let item = (gameObject[0]["$owner"]);
             // 如果clickitem的父对象为空，不可能为glist则直接跳出
-            if (!item.parent)
+            if (!item || !item.parent)
                 return;
             let boo = false;
             let target = gameObject[0];
@@ -17692,12 +17730,17 @@
     }
 
     class GTree extends GList {
-        constructor(scene) {
-            super(scene);
+        constructor(scene, type) {
+            super(scene, type);
             this._indent = 15;
             this._rootNode = new GTreeNode(true);
             this._rootNode._setTree(this);
             this._rootNode.expanded = true;
+            this.scene.input.on("gameobjectdown", this.__cellMouseDown, this);
+        }
+        dispose() {
+            this.scene.input.off("gameobjectdown", this.__cellMouseDown, this);
+            super.dispose();
         }
         get rootNode() {
             return this._rootNode;
@@ -17792,8 +17835,8 @@
                     cc = child.getController("leaf");
                     if (cc)
                         cc.selectedIndex = node.isFolder ? 0 : 1;
-                    if (node.isFolder)
-                        child.on("pointerdown", this.__cellMouseDown, this);
+                    // if (node.isFolder)
+                    //     child.on("pointerdown", this.__cellMouseDown, this);
                     if (this.treeNodeRender)
                         this.treeNodeRender.runWith([node, child]);
                     resolve();
@@ -17935,6 +17978,7 @@
                         });
                     }
                     else {
+                        fun1(node.cell, index);
                         if (node.isFolder && node.expanded) {
                             fun2(node, index).then((index) => {
                                 fun0(index);
@@ -18000,8 +18044,13 @@
                 }
             }
         }
-        __cellMouseDown(evt) {
-            var node = GObject.cast(evt.currentTarget)._treeNode;
+        __cellMouseDown(evt, curTarget) {
+            const owner = GObject.cast(curTarget);
+            if (!owner)
+                return;
+            var node = owner._treeNode;
+            if (!node)
+                return;
             this._expandedStatusInEvt = node.expanded;
         }
         __expandedStateChanged(cc) {
@@ -18020,10 +18069,116 @@
             super.dispatchItemEvent(item, evt);
         }
         setup_beforeAdd(buffer, beginPos) {
-            super.setup_beforeAdd(buffer, beginPos);
-            buffer.seek(beginPos, 9);
-            this._indent = buffer.readInt();
-            this._clickToExpand = buffer.readByte();
+            return new Promise((resolve, reject) => {
+                buffer.seek(beginPos, 0);
+                buffer.skip(5);
+                var f1;
+                var f2;
+                this._id = buffer.readS();
+                this._name = buffer.readS();
+                f1 = buffer.readInt();
+                f2 = buffer.readInt();
+                this.setXY(f1, f2);
+                if (buffer.readBool()) {
+                    this.initWidth = buffer.readInt();
+                    this.initHeight = buffer.readInt();
+                }
+                if (buffer.readBool()) {
+                    this.minWidth = buffer.readInt();
+                    this.maxWidth = buffer.readInt();
+                    this.minHeight = buffer.readInt();
+                    this.maxHeight = buffer.readInt();
+                }
+                if (buffer.readBool()) {
+                    f1 = buffer.readFloat();
+                    f2 = buffer.readFloat();
+                    this.setScale(f1, f2);
+                }
+                if (buffer.readBool()) {
+                    f1 = buffer.readFloat();
+                    f2 = buffer.readFloat();
+                    this.setSkew(f1, f2);
+                }
+                if (buffer.readBool()) {
+                    f1 = buffer.readFloat();
+                    f2 = buffer.readFloat();
+                    this.setPivot(f1, f2, buffer.readBool());
+                }
+                f1 = buffer.readFloat();
+                if (f1 != 1) {
+                    if (f1 > 1)
+                        f1 = 1;
+                    this.alpha = f1;
+                }
+                f1 = buffer.readFloat();
+                if (f1 != 0)
+                    this.rotation = f1;
+                if (!buffer.readBool())
+                    this.visible = false;
+                // console.log("visible object ===>", this);
+                if (!buffer.readBool()) {
+                    this.touchable = false;
+                }
+                else {
+                    this.touchable = true;
+                }
+                if (buffer.readBool())
+                    this.grayed = true;
+                var bm = buffer.readByte();
+                if (BlendMode[bm])
+                    this.blendMode = BlendMode[bm];
+                var filter = buffer.readByte();
+                if (filter == 1) {
+                    ToolSet.setColorFilter(this._displayObject, [buffer.readFloat(), buffer.readFloat(), buffer.readFloat(), buffer.readFloat()]);
+                }
+                var str = buffer.readS();
+                if (str != null)
+                    this.data = str;
+                buffer.seek(beginPos, 5);
+                var i1;
+                this._layout = buffer.readByte();
+                this._selectionMode = buffer.readByte();
+                i1 = buffer.readByte();
+                this._align = i1 == 0 ? "left" : (i1 == 1 ? "center" : "right");
+                i1 = buffer.readByte();
+                this._verticalAlign = i1 == 0 ? "top" : (i1 == 1 ? "middle" : "bottom");
+                this._lineGap = buffer.readShort();
+                this._columnGap = buffer.readShort();
+                this._lineCount = buffer.readShort();
+                this._columnCount = buffer.readShort();
+                this._autoResizeItem = buffer.readBool();
+                this._childrenRenderOrder = buffer.readByte();
+                this._apexIndex = buffer.readShort();
+                if (buffer.readBool()) {
+                    this._margin.top = buffer.readInt();
+                    this._margin.bottom = buffer.readInt();
+                    this._margin.left = buffer.readInt();
+                    this._margin.right = buffer.readInt();
+                }
+                var overflow = buffer.readByte();
+                if (overflow == exports.OverflowType.Scroll) {
+                    var savedPos = buffer.position;
+                    buffer.seek(beginPos, 7);
+                    this.setupScroll(buffer);
+                    buffer.position = savedPos;
+                }
+                else
+                    this.setupOverflow(overflow);
+                if (buffer.readBool()) //clipSoftness
+                    buffer.skip(8);
+                if (buffer.version >= 2) {
+                    this.scrollItemToViewOnClick = buffer.readBool();
+                    this.foldInvisibleItems = buffer.readBool();
+                }
+                buffer.seek(beginPos, 8);
+                this._defaultItem = buffer.readS();
+                this.readItems(buffer).then(() => {
+                    buffer.seek(beginPos, 9);
+                    this._indent = buffer.readInt();
+                    this._clickToExpand = buffer.readByte();
+                    resolve();
+                });
+            });
         }
         readItems(buffer) {
             return new Promise((resolve, reject) => {
@@ -18036,7 +18191,7 @@
                 var prevLevel = 0;
                 cnt = buffer.readShort();
                 const fun0 = (i) => {
-                    if (i > cnt) {
+                    if (i >= cnt) {
                         resolve();
                         return;
                     }
@@ -18047,7 +18202,7 @@
                         str = this.defaultItem;
                         if (!str) {
                             buffer.position = nextPos;
-                            fun0(i + 1);
+                            fun0(++i);
                             return;
                         }
                     }
@@ -18061,13 +18216,17 @@
                             prevLevel = level;
                             this.setupItem(buffer, node.cell);
                             buffer.position = nextPos;
-                            fun0(i + 1);
+                            fun0(++i);
                         });
                     }
                     else {
                         if (level > prevLevel)
                             lastNode.addChild(node).then(() => {
-                                fun0(i + 1);
+                                lastNode = node;
+                                prevLevel = level;
+                                this.setupItem(buffer, node.cell);
+                                buffer.position = nextPos;
+                                fun0(++i);
                             });
                         else if (level < prevLevel) {
                             for (var j = level; j <= prevLevel; j++)
@@ -18077,7 +18236,7 @@
                                 prevLevel = level;
                                 this.setupItem(buffer, node.cell);
                                 buffer.position = nextPos;
-                                fun0(i + 1);
+                                fun0(++i);
                             });
                         }
                         else
@@ -18086,7 +18245,7 @@
                                 prevLevel = level;
                                 this.setupItem(buffer, node.cell);
                                 buffer.position = nextPos;
-                                fun0(i + 1);
+                                fun0(++i);
                             });
                     }
                 };
@@ -18509,8 +18668,8 @@
     }
 
     class GBasicTextField extends GTextField {
-        constructor(scene) {
-            super(scene);
+        constructor(scene, type) {
+            super(scene, type);
             /**
              * 描边颜色，默认黑色
              */
@@ -19098,43 +19257,43 @@
             if (typeof type === 'number') {
                 switch (type) {
                     case exports.ObjectType.Image:
-                        return new GImage(GRoot.inst.scene);
+                        return new GImage(GRoot.inst.scene, type);
                     case exports.ObjectType.MovieClip:
-                        return new GMovieClip(GRoot.inst.scene);
+                        return new GMovieClip(GRoot.inst.scene, type);
                     case exports.ObjectType.Component:
-                        return new GComponent(GRoot.inst.scene);
+                        return new GComponent(GRoot.inst.scene, type);
                     case exports.ObjectType.Text:
-                        return new GBasicTextField(GRoot.inst.scene);
+                        return new GBasicTextField(GRoot.inst.scene, type);
                     case exports.ObjectType.RichText:
-                        return new GRichTextField(GRoot.inst.scene);
+                        return new GRichTextField(GRoot.inst.scene, type);
                     case exports.ObjectType.InputText:
-                        return new GTextInput(GRoot.inst.scene);
+                        return new GTextInput(GRoot.inst.scene, type);
                     case exports.ObjectType.Group:
-                        return new GGroup(GRoot.inst.scene);
+                        return new GGroup(GRoot.inst.scene, type);
                     case exports.ObjectType.List:
-                        return new GList(GRoot.inst.scene);
+                        return new GList(GRoot.inst.scene, type);
                     case exports.ObjectType.Graph:
-                        return new GGraph(GRoot.inst.scene);
+                        return new GGraph(GRoot.inst.scene, type);
                     case exports.ObjectType.Loader:
                         // test
-                        if (UIObjectFactory.loaderType)
-                            return new UIObjectFactory.loaderType();
-                        else
-                            return new GLoader(GRoot.inst.scene);
+                        // if (UIObjectFactory.loaderType)
+                        //     return new UIObjectFactory.loaderType();
+                        // else
+                        return new GLoader(GRoot.inst.scene, type);
                     case exports.ObjectType.Button:
-                        return new GButton(GRoot.inst.scene);
+                        return new GButton(GRoot.inst.scene, type);
                     case exports.ObjectType.Label:
-                        return new GLabel(GRoot.inst.scene);
+                        return new GLabel(GRoot.inst.scene, type);
                     case exports.ObjectType.ProgressBar:
-                        return new GProgressBar(GRoot.inst.scene);
+                        return new GProgressBar(GRoot.inst.scene, type);
                     case exports.ObjectType.Slider:
-                        return new GSlider(GRoot.inst.scene);
+                        return new GSlider(GRoot.inst.scene, type);
                     case exports.ObjectType.ScrollBar:
-                        return new GScrollBar(GRoot.inst.scene);
+                        return new GScrollBar(GRoot.inst.scene, type);
                     case exports.ObjectType.ComboBox:
-                        return new GComboBox(GRoot.inst.scene);
+                        return new GComboBox(GRoot.inst.scene, type);
                     case exports.ObjectType.Tree:
-                        return new GTree(GRoot.inst.scene);
+                        return new GTree(GRoot.inst.scene, type);
                     default:
                         return null;
                 }

@@ -5,7 +5,7 @@ import { GComponent } from "./GComponent";
 export declare class GLabel extends GComponent {
     protected _titleObject: GObject;
     protected _iconObject: GObject;
-    constructor(scene?: Phaser.Scene);
+    constructor(scene: Phaser.Scene, type: any);
     get icon(): string;
     set icon(value: string);
     get title(): string;

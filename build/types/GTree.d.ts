@@ -16,7 +16,8 @@ export declare class GTree extends GList {
     private _clickToExpand;
     private _rootNode;
     private _expandedStatusInEvt;
-    constructor(scene?: Phaser.Scene);
+    constructor(scene: Phaser.Scene, type: any);
+    dispose(): void;
     get rootNode(): GTreeNode;
     get indent(): number;
     set indent(value: number);
@@ -42,6 +43,6 @@ export declare class GTree extends GList {
     private __cellMouseDown;
     private __expandedStateChanged;
     protected dispatchItemEvent(item: GObject, evt: any): void;
-    setup_beforeAdd(buffer: ByteBuffer, beginPos: number): void;
+    setup_beforeAdd(buffer: ByteBuffer, beginPos: number): Promise<void>;
     protected readItems(buffer: ByteBuffer): Promise<void>;
 }

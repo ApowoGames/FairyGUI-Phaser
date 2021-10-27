@@ -18,8 +18,8 @@ export class GTextField extends GObject {
     protected _align: string = "";
     protected _valign: string = "";
 
-    constructor(scene: Phaser.Scene) {
-        super(scene);
+    constructor(scene: Phaser.Scene, type: number) {
+        super(scene, type);
         // console.log("text create", this);
     }
 
@@ -282,7 +282,7 @@ export class GTextField extends GObject {
 
         if (buffer.readBool())
             this._templateVars = {};
-        this._touchable=false;
+        this._touchable = false;
     }
 
     protected updateSize() {

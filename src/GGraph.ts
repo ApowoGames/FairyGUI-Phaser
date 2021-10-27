@@ -16,8 +16,8 @@ export class GGraph extends GObject {
     private _distances?: number[];
 
     private _graphics: Phaser.GameObjects.Graphics;
-    constructor(scene?: Phaser.Scene) {
-        super(scene);
+    constructor(scene: Phaser.Scene, type) {
+        super(scene, type);
 
         this._type = 0;
         this._lineSize = 1;
@@ -93,7 +93,7 @@ export class GGraph extends GObject {
             return;
 
         const fillColor = Utils.toNumColor(this._fillColor);
-        const lineColor =  Utils.toNumColor(this._lineColor);
+        const lineColor = Utils.toNumColor(this._lineColor);
         // ============= 暂时屏蔽 rgba颜色值转换，没必要，简单最好
         // if (/*Render.isWebGL &&*/ ToolSet.startsWith(fillColor, "rgba")) {
         //     //webgl下laya未支持rgba格式

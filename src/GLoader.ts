@@ -26,8 +26,8 @@ export class GLoader extends GObject {
 
     private static _errorSignPool: GObjectPool = new GObjectPool();
 
-    constructor(scene: Phaser.Scene) {
-        super(scene);
+    constructor(scene: Phaser.Scene, type) {
+        super(scene, type);
         this._url = "";
         this._fill = LoaderFillType.None;
         this._align = "left";

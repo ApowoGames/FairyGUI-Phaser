@@ -107,8 +107,11 @@ export class GObject {
     public _sizePercentInGroup: number = 0;
     public _treeNode?: GTreeNode;
 
-    constructor(scene?: Phaser.Scene) {
+    protected _objectType: number = 0;
+
+    constructor(scene: Phaser.Scene, type: number) {
         this._id = "" + _gInstanceCounter++;
+        this.type = type;
         this._name = "";
         // todo 优先传入scene在创建display
         if (scene) this.scene = scene;
@@ -117,6 +120,14 @@ export class GObject {
 
         this._relations = new Relations(this);
         this._gears = new Array<GearBase>(10);
+    }
+
+    public set type(val) {
+        this._objectType = val;
+    }
+
+    public get type(): number {
+        return this._objectType;
     }
 
     public get dpr(): number {
