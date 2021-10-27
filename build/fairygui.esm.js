@@ -18474,11 +18474,11 @@ class GTree extends GList {
                         fun1(node.cell, index);
                         if (node.isFolder && node.expanded) {
                             fun2(node, index).then((index) => {
-                                fun0(index);
+                                fun0(++i);
                             });
                         }
                         else {
-                            fun0(index);
+                            fun0(++i);
                         }
                     });
                 }
@@ -18486,11 +18486,11 @@ class GTree extends GList {
                     fun1(node.cell, index);
                     if (node.isFolder && node.expanded) {
                         fun2(node, index).then((index) => {
-                            fun0(index);
+                            fun0(++i);
                         });
                     }
                     else {
-                        fun0(index);
+                        fun0(++i);
                     }
                 }
             };
@@ -18501,8 +18501,7 @@ class GTree extends GList {
             const fun2 = (node, index) => {
                 return new Promise((resolve, reject) => {
                     this.checkChildren(node, index).then((newIndex) => {
-                        index = newIndex;
-                        resolve(index);
+                        resolve(newIndex);
                     });
                 });
             };
