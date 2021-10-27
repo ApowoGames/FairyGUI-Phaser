@@ -1,6 +1,6 @@
 import { ByteBuffer } from './utils/ByteBuffer';
-import { GTextField } from './GTextField';
-export declare class Input extends Text {
+import { GBasicTextField } from './GBasicTextField';
+export declare class InputType {
     /** 常规文本域。*/
     static TYPE_TEXT: string;
     /** password 类型用于密码域输入。*/
@@ -35,36 +35,12 @@ export declare class Input extends Text {
      */
     static TYPE_SEARCH: string;
 }
-export declare class GTextInput extends GTextField {
-    private _input;
-    private _prompt;
+export declare class GTextInput extends GBasicTextField {
     constructor(scene: Phaser.Scene, type: any);
     createDisplayObject(): void;
     get nativeInput(): any;
     set text(value: string);
     get text(): string;
-    get font(): string;
-    set font(value: string);
-    get fontSize(): number;
-    set fontSize(value: number);
-    get color(): string;
-    set color(value: string);
-    get align(): string;
-    set align(value: string);
-    get valign(): string;
-    set valign(value: string);
-    get leading(): number;
-    set leading(value: number);
-    get bold(): boolean;
-    set bold(value: boolean);
-    get italic(): boolean;
-    set italic(value: boolean);
-    get singleLine(): boolean;
-    set singleLine(value: boolean);
-    get stroke(): number;
-    set stroke(value: number);
-    get strokeColor(): string;
-    set strokeColor(value: string);
     get password(): boolean;
     set password(value: boolean);
     get keyboardType(): string;
@@ -73,12 +49,11 @@ export declare class GTextInput extends GTextField {
     get editable(): boolean;
     set maxLength(value: number);
     get maxLength(): number;
-    set promptText(value: string);
-    get promptText(): string;
+    set placeholder(value: string);
+    get placeholder(): string;
     set restrict(value: string);
     get restrict(): string;
-    get textWidth(): number;
     requestFocus(): void;
-    protected handleSizeChanged(): void;
     setup_beforeAdd(buffer: ByteBuffer, beginPos: number): void;
+    private get inputTextField();
 }

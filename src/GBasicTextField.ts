@@ -1,17 +1,12 @@
-import { DisplayObjectEvent } from './event/DisplayObjectEvent';
 import { UBBParser } from './utils/UBBParser';
 import { AutoSizeType } from './FieldTypes';
 import { BitmapFont } from './display/BitmapFont';
 import { GTextField } from './GTextField';
+import { TextField } from './display/TextField';
+import { UIConfig } from '.';
 export class GBasicTextField extends GTextField {
-    private _textField: TextExt;
+    protected _textField: TextField;
 
-    private _font: string;
-    private _color: string;
-    /**
-     * 描边颜色，默认黑色
-     */
-    private _strokeColor: string = "#000000";
     private _singleLine: boolean;
     private _letterSpacing: number = 0;
     private _textWidth: number = 0;
@@ -23,18 +18,15 @@ export class GBasicTextField extends GTextField {
     constructor(scene: Phaser.Scene, type: number) {
         super(scene, type);
 
-        this._text = "";
-        this._color = "#000000";
         // this._textField.align = "left";
         // this._textField.font = fgui.UIConfig.defaultFont;
         this._autoSize = AutoSizeType.Both;
         this._widthAutoSize = this._heightAutoSize = true;
-        this._textField["_sizeDirty"] = false;
+        // this._textField["_sizeDirty"] = false;
     }
 
     public createDisplayObject(): void {
-        this._displayObject = this._textField = new TextExt(this);
-        this._color = "#000000";
+        this._displayObject = this._textField = new TextField(this);
         this._textField.setColor(this._color);
         this._displayObject["$owner"] = this;
         this._displayObject.mouseEnabled = false;
@@ -77,14 +69,17 @@ export class GBasicTextField extends GTextField {
     }
 
     public get font(): string {
-        // todo
-        return "";
+        return this._textField.style.fontFamily;
     }
 
     public set font(value: string) {
         this._font = value;
-        this._textField.setFont(this._font);
-
+        if (this._font) {
+            this._textField.setFont(this._font);
+        } else {
+            this._textField.setFont(UIConfig.defaultFont)
+        }
+        
         // if (ToolSet.startsWith(this._font, "ui://"))
         //     this._bitmapFont = <BitmapFont>UIPackage.getItemAssetByURL(this._font);
         // else
@@ -102,11 +97,11 @@ export class GBasicTextField extends GTextField {
     }
 
     public get fontSize(): number {
-        return Number(this._textField.style.fontSize);
+        return parseInt(this._textField.style.fontSize);
     }
 
     public set fontSize(value: number) {
-        this._textField.style.setFontSize(value);
+        this._textField.setFontSize(value);
     }
 
     public get color(): string {
@@ -119,12 +114,11 @@ export class GBasicTextField extends GTextField {
         if (this._color != value) {
             this._color = value;
             this.updateGear(4);
-            this._textField.setColor(value);
 
             if (this.grayed)
-                this._textField.setFill("#AAAAAA");
+                this._textField.setColor("#AAAAAA");
             else
-                this._textField.setFill(this._color);
+                this._textField.setColor(this._color);
         }
     }
 
@@ -134,7 +128,7 @@ export class GBasicTextField extends GTextField {
 
     public set align(value: string) {
         this._align = value;
-        this._textField.setAlign(value);
+        this._textField.setAlign(this._align);
         this.doAlign();
     }
 
@@ -609,50 +603,6 @@ export class GBasicTextField extends GTextField {
 
     public flushVars(): void {
         this.text = this._text;
-    }
-}
-
-export class TextExt extends Phaser.GameObjects.Text {
-    private _owner: GBasicTextField;
-    private _lock: boolean;
-    private _sizeDirty: boolean;
-    constructor(owner: GBasicTextField) {
-        super(owner.scene, 0, 0, "", undefined);
-        this._owner = owner;
-    }
-
-    public baseTypeset(): void {
-        this._lock = true;
-        this.typeset();
-        this._lock = false;
-    }
-
-    public typeset(): void {
-        // this._sizeDirty = true; //阻止SIZE_DELAY_CHANGE的触发
-        // super.typeset();
-        // if (!this._lock)
-        //     this._owner.typeset();
-        // if (this._isChanged) {
-        //     Laya.timer.clear(this, this.typeset);
-        //     this._isChanged = false;
-        // }
-        this._sizeDirty = false;
-        this.setChanged();
-    }
-
-    public setChanged(): void {
-        this.isChanged = true;
-    }
-
-    protected set isChanged(value: boolean) {
-        if (value && !this._sizeDirty) {
-            if (this._owner.autoSize != AutoSizeType.None && this._owner.parent) {
-                this._sizeDirty = true;
-                this.emit(DisplayObjectEvent.SIZE_DELAY_CHANGE);
-            }
-        }
-
-        super["isChanged"] = value;
     }
 }
 

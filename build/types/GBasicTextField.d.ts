@@ -1,12 +1,7 @@
 import { GTextField } from './GTextField';
+import { TextField } from './display/TextField';
 export declare class GBasicTextField extends GTextField {
-    private _textField;
-    private _font;
-    private _color;
-    /**
-     * 描边颜色，默认黑色
-     */
-    private _strokeColor;
+    protected _textField: TextField;
     private _singleLine;
     private _letterSpacing;
     private _textWidth;
@@ -55,16 +50,6 @@ export declare class GBasicTextField extends GTextField {
     protected handleGrayedChanged(): void;
     protected doAlign(): void;
     flushVars(): void;
-}
-export declare class TextExt extends Phaser.GameObjects.Text {
-    private _owner;
-    private _lock;
-    private _sizeDirty;
-    constructor(owner: GBasicTextField);
-    baseTypeset(): void;
-    typeset(): void;
-    setChanged(): void;
-    protected set isChanged(value: boolean);
 }
 export interface LineInfo {
     width: number;

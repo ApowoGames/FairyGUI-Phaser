@@ -178,7 +178,7 @@ export class GLabel extends GComponent {
             if (input instanceof GTextInput) {
                 str = buffer.readS();
                 if (str != null)
-                    input.promptText = str;
+                    input.placeholder = str;
 
                 str = buffer.readS();
                 if (str != null)
