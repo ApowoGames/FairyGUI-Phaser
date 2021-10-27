@@ -17,6 +17,11 @@ export declare class GTextField extends GObject {
     protected _updatingSize: boolean;
     protected _align: string;
     protected _valign: string;
+    protected _font: string;
+    protected _fontSize: number;
+    protected _color: string;
+    protected _stroke: number;
+    protected _strokeColor: string;
     constructor(scene: Phaser.Scene);
     get font(): string;
     set font(value: string);

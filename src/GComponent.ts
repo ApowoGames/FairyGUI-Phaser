@@ -710,8 +710,7 @@ export class GComponent extends GObject {
         // this._displayObject.mouseThrough = false;
         // this._displayObject.hitTestPrior = true;
         // }
-        const maskObj = new GObject();
-        maskObj.scene = this.scene;
+        const maskObj = new GObject(this.scene);
         maskObj.setDisplayObject(this._mask);
         this.hitArea = new ChildHitArea(maskObj, reversed);
         if (reversed) {

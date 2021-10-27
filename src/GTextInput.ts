@@ -3,9 +3,10 @@ import { UIConfig } from './UIConfig';
 import { GTextField } from './GTextField';
 import { InputTextField } from './display/InputTextField';
 import { UBBParser } from '.';
+import { GBasicTextField } from './GBasicTextField';
 
 
-export class Input extends Text {
+export class InputType {
     /** 常规文本域。*/
     static TYPE_TEXT: string = "text";
     /** password 类型用于密码域输入。*/
@@ -42,193 +43,87 @@ export class Input extends Text {
 }
 
 
-export class GTextInput extends GTextField {
-    private _input: any;
-    
-    private _prompt: string;
+export class GTextInput extends GBasicTextField {
 
     constructor(scene: Phaser.Scene) {
         super(scene);
     }
 
     public createDisplayObject(): void {
-        this._displayObject = this._input = new InputTextField(this.scene);
-        // this._displayObject.mouseEnabled = true;
-        this._displayObject["$owner"] = this;
-        this._displayObject.createInput();
+        this._displayObject = this._textField = new InputTextField(this).setOrigin(0, 0);
+    //     this._displayObject["$owner"] = this;
+    //     this._displayObject.createInput();
     }
+    
 
     public get nativeInput(): any {
-        return this._input;
+        return this._textField;
     }
 
     public set text(value: string) {
-        this._input.text = value;
+        this._textField.text = value;
     }
 
     public get text(): string {
-        return this._input.text;
-    }
-
-    public get font(): string {
-        return this._input.font;
-    }
-
-    public set font(value: string) {
-        if (value)
-            this._input.font = value;
-        else
-            this._input.font = UIConfig.defaultFont;
-    }
-
-    public get fontSize(): number {
-        return this._input.fontSize;
-    }
-
-    public set fontSize(value: number) {
-        this._input.fontSize = value;
-    }
-
-    public get color(): string {
-        return this._input.color;
-    }
-
-    public set color(value: string) {
-        this._input.color = value;
-    }
-
-    public get align(): string {
-        return this._input.align;
-    }
-
-    public set align(value: string) {
-        this._input.align = value;
-    }
-
-    public get valign(): string {
-        return this._input.valign;
-    }
-
-    public set valign(value: string) {
-        this._input.valign = value;
-    }
-
-    public get leading(): number {
-        return this._input.leading;
-    }
-
-    public set leading(value: number) {
-        this._input.leading = value;
-    }
-
-    public get bold(): boolean {
-        return this._input.bold;
-    }
-
-    public set bold(value: boolean) {
-        this._input.bold = value;
-    }
-
-    public get italic(): boolean {
-        return this._input.italic;
-    }
-
-    public set italic(value: boolean) {
-        this._input.italic = value;
-    }
-
-    public get singleLine(): boolean {
-        return !this._input.multiline;
-    }
-
-    public set singleLine(value: boolean) {
-        this._input.multiline = !value;
-    }
-
-    public get stroke(): number {
-        return this._input.stroke;
-    }
-
-    public set stroke(value: number) {
-        this._input.stroke = value;
-    }
-
-    public get strokeColor(): string {
-        return this._input.strokeColor;
-    }
-
-    public set strokeColor(value: string) {
-        this._input.strokeColor = value;
-        this.updateGear(4);
+        return this._textField.text;
     }
 
     public get password(): boolean {
-        return this._input.type == "password";
+        return this.inputTextField.password;
     }
 
     public set password(value: boolean) {
-        if (value)
-            this._input.type = "password";
-        else
-            this._input.type = "text";
+        this.inputTextField.password = value;
     }
 
     public get keyboardType(): string {
-        return this._input.type;
+        return this.inputTextField.type;
     }
 
     public set keyboardType(value: string) {
-        this._input.type = value;
+        this.inputTextField.keyboardType = value;
     }
 
     public set editable(value: boolean) {
-        this._input.editable = value;
+        this.inputTextField.editable = value;
     }
 
     public get editable(): boolean {
-        return this._input.editable;
+        return this.inputTextField.editable;
     }
 
     public set maxLength(value: number) {
-        this._input.maxChars = value;
+        this.inputTextField.maxLength = value;
+        // this._input.maxChars = value;
     }
 
     public get maxLength(): number {
-        return this._input.maxChars;
+        return this.inputTextField.maxLength;
     }
 
-    public set promptText(value: string) {
-        this._prompt = value;
+    public set placeholder(value: string) {
         var str: string = UBBParser.inst.parse(value, true);
-        this._input.prompt = str;
-        if (UBBParser.inst.lastColor)
-            this._input.promptColor = UBBParser.inst.lastColor;
+        this.inputTextField.placeholder = str;
+        // if (UBBParser.inst.lastColor)
+            // this._input.promptColor = UBBParser.inst.lastColor;
     }
 
-    public get promptText(): string {
-        return this._prompt;
+    public get placeholder(): string {
+        return this.inputTextField.placeholder;
     }
 
     public set restrict(value: string) {
-        this._input.restrict = value;
+        this.inputTextField.restrict = value;
     }
 
     public get restrict(): string {
-        return this._input.restrict;
-    }
-
-    public get textWidth(): number {
-        return this._input.textWidth;
+        return this.inputTextField.restrict;
     }
 
     public requestFocus(): void {
-        this._input.focus = true;
+        this.inputTextField.setFocus();
 
         super.requestFocus();
-    }
-
-    protected handleSizeChanged(): void {
-        this._input.size(this._width, this._height);
     }
 
     public setup_beforeAdd(buffer: ByteBuffer, beginPos: number): void {
@@ -238,23 +133,28 @@ export class GTextInput extends GTextField {
 
         var str: string = buffer.readS();
         if (str != null)
-            this.promptText = str;
+            this.placeholder = str;
 
         str = buffer.readS();
         if (str != null)
-            this._input.restrict = str;
+            this.restrict = str;
 
         var iv: number = buffer.readInt();
         if (iv != 0)
-            this._input.maxChars = iv;
+            this.maxLength = iv;
         iv = buffer.readInt();
         if (iv != 0) {
             if (iv == 4)
-                this.keyboardType = Input.TYPE_NUMBER;
+                this.keyboardType = InputType.TYPE_NUMBER;
             else if (iv == 3)
-                this.keyboardType = Input.TYPE_URL;
+                this.keyboardType = InputType.TYPE_URL;
         }
         if (buffer.readBool())
             this.password = true;
+    }
+    
+
+    private get inputTextField() {
+        return <InputTextField>this._textField;
     }
 }

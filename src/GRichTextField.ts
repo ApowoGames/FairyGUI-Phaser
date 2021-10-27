@@ -13,11 +13,10 @@ export class GRichTextField extends GTextField {
         // this._displayObject = this._div = new Laya.HTMLDivElement();
         // this._displayObject.mouseEnabled = true;
         // this._displayObject["$owner"] = this;
-        throw new Error("TODO");
     }
 
     public get div(): any {
-        throw new Error("TODO");
+        // throw new Error("TODO");
         return this._div;
     }
 

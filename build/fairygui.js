@@ -3063,8 +3063,7 @@
             this._id = "" + _gInstanceCounter++;
             this._name = "";
             // todo 优先传入scene在创建display
-            if (scene)
-                this.scene = scene;
+            this.scene = scene;
             if (this.scene)
                 this.createDisplayObject();
             this._displayStyle = new DisplayStyle();
@@ -11510,8 +11509,7 @@
             // this._displayObject.mouseThrough = false;
             // this._displayObject.hitTestPrior = true;
             // }
-            const maskObj = new GObject();
-            maskObj.scene = this.scene;
+            const maskObj = new GObject(this.scene);
             maskObj.setDisplayObject(this._mask);
             this.hitArea = new ChildHitArea(maskObj, reversed);
             if (reversed) {
@@ -12321,19 +12319,22 @@
             // console.log("text create", this);
         }
         get font() {
-            return null;
+            return this._font;
         }
         set font(value) {
+            this._font = value;
         }
         get fontSize() {
-            return 0;
+            return this._fontSize;
         }
         set fontSize(value) {
+            this._fontSize = value;
         }
         get color() {
-            return null;
+            return this._color;
         }
         set color(value) {
+            this._color = value;
         }
         get align() {
             return this._align;
@@ -12503,7 +12504,7 @@
         setup_beforeAdd(buffer, beginPos) {
             super.setup_beforeAdd(buffer, beginPos);
             buffer.seek(beginPos, 5);
-            var iv;
+            let iv;
             this.font = buffer.readS();
             this.fontSize = buffer.readShort();
             this.color = buffer.readColorS();
@@ -12705,10 +12706,10 @@
             // this._displayObject = this._div = new Laya.HTMLDivElement();
             // this._displayObject.mouseEnabled = true;
             // this._displayObject["$owner"] = this;
-            throw new Error("TODO");
         }
         get div() {
-            throw new Error("TODO");
+            // throw new Error("TODO");
+            return this._div;
         }
         set text(value) {
             this._text = value;
@@ -12863,172 +12864,855 @@
         }
     }
 
-    class GTextInput extends GTextField {
+    class TextField extends Phaser.GameObjects.Text {
+        constructor(owner) {
+            super(owner.scene, 0, 0, "", undefined);
+            this._owner = owner;
+        }
+        baseTypeset() {
+            this._lock = true;
+            this.typeset();
+            this._lock = false;
+        }
+        typeset() {
+            // this._sizeDirty = true; //阻止SIZE_DELAY_CHANGE的触发
+            // super.typeset();
+            // if (!this._lock)
+            //     this._owner.typeset();
+            // if (this._isChanged) {
+            //     Laya.timer.clear(this, this.typeset);
+            //     this._isChanged = false;
+            // }
+            this._sizeDirty = false;
+            this.setChanged();
+        }
+        setChanged() {
+            this.isChanged = true;
+        }
+        set isChanged(value) {
+            if (value && !this._sizeDirty) {
+                if (this._owner.autoSize != exports.AutoSizeType.None && this._owner.parent) {
+                    this._sizeDirty = true;
+                    this.emit(DisplayObjectEvent.SIZE_DELAY_CHANGE);
+                }
+            }
+            super["isChanged"] = value;
+        }
+    }
+
+    class InputTextField extends TextField {
+        constructor(owner) {
+            super(owner);
+            this._text2 = "";
+            this.editable = true;
+            this.setOrigin(0);
+        }
+        onFocusHandler() {
+            if (!this.editable || this._editing)
+                return;
+            // if (!this._font)
+            //     this.applyFormat();
+            if (!this._element)
+                this.createElement();
+            this._element.setVisible(true);
+            const inputElement = this._element.node;
+            inputElement.value = this._text2;
+            inputElement.style.fontSize = this.style.fontSize;
+            inputElement.style.textAlign = this.style.align;
+            if (this.maxLength !== undefined)
+                inputElement.maxLength = this.maxLength;
+            this.scene.input.on("pointerdown", this.onPointerSceneHandler, this);
+            inputElement.focus();
+            this.disableInteractive();
+            this._editing = true;
+            this.setVisible(false);
+        }
+        onBlurHandler() {
+            this.scene.input.off("pointerdown", this.onPointerSceneHandler, this);
+            this._inputNode.blur();
+            this._element.setVisible(false);
+            this.setInteractive();
+            this._text2 = this._inputNode.value;
+            this._inputNode = null;
+            this._element.destroy();
+            this._element = null;
+            this.updateText();
+            this.setVisible(true);
+            this._editing = false;
+        }
+        createElement() {
+            this._element = new Phaser.GameObjects.DOMElement(this.scene);
+            let e;
+            // if (this["$owner"].singleLine) {
+            {
+                e = document.createElement("input");
+            }
+            this._inputNode = e;
+            e.style.outline = "none";
+            e.style.borderWidth = "0px";
+            e.style.padding = "0px";
+            e.style.margin = "0px";
+            e.style.position = "absolute";
+            e.style.display = "none";
+            e.style.background = 'transparent';
+            e.style.transformOrigin = e.style["WebkitTransformOrigin"] = "0 0 0";
+            e.style.width = `${this.width}px`;
+            e.style.height = `${this.height}px`;
+            this._element.setElement(e);
+            this._element.setOrigin(this.originX, this.originY);
+            this._element.setPosition(this.x, this.y);
+            this.parentContainer.add(this._element);
+        }
+        updateTextField() {
+            if (this._editing)
+                this._inputNode.value = this._text2;
+            else if (this._text2.length === 0 && this._promptText) ;
+            else if (this.password) {
+                super.setText("*".repeat(this._text2.length));
+            }
+            else {
+                super.setText(this._text2);
+            }
+        }
+        /**
+         * Don"t propagate touch/mouse events to parent(game canvas)
+         * @param element
+         */
+        stopPropagationTouchEvents(e) {
+            const callback = function (e) {
+                e.stopPropagation();
+            };
+            // Don't propagate touch/mouse events to parent(game canvas)
+            e.addEventListener("touchstart", callback, false);
+            e.addEventListener("touchmove", callback, false);
+            e.addEventListener("touchend", callback, false);
+            e.addEventListener("mousedown", callback, false);
+            e.addEventListener("mouseup", callback, false);
+            e.addEventListener("mousemove", callback, false);
+        }
+        routeEvents(gameObject, element, elementEvents) {
+            for (let eventName in elementEvents) { // Note: Don't use `var` here
+                element[elementEvents[eventName]] = function (e) {
+                    gameObject.emit(eventName, gameObject, e);
+                };
+            }
+        }
+        getText() {
+            if (this._editing) {
+                this._text2 = this._element.node.value;
+            }
+            return this._text2;
+        }
+        setText(value) {
+            this._text2 = value;
+            this.updateTextField();
+            if (value) {
+                this.setInteractive();
+                this.on("pointerup", this.onFocusHandler, this);
+            }
+            return this;
+        }
+        selectText() {
+            if (this._inputNode)
+                this._inputNode.select();
+            return this;
+        }
+        get placeholder() {
+            return this._promptText;
+        }
+        set placeholder(value) {
+            // this._inputNode.placeholder = value;
+            this._promptText = value;
+            if (this._editing) {
+                this._inputNode.placeholder = this._promptText;
+            }
+        }
+        setPlaceholder(value) {
+            this.placeholder = value;
+            return this;
+        }
+        setEnabled(enabled) {
+            if (enabled === undefined) {
+                enabled = true;
+            }
+            this._inputNode.disabled = !enabled;
+            return this;
+        }
+        setBlur() {
+            this._inputNode.blur();
+            return this;
+        }
+        setFocus() {
+            this._inputNode.focus();
+            return this;
+        }
+        setSize(width, height) {
+            if (this.scene.scale.autoRound) {
+                width = Math.floor(width);
+                height = Math.floor(height);
+            }
+            if (this.width === width && this.height === height) {
+                return;
+            }
+            super.setSize(width, height);
+            if (this._inputNode) {
+                const style = this._inputNode.style;
+                style.width = `${width}px`;
+                style.height = `${height}px`;
+            }
+            // this.updateSize();
+            return this;
+        }
+        onPointerSceneHandler() {
+            console.log("onPointerSceneHandler", this._editing);
+            if (this._editing)
+                this.onBlurHandler();
+        }
+    }
+
+    class GBasicTextField extends GTextField {
+        constructor(scene) {
+            super(scene);
+            this._letterSpacing = 0;
+            this._textWidth = 0;
+            this._textHeight = 0;
+            // this._textField.align = "left";
+            // this._textField.font = fgui.UIConfig.defaultFont;
+            this._autoSize = exports.AutoSizeType.Both;
+            this._widthAutoSize = this._heightAutoSize = true;
+            // this._textField["_sizeDirty"] = false;
+        }
+        createDisplayObject() {
+            this._displayObject = this._textField = new TextField(this);
+            this._textField.setColor(this._color);
+            this._displayObject["$owner"] = this;
+            this._displayObject.mouseEnabled = false;
+        }
+        get nativeText() {
+            return this._textField;
+        }
+        set text(value) {
+            this._text = value;
+            if (this._text == null)
+                this._text = "";
+            if (this._bitmapFont == null) {
+                if (this._widthAutoSize)
+                    this._textField.width = 10000;
+                var text2 = this._text;
+                if (this._templateVars)
+                    text2 = this.parseTemplate(text2);
+                if (this._ubbEnabled) //laya还不支持同一个文本不同样式
+                    this._textField.text = UBBParser.inst.parse(text2, true);
+                else
+                    this._textField.text = text2;
+            }
+            else {
+                this._textField.text = "";
+                this._textField["setChanged"]();
+            }
+            if (this.parent && this.parent._underConstruct) {
+                this._textField.typeset();
+                this.updateSize();
+                this.doAlign();
+            }
+        }
+        get text() {
+            return this._text;
+        }
+        get font() {
+            return this._textField.style.fontFamily;
+        }
+        set font(value) {
+            this._font = value;
+            if (this._font) {
+                this._textField.setFont(this._font);
+            }
+            else {
+                this._textField.setFont(UIConfig.defaultFont);
+            }
+            // if (ToolSet.startsWith(this._font, "ui://"))
+            //     this._bitmapFont = <BitmapFont>UIPackage.getItemAssetByURL(this._font);
+            // else
+            //     delete this._bitmapFont;
+            // if (this._bitmapFont) {
+            //     this._textField["setChanged"]();
+            // }
+            // else {
+            //     if (this._font)
+            //         this._textField.font = this._font;
+            //     else
+            //         this._textField.font = fgui.UIConfig.defaultFont;
+            // }
+        }
+        get fontSize() {
+            return parseInt(this._textField.style.fontSize);
+        }
+        set fontSize(value) {
+            this._textField.setFontSize(value);
+        }
+        get color() {
+            return this._color;
+        }
+        set color(value) {
+            //todo
+            if (this._color != value) {
+                this._color = value;
+                this.updateGear(4);
+                if (this.grayed)
+                    this._textField.setColor("#AAAAAA");
+                else
+                    this._textField.setColor(this._color);
+            }
+        }
+        get align() {
+            return this._align;
+        }
+        set align(value) {
+            this._align = value;
+            this._textField.setAlign(this._align);
+            this.doAlign();
+        }
+        get valign() {
+            return this._valign;
+        }
+        set valign(value) {
+            this._valign = value;
+            this._textField.setAlign(this._valign);
+            this.doAlign();
+        }
+        get leading() {
+            return this._textField.lineSpacing;
+            // return this._textField.leading;
+        }
+        set leading(value) {
+            this._textField.setLineSpacing(value);
+            // this._textField.leading = value;
+        }
+        get letterSpacing() {
+            return this._letterSpacing;
+        }
+        set letterSpacing(value) {
+            this._letterSpacing = value;
+        }
+        get bold() {
+            return false;
+        }
+        set bold(value) {
+            // todo bold
+            // this._textField.bold = value;
+        }
+        get italic() {
+            return false;
+        }
+        set italic(value) {
+            // todo italic
+            // this._textField.italic = value;
+        }
+        get underline() {
+            return false;
+            // return this._textField.underline;
+        }
+        set underline(value) {
+            // todo underline
+            // this._textField.underline = value;
+        }
+        get singleLine() {
+            return this._singleLine;
+        }
+        set singleLine(value) {
+            this._singleLine = value;
+            if (!this._widthAutoSize && !this._singleLine) {
+                // 设置换行宽度，是否忽略空格
+                this._textField.setWordWrapWidth(this._textWidth, true);
+            }
+            // this._textField.wordWrap = !this._widthAutoSize && !this._singleLine;
+        }
+        get stroke() {
+            return this._textField.style.strokeThickness;
+        }
+        set stroke(value) {
+            this._textField.setStroke(this._strokeColor, value);
+        }
+        get strokeColor() {
+            return this._strokeColor;
+        }
+        set strokeColor(value) {
+            if (this._strokeColor != value) {
+                this._strokeColor = value;
+                this._textField.setStroke(this._strokeColor, this.stroke);
+                this.updateGear(4);
+            }
+        }
+        updateAutoSize() {
+            /*一般没有剪裁文字的需要，感觉HIDDEN有消耗，所以不用了
+            if(this._heightAutoSize)
+            this._textField.overflow = Text.VISIBLE;
+            else
+            this._textField.overflow = Text.HIDDEN;*/
+            // todo phaser默认自动换行
+            // this._textField.wordWrap = !this._widthAutoSize && !this._singleLine;
+            if (!this._underConstruct) {
+                if (!this._heightAutoSize)
+                    this._textField.setSize(this.width, this.height);
+                else if (!this._widthAutoSize)
+                    this._textField.width = this.width;
+            }
+        }
+        get textWidth() {
+            if (this._textField["_isChanged"])
+                this._textField.typeset();
+            return this._textWidth;
+        }
+        ensureSizeCorrect() {
+            if (!this._underConstruct && this._textField["_isChanged"])
+                this._textField.typeset();
+        }
+        typeset() {
+            if (this._bitmapFont)
+                this.renderWithBitmapFont();
+            else if (this._widthAutoSize || this._heightAutoSize)
+                this.updateSize();
+        }
+        updateSize() {
+            this._textWidth = Math.ceil(this._textField.displayWidth);
+            this._textHeight = Math.ceil(this._textField.displayHeight);
+            var w, h = 0;
+            if (this._widthAutoSize) {
+                w = this._textWidth;
+                if (this._textField.displayWidth != w) {
+                    this._textField.displayWidth = w;
+                    if (this._textField.style.align != "left")
+                        this._textField["baseTypeset"]();
+                }
+            }
+            else
+                w = this.width;
+            if (this._heightAutoSize) {
+                h = this._textHeight;
+                if (!this._widthAutoSize) {
+                    if (this._textField.displayHeight != this._textHeight)
+                        this._textField.displayHeight = this._textHeight;
+                }
+            }
+            else {
+                h = this.height;
+                if (this._textHeight > h)
+                    this._textHeight = h;
+                if (this._textField.displayHeight != this._textHeight)
+                    this._textField.displayHeight = this._textHeight;
+            }
+            this._updatingSize = true;
+            this.setSize(w, h);
+            this._updatingSize = false;
+        }
+        setSize(w, h) {
+            super.setSize(w, h);
+        }
+        renderWithBitmapFont() {
+            // var gr: Phaser.GameObjects.Graphics = this._displayObject.graphics;
+            // gr.clear();
+            // if (!this._lines)
+            //     this._lines = new Array<LineInfo>();
+            // else
+            //     returnList(this._lines);
+            // var lineSpacing: number = this.leading - 1;
+            // var rectWidth: number = this.width - GUTTER_X * 2;
+            // var lineWidth: number = 0, lineHeight: number = 0, lineTextHeight: number = 0;
+            // var glyphWidth: number = 0, glyphHeight: number = 0;
+            // var wordChars: number = 0, wordStart: number = 0, wordEnd: number = 0;
+            // var lastLineHeight: number = 0;
+            // var lineBuffer: string = "";
+            // var lineY: number = GUTTER_Y;
+            // var line: LineInfo;
+            // var wordWrap: boolean = true; // ===========!this._widthAutoSize && !this._singleLine;
+            // var fontSize: number = this.fontSize;
+            // var fontScale: number = this._bitmapFont.resizable ? fontSize / this._bitmapFont.size : 1;
+            // this._textWidth = 0;
+            // this._textHeight = 0;
+            // var text2: string = this._text;
+            // if (this._templateVars)
+            //     text2 = this.parseTemplate(text2);
+            // var textLength: number = text2.length;
+            // for (var offset: number = 0; offset < textLength; ++offset) {
+            //     var ch: string = text2.charAt(offset);
+            //     var cc: number = ch.charCodeAt(0);
+            //     if (cc == 10) {
+            //         lineBuffer += ch;
+            //         line = borrow();
+            //         line.width = lineWidth;
+            //         if (lineTextHeight == 0) {
+            //             if (lastLineHeight == 0)
+            //                 lastLineHeight = fontSize;
+            //             if (lineHeight == 0)
+            //                 lineHeight = lastLineHeight;
+            //             lineTextHeight = lineHeight;
+            //         }
+            //         line.height = lineHeight;
+            //         lastLineHeight = lineHeight;
+            //         line.textHeight = lineTextHeight;
+            //         line.text = lineBuffer;
+            //         line.y = lineY;
+            //         lineY += (line.height + lineSpacing);
+            //         if (line.width > this._textWidth)
+            //             this._textWidth = line.width;
+            //         this._lines.push(line);
+            //         lineBuffer = "";
+            //         lineWidth = 0;
+            //         lineHeight = 0;
+            //         lineTextHeight = 0;
+            //         wordChars = 0;
+            //         wordStart = 0;
+            //         wordEnd = 0;
+            //         continue;
+            //     }
+            //     if (cc >= 65 && cc <= 90 || cc >= 97 && cc <= 122) //a-z,A-Z
+            //     {
+            //         if (wordChars == 0)
+            //             wordStart = lineWidth;
+            //         wordChars++;
+            //     }
+            //     else {
+            //         if (wordChars > 0)
+            //             wordEnd = lineWidth;
+            //         wordChars = 0;
+            //     }
+            //     if (cc == 32) {
+            //         glyphWidth = Math.ceil(fontSize / 2);
+            //         glyphHeight = fontSize;
+            //     }
+            //     else {
+            //         var glyph: BMGlyph = this._bitmapFont.glyphs[ch];
+            //         if (glyph) {
+            //             glyphWidth = Math.ceil(glyph.advance * fontScale);
+            //             glyphHeight = Math.ceil(glyph.lineHeight * fontScale);
+            //         }
+            //         else {
+            //             glyphWidth = 0;
+            //             glyphHeight = 0;
+            //         }
+            //     }
+            //     if (glyphHeight > lineTextHeight)
+            //         lineTextHeight = glyphHeight;
+            //     if (glyphHeight > lineHeight)
+            //         lineHeight = glyphHeight;
+            //     if (lineWidth != 0)
+            //         lineWidth += this._letterSpacing;
+            //     lineWidth += glyphWidth;
+            //     if (!wordWrap || lineWidth <= rectWidth) {
+            //         lineBuffer += ch;
+            //     }
+            //     else {
+            //         line = borrow();
+            //         line.height = lineHeight;
+            //         line.textHeight = lineTextHeight;
+            //         if (lineBuffer.length == 0) {//the line cannt fit even a char
+            //             line.text = ch;
+            //         }
+            //         else if (wordChars > 0 && wordEnd > 0) {//if word had broken, move it to new line
+            //             lineBuffer += ch;
+            //             var len: number = lineBuffer.length - wordChars;
+            //             line.text = ToolSet.trimRight(lineBuffer.substr(0, len));
+            //             line.width = wordEnd;
+            //             lineBuffer = lineBuffer.substr(len);
+            //             lineWidth -= wordStart;
+            //         }
+            //         else {
+            //             line.text = lineBuffer;
+            //             line.width = lineWidth - (glyphWidth + this._letterSpacing);
+            //             lineBuffer = ch;
+            //             lineWidth = glyphWidth;
+            //             lineHeight = glyphHeight;
+            //             lineTextHeight = glyphHeight;
+            //         }
+            //         line.y = lineY;
+            //         lineY += (line.height + lineSpacing);
+            //         if (line.width > this._textWidth)
+            //             this._textWidth = line.width;
+            //         wordChars = 0;
+            //         wordStart = 0;
+            //         wordEnd = 0;
+            //         this._lines.push(line);
+            //     }
+            // }
+            // if (lineBuffer.length > 0) {
+            //     line = borrow();
+            //     line.width = lineWidth;
+            //     if (lineHeight == 0)
+            //         lineHeight = lastLineHeight;
+            //     if (lineTextHeight == 0)
+            //         lineTextHeight = lineHeight;
+            //     line.height = lineHeight;
+            //     line.textHeight = lineTextHeight;
+            //     line.text = lineBuffer;
+            //     line.y = lineY;
+            //     if (line.width > this._textWidth)
+            //         this._textWidth = line.width;
+            //     this._lines.push(line);
+            // }
+            // if (this._textWidth > 0)
+            //     this._textWidth += GUTTER_X * 2;
+            // var count: number = this._lines.length;
+            // if (count == 0) {
+            //     this._textHeight = 0;
+            // }
+            // else {
+            //     line = this._lines[this._lines.length - 1];
+            //     this._textHeight = line.y + line.height + GUTTER_Y;
+            // }
+            // var w: number, h: number = 0;
+            // if (this._widthAutoSize) {
+            //     if (this._textWidth == 0)
+            //         w = 0;
+            //     else
+            //         w = this._textWidth;
+            // }
+            // else
+            //     w = this.width;
+            // if (this._heightAutoSize) {
+            //     if (this._textHeight == 0)
+            //         h = 0;
+            //     else
+            //         h = this._textHeight;
+            // }
+            // else
+            //     h = this.height;
+            // this._updatingSize = true;
+            // this.setSize(w, h);
+            // this._updatingSize = false;
+            // this.doAlign();
+            // if (w == 0 || h == 0)
+            //     return;
+            // var charX: number = GUTTER_X;
+            // var lineIndent: number = 0;
+            // var charIndent: number = 0;
+            // rectWidth = this.width - GUTTER_X * 2;
+            // var lineCount: number = this._lines.length;
+            // var color: string = this._bitmapFont.tint ? this._color : null;
+            // for (var i: number = 0; i < lineCount; i++) {
+            //     line = this._lines[i];
+            //     charX = GUTTER_X;
+            //     if (this.align == "center")
+            //         lineIndent = (rectWidth - line.width) / 2;
+            //     else if (this.align == "right")
+            //         lineIndent = rectWidth - line.width;
+            //     else
+            //         lineIndent = 0;
+            //     textLength = line.text.length;
+            //     for (var j: number = 0; j < textLength; j++) {
+            //         ch = line.text.charAt(j);
+            //         cc = ch.charCodeAt(0);
+            //         if (cc == 10)
+            //             continue;
+            //         if (cc == 32) {
+            //             charX += this._letterSpacing + Math.ceil(fontSize / 2);
+            //             continue;
+            //         }
+            //         glyph = this._bitmapFont.glyphs[ch];
+            //         if (glyph) {
+            //             charIndent = (line.height + line.textHeight) / 2 - Math.ceil(glyph.lineHeight * fontScale);
+            //             if (glyph.texture) {
+            //                 gr.drawTexture(glyph.texture,
+            //                     charX + lineIndent + Math.ceil(glyph.x * fontScale),
+            //                     line.y + charIndent + Math.ceil(glyph.y * fontScale),
+            //                     glyph.width * fontScale,
+            //                     glyph.height * fontScale, null, 1, color);
+            //             }
+            //             charX += this._letterSpacing + Math.ceil(glyph.advance * fontScale);
+            //         }
+            //         else {
+            //             charX += this._letterSpacing;
+            //         }
+            //     }//this.text loop
+            // }//line loop
+        }
+        handleSizeChanged() {
+            if (this._updatingSize)
+                return;
+            if (this._underConstruct)
+                this._textField.setSize(this._width, this._height);
+            else {
+                if (this._bitmapFont) {
+                    if (!this._widthAutoSize)
+                        this._textField["setChanged"]();
+                    else
+                        this.doAlign();
+                }
+                else {
+                    if (!this._widthAutoSize) {
+                        if (!this._heightAutoSize)
+                            this.setSize(this._width, this._height);
+                        else
+                            this._textField.width = this._width;
+                    }
+                }
+            }
+        }
+        handleGrayedChanged() {
+            super.handleGrayedChanged();
+            // if (this.grayed)
+            //     this._textField.color = "#AAAAAA";
+            // else
+            //     this._textField.color = this._color;
+        }
+        doAlign() {
+            // 横向
+            if (this.align === "left" || this._textWidth === 0) {
+                this._xOffset = GUTTER_X;
+            }
+            else {
+                let dx = this.width - this._textWidth;
+                if (dx < 0)
+                    dx = 0;
+                if (this.align === "center") {
+                    this._xOffset = Math.floor(dx / 2);
+                }
+                else {
+                    this._xOffset = Math.floor(dx);
+                }
+            }
+            // 纵向
+            if (this.valign == "top" || this._textHeight == 0) {
+                this._yOffset = GUTTER_Y;
+            }
+            else {
+                var dh = this.height - this._textHeight;
+                if (dh < 0)
+                    dh = 0;
+                if (this.valign == "middle")
+                    this._yOffset = Math.floor(dh / 2);
+                else
+                    this._yOffset = Math.floor(dh);
+            }
+            this.handleXYChanged();
+        }
+        flushVars() {
+            this.text = this._text;
+        }
+    }
+    const GUTTER_X = 2;
+    const GUTTER_Y = 2;
+
+    class InputType {
+    }
+    /** 常规文本域。*/
+    InputType.TYPE_TEXT = "text";
+    /** password 类型用于密码域输入。*/
+    InputType.TYPE_PASSWORD = "password";
+    /** email 类型用于应该包含 e-mail 地址的输入域。*/
+    InputType.TYPE_EMAIL = "email";
+    /** url 类型用于应该包含 URL 地址的输入域。*/
+    InputType.TYPE_URL = "url";
+    /** number 类型用于应该包含数值的输入域。*/
+    InputType.TYPE_NUMBER = "number";
+    /**
+     * <p>range 类型用于应该包含一定范围内数字值的输入域。</p>
+     * <p>range 类型显示为滑动条。</p>
+     * <p>您还能够设定对所接受的数字的限定。</p>
+     */
+    InputType.TYPE_RANGE = "range";
+    /**  选取日、月、年。*/
+    InputType.TYPE_DATE = "date";
+    /** month - 选取月、年。*/
+    InputType.TYPE_MONTH = "month";
+    /** week - 选取周和年。*/
+    InputType.TYPE_WEEK = "week";
+    /** time - 选取时间（小时和分钟）。*/
+    InputType.TYPE_TIME = "time";
+    /** datetime - 选取时间、日、月、年（UTC 时间）。*/
+    InputType.TYPE_DATE_TIME = "datetime";
+    /** datetime-local - 选取时间、日、月、年（本地时间）。*/
+    InputType.TYPE_DATE_TIME_LOCAL = "datetime-local";
+    /**
+     * <p>search 类型用于搜索域，比如站点搜索或 Google 搜索。</p>
+     * <p>search 域显示为常规的文本域。</p>
+     */
+    InputType.TYPE_SEARCH = "search";
+    class GTextInput extends GBasicTextField {
         constructor(scene) {
             super(scene);
         }
         createDisplayObject() {
-            throw new Error("TODO");
-            // this._displayObject = this._input = new Laya.Input();
-            // this._displayObject.mouseEnabled = true;
-            // this._displayObject["$owner"] = this;
+            this._displayObject = this._textField = new InputTextField(this).setOrigin(0, 0);
+            //     this._displayObject["$owner"] = this;
+            //     this._displayObject.createInput();
         }
         get nativeInput() {
-            return this._input;
+            return this._textField;
         }
         set text(value) {
-            this._input.text = value;
+            this._textField.text = value;
         }
         get text() {
-            return this._input.text;
-        }
-        get font() {
-            return this._input.font;
-        }
-        set font(value) {
-            if (value)
-                this._input.font = value;
-            else
-                this._input.font = UIConfig.defaultFont;
-        }
-        get fontSize() {
-            return this._input.fontSize;
-        }
-        set fontSize(value) {
-            this._input.fontSize = value;
-        }
-        get color() {
-            return this._input.color;
-        }
-        set color(value) {
-            this._input.color = value;
-        }
-        get align() {
-            return this._input.align;
-        }
-        set align(value) {
-            this._input.align = value;
-        }
-        get valign() {
-            return this._input.valign;
-        }
-        set valign(value) {
-            this._input.valign = value;
-        }
-        get leading() {
-            return this._input.leading;
-        }
-        set leading(value) {
-            this._input.leading = value;
-        }
-        get bold() {
-            return this._input.bold;
-        }
-        set bold(value) {
-            this._input.bold = value;
-        }
-        get italic() {
-            return this._input.italic;
-        }
-        set italic(value) {
-            this._input.italic = value;
-        }
-        get singleLine() {
-            return !this._input.multiline;
-        }
-        set singleLine(value) {
-            this._input.multiline = !value;
-        }
-        get stroke() {
-            return this._input.stroke;
-        }
-        set stroke(value) {
-            this._input.stroke = value;
-        }
-        get strokeColor() {
-            return this._input.strokeColor;
-        }
-        set strokeColor(value) {
-            this._input.strokeColor = value;
-            this.updateGear(4);
+            return this._textField.text;
         }
         get password() {
-            return this._input.type == "password";
+            return this.inputTextField.password;
         }
         set password(value) {
-            if (value)
-                this._input.type = "password";
-            else
-                this._input.type = "text";
+            this.inputTextField.password = value;
         }
         get keyboardType() {
-            return this._input.type;
+            return this.inputTextField.type;
         }
         set keyboardType(value) {
-            this._input.type = value;
+            this.inputTextField.keyboardType = value;
         }
         set editable(value) {
-            this._input.editable = value;
+            this.inputTextField.editable = value;
         }
         get editable() {
-            return this._input.editable;
+            return this.inputTextField.editable;
         }
         set maxLength(value) {
-            this._input.maxChars = value;
+            this.inputTextField.maxLength = value;
+            // this._input.maxChars = value;
         }
         get maxLength() {
-            return this._input.maxChars;
+            return this.inputTextField.maxLength;
         }
-        set promptText(value) {
-            throw "TODO";
-            // this._prompt = value;
-            // var str: string = UBBParser.inst.parse(value, true);
-            // this._input.prompt = str;
+        set placeholder(value) {
+            var str = UBBParser.inst.parse(value, true);
+            this.inputTextField.placeholder = str;
             // if (UBBParser.inst.lastColor)
-            //     this._input.promptColor = UBBParser.inst.lastColor;
+            // this._input.promptColor = UBBParser.inst.lastColor;
         }
-        get promptText() {
-            return this._prompt;
+        get placeholder() {
+            return this.inputTextField.placeholder;
         }
         set restrict(value) {
-            this._input.restrict = value;
+            this.inputTextField.restrict = value;
         }
         get restrict() {
-            return this._input.restrict;
-        }
-        get textWidth() {
-            return this._input.textWidth;
+            return this.inputTextField.restrict;
         }
         requestFocus() {
-            this._input.focus = true;
+            this.inputTextField.setFocus();
             super.requestFocus();
-        }
-        handleSizeChanged() {
-            this._input.size(this._width, this._height);
         }
         setup_beforeAdd(buffer, beginPos) {
             super.setup_beforeAdd(buffer, beginPos);
             buffer.seek(beginPos, 4);
             var str = buffer.readS();
             if (str != null)
-                this.promptText = str;
+                this.placeholder = str;
             str = buffer.readS();
             if (str != null)
-                this._input.restrict = str;
+                this.restrict = str;
             var iv = buffer.readInt();
             if (iv != 0)
-                this._input.maxChars = iv;
+                this.maxLength = iv;
             iv = buffer.readInt();
             if (iv != 0) {
-                // TODO keyboardType
-                throw new Error("TODO");
-                // if (iv == 4)
-                //     this.keyboardType = Laya.Input.TYPE_NUMBER;
-                // else if (iv == 3)
-                //     this.keyboardType = Laya.Input.TYPE_URL;
+                if (iv == 4)
+                    this.keyboardType = InputType.TYPE_NUMBER;
+                else if (iv == 3)
+                    this.keyboardType = InputType.TYPE_URL;
             }
             if (buffer.readBool())
                 this.password = true;
+        }
+        get inputTextField() {
+            return this._textField;
         }
     }
 
@@ -14147,7 +14831,7 @@
                 if (input instanceof GTextInput) {
                     str = buffer.readS();
                     if (str != null)
-                        input.promptText = str;
+                        input.placeholder = str;
                     str = buffer.readS();
                     if (str != null)
                         input.restrict = str;
@@ -18117,564 +18801,6 @@
             // this._list.resizeToFit(100000, 10);
         }
     }
-
-    class GBasicTextField extends GTextField {
-        constructor(scene) {
-            super(scene);
-            /**
-             * 描边颜色，默认黑色
-             */
-            this._strokeColor = "#000000";
-            this._letterSpacing = 0;
-            this._textWidth = 0;
-            this._textHeight = 0;
-            this._text = "";
-            this._color = "#000000";
-            // this._textField.align = "left";
-            // this._textField.font = fgui.UIConfig.defaultFont;
-            this._autoSize = exports.AutoSizeType.Both;
-            this._widthAutoSize = this._heightAutoSize = true;
-            this._textField["_sizeDirty"] = false;
-        }
-        createDisplayObject() {
-            this._displayObject = this._textField = new TextExt(this);
-            this._color = "#000000";
-            this._textField.setColor(this._color);
-            this._displayObject["$owner"] = this;
-            this._displayObject.mouseEnabled = false;
-        }
-        get nativeText() {
-            return this._textField;
-        }
-        set text(value) {
-            this._text = value;
-            if (this._text == null)
-                this._text = "";
-            if (this._bitmapFont == null) {
-                if (this._widthAutoSize)
-                    this._textField.width = 10000;
-                var text2 = this._text;
-                if (this._templateVars)
-                    text2 = this.parseTemplate(text2);
-                if (this._ubbEnabled) //laya还不支持同一个文本不同样式
-                    this._textField.text = UBBParser.inst.parse(text2, true);
-                else
-                    this._textField.text = text2;
-            }
-            else {
-                this._textField.text = "";
-                this._textField["setChanged"]();
-            }
-            if (this.parent && this.parent._underConstruct) {
-                this._textField.typeset();
-                this.updateSize();
-                this.doAlign();
-            }
-        }
-        get text() {
-            return this._text;
-        }
-        get font() {
-            // todo
-            return "";
-        }
-        set font(value) {
-            this._font = value;
-            this._textField.setFont(this._font);
-            // if (ToolSet.startsWith(this._font, "ui://"))
-            //     this._bitmapFont = <BitmapFont>UIPackage.getItemAssetByURL(this._font);
-            // else
-            //     delete this._bitmapFont;
-            // if (this._bitmapFont) {
-            //     this._textField["setChanged"]();
-            // }
-            // else {
-            //     if (this._font)
-            //         this._textField.font = this._font;
-            //     else
-            //         this._textField.font = fgui.UIConfig.defaultFont;
-            // }
-        }
-        get fontSize() {
-            return Number(this._textField.style.fontSize);
-        }
-        set fontSize(value) {
-            this._textField.style.setFontSize(value);
-        }
-        get color() {
-            return this._color;
-        }
-        set color(value) {
-            //todo
-            if (this._color != value) {
-                this._color = value;
-                this.updateGear(4);
-                this._textField.setColor(value);
-                if (this.grayed)
-                    this._textField.setFill("#AAAAAA");
-                else
-                    this._textField.setFill(this._color);
-            }
-        }
-        get align() {
-            return this._align;
-        }
-        set align(value) {
-            this._align = value;
-            this._textField.setAlign(value);
-            this.doAlign();
-        }
-        get valign() {
-            return this._valign;
-        }
-        set valign(value) {
-            this._valign = value;
-            this._textField.setAlign(this._valign);
-            this.doAlign();
-        }
-        get leading() {
-            return this._textField.lineSpacing;
-            // return this._textField.leading;
-        }
-        set leading(value) {
-            this._textField.setLineSpacing(value);
-            // this._textField.leading = value;
-        }
-        get letterSpacing() {
-            return this._letterSpacing;
-        }
-        set letterSpacing(value) {
-            this._letterSpacing = value;
-        }
-        get bold() {
-            return false;
-        }
-        set bold(value) {
-            // todo bold
-            // this._textField.bold = value;
-        }
-        get italic() {
-            return false;
-        }
-        set italic(value) {
-            // todo italic
-            // this._textField.italic = value;
-        }
-        get underline() {
-            return false;
-            // return this._textField.underline;
-        }
-        set underline(value) {
-            // todo underline
-            // this._textField.underline = value;
-        }
-        get singleLine() {
-            return this._singleLine;
-        }
-        set singleLine(value) {
-            // todo singleline
-            // this._singleLine = value;
-            // this._textField.wordWrap = !this._widthAutoSize && !this._singleLine;
-        }
-        get stroke() {
-            return this._textField.style.strokeThickness;
-        }
-        set stroke(value) {
-            this._textField.setStroke(this._strokeColor, value);
-        }
-        get strokeColor() {
-            return this._strokeColor;
-        }
-        set strokeColor(value) {
-            if (this._strokeColor != value) {
-                this._strokeColor = value;
-                this._textField.setStroke(this._strokeColor, this.stroke);
-                this.updateGear(4);
-            }
-        }
-        updateAutoSize() {
-            /*一般没有剪裁文字的需要，感觉HIDDEN有消耗，所以不用了
-            if(this._heightAutoSize)
-            this._textField.overflow = Text.VISIBLE;
-            else
-            this._textField.overflow = Text.HIDDEN;*/
-            // todo phaser默认自动换行
-            // this._textField.wordWrap = !this._widthAutoSize && !this._singleLine;
-            if (!this._underConstruct) {
-                if (!this._heightAutoSize)
-                    this._textField.setSize(this.width, this.height);
-                else if (!this._widthAutoSize)
-                    this._textField.width = this.width;
-            }
-        }
-        get textWidth() {
-            if (this._textField["_isChanged"])
-                this._textField.typeset();
-            return this._textWidth;
-        }
-        ensureSizeCorrect() {
-            if (!this._underConstruct && this._textField["_isChanged"])
-                this._textField.typeset();
-        }
-        typeset() {
-            if (this._bitmapFont)
-                this.renderWithBitmapFont();
-            else if (this._widthAutoSize || this._heightAutoSize)
-                this.updateSize();
-        }
-        updateSize() {
-            this._textWidth = Math.ceil(this._textField.displayWidth);
-            this._textHeight = Math.ceil(this._textField.displayHeight);
-            var w, h = 0;
-            if (this._widthAutoSize) {
-                w = this._textWidth;
-                if (this._textField.displayWidth != w) {
-                    this._textField.displayWidth = w;
-                    if (this._textField.style.align != "left")
-                        this._textField["baseTypeset"]();
-                }
-            }
-            else
-                w = this.width;
-            if (this._heightAutoSize) {
-                h = this._textHeight;
-                if (!this._widthAutoSize) {
-                    if (this._textField.displayHeight != this._textHeight)
-                        this._textField.displayHeight = this._textHeight;
-                }
-            }
-            else {
-                h = this.height;
-                if (this._textHeight > h)
-                    this._textHeight = h;
-                if (this._textField.displayHeight != this._textHeight)
-                    this._textField.displayHeight = this._textHeight;
-            }
-            this._updatingSize = true;
-            this.setSize(w, h);
-            this._updatingSize = false;
-        }
-        setSize(w, h) {
-            super.setSize(w, h);
-        }
-        renderWithBitmapFont() {
-            // var gr: Phaser.GameObjects.Graphics = this._displayObject.graphics;
-            // gr.clear();
-            // if (!this._lines)
-            //     this._lines = new Array<LineInfo>();
-            // else
-            //     returnList(this._lines);
-            // var lineSpacing: number = this.leading - 1;
-            // var rectWidth: number = this.width - GUTTER_X * 2;
-            // var lineWidth: number = 0, lineHeight: number = 0, lineTextHeight: number = 0;
-            // var glyphWidth: number = 0, glyphHeight: number = 0;
-            // var wordChars: number = 0, wordStart: number = 0, wordEnd: number = 0;
-            // var lastLineHeight: number = 0;
-            // var lineBuffer: string = "";
-            // var lineY: number = GUTTER_Y;
-            // var line: LineInfo;
-            // var wordWrap: boolean = true; // ===========!this._widthAutoSize && !this._singleLine;
-            // var fontSize: number = this.fontSize;
-            // var fontScale: number = this._bitmapFont.resizable ? fontSize / this._bitmapFont.size : 1;
-            // this._textWidth = 0;
-            // this._textHeight = 0;
-            // var text2: string = this._text;
-            // if (this._templateVars)
-            //     text2 = this.parseTemplate(text2);
-            // var textLength: number = text2.length;
-            // for (var offset: number = 0; offset < textLength; ++offset) {
-            //     var ch: string = text2.charAt(offset);
-            //     var cc: number = ch.charCodeAt(0);
-            //     if (cc == 10) {
-            //         lineBuffer += ch;
-            //         line = borrow();
-            //         line.width = lineWidth;
-            //         if (lineTextHeight == 0) {
-            //             if (lastLineHeight == 0)
-            //                 lastLineHeight = fontSize;
-            //             if (lineHeight == 0)
-            //                 lineHeight = lastLineHeight;
-            //             lineTextHeight = lineHeight;
-            //         }
-            //         line.height = lineHeight;
-            //         lastLineHeight = lineHeight;
-            //         line.textHeight = lineTextHeight;
-            //         line.text = lineBuffer;
-            //         line.y = lineY;
-            //         lineY += (line.height + lineSpacing);
-            //         if (line.width > this._textWidth)
-            //             this._textWidth = line.width;
-            //         this._lines.push(line);
-            //         lineBuffer = "";
-            //         lineWidth = 0;
-            //         lineHeight = 0;
-            //         lineTextHeight = 0;
-            //         wordChars = 0;
-            //         wordStart = 0;
-            //         wordEnd = 0;
-            //         continue;
-            //     }
-            //     if (cc >= 65 && cc <= 90 || cc >= 97 && cc <= 122) //a-z,A-Z
-            //     {
-            //         if (wordChars == 0)
-            //             wordStart = lineWidth;
-            //         wordChars++;
-            //     }
-            //     else {
-            //         if (wordChars > 0)
-            //             wordEnd = lineWidth;
-            //         wordChars = 0;
-            //     }
-            //     if (cc == 32) {
-            //         glyphWidth = Math.ceil(fontSize / 2);
-            //         glyphHeight = fontSize;
-            //     }
-            //     else {
-            //         var glyph: BMGlyph = this._bitmapFont.glyphs[ch];
-            //         if (glyph) {
-            //             glyphWidth = Math.ceil(glyph.advance * fontScale);
-            //             glyphHeight = Math.ceil(glyph.lineHeight * fontScale);
-            //         }
-            //         else {
-            //             glyphWidth = 0;
-            //             glyphHeight = 0;
-            //         }
-            //     }
-            //     if (glyphHeight > lineTextHeight)
-            //         lineTextHeight = glyphHeight;
-            //     if (glyphHeight > lineHeight)
-            //         lineHeight = glyphHeight;
-            //     if (lineWidth != 0)
-            //         lineWidth += this._letterSpacing;
-            //     lineWidth += glyphWidth;
-            //     if (!wordWrap || lineWidth <= rectWidth) {
-            //         lineBuffer += ch;
-            //     }
-            //     else {
-            //         line = borrow();
-            //         line.height = lineHeight;
-            //         line.textHeight = lineTextHeight;
-            //         if (lineBuffer.length == 0) {//the line cannt fit even a char
-            //             line.text = ch;
-            //         }
-            //         else if (wordChars > 0 && wordEnd > 0) {//if word had broken, move it to new line
-            //             lineBuffer += ch;
-            //             var len: number = lineBuffer.length - wordChars;
-            //             line.text = ToolSet.trimRight(lineBuffer.substr(0, len));
-            //             line.width = wordEnd;
-            //             lineBuffer = lineBuffer.substr(len);
-            //             lineWidth -= wordStart;
-            //         }
-            //         else {
-            //             line.text = lineBuffer;
-            //             line.width = lineWidth - (glyphWidth + this._letterSpacing);
-            //             lineBuffer = ch;
-            //             lineWidth = glyphWidth;
-            //             lineHeight = glyphHeight;
-            //             lineTextHeight = glyphHeight;
-            //         }
-            //         line.y = lineY;
-            //         lineY += (line.height + lineSpacing);
-            //         if (line.width > this._textWidth)
-            //             this._textWidth = line.width;
-            //         wordChars = 0;
-            //         wordStart = 0;
-            //         wordEnd = 0;
-            //         this._lines.push(line);
-            //     }
-            // }
-            // if (lineBuffer.length > 0) {
-            //     line = borrow();
-            //     line.width = lineWidth;
-            //     if (lineHeight == 0)
-            //         lineHeight = lastLineHeight;
-            //     if (lineTextHeight == 0)
-            //         lineTextHeight = lineHeight;
-            //     line.height = lineHeight;
-            //     line.textHeight = lineTextHeight;
-            //     line.text = lineBuffer;
-            //     line.y = lineY;
-            //     if (line.width > this._textWidth)
-            //         this._textWidth = line.width;
-            //     this._lines.push(line);
-            // }
-            // if (this._textWidth > 0)
-            //     this._textWidth += GUTTER_X * 2;
-            // var count: number = this._lines.length;
-            // if (count == 0) {
-            //     this._textHeight = 0;
-            // }
-            // else {
-            //     line = this._lines[this._lines.length - 1];
-            //     this._textHeight = line.y + line.height + GUTTER_Y;
-            // }
-            // var w: number, h: number = 0;
-            // if (this._widthAutoSize) {
-            //     if (this._textWidth == 0)
-            //         w = 0;
-            //     else
-            //         w = this._textWidth;
-            // }
-            // else
-            //     w = this.width;
-            // if (this._heightAutoSize) {
-            //     if (this._textHeight == 0)
-            //         h = 0;
-            //     else
-            //         h = this._textHeight;
-            // }
-            // else
-            //     h = this.height;
-            // this._updatingSize = true;
-            // this.setSize(w, h);
-            // this._updatingSize = false;
-            // this.doAlign();
-            // if (w == 0 || h == 0)
-            //     return;
-            // var charX: number = GUTTER_X;
-            // var lineIndent: number = 0;
-            // var charIndent: number = 0;
-            // rectWidth = this.width - GUTTER_X * 2;
-            // var lineCount: number = this._lines.length;
-            // var color: string = this._bitmapFont.tint ? this._color : null;
-            // for (var i: number = 0; i < lineCount; i++) {
-            //     line = this._lines[i];
-            //     charX = GUTTER_X;
-            //     if (this.align == "center")
-            //         lineIndent = (rectWidth - line.width) / 2;
-            //     else if (this.align == "right")
-            //         lineIndent = rectWidth - line.width;
-            //     else
-            //         lineIndent = 0;
-            //     textLength = line.text.length;
-            //     for (var j: number = 0; j < textLength; j++) {
-            //         ch = line.text.charAt(j);
-            //         cc = ch.charCodeAt(0);
-            //         if (cc == 10)
-            //             continue;
-            //         if (cc == 32) {
-            //             charX += this._letterSpacing + Math.ceil(fontSize / 2);
-            //             continue;
-            //         }
-            //         glyph = this._bitmapFont.glyphs[ch];
-            //         if (glyph) {
-            //             charIndent = (line.height + line.textHeight) / 2 - Math.ceil(glyph.lineHeight * fontScale);
-            //             if (glyph.texture) {
-            //                 gr.drawTexture(glyph.texture,
-            //                     charX + lineIndent + Math.ceil(glyph.x * fontScale),
-            //                     line.y + charIndent + Math.ceil(glyph.y * fontScale),
-            //                     glyph.width * fontScale,
-            //                     glyph.height * fontScale, null, 1, color);
-            //             }
-            //             charX += this._letterSpacing + Math.ceil(glyph.advance * fontScale);
-            //         }
-            //         else {
-            //             charX += this._letterSpacing;
-            //         }
-            //     }//this.text loop
-            // }//line loop
-        }
-        handleSizeChanged() {
-            if (this._updatingSize)
-                return;
-            if (this._underConstruct)
-                this._textField.setSize(this._width, this._height);
-            else {
-                if (this._bitmapFont) {
-                    if (!this._widthAutoSize)
-                        this._textField["setChanged"]();
-                    else
-                        this.doAlign();
-                }
-                else {
-                    if (!this._widthAutoSize) {
-                        if (!this._heightAutoSize)
-                            this.setSize(this._width, this._height);
-                        else
-                            this._textField.width = this._width;
-                    }
-                }
-            }
-        }
-        handleGrayedChanged() {
-            super.handleGrayedChanged();
-            // if (this.grayed)
-            //     this._textField.color = "#AAAAAA";
-            // else
-            //     this._textField.color = this._color;
-        }
-        doAlign() {
-            // 横向
-            if (this.align === "left" || this._textWidth === 0) {
-                this._xOffset = GUTTER_X;
-            }
-            else {
-                let dx = this.width - this._textWidth;
-                if (dx < 0)
-                    dx = 0;
-                if (this.align === "center") {
-                    this._xOffset = Math.floor(dx / 2);
-                }
-                else {
-                    this._xOffset = Math.floor(dx);
-                }
-            }
-            // 纵向
-            if (this.valign == "top" || this._textHeight == 0) {
-                this._yOffset = GUTTER_Y;
-            }
-            else {
-                var dh = this.height - this._textHeight;
-                if (dh < 0)
-                    dh = 0;
-                if (this.valign == "middle")
-                    this._yOffset = Math.floor(dh / 2);
-                else
-                    this._yOffset = Math.floor(dh);
-            }
-            this.handleXYChanged();
-        }
-        flushVars() {
-            this.text = this._text;
-        }
-    }
-    class TextExt extends Phaser.GameObjects.Text {
-        constructor(owner) {
-            super(owner.scene, 0, 0, "", undefined);
-            this._owner = owner;
-        }
-        baseTypeset() {
-            this._lock = true;
-            this.typeset();
-            this._lock = false;
-        }
-        typeset() {
-            // this._sizeDirty = true; //阻止SIZE_DELAY_CHANGE的触发
-            // super.typeset();
-            // if (!this._lock)
-            //     this._owner.typeset();
-            // if (this._isChanged) {
-            //     Laya.timer.clear(this, this.typeset);
-            //     this._isChanged = false;
-            // }
-            this._sizeDirty = false;
-            this.setChanged();
-        }
-        setChanged() {
-            this.isChanged = true;
-        }
-        set isChanged(value) {
-            if (value && !this._sizeDirty) {
-                if (this._owner.autoSize != exports.AutoSizeType.None && this._owner.parent) {
-                    this._sizeDirty = true;
-                    this.emit(DisplayObjectEvent.SIZE_DELAY_CHANGE);
-                }
-            }
-            super["isChanged"] = value;
-        }
-    }
-    const GUTTER_X = 2;
-    const GUTTER_Y = 2;
 
     class UIObjectFactory {
         constructor() {

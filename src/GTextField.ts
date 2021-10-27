@@ -17,6 +17,11 @@ export class GTextField extends GObject {
     protected _updatingSize: boolean;
     protected _align: string = "";
     protected _valign: string = "";
+    protected _font: string;
+    protected _fontSize: number;
+    protected _color: string;
+    protected _stroke: number;
+    protected _strokeColor: string;
 
     constructor(scene: Phaser.Scene) {
         super(scene);
@@ -24,24 +29,27 @@ export class GTextField extends GObject {
     }
 
     public get font(): string {
-        return null;
+        return this._font;
     }
 
     public set font(value: string) {
+        this._font = value;
     }
 
     public get fontSize(): number {
-        return 0;
+        return this._fontSize;
     }
 
     public set fontSize(value: number) {
+        this._fontSize = value;
     }
 
     public get color(): string {
-        return null;
+        return this._color;
     }
 
     public set color(value: string) {
+        this._color = value;
     }
 
     public get align(): string {
@@ -255,7 +263,7 @@ export class GTextField extends GObject {
 
         buffer.seek(beginPos, 5);
 
-        var iv: number;
+        let iv: number;
 
         this.font = buffer.readS();
         this.fontSize = buffer.readShort();

@@ -1,12 +1,7 @@
 import { GTextField } from './GTextField';
+import { TextField } from './display/TextField';
 export declare class GBasicTextField extends GTextField {
-    private _textField;
-    private _font;
-    private _color;
-    /**
-     * 描边颜色，默认黑色
-     */
-    private _strokeColor;
+    protected _textField: TextField;
     private _singleLine;
     private _letterSpacing;
     private _textWidth;
