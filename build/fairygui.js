@@ -5803,6 +5803,7 @@
                 const repeat = this._times > 0 ? this._times : -1;
                 this._curKey = key + "_mc";
                 this._sprite.anims.create({ key: this._curKey, frames: this._sprite.anims.generateFrameNames(key, { prefix: name + "_", start: 0, end: len - 1 }), frameRate: this.scene.game.config.fps.target / 5, repeat });
+                this._sprite.setOrigin(0.5, 1);
                 this.add(this._sprite);
                 this.checkTimer();
             }
@@ -16342,12 +16343,12 @@
                 return;
             let item = (gameObject[0]["$owner"]);
             // 如果clickitem的父对象为空，不可能为glist则直接跳出
-            if (!item || !item.parent)
+            if (!item)
                 return;
             let boo = false;
             let target = gameObject[0];
             while (!boo) {
-                if (item.parent instanceof GList) {
+                if ((item.parent && item.parent.type === exports.ObjectType.List || item.parent.type === exports.ObjectType.Tree) || item.type === exports.ObjectType.List || item.type === exports.ObjectType.Tree) {
                     target = item.displayObject;
                     boo = true;
                 }

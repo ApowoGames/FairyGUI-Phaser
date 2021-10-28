@@ -4,7 +4,7 @@ import { GButton } from './GButton';
 import { GObjectPool } from './GObjectPool';
 import { Controller } from './Controller';
 import { UIPackage } from './UIPackage';
-import { ListLayoutType, ListSelectionMode, ChildrenRenderOrder, OverflowType } from './FieldTypes';
+import { ListLayoutType, ListSelectionMode, ChildrenRenderOrder, OverflowType, ObjectType } from './FieldTypes';
 import { GComponent } from "./GComponent";
 import { GObject } from "./GObject";
 import { Events } from './Events';
@@ -672,11 +672,11 @@ export class GList extends GComponent {
             return;
         let item: GObject = <GObject>(gameObject[0]["$owner"]);
         // 如果clickitem的父对象为空，不可能为glist则直接跳出
-        if (!item || !item.parent) return;
+        if (!item) return;
         let boo = false;
         let target = gameObject[0];
         while (!boo) {
-            if (item.parent instanceof GList) {
+            if ((item.parent && item.parent.type === ObjectType.List || item.parent.type === ObjectType.Tree) || item.type === ObjectType.List || item.type === ObjectType.Tree) {
                 target = item.displayObject;
                 boo = true;
             } else {
