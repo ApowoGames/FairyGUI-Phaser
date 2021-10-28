@@ -5777,6 +5777,8 @@
             this._interval = 100;
             this._frameElapsed = 0; //当前帧延迟
             this._repeatedCount = 0;
+            this._sourceWidth = 0;
+            this._sourceHeight = 0;
             // this.mouseEnabled = false;
             this._sprite = this.scene.make.sprite(undefined, false);
             this.setPlaySettings();
@@ -5797,13 +5799,14 @@
         set frames(value) {
             this._frames = value;
             if (value) {
-                const key = value[0].texture.key;
+                const frame = value[0];
+                const key = frame.texture.key;
                 const len = value.length;
-                const name = value[0].name.split("_")[0];
+                const name = frame.name.split("_")[0];
                 const repeat = this._times > 0 ? this._times : -1;
                 this._curKey = key + "_mc";
-                this._sprite.anims.create({ key: this._curKey, frames: this._sprite.anims.generateFrameNames(key, { prefix: name + "_", start: 0, end: len - 1 }), frameRate: this.scene.game.config.fps.target / 5, repeat });
-                this._sprite.setOrigin(0.5, 1);
+                const frameRate = 1000 / this._interval;
+                this._sprite.anims.create({ key: this._curKey, frames: this._sprite.anims.generateFrameNames(key, { prefix: name + "_", start: 0, end: len - 1 }), frameRate, repeat });
                 this.add(this._sprite);
                 this.checkTimer();
             }
@@ -5814,6 +5817,13 @@
                 }
                 this.checkTimer(false);
             }
+        }
+        setSize(width, height) {
+            this._sourceWidth = width;
+            this._sourceHeight = height;
+            if (this._sprite)
+                this._sprite.setSize(width, height);
+            return this;
         }
         get frameCount() {
             return this._frameCount;

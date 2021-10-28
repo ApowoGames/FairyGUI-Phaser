@@ -15,6 +15,8 @@ export class MovieClip extends Image {
     private _curKey: string;
 
     private _sprite: Phaser.GameObjects.Sprite;
+    private _sourceWidth: number = 0;
+    private _sourceHeight: number = 0;
     // private _movieUpdateEvent: any;
     // private _movieTime: Phaser.Time.TimerEvent;
 
@@ -45,12 +47,14 @@ export class MovieClip extends Image {
     public set frames(value: Phaser.Textures.Frame[]) {
         this._frames = value;
         if (value) {
-            const key = value[0].texture.key;
+            const frame: Phaser.Textures.Frame = value[0];
+            const key = frame.texture.key;
             const len = value.length;
-            const name = value[0].name.split("_")[0];
+            const name = frame.name.split("_")[0];
             const repeat = this._times > 0 ? this._times : -1;
-            this._curKey = key + "_mc"
-            this._sprite.anims.create({ key: this._curKey, frames: this._sprite.anims.generateFrameNames(key, { prefix: name + "_", start: 0, end: len - 1 }), frameRate: this.scene.game.config.fps.target / 5, repeat });
+            this._curKey = key + "_mc";
+            const frameRate = 1000 / this._interval;
+            this._sprite.anims.create({ key: this._curKey, frames: this._sprite.anims.generateFrameNames(key, { prefix: name + "_", start: 0, end: len - 1 }), frameRate, repeat });
             this.add(this._sprite);
             this.checkTimer();
         } else {
@@ -60,6 +64,13 @@ export class MovieClip extends Image {
             }
             this.checkTimer(false);
         }
+    }
+
+    public setSize(width: number, height: number): this {
+        this._sourceWidth = width;
+        this._sourceHeight = height;
+        if (this._sprite) this._sprite.setSize(width, height);
+        return this;
     }
 
     public get frameCount(): number {

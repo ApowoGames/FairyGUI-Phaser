@@ -10,11 +10,14 @@ export declare class MovieClip extends Image {
     private _repeatedCount;
     private _curKey;
     private _sprite;
+    private _sourceWidth;
+    private _sourceHeight;
     constructor(scene: Phaser.Scene);
     set interval(val: number);
     get interval(): number;
     get frames(): Phaser.Textures.Frame[];
     set frames(value: Phaser.Textures.Frame[]);
+    setSize(width: number, height: number): this;
     get frameCount(): number;
     get frame(): number;
     set frame(value: number);
