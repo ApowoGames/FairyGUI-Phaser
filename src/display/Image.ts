@@ -58,7 +58,7 @@ export class Image extends Phaser.GameObjects.Container {
         this._color = "#FFFFFF";
     }
 
-    public setTint(color:string) {
+    public setTint(color: string) {
         const _color = Utils.toNumColor(color);
         this.list.forEach((img: Phaser.GameObjects.Image) => {
             if (img) {
@@ -162,19 +162,17 @@ export class Image extends Phaser.GameObjects.Container {
     public set texture(value: Phaser.Textures.Texture) {
         if (this._sourceTexture != value) {
             this._sourceTexture = value;
-            if (this["_width"] == 0) {
-                if (this._sourceTexture)
-                    this.setSize(this._sourceTexture.source[0].width, this._sourceTexture.source[0].height);
-                else
-                    this.setSize(0, 0);
-            }
+            if (this._sourceTexture)
+                this.setSize(this.width, this.height);
+            else
+                this.setSize(0, 0);
             // todo 重绘
             // this.scene.add.image(0, 0, this._sourceTexture);
             // const frames = value.getFrameNames();
             // const baseFrameName = frames[0];
             // this._renderTexture.drawFrame(value.key, baseFrameName, 0, 0);
             // this.repaint();
-            this.markChanged(1);
+            // this.markChanged(1);
         }
     }
 

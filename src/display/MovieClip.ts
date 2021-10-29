@@ -1,4 +1,3 @@
-import { GRoot } from "..";
 import { Image } from "./Image";
 
 export class MovieClip extends Image {
@@ -15,6 +14,7 @@ export class MovieClip extends Image {
     private _curKey: string;
 
     private _sprite: Phaser.GameObjects.Sprite;
+    private _image: Phaser.GameObjects.Image;
     private _sourceWidth: number = 0;
     private _sourceHeight: number = 0;
     // private _movieUpdateEvent: any;
@@ -24,8 +24,7 @@ export class MovieClip extends Image {
         super(scene);
 
         // this.mouseEnabled = false;
-        this._sprite = this.scene.make.sprite(undefined, false);
-        this.setPlaySettings();
+        // this.setPlaySettings();
         // this._movieUpdateEvent = { delay: this.interval, callback: this.update, callbackScope: this }
         // this.on(Laya.Event.DISPLAY, this, this.__addToStage);
         // this.on(Laya.Event.UNDISPLAY, this, this.__removeFromStage);
@@ -48,29 +47,38 @@ export class MovieClip extends Image {
         this._frames = value;
         if (value) {
             const frame: Phaser.Textures.Frame = value[0];
-            const key = frame.texture.key;
-            const len = value.length;
-            const name = frame.name.split("_")[0];
-            const repeat = this._times > 0 ? this._times : -1;
-            this._curKey = key + "_mc";
-            const frameRate = 1000 / this._interval;
-            this._sprite.anims.create({ key: this._curKey, frames: this._sprite.anims.generateFrameNames(key, { prefix: name + "_", start: 0, end: len - 1 }), frameRate, repeat });
-            this.add(this._sprite);
-            this.checkTimer();
+            if (value.length > 1) {
+                const key = frame.texture.key;
+                const len = value.length;
+                const name = frame.name.split("_")[0];
+                const repeat = this._times > 0 ? this._times : -1;
+                this._curKey = key + "_mc";
+                const frameRate = 1000 / this._interval;
+                if (!this._sprite) this._sprite = this.scene.make.sprite(undefined, false);
+                (<Phaser.GameObjects.Sprite>this._sprite).anims.create({ key: this._curKey, frames: this._sprite.anims.generateFrameNames(key, { prefix: name + "_", start: 0, end: len - 1 }), frameRate, repeat });
+                this.add(this._sprite);
+                this.checkTimer();
+            } else {
+                const key = frame.texture.key;
+                if (!this._image) {
+                    this._image = new Phaser.GameObjects.Image(this.scene, 0, 0, key, frame.name);
+                } else {
+                    this._image.setTexture(key, frame.name);
+                }
+                this._image.setOrigin(0);
+                this._image.setPosition(0, 0);
+                this.add(this._image);
+            }
         } else {
             if (this._sprite) {
                 this._sprite.stop();
                 this.remove(this._sprite);
             }
+            if (this._image) {
+                this.remove(this._image);
+            }
             this.checkTimer(false);
         }
-    }
-
-    public setSize(width: number, height: number): this {
-        this._sourceWidth = width;
-        this._sourceHeight = height;
-        if (this._sprite) this._sprite.setSize(width, height);
-        return this;
     }
 
     public get frameCount(): number {
@@ -174,24 +182,24 @@ export class MovieClip extends Image {
     }
 
     //从start帧开始，播放到end帧（-1表示结尾），重复times次（0表示无限循环），循环结束后，停止在endAt帧（-1表示参数end）
-    public setPlaySettings(start?: number, end?: number, times?: number, endAt?: number, endHandler?: () => void): void {
-        if (start == undefined) start = 0;
-        if (end == undefined) end = -1;
-        if (times == undefined) times = 0;
-        if (endAt == undefined) endAt = -1;
+    // public setPlaySettings(start?: number, end?: number, times?: number, endAt?: number, endHandler?: () => void): void {
+    //     if (start == undefined) start = 0;
+    //     if (end == undefined) end = -1;
+    //     if (times == undefined) times = 0;
+    //     if (endAt == undefined) endAt = -1;
 
-        this._start = start;
-        this._end = end;
-        if (this._end == -1 || this._end > this._frameCount - 1)
-            this._end = this._frameCount - 1;
-        this._times = times;
-        this._endAt = endAt;
-        if (this._endAt == -1)
-            this._endAt = this._end;
-        this._status = 0;
-        this._endHandler = endHandler;
-        this.frame = start;
-    }
+    //     this._start = start;
+    //     this._end = end;
+    //     if (this._end == -1 || this._end > this._frameCount - 1)
+    //         this._end = this._frameCount - 1;
+    //     this._times = times;
+    //     this._endAt = endAt;
+    //     if (this._endAt == -1)
+    //         this._endAt = this._end;
+    //     this._status = 0;
+    //     this._endHandler = endHandler;
+    //     this.frame = start;
+    // }
 
     // public update(): void {
     //     if (!this._playing || this._frameCount == 0 || this._status == 3)
@@ -300,6 +308,7 @@ export class MovieClip extends Image {
     }
 
     private checkTimer(playBoo: boolean = true): void {
+        if (!this._sprite) return;
         if (playBoo) {
             if (this._sprite.anims.isPlaying) return;
             this._sprite.play(this._curKey);

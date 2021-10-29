@@ -242,12 +242,16 @@ export class GLoader extends GObject {
                             return reject();
                         }
                         else {
-                            this._content.texture = this._contentItem.texture;
                             this._content.scale9Grid = this._contentItem.scale9Grid;
                             this._content.scaleByTile = this._contentItem.scaleByTile;
                             this._content.tileGridIndice = this._contentItem.tileGridIndice;
                             this.sourceWidth = this._contentItem.width;
                             this.sourceHeight = this._contentItem.height;
+                            const name = this._contentItem.texture.key + "_" + this._contentItem.name + "_" + this._contentItem.width + "_" + this._contentItem.height;
+                            const frame: Phaser.Textures.Frame = this._contentItem.texture.frames[name];
+                            if (frame) {
+                                this._content.frames = [frame];
+                            }
                             this.updateLayout();
                             return reslove();
                         }
@@ -322,6 +326,7 @@ export class GLoader extends GObject {
             this.onExternalLoadSuccess(tex);
         else
             this.onExternalLoadFailed();
+        AssetProxy.inst.removeListen();
     }
 
     private setErrorState(): void {

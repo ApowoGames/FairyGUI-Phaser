@@ -582,11 +582,23 @@ export class UIPackage {
         return this.getItemAsset(pi);
     }
 
+    private checkHasFrame(item: PackageItem): boolean {
+        if (!item) return false;
+        if (item.texture) {
+            const name = item.texture.key + "_" + item.name + "_" + item.width + "_" + item.height;
+            const frame: Phaser.Textures.Frame = item.texture.frames[name];
+            if (frame) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public getItemAsset(item: PackageItem): Promise<Object> {
         return new Promise((reslove, reject) => {
             switch (item.type) {
                 case PackageItemType.Image:
-                    if (!item.decoded) {
+                    if (!item.decoded ) {
                         item.decoded = true;
                         const sprite: AtlasSprite = this._sprites[item.id];
                         if (sprite) {
@@ -600,6 +612,11 @@ export class UIPackage {
                                     item.ty = sprite.offset.y;
                                     item.width = sprite.rect.width;
                                     item.height = sprite.rect.height;
+                                    const name = atlasTexture.key + "_" + item.name + "_" + item.width + "_" + item.height;
+                                    const frame: Phaser.Textures.Frame = atlasTexture.frames[name];
+                                    if (!frame) {
+                                        item.texture.add(name, 0, item.x, item.y, item.width, item.height);
+                                    }
                                     // Laya.Texture.create(atlasTexture,
                                     //     sprite.rect.x, sprite.rect.y, sprite.rect.width, sprite.rect.height,
                                     //     sprite.offset.x, sprite.offset.y,
@@ -629,6 +646,11 @@ export class UIPackage {
                                 item.ty = sprite.offset.y;
                                 item.width = sprite.rect.width;
                                 item.height = sprite.rect.height;
+                                const name = texture.key + "_" + item.name + "_" + item.width + "_" + item.height;
+                                const frame = texture.frames[name];
+                                if (!frame) {
+                                    item.texture.add(name, 0, item.x, item.y, item.width, item.height);
+                                }
                                 reslove(item);
                             } else {
                                 AssetProxy.inst.emitter.once(sprite.atlas.file + "_image" + "_complete", (file) => {

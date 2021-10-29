@@ -5382,19 +5382,17 @@ class Image extends Phaser.GameObjects.Container {
     set texture(value) {
         if (this._sourceTexture != value) {
             this._sourceTexture = value;
-            if (this["_width"] == 0) {
-                if (this._sourceTexture)
-                    this.setSize(this._sourceTexture.source[0].width, this._sourceTexture.source[0].height);
-                else
-                    this.setSize(0, 0);
-            }
+            if (this._sourceTexture)
+                this.setSize(this.width, this.height);
+            else
+                this.setSize(0, 0);
             // todo 重绘
             // this.scene.add.image(0, 0, this._sourceTexture);
             // const frames = value.getFrameNames();
             // const baseFrameName = frames[0];
             // this._renderTexture.drawFrame(value.key, baseFrameName, 0, 0);
             // this.repaint();
-            this.markChanged(1);
+            // this.markChanged(1);
         }
     }
     setPackItem(value) {
@@ -5776,8 +5774,7 @@ class MovieClip extends Image {
         this._sourceWidth = 0;
         this._sourceHeight = 0;
         // this.mouseEnabled = false;
-        this._sprite = this.scene.make.sprite(undefined, false);
-        this.setPlaySettings();
+        // this.setPlaySettings();
         // this._movieUpdateEvent = { delay: this.interval, callback: this.update, callbackScope: this }
         // this.on(Laya.Event.DISPLAY, this, this.__addToStage);
         // this.on(Laya.Event.UNDISPLAY, this, this.__removeFromStage);
@@ -5796,30 +5793,42 @@ class MovieClip extends Image {
         this._frames = value;
         if (value) {
             const frame = value[0];
-            const key = frame.texture.key;
-            const len = value.length;
-            const name = frame.name.split("_")[0];
-            const repeat = this._times > 0 ? this._times : -1;
-            this._curKey = key + "_mc";
-            const frameRate = 1000 / this._interval;
-            this._sprite.anims.create({ key: this._curKey, frames: this._sprite.anims.generateFrameNames(key, { prefix: name + "_", start: 0, end: len - 1 }), frameRate, repeat });
-            this.add(this._sprite);
-            this.checkTimer();
+            if (value.length > 1) {
+                const key = frame.texture.key;
+                const len = value.length;
+                const name = frame.name.split("_")[0];
+                const repeat = this._times > 0 ? this._times : -1;
+                this._curKey = key + "_mc";
+                const frameRate = 1000 / this._interval;
+                if (!this._sprite)
+                    this._sprite = this.scene.make.sprite(undefined, false);
+                this._sprite.anims.create({ key: this._curKey, frames: this._sprite.anims.generateFrameNames(key, { prefix: name + "_", start: 0, end: len - 1 }), frameRate, repeat });
+                this.add(this._sprite);
+                this.checkTimer();
+            }
+            else {
+                const key = frame.texture.key;
+                if (!this._image) {
+                    this._image = new Phaser.GameObjects.Image(this.scene, 0, 0, key, frame.name);
+                }
+                else {
+                    this._image.setTexture(key, frame.name);
+                }
+                this._image.setOrigin(0);
+                this._image.setPosition(0, 0);
+                this.add(this._image);
+            }
         }
         else {
             if (this._sprite) {
                 this._sprite.stop();
                 this.remove(this._sprite);
             }
+            if (this._image) {
+                this.remove(this._image);
+            }
             this.checkTimer(false);
         }
-    }
-    setSize(width, height) {
-        this._sourceWidth = width;
-        this._sourceHeight = height;
-        if (this._sprite)
-            this._sprite.setSize(width, height);
-        return this;
     }
     get frameCount() {
         return this._frameCount;
@@ -5907,27 +5916,23 @@ class MovieClip extends Image {
         //     this.drawFrame();
     }
     //从start帧开始，播放到end帧（-1表示结尾），重复times次（0表示无限循环），循环结束后，停止在endAt帧（-1表示参数end）
-    setPlaySettings(start, end, times, endAt, endHandler) {
-        if (start == undefined)
-            start = 0;
-        if (end == undefined)
-            end = -1;
-        if (times == undefined)
-            times = 0;
-        if (endAt == undefined)
-            endAt = -1;
-        this._start = start;
-        this._end = end;
-        if (this._end == -1 || this._end > this._frameCount - 1)
-            this._end = this._frameCount - 1;
-        this._times = times;
-        this._endAt = endAt;
-        if (this._endAt == -1)
-            this._endAt = this._end;
-        this._status = 0;
-        this._endHandler = endHandler;
-        this.frame = start;
-    }
+    // public setPlaySettings(start?: number, end?: number, times?: number, endAt?: number, endHandler?: () => void): void {
+    //     if (start == undefined) start = 0;
+    //     if (end == undefined) end = -1;
+    //     if (times == undefined) times = 0;
+    //     if (endAt == undefined) endAt = -1;
+    //     this._start = start;
+    //     this._end = end;
+    //     if (this._end == -1 || this._end > this._frameCount - 1)
+    //         this._end = this._frameCount - 1;
+    //     this._times = times;
+    //     this._endAt = endAt;
+    //     if (this._endAt == -1)
+    //         this._endAt = this._end;
+    //     this._status = 0;
+    //     this._endHandler = endHandler;
+    //     this.frame = start;
+    // }
     // public update(): void {
     //     if (!this._playing || this._frameCount == 0 || this._status == 3)
     //         return;
@@ -6024,6 +6029,8 @@ class MovieClip extends Image {
         super.destroy();
     }
     checkTimer(playBoo = true) {
+        if (!this._sprite)
+            return;
         if (playBoo) {
             if (this._sprite.anims.isPlaying)
                 return;
@@ -6095,7 +6102,7 @@ class GMovieClip extends GObject {
     }
     //从start帧开始，播放到end帧（-1表示结尾），重复times次（0表示无限循环），循环结束后，停止在endAt帧（-1表示参数end）
     setPlaySettings(start, end, times, endAt, endHandler) {
-        this._movieClip.setPlaySettings(start, end, times, endAt, endHandler);
+        //  this._movieClip.setPlaySettings(start, end, times, endAt, endHandler);
     }
     set touchable(value) {
         this._touchable = false;
@@ -7797,6 +7804,18 @@ class UIPackage {
         }
         return this.getItemAsset(pi);
     }
+    checkHasFrame(item) {
+        if (!item)
+            return false;
+        if (item.texture) {
+            const name = item.texture.key + "_" + item.name + "_" + item.width + "_" + item.height;
+            const frame = item.texture.frames[name];
+            if (frame) {
+                return true;
+            }
+        }
+        return false;
+    }
     getItemAsset(item) {
         return new Promise((reslove, reject) => {
             switch (item.type) {
@@ -7815,6 +7834,11 @@ class UIPackage {
                                     item.ty = sprite.offset.y;
                                     item.width = sprite.rect.width;
                                     item.height = sprite.rect.height;
+                                    const name = atlasTexture.key + "_" + item.name + "_" + item.width + "_" + item.height;
+                                    const frame = atlasTexture.frames[name];
+                                    if (!frame) {
+                                        item.texture.add(name, 0, item.x, item.y, item.width, item.height);
+                                    }
                                     // Laya.Texture.create(atlasTexture,
                                     //     sprite.rect.x, sprite.rect.y, sprite.rect.width, sprite.rect.height,
                                     //     sprite.offset.x, sprite.offset.y,
@@ -7847,6 +7871,11 @@ class UIPackage {
                                 item.ty = sprite.offset.y;
                                 item.width = sprite.rect.width;
                                 item.height = sprite.rect.height;
+                                const name = texture.key + "_" + item.name + "_" + item.width + "_" + item.height;
+                                const frame = texture.frames[name];
+                                if (!frame) {
+                                    item.texture.add(name, 0, item.x, item.y, item.width, item.height);
+                                }
                                 reslove(item);
                             }
                             else {
@@ -14014,12 +14043,16 @@ class GLoader extends GObject {
                             return reject();
                         }
                         else {
-                            this._content.texture = this._contentItem.texture;
                             this._content.scale9Grid = this._contentItem.scale9Grid;
                             this._content.scaleByTile = this._contentItem.scaleByTile;
                             this._content.tileGridIndice = this._contentItem.tileGridIndice;
                             this.sourceWidth = this._contentItem.width;
                             this.sourceHeight = this._contentItem.height;
+                            const name = this._contentItem.texture.key + "_" + this._contentItem.name + "_" + this._contentItem.width + "_" + this._contentItem.height;
+                            const frame = this._contentItem.texture.frames[name];
+                            if (frame) {
+                                this._content.frames = [frame];
+                            }
                             this.updateLayout();
                             return reslove();
                         }
@@ -14089,6 +14122,7 @@ class GLoader extends GObject {
             this.onExternalLoadSuccess(tex);
         else
             this.onExternalLoadFailed();
+        AssetProxy.inst.removeListen();
     }
     setErrorState() {
         if (!this._showErrorSign)
