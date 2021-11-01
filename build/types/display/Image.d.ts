@@ -34,6 +34,7 @@ export declare class Image extends Phaser.GameObjects.Container {
      */
     private patchKey;
     constructor(scene: Phaser.Scene);
+    get curImage(): Phaser.GameObjects.Image;
     setTint(color: string): void;
     setSize(width: number, height: number): this;
     createPatches(): void;

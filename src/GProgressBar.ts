@@ -123,26 +123,32 @@ export class GProgressBar extends GComponent {
         var fullHeight: number = this.height - this._barMaxHeightDelta;
         if (!this._reverse) {
             if (this._barObjectH) {
-                if (!this.setFillAmount(this._barObjectH, percent))
-                    this._barObjectH.width = Math.round(fullWidth * percent);
+                if (!this.setFillAmount(this._barObjectH, percent)) {
+                    this._barObjectH.resizeMask(Math.round(fullWidth * percent), this._barObjectH._rawHeight);
+                    // this._barObjectH.width = Math.round(fullWidth * percent);
+                }
             }
             if (this._barObjectV) {
-                if (!this.setFillAmount(this._barObjectV, percent))
-                    this._barObjectV.height = Math.round(fullHeight * percent);
+                if (!this.setFillAmount(this._barObjectV, percent)) {
+                    this._barObjectV.resizeMask(this._barObjectV._rawWidth, Math.round(fullHeight * percent));
+                    // this._barObjectV.height = Math.round(fullHeight * percent);
+                }
             }
         }
         else {
             if (this._barObjectH) {
                 if (!this.setFillAmount(this._barObjectH, 1 - percent)) {
-                    this._barObjectH.width = Math.round(fullWidth * percent);
-                    this._barObjectH.x = this._barStartX + (fullWidth - this._barObjectH.width);
+                    this._barObjectH.resizeMask(Math.round(fullWidth * percent), this._barObjectH._rawHeight);
+                    // this._barObjectH.width = Math.round(fullWidth * percent);
+                    // this._barObjectH.x = this._barStartX + (fullWidth - this._barObjectH.width);
                 }
 
             }
             if (this._barObjectV) {
                 if (!this.setFillAmount(this._barObjectV, 1 - percent)) {
-                    this._barObjectV.height = Math.round(fullHeight * percent);
-                    this._barObjectV.y = this._barStartY + (fullHeight - this._barObjectV.height);
+                    this._barObjectV.resizeMask(this._barObjectV._rawWidth, Math.round(fullHeight * percent));
+                    // this._barObjectV.height = Math.round(fullHeight * percent);
+                    // this._barObjectV.y = this._barStartY + (fullHeight - this._barObjectV.height);
                 }
             }
         }

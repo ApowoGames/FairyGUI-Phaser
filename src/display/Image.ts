@@ -58,6 +58,10 @@ export class Image extends Phaser.GameObjects.Container {
         this._color = "#FFFFFF";
     }
 
+    public get curImage(): Phaser.GameObjects.Image {
+        return this._curImg;
+    }
+
     public setTint(color: string) {
         const _color = Utils.toNumColor(color);
         this.list.forEach((img: Phaser.GameObjects.Image) => {
@@ -117,9 +121,31 @@ export class Image extends Phaser.GameObjects.Container {
     drawPatches() {
         const tintFill = this.tintFill;
         this.removeAll(true);
+        if (!this._scale9Grid) {
+            const patch = this._sourceTexture.frames[this.getPatchNameByIndex(8)];
+            if (this._curImg) {
+                this._curImg.destroy();
+                this._curImg = null;
+            }
+            this._curImg = new Phaser.GameObjects.Image(this.scene, 0, 0, patch.texture.key, patch.name);
+            this._curImg.setOrigin(0);
+            this._curImg.setPosition(this.finalXs[2], this.finalYs[2]);
+            this._curImg.displayWidth = this.finalXs[3]; //+ (xi < 2 ? this.mCorrection : 0);
+            this._curImg.displayHeight = this.finalYs[3] //+ (yi < 2 ? this.mCorrection : 0);
+            // console.log("drawImage ===>", this._curImg, this.finalXs, this.finalYs);
+            this.add(this._curImg);
+            if (this.internalTint)
+                this._curImg.setTint(this.internalTint);
+            this._curImg.tintFill = tintFill;
+            return;
+        }
         let patchIndex = 0;
         for (let yi = 0; yi < 3; yi++) {
             for (let xi = 0; xi < 3; xi++) {
+                // 九宫逻辑中如果宽高为0，则不做后续处理
+                // if (this.finalXs[xi + 1] - this.finalXs[xi] <= 0 || this.finalYs[yi + 1] - this.finalYs[yi] <= 0) {
+                //     continue;
+                // }
                 const patch = this._sourceTexture.frames[this.getPatchNameByIndex(patchIndex)];
                 const patchImg = new Phaser.GameObjects.Image(this.scene, 0, 0, patch.texture.key, patch.name);
                 patchImg.setOrigin(0);

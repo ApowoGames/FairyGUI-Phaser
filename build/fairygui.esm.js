@@ -660,6 +660,16 @@ class ToolSet {
     // public static setColorFilter(obj: Laya.Sprite, color?: string | number[] | boolean): void {
     static setColorFilter(obj, color) {
         // TODO
+        var tp = typeof (color);
+        if (tp == "boolean") //gray
+         {
+            if (tp) {
+                color = "#C0C0C0";
+            }
+            else {
+                return;
+            }
+        }
         obj.setTint(color);
         // console.log("todo color filter");
         // throw new Error("TODO");
@@ -3068,6 +3078,34 @@ class GObject {
         this._relations = new Relations(this);
         this._gears = new Array(10);
     }
+    resizeMask(wid, hei) {
+        if (!this.displayObject)
+            return;
+        const childrens = this.displayObject.list;
+        const cnt = childrens.length;
+        for (let i = 0; i < cnt; i++) {
+            const child = childrens[i];
+            if (!child)
+                continue;
+            let childList = child.list;
+            if (!childList) {
+                continue;
+            }
+            let childLen = childList.length;
+            // 进度条的bar只做两层层级！！！
+            for (let j = 0; j < childLen; j++) {
+                const children = childList[j];
+                if (!children)
+                    continue;
+                if (children instanceof Image) {
+                    if (!children.curImage)
+                        continue;
+                    children.curImage.setCrop(new Phaser.Geom.Rectangle(0, 0, wid, hei));
+                    continue;
+                }
+            }
+        }
+    }
     set type(val) {
         this._objectType = val;
     }
@@ -3969,6 +4007,7 @@ class GObject {
         this._displayObject.setPosition(xv + this._pivotOffsetX, yv + this._pivotOffsetY);
     }
     handleSizeChanged() {
+        // (<Phaser.GameObjects.Container>this.displayObject).setDisplaySize(this._width, this._height);
         this._displayObject.setSize(this._width, this._height);
         // this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this._width, this._height), Phaser.Geom.Rectangle.Contains);
     }
@@ -5285,6 +5324,9 @@ class Image extends Phaser.GameObjects.Container {
         // this.mouseEnabled = false;
         this._color = "#FFFFFF";
     }
+    get curImage() {
+        return this._curImg;
+    }
     setTint(color) {
         const _color = Utils.toNumColor(color);
         this.list.forEach((img) => {
@@ -5341,9 +5383,31 @@ class Image extends Phaser.GameObjects.Container {
     drawPatches() {
         const tintFill = this.tintFill;
         this.removeAll(true);
+        if (!this._scale9Grid) {
+            const patch = this._sourceTexture.frames[this.getPatchNameByIndex(8)];
+            if (this._curImg) {
+                this._curImg.destroy();
+                this._curImg = null;
+            }
+            this._curImg = new Phaser.GameObjects.Image(this.scene, 0, 0, patch.texture.key, patch.name);
+            this._curImg.setOrigin(0);
+            this._curImg.setPosition(this.finalXs[2], this.finalYs[2]);
+            this._curImg.displayWidth = this.finalXs[3]; //+ (xi < 2 ? this.mCorrection : 0);
+            this._curImg.displayHeight = this.finalYs[3]; //+ (yi < 2 ? this.mCorrection : 0);
+            // console.log("drawImage ===>", this._curImg, this.finalXs, this.finalYs);
+            this.add(this._curImg);
+            if (this.internalTint)
+                this._curImg.setTint(this.internalTint);
+            this._curImg.tintFill = tintFill;
+            return;
+        }
         let patchIndex = 0;
         for (let yi = 0; yi < 3; yi++) {
             for (let xi = 0; xi < 3; xi++) {
+                // 九宫逻辑中如果宽高为0，则不做后续处理
+                // if (this.finalXs[xi + 1] - this.finalXs[xi] <= 0 || this.finalYs[yi + 1] - this.finalYs[yi] <= 0) {
+                //     continue;
+                // }
                 const patch = this._sourceTexture.frames[this.getPatchNameByIndex(patchIndex)];
                 const patchImg = new Phaser.GameObjects.Image(this.scene, 0, 0, patch.texture.key, patch.name);
                 patchImg.setOrigin(0);
@@ -15613,25 +15677,31 @@ class GProgressBar extends GComponent {
         var fullHeight = this.height - this._barMaxHeightDelta;
         if (!this._reverse) {
             if (this._barObjectH) {
-                if (!this.setFillAmount(this._barObjectH, percent))
-                    this._barObjectH.width = Math.round(fullWidth * percent);
+                if (!this.setFillAmount(this._barObjectH, percent)) {
+                    this._barObjectH.resizeMask(Math.round(fullWidth * percent), this._barObjectH._rawHeight);
+                    // this._barObjectH.width = Math.round(fullWidth * percent);
+                }
             }
             if (this._barObjectV) {
-                if (!this.setFillAmount(this._barObjectV, percent))
-                    this._barObjectV.height = Math.round(fullHeight * percent);
+                if (!this.setFillAmount(this._barObjectV, percent)) {
+                    this._barObjectV.resizeMask(this._barObjectV._rawWidth, Math.round(fullHeight * percent));
+                    // this._barObjectV.height = Math.round(fullHeight * percent);
+                }
             }
         }
         else {
             if (this._barObjectH) {
                 if (!this.setFillAmount(this._barObjectH, 1 - percent)) {
-                    this._barObjectH.width = Math.round(fullWidth * percent);
-                    this._barObjectH.x = this._barStartX + (fullWidth - this._barObjectH.width);
+                    this._barObjectH.resizeMask(Math.round(fullWidth * percent), this._barObjectH._rawHeight);
+                    // this._barObjectH.width = Math.round(fullWidth * percent);
+                    // this._barObjectH.x = this._barStartX + (fullWidth - this._barObjectH.width);
                 }
             }
             if (this._barObjectV) {
                 if (!this.setFillAmount(this._barObjectV, 1 - percent)) {
-                    this._barObjectV.height = Math.round(fullHeight * percent);
-                    this._barObjectV.y = this._barStartY + (fullHeight - this._barObjectV.height);
+                    this._barObjectV.resizeMask(this._barObjectV._rawWidth, Math.round(fullHeight * percent));
+                    // this._barObjectV.height = Math.round(fullHeight * percent);
+                    // this._barObjectV.y = this._barStartY + (fullHeight - this._barObjectV.height);
                 }
             }
         }

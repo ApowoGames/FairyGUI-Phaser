@@ -129,6 +129,16 @@ export class ToolSet {
     // public static setColorFilter(obj: Laya.Sprite, color?: string | number[] | boolean): void {
     public static setColorFilter(obj: any, color?: string | number[] | boolean): void {
         // TODO
+        var tp: string = typeof (color);
+        if (tp == "boolean") //gray
+        {
+            if (tp) {
+                color = "#C0C0C0";
+            } else {
+                return;
+            }
+
+        }
         obj.setTint(color);
         // console.log("todo color filter");
         // throw new Error("TODO");

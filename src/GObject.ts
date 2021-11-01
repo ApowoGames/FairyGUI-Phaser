@@ -15,7 +15,7 @@ import { GComponent } from './GComponent';
 import { DisplayObjectEvent, InteractiveEvent } from './event/DisplayObjectEvent';
 import { GTree } from './GTree';
 import { GearAnimation, GearColor, GearFontSize, GearIcon, GearLook, GearSize, GearText, GearXY } from './gears';
-import { GButton, GGraph, GImage, GList, GLoader, GMovieClip, GRichTextField, GRoot, GTextField, GTextInput } from '.';
+import { GButton, GGraph, GImage, GList, GLoader, GMovieClip, GRichTextField, GRoot, GTextField, GTextInput, Image } from '.';
 export class DisplayStyle {
     static EMPTY: DisplayStyle = new DisplayStyle();
     /**水平缩放 */
@@ -120,6 +120,31 @@ export class GObject {
 
         this._relations = new Relations(this);
         this._gears = new Array<GearBase>(10);
+    }
+
+    public resizeMask(wid: number, hei: number) {
+        if (!this.displayObject) return;
+        const childrens = (<Phaser.GameObjects.Container>this.displayObject).list;
+        const cnt = childrens.length;
+        for (let i: number = 0; i < cnt; i++) {
+            const child = childrens[i];
+            if (!child) continue;
+            let childList = (<any>child).list;
+            if (!childList) {
+                continue;
+            }
+            let childLen: number = childList.length;
+            // 进度条的bar只做两层层级！！！
+            for (let j: number = 0; j < childLen; j++) {
+                const children = childList[j];
+                if (!children) continue;
+                if (children instanceof Image) {
+                    if (!(<Image>children).curImage) continue;
+                    (<Image>children).curImage.setCrop(new Phaser.Geom.Rectangle(0, 0, wid, hei));
+                    continue;
+                }
+            }
+        }
     }
 
     public set type(val) {
@@ -1199,6 +1224,7 @@ export class GObject {
     }
 
     protected handleSizeChanged(): void {
+        // (<Phaser.GameObjects.Container>this.displayObject).setDisplaySize(this._width, this._height);
         this._displayObject.setSize(this._width, this._height);
         // this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this._width, this._height), Phaser.Geom.Rectangle.Contains);
     }

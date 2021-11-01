@@ -93,6 +93,7 @@ export declare class GObject {
     _treeNode?: GTreeNode;
     protected _objectType: number;
     constructor(scene: Phaser.Scene, type: number);
+    resizeMask(wid: number, hei: number): void;
     set type(val: number);
     get type(): number;
     get dpr(): number;
