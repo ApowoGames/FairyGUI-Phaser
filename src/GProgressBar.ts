@@ -129,7 +129,9 @@ export class GProgressBar extends GComponent {
                         if (!(<Image>this._barObjectH.displayObject).curImage && (<Image>this._barObjectH.displayObject).scale9Grid) {
                             this._barObjectH.width = Math.round(fullWidth * percent);
                         } else {
-                            (<Image>this._barObjectH.displayObject).curImage.setCrop(new Phaser.Geom.Rectangle(0, 0, Math.round(fullWidth * percent), this._barObjectH._rawHeight));
+                            const scaleX = Math.round(fullWidth * percent) / (<Image>this._barObjectH.displayObject).curImage.width;
+                            (<Image>this._barObjectH.displayObject).curImage.setScale(scaleX, (<Image>this._barObjectH.displayObject).curImage.scaleY);
+                            // (<Image>this._barObjectH.displayObject).curImage.setCrop(new Phaser.Geom.Rectangle(0, 0, Math.round(fullWidth * percent), this._barObjectH._rawHeight));
                         }
                     } else {
                         this._barObjectH.resizeMask(Math.round(fullWidth * percent), this._barObjectH._rawHeight);

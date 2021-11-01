@@ -3091,10 +3091,6 @@
                 const child = childrens[i];
                 if (!child)
                     continue;
-                // if (child instanceof Phaser.GameObjects.Image) {
-                //     (<Phaser.GameObjects.Image>child).setCrop(new Phaser.Geom.Rectangle(0, 0, wid, hei));
-                //     continue;
-                // } else {
                 let childList = child.list;
                 if (!childList) {
                     continue;
@@ -15692,7 +15688,9 @@
                                 this._barObjectH.width = Math.round(fullWidth * percent);
                             }
                             else {
-                                this._barObjectH.displayObject.curImage.setCrop(new Phaser.Geom.Rectangle(0, 0, Math.round(fullWidth * percent), this._barObjectH._rawHeight));
+                                const scaleX = Math.round(fullWidth * percent) / this._barObjectH.displayObject.curImage.width;
+                                this._barObjectH.displayObject.curImage.setScale(scaleX, this._barObjectH.displayObject.curImage.scaleY);
+                                // (<Image>this._barObjectH.displayObject).curImage.setCrop(new Phaser.Geom.Rectangle(0, 0, Math.round(fullWidth * percent), this._barObjectH._rawHeight));
                             }
                         }
                         else {

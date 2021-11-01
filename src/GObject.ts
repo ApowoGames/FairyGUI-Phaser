@@ -129,10 +129,6 @@ export class GObject {
         for (let i: number = 0; i < cnt; i++) {
             const child = childrens[i];
             if (!child) continue;
-            // if (child instanceof Phaser.GameObjects.Image) {
-            //     (<Phaser.GameObjects.Image>child).setCrop(new Phaser.Geom.Rectangle(0, 0, wid, hei));
-            //     continue;
-            // } else {
             let childList = (<any>child).list;
             if (!childList) {
                 continue;
