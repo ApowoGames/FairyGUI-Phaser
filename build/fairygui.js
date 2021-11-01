@@ -3091,6 +3091,10 @@
                 const child = childrens[i];
                 if (!child)
                     continue;
+                // if (child instanceof Phaser.GameObjects.Image) {
+                //     (<Phaser.GameObjects.Image>child).setCrop(new Phaser.Geom.Rectangle(0, 0, wid, hei));
+                //     continue;
+                // } else {
                 let childList = child.list;
                 if (!childList) {
                     continue;
@@ -3108,6 +3112,7 @@
                         continue;
                     }
                 }
+                // }
             }
         }
         set type(val) {
@@ -15682,13 +15687,33 @@
             if (!this._reverse) {
                 if (this._barObjectH) {
                     if (!this.setFillAmount(this._barObjectH, percent)) {
-                        this._barObjectH.resizeMask(Math.round(fullWidth * percent), this._barObjectH._rawHeight);
+                        if (this._barObjectH.displayObject instanceof Image) {
+                            if (!this._barObjectH.displayObject.curImage && this._barObjectH.displayObject.scale9Grid) {
+                                this._barObjectH.width = Math.round(fullWidth * percent);
+                            }
+                            else {
+                                this._barObjectH.displayObject.curImage.setCrop(new Phaser.Geom.Rectangle(0, 0, Math.round(fullWidth * percent), this._barObjectH._rawHeight));
+                            }
+                        }
+                        else {
+                            this._barObjectH.resizeMask(Math.round(fullWidth * percent), this._barObjectH._rawHeight);
+                        }
                         // this._barObjectH.width = Math.round(fullWidth * percent);
                     }
                 }
                 if (this._barObjectV) {
                     if (!this.setFillAmount(this._barObjectV, percent)) {
-                        this._barObjectV.resizeMask(this._barObjectV._rawWidth, Math.round(fullHeight * percent));
+                        if (this._barObjectV.displayObject instanceof Image) {
+                            if (!this._barObjectV.displayObject.curImage && this._barObjectV.displayObject.scale9Grid) {
+                                this._barObjectV.height = Math.round(fullHeight * percent);
+                            }
+                            else {
+                                this._barObjectV.displayObject.curImage.setCrop(new Phaser.Geom.Rectangle(0, 0, this._barObjectV._rawWidth, Math.round(fullHeight * percent)));
+                            }
+                        }
+                        else {
+                            this._barObjectV.resizeMask(this._barObjectV._rawWidth, Math.round(fullHeight * percent));
+                        }
                         // this._barObjectV.height = Math.round(fullHeight * percent);
                     }
                 }
@@ -15696,14 +15721,36 @@
             else {
                 if (this._barObjectH) {
                     if (!this.setFillAmount(this._barObjectH, 1 - percent)) {
-                        this._barObjectH.resizeMask(Math.round(fullWidth * percent), this._barObjectH._rawHeight);
+                        if (this._barObjectH.displayObject instanceof Image) {
+                            if (!this._barObjectH.displayObject.curImage && this._barObjectH.displayObject.scale9Grid) {
+                                this._barObjectH.width = Math.round(fullWidth * percent);
+                            }
+                            else {
+                                this._barObjectH.displayObject.curImage.setCrop(new Phaser.Geom.Rectangle(0, 0, Math.round(fullWidth * percent), this._barObjectH._rawHeight));
+                            }
+                            this._barObjectH.x = this._barStartX + (fullWidth - this._barObjectH.width);
+                        }
+                        else {
+                            this._barObjectH.resizeMask(Math.round(fullWidth * percent), this._barObjectH._rawHeight);
+                        }
                         // this._barObjectH.width = Math.round(fullWidth * percent);
                         // this._barObjectH.x = this._barStartX + (fullWidth - this._barObjectH.width);
                     }
                 }
                 if (this._barObjectV) {
                     if (!this.setFillAmount(this._barObjectV, 1 - percent)) {
-                        this._barObjectV.resizeMask(this._barObjectV._rawWidth, Math.round(fullHeight * percent));
+                        if (this._barObjectV.displayObject instanceof Image) {
+                            if (!this._barObjectV.displayObject.curImage && this._barObjectV.displayObject.scale9Grid) {
+                                this._barObjectV.height = Math.round(fullHeight * percent);
+                            }
+                            else {
+                                this._barObjectV.displayObject.curImage.setCrop(new Phaser.Geom.Rectangle(0, 0, this._barObjectV._rawWidth, Math.round(fullHeight * percent)));
+                            }
+                            this._barObjectV.y = this._barStartY + (fullHeight - this._barObjectV.height);
+                        }
+                        else {
+                            this._barObjectV.resizeMask(this._barObjectV._rawWidth, Math.round(fullHeight * percent));
+                        }
                         // this._barObjectV.height = Math.round(fullHeight * percent);
                         // this._barObjectV.y = this._barStartY + (fullHeight - this._barObjectV.height);
                     }
