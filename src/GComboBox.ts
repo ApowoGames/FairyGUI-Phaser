@@ -8,6 +8,8 @@ import { PopupDirection, ObjectPropID } from './FieldTypes';
 import { GList } from './GList';
 import { GObject } from './GObject';
 import { GComponent } from "./GComponent";
+import { GRoot, RelationType, UIPackage } from '.';
+import { Events } from './Events';
 
 export class GComboBox extends GComponent {
     public dropdown: GComponent;
@@ -294,42 +296,60 @@ export class GComboBox extends GComponent {
         }
     }
 
-    protected constructExtension(buffer: ByteBuffer): void {
-        throw new Error("TODO");
+    protected constructExtension(buffer: ByteBuffer): Promise<void> {
+        return new Promise((resolve, reject) => {
+            var str: string;
 
-        // var str: string;
+            this._buttonController = this.getController("button");
+            this._titleObject = this.getChild("title");
+            this._iconObject = this.getChild("icon");
 
-        // this._buttonController = this.getController("button");
-        // this._titleObject = this.getChild("title");
-        // this._iconObject = this.getChild("icon");
+            str = buffer.readS();
+            if (str) {
+                UIPackage.createObjectFromURL(str).then((obj) => {
+                    this.dropdown = <GComponent>obj;
+                    if (!this.dropdown) {
+                        console.log("下拉框必须为元件");
+                        return;
+                    }
+                    this.dropdown.name = "this._dropdownObject";
+                    this._list = <GList>this.dropdown.getChild("list");
+                    if (!this._list) {
+                        console.log(this.resourceURL + ": 下拉框的弹出元件里必须包含名为list的列表");
+                        return;
+                    }
+                    this._list.on(Events.CLICK_ITEM, this.__clickItem, this);
 
-        // str = buffer.readS();
-        // if (str) {
-        //     this.dropdown = <GComponent>(UIPackage.createObjectFromURL(str));
-        //     if (!this.dropdown) {
-        //         Laya.Log.print("下拉框必须为元件");
-        //         return;
-        //     }
-        //     this.dropdown.name = "this._dropdownObject";
-        //     this._list = <GList>this.dropdown.getChild("list");
-        //     if (!this._list) {
-        //         Laya.Log.print(this.resourceURL + ": 下拉框的弹出元件里必须包含名为list的列表");
-        //         return;
-        //     }
-        //     this._list.on(Events.CLICK_ITEM, this, this.__clickItem);
+                    this._list.addRelation(this.dropdown, RelationType.Width);
+                    this._list.removeRelation(this.dropdown, RelationType.Height);
 
-        //     this._list.addRelation(this.dropdown, RelationType.Width);
-        //     this._list.removeRelation(this.dropdown, RelationType.Height);
+                    this.dropdown.addRelation(this._list, RelationType.Height);
+                    this.dropdown.removeRelation(this._list, RelationType.Width);
 
-        //     this.dropdown.addRelation(this._list, RelationType.Height);
-        //     this.dropdown.removeRelation(this._list, RelationType.Width);
+                    // 销毁
+                    this.dropdown.displayObject.on("destroy", this.__popupWinClosed, this);
 
-        //     this.dropdown.displayObject.on(Laya.Event.UNDISPLAY, this, this.__popupWinClosed);
-        // }
+                    this.addListen();
+                    resolve();
+                });
+            } else {
+                this.addListen();
+                resolve();
+            }
+        });
+    }
 
-        // this.on(Laya.Event.ROLL_OVER, this, this.__rollover);
-        // this.on(Laya.Event.ROLL_OUT, this, this.__rollout);
-        // this.on(Laya.Event.MOUSE_DOWN, this, this.__mousedown);
+    private addListen() {
+        this.removeListen();
+        this.on("pointerover", this.__rollover, this);
+        this.on("pointerout", this.__rollout, this);
+        this.on("pointerdown", this.__mousedown, this);
+    }
+
+    private removeListen() {
+        this.off("pointerover", this.__rollover, this);
+        this.off("pointerout", this.__rollout, this);
+        this.off("pointerdown", this.__mousedown, this);
     }
 
     public setup_afterAdd(buffer: ByteBuffer, beginPos: number): void {
@@ -390,34 +410,65 @@ export class GComboBox extends GComponent {
             this._selectionController = this.parent.getControllerAt(iv);
     }
 
-    protected showDropdown(): void {
-        throw new Error("TODO");
-        // if (this._itemsUpdated) {
-        //     this._itemsUpdated = false;
+    protected showDropdown(): Promise<void> {
+        return new Promise((resolve, reject) => {
+            if (this._itemsUpdated) {
+                this._itemsUpdated = false;
 
-        //     this._list.removeChildrenToPool();
-        //     var cnt: number = this._items.length;
-        //     for (var i: number = 0; i < cnt; i++) {
-        //         var item: GObject = this._list.addItemFromPool();
-        //         item.name = i < this._values.length ? this._values[i] : "";
-        //         item.text = this._items[i];
-        //         item.icon = (this._icons && i < this._icons.length) ? this._icons[i] : null;
-        //     }
-        //     this._list.resizeToFit(this._visibleItemCount);
-        // }
-        // this._list.selectedIndex = -1;
-        // this.dropdown.width = this.width;
-        // this._list.ensureBoundsCorrect();
+                this._list.removeChildrenToPool();
+                var cnt: number = this._items.length;
+                const fun0 = (i: number) => {
+                    if (i >= cnt) {
+                        this._list.resizeToFit(this._visibleItemCount);
+                        this._list.selectedIndex = -1;
+                        this.dropdown.width = this.width;
+                        this._list.ensureBoundsCorrect();
 
-        // var downward: any = null;
-        // if (this._popupDirection == PopupDirection.Down)
-        //     downward = true;
-        // else if (this._popupDirection == PopupDirection.Up)
-        //     downward = false;
+                        var downward: any = null;
+                        if (this._popupDirection == PopupDirection.Down)
+                            downward = true;
+                        else if (this._popupDirection == PopupDirection.Up)
+                            downward = false;
 
-        // this.root.togglePopup(this.dropdown, this, downward);
-        // if (this.dropdown.parent)
-        //     this.setState(GButton.DOWN);
+                        this.root.togglePopup(this.dropdown, this, downward);
+                        if (this.dropdown.parent)
+                            this.setState(GButton.DOWN);
+                        resolve();
+                        return;
+                    }
+                    this._list.addItemFromPool().then((obj) => {
+                        const item: GObject = obj;
+                        item.name = i < this._values.length ? this._values[i] : "";
+                        item.text = this._items[i];
+                        item.icon = (this._icons && i < this._icons.length) ? this._icons[i] : null;
+                        fun0(++i);
+                    })
+                }
+                fun0(0);
+                // for (var i: number = 0; i < cnt; i++) {
+                //     const item: GObject = this._list.addItemFromPool();
+                //     item.name = i < this._values.length ? this._values[i] : "";
+                //     item.text = this._items[i];
+                //     item.icon = (this._icons && i < this._icons.length) ? this._icons[i] : null;
+                // }
+                // this._list.resizeToFit(this._visibleItemCount);
+            } else {
+                this._list.selectedIndex = -1;
+                this.dropdown.width = this.width;
+                this._list.ensureBoundsCorrect();
+
+                var downward: any = null;
+                if (this._popupDirection == PopupDirection.Down)
+                    downward = true;
+                else if (this._popupDirection == PopupDirection.Up)
+                    downward = false;
+
+                this.root.togglePopup(this.dropdown, this, downward);
+                if (this.dropdown.parent)
+                    this.setState(GButton.DOWN);
+                resolve();
+            }
+        });
     }
 
     private __popupWinClosed(): void {
@@ -432,7 +483,6 @@ export class GComboBox extends GComponent {
     }
 
     private __clickItem2(index: number, evt: any): void {
-        throw new Error("TODO");
         // if (this.dropdown.parent instanceof GRoot)
         //     this.dropdown.parent.hidePopup();
 
@@ -458,32 +508,29 @@ export class GComboBox extends GComponent {
     }
 
     private __mousedown(evt: any): void {
-        throw new Error("TODO");
-
         // if (evt.target instanceof Laya.Input)
         //     return;
 
         // this._down = true;
         // GRoot.inst.checkPopups(evt.target);
 
-        // Laya.stage.on(Laya.Event.MOUSE_UP, this, this.__mouseup);
+        // this.scene.input.on("pointerup", this.__mouseup, this);
 
         // if (this.dropdown)
         //     this.showDropdown();
     }
 
     private __mouseup(): void {
-        throw new Error("TODO");
-        // if (this._down) {
-        //     this._down = false;
-        //     Laya.stage.off(Laya.Event.MOUSE_UP, this, this.__mouseup);
+        if (this._down) {
+            this._down = false;
+            this.scene.input.off("pointerup", this.__mouseup, this);
 
-        //     if (this.dropdown && !this.dropdown.parent) {
-        //         if (this._over)
-        //             this.setState(GButton.OVER);
-        //         else
-        //             this.setState(GButton.UP);
-        //     }
-        // }
+            if (this.dropdown && !this.dropdown.parent) {
+                if (this._over)
+                    this.setState(GButton.OVER);
+                else
+                    this.setState(GButton.UP);
+            }
+        }
     }
 }
