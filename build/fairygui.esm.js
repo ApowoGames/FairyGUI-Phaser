@@ -15684,9 +15684,9 @@ class GProgressBar extends GComponent {
                             this._barObjectH.width = Math.round(fullWidth * percent);
                         }
                         else {
-                            const scaleX = Math.round(fullWidth * percent) / this._barObjectH.displayObject.curImage.width;
-                            this._barObjectH.displayObject.curImage.setScale(scaleX, this._barObjectH.displayObject.curImage.scaleY);
-                            // (<Image>this._barObjectH.displayObject).curImage.setCrop(new Phaser.Geom.Rectangle(0, 0, Math.round(fullWidth * percent), this._barObjectH._rawHeight));
+                            // const scaleX = Math.round(fullWidth * percent) / (<Image>this._barObjectH.displayObject).curImage.width;
+                            // (<Image>this._barObjectH.displayObject).curImage.setScale(scaleX, (<Image>this._barObjectH.displayObject).curImage.scaleY);
+                            this._barObjectH.displayObject.curImage.setCrop(new Phaser.Geom.Rectangle(0, 0, Math.round(fullWidth * percent), this._barObjectH._rawHeight));
                         }
                     }
                     else {
@@ -15702,6 +15702,8 @@ class GProgressBar extends GComponent {
                             this._barObjectV.height = Math.round(fullHeight * percent);
                         }
                         else {
+                            // const scaleY = Math.round(fullHeight * percent) / (<Image>this._barObjectV.displayObject).curImage.height;
+                            // (<Image>this._barObjectV.displayObject).curImage.setScale(scaleY, (<Image>this._barObjectV.displayObject).curImage.scaleY);
                             this._barObjectV.displayObject.curImage.setCrop(new Phaser.Geom.Rectangle(0, 0, this._barObjectV._rawWidth, Math.round(fullHeight * percent)));
                         }
                     }
@@ -15720,6 +15722,8 @@ class GProgressBar extends GComponent {
                             this._barObjectH.width = Math.round(fullWidth * percent);
                         }
                         else {
+                            // const scaleX = Math.round(fullWidth * percent) / (<Image>this._barObjectH.displayObject).curImage.width;
+                            // (<Image>this._barObjectH.displayObject).curImage.setScale(scaleX, (<Image>this._barObjectH.displayObject).curImage.scaleY);
                             this._barObjectH.displayObject.curImage.setCrop(new Phaser.Geom.Rectangle(0, 0, Math.round(fullWidth * percent), this._barObjectH._rawHeight));
                         }
                         this._barObjectH.x = this._barStartX + (fullWidth - this._barObjectH.width);
@@ -15738,6 +15742,8 @@ class GProgressBar extends GComponent {
                             this._barObjectV.height = Math.round(fullHeight * percent);
                         }
                         else {
+                            // const scaleY = Math.round(fullHeight * percent) / (<Image>this._barObjectV.displayObject).curImage.height;
+                            // (<Image>this._barObjectV.displayObject).curImage.setScale(scaleY, (<Image>this._barObjectV.displayObject).curImage.scaleY);
                             this._barObjectV.displayObject.curImage.setCrop(new Phaser.Geom.Rectangle(0, 0, this._barObjectV._rawWidth, Math.round(fullHeight * percent)));
                         }
                         this._barObjectV.y = this._barStartY + (fullHeight - this._barObjectV.height);

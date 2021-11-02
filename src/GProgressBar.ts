@@ -129,14 +129,11 @@ export class GProgressBar extends GComponent {
                         if (!(<Image>this._barObjectH.displayObject).curImage && (<Image>this._barObjectH.displayObject).scale9Grid) {
                             this._barObjectH.width = Math.round(fullWidth * percent);
                         } else {
-                            const scaleX = Math.round(fullWidth * percent) / (<Image>this._barObjectH.displayObject).curImage.width;
-                            (<Image>this._barObjectH.displayObject).curImage.setScale(scaleX, (<Image>this._barObjectH.displayObject).curImage.scaleY);
-                            // (<Image>this._barObjectH.displayObject).curImage.setCrop(new Phaser.Geom.Rectangle(0, 0, Math.round(fullWidth * percent), this._barObjectH._rawHeight));
+                            (<Image>this._barObjectH.displayObject).curImage.setCrop(new Phaser.Geom.Rectangle(0, 0, Math.round(fullWidth * percent), this._barObjectH._rawHeight));
                         }
                     } else {
                         this._barObjectH.resizeMask(Math.round(fullWidth * percent), this._barObjectH._rawHeight);
                     }
-                    // this._barObjectH.width = Math.round(fullWidth * percent);
                 }
             }
             if (this._barObjectV) {
@@ -150,7 +147,6 @@ export class GProgressBar extends GComponent {
                     } else {
                         this._barObjectV.resizeMask(this._barObjectV._rawWidth, Math.round(fullHeight * percent));
                     }
-                    // this._barObjectV.height = Math.round(fullHeight * percent);
                 }
             }
         }
@@ -167,8 +163,6 @@ export class GProgressBar extends GComponent {
                     } else {
                         this._barObjectH.resizeMask(Math.round(fullWidth * percent), this._barObjectH._rawHeight);
                     }
-                    // this._barObjectH.width = Math.round(fullWidth * percent);
-                    // this._barObjectH.x = this._barStartX + (fullWidth - this._barObjectH.width);
                 }
 
             }
@@ -184,9 +178,6 @@ export class GProgressBar extends GComponent {
                     } else {
                         this._barObjectV.resizeMask(this._barObjectV._rawWidth, Math.round(fullHeight * percent));
                     }
-
-                    // this._barObjectV.height = Math.round(fullHeight * percent);
-                    // this._barObjectV.y = this._barStartY + (fullHeight - this._barObjectV.height);
                 }
             }
         }
