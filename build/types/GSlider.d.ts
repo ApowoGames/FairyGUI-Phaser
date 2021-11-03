@@ -35,7 +35,7 @@ export declare class GSlider extends GComponent {
     set value(value: number);
     update(): void;
     private updateWithPercent;
-    protected constructExtension(buffer: ByteBuffer): void;
+    protected constructExtension(buffer: ByteBuffer): Promise<void>;
     protected handleSizeChanged(): void;
     setup_afterAdd(buffer: ByteBuffer, beginPos: number): void;
     private __gripMouseDown;

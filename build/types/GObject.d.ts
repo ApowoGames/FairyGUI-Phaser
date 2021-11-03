@@ -60,8 +60,8 @@ export declare class GObject {
     private _handlingController?;
     private _tooltips?;
     protected _pixelSnapping?: boolean;
-    private _relations;
-    private _group?;
+    protected _relations: Relations;
+    protected _group?: GGroup;
     private _gears;
     private _dragBounds?;
     private _dragTesting?;
@@ -145,8 +145,8 @@ export declare class GObject {
     setPivot(xv: number, yv?: number, asAnchor?: boolean): void;
     get pivotAsAnchor(): boolean;
     protected internalSetPivot(xv: number, yv: number, asAnchor: boolean): void;
-    private updatePivotOffset;
-    private applyPivot;
+    protected updatePivotOffset(): void;
+    protected applyPivot(): void;
     get touchable(): boolean;
     set touchable(value: boolean);
     setTouchable(value: boolean): void;

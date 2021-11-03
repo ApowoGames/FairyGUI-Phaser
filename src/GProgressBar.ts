@@ -194,27 +194,30 @@ export class GProgressBar extends GComponent {
             return false;
     }
 
-    protected constructExtension(buffer: ByteBuffer): void {
-        buffer.seek(0, 6);
+    protected constructExtension(buffer: ByteBuffer): Promise<void> {
+        return new Promise((resolve, reject) => {
+            buffer.seek(0, 6);
 
-        this._titleType = buffer.readByte();
-        this._reverse = buffer.readBool();
+            this._titleType = buffer.readByte();
+            this._reverse = buffer.readBool();
 
-        this._titleObject = this.getChild("title");
-        this._barObjectH = this.getChild("bar");
-        this._barObjectV = this.getChild("bar_v");
-        this._aniObject = this.getChild("ani");
+            this._titleObject = this.getChild("title");
+            this._barObjectH = this.getChild("bar");
+            this._barObjectV = this.getChild("bar_v");
+            this._aniObject = this.getChild("ani");
 
-        if (this._barObjectH) {
-            this._barMaxWidth = this._barObjectH.width;
-            this._barMaxWidthDelta = this.width - this._barMaxWidth;
-            this._barStartX = this._barObjectH.x;
-        }
-        if (this._barObjectV) {
-            this._barMaxHeight = this._barObjectV.height;
-            this._barMaxHeightDelta = this.height - this._barMaxHeight;
-            this._barStartY = this._barObjectV.y;
-        }
+            if (this._barObjectH) {
+                this._barMaxWidth = this._barObjectH.width;
+                this._barMaxWidthDelta = this.width - this._barMaxWidth;
+                this._barStartX = this._barObjectH.x;
+            }
+            if (this._barObjectV) {
+                this._barMaxHeight = this._barObjectV.height;
+                this._barMaxHeightDelta = this.height - this._barMaxHeight;
+                this._barStartY = this._barObjectV.y;
+            }
+            resolve();
+        });
     }
 
     protected handleSizeChanged(): void {

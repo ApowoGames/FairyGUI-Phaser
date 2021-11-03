@@ -29,7 +29,7 @@ export declare class GProgressBar extends GComponent {
     tweenValue(value: number, duration: number): GTweener;
     update(newValue: number): void;
     private setFillAmount;
-    protected constructExtension(buffer: ByteBuffer): void;
+    protected constructExtension(buffer: ByteBuffer): Promise<void>;
     protected handleSizeChanged(): void;
     setup_afterAdd(buffer: ByteBuffer, beginPos: number): void;
 }

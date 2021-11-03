@@ -70,7 +70,7 @@ export declare class GButton extends GComponent {
     protected handleGrayedChanged(): void;
     getProp(index: number): any;
     setProp(index: number, value: any): void;
-    protected constructExtension(buffer: ByteBuffer): void;
+    protected constructExtension(buffer: ByteBuffer): Promise<void>;
     addListener(): void;
     removeListener(): void;
     setup_beforeAdd(buffer: ByteBuffer, beginPos: number): void;

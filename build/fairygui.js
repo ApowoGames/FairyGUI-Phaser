@@ -3828,12 +3828,12 @@
             let ele = this._displayObject;
             if (!ele)
                 return point;
-            while (ele) {
-                if (!ele.parentContainer)
-                    break;
-                ele = ele.parentContainer;
-            }
-            return new Phaser.Geom.Point(ele.x, ele.y);
+            const worldMatrix = this._displayObject.getWorldTransformMatrix();
+            // while (ele) {
+            //     if (!ele.parentContainer) break;
+            //     ele = ele.parentContainer;
+            // }
+            return new Phaser.Geom.Point(worldMatrix.tx, worldMatrix.ty);
         }
         globalToLocal(ax, ay, result) {
             ax = ax || 0;
@@ -8824,7 +8824,7 @@
                     this._mask.fillStyle(0x00ff00, .4);
                     this._mask.fillRect(this._owner.x, this._owner.y, this.maskScrollRect.width, this.maskScrollRect.height);
                     this._maskContainer.setInteractive(this.maskScrollRect, Phaser.Geom.Rectangle.Contains);
-                    // this._maskContainer.add(this._mask);
+                    this._maskContainer.add(this._mask);
                     // const g = this._mask.createGeometryMask();
                     // console.log("g====>", g);
                     this._maskContainer.setMask(this._mask.createGeometryMask());
@@ -9252,6 +9252,33 @@
                 }
             }
             this.startTween(2);
+        }
+        maskPosChange(x, y) {
+            if (this.maskScrollRect) {
+                // var rect: Phaser.Geom.Rectangle = new Phaser.Geom.Rectangle()//this._maskContainer["scrollRect"];
+                // if (rect) {
+                //     rect.width = this._viewSize.x;
+                //     rect.height = this._viewSize.y;
+                //     if (this._vScrollNone && this._vtScrollBar)
+                //         rect.width += this._vtScrollBar.width;
+                //     if (this._hScrollNone && this._hzScrollBar)
+                //         rect.height += this._hzScrollBar.height;
+                //     if (this._dontClipMargin) {
+                //         rect.width += (this._owner.margin.left + this._owner.margin.right);
+                //         rect.height += (this._owner.margin.top + this._owner.margin.bottom);
+                //     }
+                // this.maskScrollRect = rect;
+                this._maskContainer.clearMask();
+                this._mask.clear();
+                this._mask.fillStyle(0x00ff00, .4);
+                this._mask.fillRect(x, y, this.maskScrollRect.width, this.maskScrollRect.height);
+                this._maskContainer.setInteractive(this.maskScrollRect, Phaser.Geom.Rectangle.Contains);
+                this._maskContainer.add(this._mask);
+                // const g = this._mask.createGeometryMask();
+                // console.log("g====>", g);
+                this._maskContainer.setMask(this._mask.createGeometryMask());
+                //  }
+            }
         }
         __click() {
             this._dragged = false;
@@ -11178,7 +11205,7 @@
                     this._children.splice(index, 1);
                     child.group = null;
                     if (child.inContainer) {
-                        this._container.remove(child.displayObject);
+                        child.displayObject.parentContainer.remove(child.displayObject);
                         if (this._childrenRenderOrder == exports.ChildrenRenderOrder.Arch) {
                             if (!this._buildNativeTime)
                                 this._buildNativeTime = this.scene.time.addEvent(this._buildNativeEvent);
@@ -11412,6 +11439,7 @@
             if (!child.displayObject)
                 return;
             if (child.internalVisible) { // && child.displayObject !== this._displayObject.mask) {
+                // 没有父容器 直接添加在scene的根容器上
                 if (!child.displayObject.parentContainer) {
                     var index = 0;
                     if (this._childrenRenderOrder == exports.ChildrenRenderOrder.Ascent) {
@@ -11422,7 +11450,12 @@
                             if (g.displayObject && g.displayObject.parentContainer)
                                 index++;
                         }
-                        this._container.addAt(child.displayObject, index);
+                        if (this._container) {
+                            this._container.addAt(child.displayObject, index);
+                        }
+                        else {
+                            GRoot.inst.addToStage(child.displayObject);
+                        }
                         // console.log("add display", child);
                     }
                     else if (this._childrenRenderOrder == exports.ChildrenRenderOrder.Descent) {
@@ -12129,17 +12162,25 @@
                         this._underConstruct = false;
                         this.buildNativeDisplayList();
                         this.setBoundsChangedFlag();
-                        if (contentItem.objectType != exports.ObjectType.Component)
-                            this.constructExtension(buffer);
-                        this.onConstruct();
-                        reslove();
-                        return;
+                        if (contentItem.objectType != exports.ObjectType.Component) {
+                            this.constructExtension(buffer).then(() => {
+                                this.onConstruct();
+                                reslove();
+                            });
+                        }
+                        else {
+                            this.onConstruct();
+                            reslove();
+                        }
                     };
                     fun(0);
                 });
             });
         }
         constructExtension(buffer) {
+            return new Promise((resolve) => {
+                resolve();
+            });
         }
         onConstruct() {
             this.constructFromXML(null); //old version
@@ -12172,6 +12213,17 @@
                         obj.setProp(propertyId, value);
                 }
             }
+        }
+        setXY(xv, yv) {
+            super.setXY(xv, yv);
+            this._children.forEach((obj) => {
+                if (obj && obj instanceof GComponent) {
+                    const component = obj;
+                    if (component._scrollPane) {
+                        component._scrollPane.maskPosChange(xv, yv);
+                    }
+                }
+            });
         }
         ___added() {
             var cnt = this._transitions.length;
@@ -12208,6 +12260,8 @@
     class GRoot extends GComponent {
         constructor() {
             super();
+            this._popupStack = [];
+            this._justClosedPopups = [];
         }
         get emitter() {
             return this._uiStage;
@@ -12451,6 +12505,64 @@
             }
             popup.x = xx;
             popup.y = yy;
+        }
+        hidePopup(popup) {
+            if (popup) {
+                var k = this._popupStack.indexOf(popup);
+                if (k != -1) {
+                    for (var i = this._popupStack.length - 1; i >= k; i--)
+                        this.closePopup(this._popupStack.pop());
+                }
+            }
+            else {
+                var cnt = this._popupStack.length;
+                for (i = cnt - 1; i >= 0; i--)
+                    this.closePopup(this._popupStack[i]);
+                this._popupStack.length = 0;
+            }
+        }
+        closePopup(target) {
+            if (target.parent) {
+                if (target instanceof Window)
+                    target.hide();
+                else
+                    this.removeChild(target);
+            }
+        }
+        checkPopups(clickTarget) {
+            if (this._checkPopups)
+                return;
+            this._checkPopups = true;
+            this._justClosedPopups.length = 0;
+            if (this._popupStack.length > 0) {
+                var mc = clickTarget;
+                while (mc.parentContainer && mc) {
+                    if (mc["$owner"]) {
+                        var pindex = this._popupStack.indexOf(mc["$owner"]);
+                        if (pindex != -1) {
+                            for (var i = this._popupStack.length - 1; i > pindex; i--) {
+                                var popup = this._popupStack.pop();
+                                this.closePopup(popup);
+                                this._justClosedPopups.push(popup);
+                            }
+                            return;
+                        }
+                    }
+                    mc = mc.parentContainer;
+                }
+                var cnt = this._popupStack.length;
+                for (i = cnt - 1; i >= 0; i--) {
+                    popup = this._popupStack[i];
+                    this.closePopup(popup);
+                    this._justClosedPopups.push(popup);
+                }
+                this._popupStack.length = 0;
+            }
+        }
+        togglePopup(popup, target, dir) {
+            if (this._justClosedPopups.indexOf(popup) != -1)
+                return;
+            this.showPopup(popup, target, dir);
         }
         adjustModalLayer() {
             var cnt = this.numChildren;
@@ -14685,25 +14797,28 @@
             }
         }
         constructExtension(buffer) {
-            buffer.seek(0, 6);
-            this._mode = buffer.readByte();
-            var str = buffer.readS();
-            if (str)
-                this._sound = str;
-            this._soundVolumeScale = buffer.readFloat();
-            this._downEffect = buffer.readByte();
-            this._downEffectValue = buffer.readFloat();
-            if (this._downEffect == 2)
-                this.setPivot(0.5, 0.5, this.pivotAsAnchor);
-            this._buttonController = this.getController("button");
-            this._titleObject = this.getChild("title");
-            this._iconObject = this.getChild("icon");
-            if (this._titleObject)
-                this._title = this._titleObject.text;
-            if (this._iconObject)
-                this._icon = this._iconObject.icon;
-            if (this._mode == exports.ButtonMode.Common)
-                this.setState(GButton.UP);
+            return new Promise((resolve, reject) => {
+                buffer.seek(0, 6);
+                this._mode = buffer.readByte();
+                var str = buffer.readS();
+                if (str)
+                    this._sound = str;
+                this._soundVolumeScale = buffer.readFloat();
+                this._downEffect = buffer.readByte();
+                this._downEffectValue = buffer.readFloat();
+                if (this._downEffect == 2)
+                    this.setPivot(0.5, 0.5, this.pivotAsAnchor);
+                this._buttonController = this.getController("button");
+                this._titleObject = this.getChild("title");
+                this._iconObject = this.getChild("icon");
+                if (this._titleObject)
+                    this._title = this._titleObject.text;
+                if (this._iconObject)
+                    this._icon = this._iconObject.icon;
+                if (this._mode == exports.ButtonMode.Common)
+                    this.setState(GButton.UP);
+                resolve();
+            });
         }
         addListener() {
             this.removeListener();
@@ -14980,8 +15095,11 @@
             }
         }
         constructExtension(buffer) {
-            this._titleObject = this.getChild("title");
-            this._iconObject = this.getChild("icon");
+            return new Promise((resolve, reject) => {
+                this._titleObject = this.getChild("title");
+                this._iconObject = this.getChild("icon");
+                resolve();
+            });
         }
         setup_afterAdd(buffer, beginPos) {
             super.setup_afterAdd(buffer, beginPos);
@@ -15032,6 +15150,44 @@
             this._popupDirection = 0;
             this._items = [];
             this._values = [];
+        }
+        setSize(wv, hv, ignorePivot) {
+            if (this._rawWidth != wv || this._rawHeight != hv) {
+                this._rawWidth = wv;
+                this._rawHeight = hv;
+                if (wv < this.minWidth)
+                    wv = this.minWidth;
+                if (hv < this.minHeight)
+                    hv = this.minHeight;
+                if (this.maxWidth > 0 && wv > this.maxWidth)
+                    wv = this.maxWidth;
+                if (this.maxHeight > 0 && hv > this.maxHeight)
+                    hv = this.maxHeight;
+                var dWidth = wv - this._width;
+                var dHeight = hv - this._height;
+                this._width = wv;
+                this._height = hv;
+                this.handleSizeChanged();
+                if (this._pivotX != 0 || this._pivotY != 0) {
+                    if (!this._pivotAsAnchor) {
+                        if (!ignorePivot)
+                            this.setXY(this.x - this._pivotX * dWidth, this.y - this._pivotY * dHeight);
+                        this.updatePivotOffset();
+                    }
+                    else
+                        this.applyPivot();
+                }
+                if (this instanceof GGroup)
+                    this.resizeChildren(dWidth, dHeight);
+                this.updateGear(2);
+                if (this._parent) {
+                    this._relations.onOwnerSizeChanged(dWidth, dHeight, this._pivotAsAnchor || !ignorePivot);
+                    this._parent.setBoundsChangedFlag();
+                    if (this._group)
+                        this._group.setBoundsChangedFlag();
+                }
+                this.displayObject.emit(DisplayObjectEvent.SIZE_CHANGED);
+            }
         }
         get text() {
             if (this._titleObject)
@@ -15251,34 +15407,52 @@
             }
         }
         constructExtension(buffer) {
-            throw new Error("TODO");
-            // var str: string;
-            // this._buttonController = this.getController("button");
-            // this._titleObject = this.getChild("title");
-            // this._iconObject = this.getChild("icon");
-            // str = buffer.readS();
-            // if (str) {
-            //     this.dropdown = <GComponent>(UIPackage.createObjectFromURL(str));
-            //     if (!this.dropdown) {
-            //         Laya.Log.print("下拉框必须为元件");
-            //         return;
-            //     }
-            //     this.dropdown.name = "this._dropdownObject";
-            //     this._list = <GList>this.dropdown.getChild("list");
-            //     if (!this._list) {
-            //         Laya.Log.print(this.resourceURL + ": 下拉框的弹出元件里必须包含名为list的列表");
-            //         return;
-            //     }
-            //     this._list.on(Events.CLICK_ITEM, this, this.__clickItem);
-            //     this._list.addRelation(this.dropdown, RelationType.Width);
-            //     this._list.removeRelation(this.dropdown, RelationType.Height);
-            //     this.dropdown.addRelation(this._list, RelationType.Height);
-            //     this.dropdown.removeRelation(this._list, RelationType.Width);
-            //     this.dropdown.displayObject.on(Laya.Event.UNDISPLAY, this, this.__popupWinClosed);
-            // }
-            // this.on(Laya.Event.ROLL_OVER, this, this.__rollover);
-            // this.on(Laya.Event.ROLL_OUT, this, this.__rollout);
-            // this.on(Laya.Event.MOUSE_DOWN, this, this.__mousedown);
+            return new Promise((resolve, reject) => {
+                var str;
+                this._buttonController = this.getController("button");
+                this._titleObject = this.getChild("title");
+                this._iconObject = this.getChild("icon");
+                str = buffer.readS();
+                if (str) {
+                    UIPackage.createObjectFromURL(str).then((obj) => {
+                        this.dropdown = obj;
+                        if (!this.dropdown) {
+                            console.log("下拉框必须为元件");
+                            return;
+                        }
+                        this.dropdown.name = "this._dropdownObject";
+                        this._list = this.dropdown.getChild("list");
+                        if (!this._list) {
+                            console.log(this.resourceURL + ": 下拉框的弹出元件里必须包含名为list的列表");
+                            return;
+                        }
+                        this._list.on(Events.CLICK_ITEM, this.__clickItem, this);
+                        this._list.addRelation(this.dropdown, exports.RelationType.Width);
+                        this._list.removeRelation(this.dropdown, exports.RelationType.Height);
+                        this.dropdown.addRelation(this._list, exports.RelationType.Height);
+                        this.dropdown.removeRelation(this._list, exports.RelationType.Width);
+                        // 销毁
+                        this.dropdown.displayObject.on("destroy", this.__popupWinClosed, this);
+                        this.addListen();
+                        resolve();
+                    });
+                }
+                else {
+                    this.addListen();
+                    resolve();
+                }
+            });
+        }
+        addListen() {
+            this.removeListen();
+            this.on("pointerover", this.__rollover, this);
+            this.on("pointerout", this.__rollout, this);
+            this.on("pointerdown", this.__mousedown, this);
+        }
+        removeListen() {
+            this.off("pointerover", this.__rollover, this);
+            this.off("pointerout", this.__rollout, this);
+            this.off("pointerdown", this.__mousedown, this);
         }
         setup_afterAdd(buffer, beginPos) {
             super.setup_afterAdd(buffer, beginPos);
@@ -15329,30 +15503,60 @@
                 this._selectionController = this.parent.getControllerAt(iv);
         }
         showDropdown() {
-            throw new Error("TODO");
-            // if (this._itemsUpdated) {
-            //     this._itemsUpdated = false;
-            //     this._list.removeChildrenToPool();
-            //     var cnt: number = this._items.length;
-            //     for (var i: number = 0; i < cnt; i++) {
-            //         var item: GObject = this._list.addItemFromPool();
-            //         item.name = i < this._values.length ? this._values[i] : "";
-            //         item.text = this._items[i];
-            //         item.icon = (this._icons && i < this._icons.length) ? this._icons[i] : null;
-            //     }
-            //     this._list.resizeToFit(this._visibleItemCount);
-            // }
-            // this._list.selectedIndex = -1;
-            // this.dropdown.width = this.width;
-            // this._list.ensureBoundsCorrect();
-            // var downward: any = null;
-            // if (this._popupDirection == PopupDirection.Down)
-            //     downward = true;
-            // else if (this._popupDirection == PopupDirection.Up)
-            //     downward = false;
-            // this.root.togglePopup(this.dropdown, this, downward);
-            // if (this.dropdown.parent)
-            //     this.setState(GButton.DOWN);
+            return new Promise((resolve, reject) => {
+                if (this._itemsUpdated) {
+                    this._itemsUpdated = false;
+                    this._list.removeChildrenToPool();
+                    var cnt = this._items.length;
+                    const fun0 = (i) => {
+                        if (i >= cnt) {
+                            this._list.resizeToFit(this._visibleItemCount);
+                            this._list.selectedIndex = -1;
+                            this.dropdown.width = this.width;
+                            this._list.ensureBoundsCorrect();
+                            var downward = null;
+                            if (this._popupDirection == exports.PopupDirection.Down)
+                                downward = true;
+                            else if (this._popupDirection == exports.PopupDirection.Up)
+                                downward = false;
+                            this.root.togglePopup(this.dropdown, this, downward);
+                            if (this.dropdown.parent)
+                                this.setState(GButton.DOWN);
+                            resolve();
+                            return;
+                        }
+                        this._list.addItemFromPool().then((obj) => {
+                            const item = obj;
+                            item.name = i < this._values.length ? this._values[i] : "";
+                            item.text = this._items[i];
+                            item.icon = (this._icons && i < this._icons.length) ? this._icons[i] : null;
+                            fun0(++i);
+                        });
+                    };
+                    fun0(0);
+                    // for (var i: number = 0; i < cnt; i++) {
+                    //     const item: GObject = this._list.addItemFromPool();
+                    //     item.name = i < this._values.length ? this._values[i] : "";
+                    //     item.text = this._items[i];
+                    //     item.icon = (this._icons && i < this._icons.length) ? this._icons[i] : null;
+                    // }
+                    // this._list.resizeToFit(this._visibleItemCount);
+                }
+                else {
+                    this._list.selectedIndex = -1;
+                    this.dropdown.width = this.width;
+                    this._list.ensureBoundsCorrect();
+                    var downward = null;
+                    if (this._popupDirection == exports.PopupDirection.Down)
+                        downward = true;
+                    else if (this._popupDirection == exports.PopupDirection.Up)
+                        downward = false;
+                    this.root.togglePopup(this.dropdown, this, downward);
+                    if (this.dropdown.parent)
+                        this.setState(GButton.DOWN);
+                    resolve();
+                }
+            });
         }
         __popupWinClosed() {
             if (this._over)
@@ -15361,15 +15565,15 @@
                 this.setState(GButton.UP);
         }
         __clickItem(itemObject, evt) {
-            // Laya.timer.callLater(this, this.__clickItem2, [this._list.getChildIndex(itemObject), evt])
+            this.__clickItem2(this._list.getChildIndex(itemObject), evt);
+            //Laya.timer.callLater(this, this.__clickItem2, [this._list.getChildIndex(itemObject), evt])
         }
         __clickItem2(index, evt) {
-            throw new Error("TODO");
-            // if (this.dropdown.parent instanceof GRoot)
-            //     this.dropdown.parent.hidePopup();
-            // this._selectedIndex = -1;
-            // this.selectedIndex = index;
-            // Events.dispatch(Events.STATE_CHANGED, this.displayObject, evt);
+            if (this.dropdown.parent instanceof GRoot)
+                this.dropdown.parent.hidePopup();
+            this._selectedIndex = -1;
+            this.selectedIndex = index;
+            Events.dispatch(Events.STATE_CHANGED, this.displayObject, evt);
         }
         __rollover() {
             this._over = true;
@@ -15384,27 +15588,25 @@
             this.setState(GButton.UP);
         }
         __mousedown(evt) {
-            throw new Error("TODO");
             // if (evt.target instanceof Laya.Input)
             //     return;
-            // this._down = true;
-            // GRoot.inst.checkPopups(evt.target);
-            // Laya.stage.on(Laya.Event.MOUSE_UP, this, this.__mouseup);
-            // if (this.dropdown)
-            //     this.showDropdown();
+            this._down = true;
+            GRoot.inst.checkPopups(this.displayObject);
+            this.scene.input.on("pointerup", this.__mouseup, this);
+            if (this.dropdown)
+                this.showDropdown();
         }
         __mouseup() {
-            throw new Error("TODO");
-            // if (this._down) {
-            //     this._down = false;
-            //     Laya.stage.off(Laya.Event.MOUSE_UP, this, this.__mouseup);
-            //     if (this.dropdown && !this.dropdown.parent) {
-            //         if (this._over)
-            //             this.setState(GButton.OVER);
-            //         else
-            //             this.setState(GButton.UP);
-            //     }
-            // }
+            if (this._down) {
+                this._down = false;
+                this.scene.input.off("pointerup", this.__mouseup, this);
+                if (this.dropdown && !this.dropdown.parent) {
+                    if (this._over)
+                        this.setState(GButton.OVER);
+                    else
+                        this.setState(GButton.UP);
+                }
+            }
         }
     }
 
@@ -15515,8 +15717,32 @@
             }
         }
         constructExtension(buffer) {
-            throw new Error("TODO");
-            // this.displayObject.on(Laya.Event.MOUSE_DOWN, this, this.__barMouseDown);
+            return new Promise((resolve, reject) => {
+                buffer.seek(0, 6);
+                this._titleType = buffer.readByte();
+                this._reverse = buffer.readBool();
+                if (buffer.version >= 2) {
+                    this._wholeNumbers = buffer.readBool();
+                    this.changeOnClick = buffer.readBool();
+                }
+                this._titleObject = this.getChild("title");
+                this._barObjectH = this.getChild("bar");
+                this._barObjectV = this.getChild("bar_v");
+                this._gripObject = this.getChild("grip");
+                if (this._barObjectH) {
+                    this._barMaxWidth = this._barObjectH.width;
+                    this._barMaxWidthDelta = this.width - this._barMaxWidth;
+                    this._barStartX = this._barObjectH.x;
+                }
+                if (this._barObjectV) {
+                    this._barMaxHeight = this._barObjectV.height;
+                    this._barMaxHeightDelta = this.height - this._barMaxHeight;
+                    this._barStartY = this._barObjectV.y;
+                }
+                if (this._gripObject) ;
+                resolve();
+                // this.displayObject.on(Laya.Event.MOUSE_DOWN, this, this.__barMouseDown);
+            });
         }
         handleSizeChanged() {
             super.handleSizeChanged();
@@ -15688,15 +15914,12 @@
                                 this._barObjectH.width = Math.round(fullWidth * percent);
                             }
                             else {
-                                // const scaleX = Math.round(fullWidth * percent) / (<Image>this._barObjectH.displayObject).curImage.width;
-                                // (<Image>this._barObjectH.displayObject).curImage.setScale(scaleX, (<Image>this._barObjectH.displayObject).curImage.scaleY);
                                 this._barObjectH.displayObject.curImage.setCrop(new Phaser.Geom.Rectangle(0, 0, Math.round(fullWidth * percent), this._barObjectH._rawHeight));
                             }
                         }
                         else {
                             this._barObjectH.resizeMask(Math.round(fullWidth * percent), this._barObjectH._rawHeight);
                         }
-                        // this._barObjectH.width = Math.round(fullWidth * percent);
                     }
                 }
                 if (this._barObjectV) {
@@ -15706,15 +15929,12 @@
                                 this._barObjectV.height = Math.round(fullHeight * percent);
                             }
                             else {
-                                // const scaleY = Math.round(fullHeight * percent) / (<Image>this._barObjectV.displayObject).curImage.height;
-                                // (<Image>this._barObjectV.displayObject).curImage.setScale(scaleY, (<Image>this._barObjectV.displayObject).curImage.scaleY);
                                 this._barObjectV.displayObject.curImage.setCrop(new Phaser.Geom.Rectangle(0, 0, this._barObjectV._rawWidth, Math.round(fullHeight * percent)));
                             }
                         }
                         else {
                             this._barObjectV.resizeMask(this._barObjectV._rawWidth, Math.round(fullHeight * percent));
                         }
-                        // this._barObjectV.height = Math.round(fullHeight * percent);
                     }
                 }
             }
@@ -15726,8 +15946,6 @@
                                 this._barObjectH.width = Math.round(fullWidth * percent);
                             }
                             else {
-                                // const scaleX = Math.round(fullWidth * percent) / (<Image>this._barObjectH.displayObject).curImage.width;
-                                // (<Image>this._barObjectH.displayObject).curImage.setScale(scaleX, (<Image>this._barObjectH.displayObject).curImage.scaleY);
                                 this._barObjectH.displayObject.curImage.setCrop(new Phaser.Geom.Rectangle(0, 0, Math.round(fullWidth * percent), this._barObjectH._rawHeight));
                             }
                             this._barObjectH.x = this._barStartX + (fullWidth - this._barObjectH.width);
@@ -15735,8 +15953,6 @@
                         else {
                             this._barObjectH.resizeMask(Math.round(fullWidth * percent), this._barObjectH._rawHeight);
                         }
-                        // this._barObjectH.width = Math.round(fullWidth * percent);
-                        // this._barObjectH.x = this._barStartX + (fullWidth - this._barObjectH.width);
                     }
                 }
                 if (this._barObjectV) {
@@ -15746,8 +15962,6 @@
                                 this._barObjectV.height = Math.round(fullHeight * percent);
                             }
                             else {
-                                // const scaleY = Math.round(fullHeight * percent) / (<Image>this._barObjectV.displayObject).curImage.height;
-                                // (<Image>this._barObjectV.displayObject).curImage.setScale(scaleY, (<Image>this._barObjectV.displayObject).curImage.scaleY);
                                 this._barObjectV.displayObject.curImage.setCrop(new Phaser.Geom.Rectangle(0, 0, this._barObjectV._rawWidth, Math.round(fullHeight * percent)));
                             }
                             this._barObjectV.y = this._barStartY + (fullHeight - this._barObjectV.height);
@@ -15755,8 +15969,6 @@
                         else {
                             this._barObjectV.resizeMask(this._barObjectV._rawWidth, Math.round(fullHeight * percent));
                         }
-                        // this._barObjectV.height = Math.round(fullHeight * percent);
-                        // this._barObjectV.y = this._barStartY + (fullHeight - this._barObjectV.height);
                     }
                 }
             }
@@ -15772,23 +15984,26 @@
                 return false;
         }
         constructExtension(buffer) {
-            buffer.seek(0, 6);
-            this._titleType = buffer.readByte();
-            this._reverse = buffer.readBool();
-            this._titleObject = this.getChild("title");
-            this._barObjectH = this.getChild("bar");
-            this._barObjectV = this.getChild("bar_v");
-            this._aniObject = this.getChild("ani");
-            if (this._barObjectH) {
-                this._barMaxWidth = this._barObjectH.width;
-                this._barMaxWidthDelta = this.width - this._barMaxWidth;
-                this._barStartX = this._barObjectH.x;
-            }
-            if (this._barObjectV) {
-                this._barMaxHeight = this._barObjectV.height;
-                this._barMaxHeightDelta = this.height - this._barMaxHeight;
-                this._barStartY = this._barObjectV.y;
-            }
+            return new Promise((resolve, reject) => {
+                buffer.seek(0, 6);
+                this._titleType = buffer.readByte();
+                this._reverse = buffer.readBool();
+                this._titleObject = this.getChild("title");
+                this._barObjectH = this.getChild("bar");
+                this._barObjectV = this.getChild("bar_v");
+                this._aniObject = this.getChild("ani");
+                if (this._barObjectH) {
+                    this._barMaxWidth = this._barObjectH.width;
+                    this._barMaxWidthDelta = this.width - this._barMaxWidth;
+                    this._barStartX = this._barObjectH.x;
+                }
+                if (this._barObjectV) {
+                    this._barMaxHeight = this._barObjectV.height;
+                    this._barMaxHeightDelta = this.height - this._barMaxHeight;
+                    this._barStartY = this._barObjectV.y;
+                }
+                resolve();
+            });
         }
         handleSizeChanged() {
             super.handleSizeChanged();
@@ -15857,26 +16072,29 @@
             return this._gripDragging;
         }
         constructExtension(buffer) {
-            buffer.seek(0, 6);
-            this._fixedGripSize = buffer.readBool();
-            this._grip = this.getChild("grip");
-            if (!this._grip) {
-                console.log("需要定义grip");
-                return;
-            }
-            this._bar = this.getChild("bar");
-            if (!this._bar) {
-                console.log("需要定义bar");
-                return;
-            }
-            this._arrowButton1 = this.getChild("arrow1");
-            this._arrowButton2 = this.getChild("arrow2");
-            this._grip.on("pointerdown", this.__gripMouseDown, this);
-            if (this._arrowButton1)
-                this._arrowButton1.on("pointerdown", this.__arrowButton1Click, this);
-            if (this._arrowButton2)
-                this._arrowButton2.on("pointerdown", this.__arrowButton2Click, this);
-            this.on("pointerdown", this.__barMouseDown, this);
+            return new Promise((resolve, reject) => {
+                buffer.seek(0, 6);
+                this._fixedGripSize = buffer.readBool();
+                this._grip = this.getChild("grip");
+                if (!this._grip) {
+                    console.log("需要定义grip");
+                    return;
+                }
+                this._bar = this.getChild("bar");
+                if (!this._bar) {
+                    console.log("需要定义bar");
+                    return;
+                }
+                this._arrowButton1 = this.getChild("arrow1");
+                this._arrowButton2 = this.getChild("arrow2");
+                this._grip.on("pointerdown", this.__gripMouseDown, this);
+                if (this._arrowButton1)
+                    this._arrowButton1.on("pointerdown", this.__arrowButton1Click, this);
+                if (this._arrowButton2)
+                    this._arrowButton2.on("pointerdown", this.__arrowButton2Click, this);
+                this.on("pointerdown", this.__barMouseDown, this);
+                resolve();
+            });
         }
         __gripMouseDown(evt) {
             throw new Error("TODO");
@@ -16513,15 +16731,18 @@
             let boo = false;
             let target = gameObject[0];
             while (!boo) {
-                if ((item.parent && item.parent.type === exports.ObjectType.List || item.parent.type === exports.ObjectType.Tree) || item.type === exports.ObjectType.List || item.type === exports.ObjectType.Tree) {
+                if ((item.parent && (item.parent.type === exports.ObjectType.List || item.parent.type === exports.ObjectType.Tree || item.parent.type == exports.ObjectType.ComboBox)) || item.type === exports.ObjectType.List || item.type === exports.ObjectType.Tree || item.type === exports.ObjectType.ComboBox) {
                     target = item.displayObject;
                     boo = true;
                 }
                 else {
                     item = item.parent;
-                    if (!item.parent)
+                    if (!item || !item.parent) {
                         boo = true;
-                    boo = false;
+                    }
+                    else {
+                        boo = false;
+                    }
                 }
             }
             // 如果clickitem的父对象为空，不可能为glist则直接跳出

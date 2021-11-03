@@ -152,37 +152,38 @@ export class GSlider extends GComponent {
         }
     }
 
-    protected constructExtension(buffer: ByteBuffer): void {
-        throw new Error("TODO");
-        buffer.seek(0, 6);
+    protected constructExtension(buffer: ByteBuffer): Promise<void> {
+        return new Promise((resolve, reject) => {
+            buffer.seek(0, 6);
 
-        this._titleType = buffer.readByte();
-        this._reverse = buffer.readBool();
-        if (buffer.version >= 2) {
-            this._wholeNumbers = buffer.readBool();
-            this.changeOnClick = buffer.readBool();
-        }
+            this._titleType = buffer.readByte();
+            this._reverse = buffer.readBool();
+            if (buffer.version >= 2) {
+                this._wholeNumbers = buffer.readBool();
+                this.changeOnClick = buffer.readBool();
+            }
 
-        this._titleObject = this.getChild("title");
-        this._barObjectH = this.getChild("bar");
-        this._barObjectV = this.getChild("bar_v");
-        this._gripObject = this.getChild("grip");
+            this._titleObject = this.getChild("title");
+            this._barObjectH = this.getChild("bar");
+            this._barObjectV = this.getChild("bar_v");
+            this._gripObject = this.getChild("grip");
 
-        if (this._barObjectH) {
-            this._barMaxWidth = this._barObjectH.width;
-            this._barMaxWidthDelta = this.width - this._barMaxWidth;
-            this._barStartX = this._barObjectH.x;
-        }
-        if (this._barObjectV) {
-            this._barMaxHeight = this._barObjectV.height;
-            this._barMaxHeightDelta = this.height - this._barMaxHeight;
-            this._barStartY = this._barObjectV.y;
-        }
-        if (this._gripObject) {
-            // this._gripObject.on(Laya.Event.MOUSE_DOWN, this, this.__gripMouseDown);
-        }
-
-        // this.displayObject.on(Laya.Event.MOUSE_DOWN, this, this.__barMouseDown);
+            if (this._barObjectH) {
+                this._barMaxWidth = this._barObjectH.width;
+                this._barMaxWidthDelta = this.width - this._barMaxWidth;
+                this._barStartX = this._barObjectH.x;
+            }
+            if (this._barObjectV) {
+                this._barMaxHeight = this._barObjectV.height;
+                this._barMaxHeightDelta = this.height - this._barMaxHeight;
+                this._barStartY = this._barObjectV.y;
+            }
+            if (this._gripObject) {
+                // this._gripObject.on(Laya.Event.MOUSE_DOWN, this, this.__gripMouseDown);
+            }
+            resolve();
+            // this.displayObject.on(Laya.Event.MOUSE_DOWN, this, this.__barMouseDown);
+        });
     }
 
     protected handleSizeChanged(): void {

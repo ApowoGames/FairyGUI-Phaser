@@ -71,8 +71,8 @@ export class GObject {
     private _tooltips?: string;
     protected _pixelSnapping?: boolean;
 
-    private _relations: Relations;
-    private _group?: GGroup;
+    protected _relations: Relations;
+    protected _group?: GGroup;
     private _gears: GearBase[];
     private _dragBounds?: Phaser.Geom.Rectangle;
     private _dragTesting?: boolean;
@@ -488,7 +488,7 @@ export class GObject {
             this.handleXYChanged();
     }
 
-    private updatePivotOffset(): void {
+    protected updatePivotOffset(): void {
         if (this._displayObject) {
             const transform = this._displayObject.getLocalTransformMatrix();
             if (transform && (this._pivotX != 0 || this._pivotY != 0)) {
@@ -506,7 +506,7 @@ export class GObject {
         }
     }
 
-    private applyPivot(): void {
+    protected applyPivot(): void {
         if (this._pivotX != 0 || this._pivotY != 0) {
             this.updatePivotOffset();
             this.handleXYChanged();
@@ -1028,11 +1028,12 @@ export class GObject {
         }
         let ele: Phaser.GameObjects.Container = this._displayObject;
         if (!ele) return point;
-        while (ele) {
-            if (!ele.parentContainer) break;
-            ele = ele.parentContainer;
-        }
-        return new Phaser.Geom.Point(ele.x, ele.y);
+        const worldMatrix = (<Phaser.GameObjects.Container>this._displayObject).getWorldTransformMatrix();
+        // while (ele) {
+        //     if (!ele.parentContainer) break;
+        //     ele = ele.parentContainer;
+        // }
+        return new Phaser.Geom.Point(worldMatrix.tx, worldMatrix.ty);
     }
 
     public globalToLocal(ax?: number, ay?: number, result?: Phaser.Geom.Point): Phaser.Geom.Point {

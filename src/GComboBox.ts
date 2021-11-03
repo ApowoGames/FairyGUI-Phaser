@@ -8,7 +8,7 @@ import { PopupDirection, ObjectPropID } from './FieldTypes';
 import { GList } from './GList';
 import { GObject } from './GObject';
 import { GComponent } from "./GComponent";
-import { GRoot, RelationType, UIPackage } from '.';
+import { DisplayObjectEvent, GGroup, GRoot, RelationType, UIPackage } from '.';
 import { Events } from './Events';
 
 export class GComboBox extends GComponent {
@@ -40,6 +40,50 @@ export class GComboBox extends GComponent {
         this._popupDirection = 0;
         this._items = [];
         this._values = [];
+    }
+
+    public setSize(wv: number, hv: number, ignorePivot?: boolean): void {
+        if (this._rawWidth != wv || this._rawHeight != hv) {
+            this._rawWidth = wv;
+            this._rawHeight = hv;
+            if (wv < this.minWidth)
+                wv = this.minWidth;
+            if (hv < this.minHeight)
+                hv = this.minHeight;
+            if (this.maxWidth > 0 && wv > this.maxWidth)
+                wv = this.maxWidth;
+            if (this.maxHeight > 0 && hv > this.maxHeight)
+                hv = this.maxHeight;
+            var dWidth: number = wv - this._width;
+            var dHeight: number = hv - this._height;
+            this._width = wv;
+            this._height = hv;
+
+            this.handleSizeChanged();
+            if (this._pivotX != 0 || this._pivotY != 0) {
+                if (!this._pivotAsAnchor) {
+                    if (!ignorePivot)
+                        this.setXY(this.x - this._pivotX * dWidth, this.y - this._pivotY * dHeight);
+                    this.updatePivotOffset();
+                }
+                else
+                    this.applyPivot();
+            }
+
+            if (this instanceof GGroup)
+                (<GGroup>this).resizeChildren(dWidth, dHeight);
+
+            this.updateGear(2);
+
+            if (this._parent) {
+                this._relations.onOwnerSizeChanged(dWidth, dHeight, this._pivotAsAnchor || !ignorePivot);
+                this._parent.setBoundsChangedFlag();
+                if (this._group)
+                    this._group.setBoundsChangedFlag();
+            }
+
+            this.displayObject.emit(DisplayObjectEvent.SIZE_CHANGED);
+        }
     }
 
     public get text(): string {
@@ -479,16 +523,17 @@ export class GComboBox extends GComponent {
     }
 
     private __clickItem(itemObject: GObject, evt: any): void {
-        // Laya.timer.callLater(this, this.__clickItem2, [this._list.getChildIndex(itemObject), evt])
+        this.__clickItem2(this._list.getChildIndex(itemObject), evt);
+        //Laya.timer.callLater(this, this.__clickItem2, [this._list.getChildIndex(itemObject), evt])
     }
 
     private __clickItem2(index: number, evt: any): void {
-        // if (this.dropdown.parent instanceof GRoot)
-        //     this.dropdown.parent.hidePopup();
+        if (this.dropdown.parent instanceof GRoot)
+            this.dropdown.parent.hidePopup();
 
-        // this._selectedIndex = -1;
-        // this.selectedIndex = index;
-        // Events.dispatch(Events.STATE_CHANGED, this.displayObject, evt);
+        this._selectedIndex = -1;
+        this.selectedIndex = index;
+        Events.dispatch(Events.STATE_CHANGED, this.displayObject, evt);
     }
 
     private __rollover(): void {
@@ -511,13 +556,13 @@ export class GComboBox extends GComponent {
         // if (evt.target instanceof Laya.Input)
         //     return;
 
-        // this._down = true;
-        // GRoot.inst.checkPopups(evt.target);
+        this._down = true;
+        GRoot.inst.checkPopups(<Phaser.GameObjects.Container>this.displayObject);
 
-        // this.scene.input.on("pointerup", this.__mouseup, this);
+        this.scene.input.on("pointerup", this.__mouseup, this);
 
-        // if (this.dropdown)
-        //     this.showDropdown();
+        if (this.dropdown)
+            this.showDropdown();
     }
 
     private __mouseup(): void {

@@ -676,13 +676,16 @@ export class GList extends GComponent {
         let boo = false;
         let target = gameObject[0];
         while (!boo) {
-            if ((item.parent && item.parent.type === ObjectType.List || item.parent.type === ObjectType.Tree) || item.type === ObjectType.List || item.type === ObjectType.Tree) {
+            if ((item.parent && (item.parent.type === ObjectType.List || item.parent.type === ObjectType.Tree || item.parent.type == ObjectType.ComboBox)) || item.type === ObjectType.List || item.type === ObjectType.Tree || item.type === ObjectType.ComboBox) {
                 target = item.displayObject;
                 boo = true;
             } else {
                 item = item.parent;
-                if (!item.parent) boo = true;
-                boo = false;
+                if (!item || !item.parent) {
+                    boo = true;
+                } else {
+                    boo = false;
+                }
             }
         }
         // 如果clickitem的父对象为空，不可能为glist则直接跳出

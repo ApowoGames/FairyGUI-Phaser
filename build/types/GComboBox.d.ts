@@ -22,6 +22,7 @@ export declare class GComboBox extends GComponent {
     private _down;
     private _over;
     constructor(scene: Phaser.Scene, type: any);
+    setSize(wv: number, hv: number, ignorePivot?: boolean): void;
     get text(): string;
     set text(value: string);
     get titleColor(): string;
@@ -53,9 +54,11 @@ export declare class GComboBox extends GComponent {
     dispose(): void;
     getProp(index: number): any;
     setProp(index: number, value: any): void;
-    protected constructExtension(buffer: ByteBuffer): void;
+    protected constructExtension(buffer: ByteBuffer): Promise<void>;
+    private addListen;
+    private removeListen;
     setup_afterAdd(buffer: ByteBuffer, beginPos: number): void;
-    protected showDropdown(): void;
+    protected showDropdown(): Promise<void>;
     private __popupWinClosed;
     private __clickItem;
     private __clickItem2;

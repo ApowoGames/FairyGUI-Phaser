@@ -18,7 +18,7 @@ export declare class GScrollBar extends GComponent {
     setScrollPerc(val: number): void;
     get minSize(): number;
     get gripDragging(): boolean;
-    protected constructExtension(buffer: ByteBuffer): void;
+    protected constructExtension(buffer: ByteBuffer): Promise<void>;
     private __gripMouseDown;
     private __gripMouseMove;
     private __gripMouseUp;

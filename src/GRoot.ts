@@ -40,6 +40,8 @@ export class GRoot extends GComponent {
     private _checkPopups: boolean;
     constructor() {
         super();
+        this._popupStack = [];
+        this._justClosedPopups = [];
     }
 
     public get emitter(): Phaser.Events.EventEmitter {
@@ -324,6 +326,72 @@ export class GRoot extends GComponent {
 
         popup.x = xx;
         popup.y = yy;
+        
+    }
+
+    public hidePopup(popup?: GObject): void {
+        if (popup) {
+            var k: number = this._popupStack.indexOf(popup);
+            if (k != -1) {
+                for (var i: number = this._popupStack.length - 1; i >= k; i--)
+                    this.closePopup(this._popupStack.pop());
+            }
+        }
+        else {
+            var cnt: number = this._popupStack.length;
+            for (i = cnt - 1; i >= 0; i--)
+                this.closePopup(this._popupStack[i]);
+            this._popupStack.length = 0;
+        }
+    }
+
+    private closePopup(target: GObject): void {
+        if (target.parent) {
+            if (target instanceof Window)
+                target.hide();
+            else
+                this.removeChild(target);
+        }
+    }
+
+    public checkPopups(clickTarget: Phaser.GameObjects.Container): void {
+        if (this._checkPopups)
+            return;
+
+        this._checkPopups = true;
+        this._justClosedPopups.length = 0;
+        if (this._popupStack.length > 0) {
+            var mc = clickTarget;
+            while (mc.parentContainer && mc) {
+                if (mc["$owner"]) {
+                    var pindex: number = this._popupStack.indexOf(mc["$owner"]);
+                    if (pindex != -1) {
+                        for (var i: number = this._popupStack.length - 1; i > pindex; i--) {
+                            var popup: GObject = this._popupStack.pop();
+                            this.closePopup(popup);
+                            this._justClosedPopups.push(popup);
+                        }
+                        return;
+                    }
+                }
+                mc = mc.parentContainer;
+            }
+
+            var cnt: number = this._popupStack.length;
+            for (i = cnt - 1; i >= 0; i--) {
+                popup = this._popupStack[i];
+                this.closePopup(popup);
+                this._justClosedPopups.push(popup);
+            }
+            this._popupStack.length = 0;
+        }
+    }
+
+    public togglePopup(popup: GObject, target?: GObject, dir?: PopupDirection | boolean): void {
+        if (this._justClosedPopups.indexOf(popup) != -1)
+            return;
+
+        this.showPopup(popup, target, dir);
     }
 
     private adjustModalLayer(): void {

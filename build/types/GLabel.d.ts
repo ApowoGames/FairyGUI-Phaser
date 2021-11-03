@@ -23,6 +23,6 @@ export declare class GLabel extends GComponent {
     getTextField(): GTextField;
     getProp(index: number): any;
     setProp(index: number, value: any): void;
-    protected constructExtension(buffer: ByteBuffer): void;
+    protected constructExtension(buffer: ByteBuffer): Promise<void>;
     setup_afterAdd(buffer: ByteBuffer, beginPos: number): void;
 }

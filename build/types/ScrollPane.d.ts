@@ -144,6 +144,7 @@ export declare class ScrollPane {
     private checkInBounds;
     private __mouseMove;
     private __mouseUp;
+    maskPosChange(x: number, y: number): void;
     private __click;
     private __mouseWheel;
     private updateScrollBarPos;

@@ -185,7 +185,7 @@ export class GComponent extends GObject {
                 this._children.splice(index, 1);
                 child.group = null;
                 if (child.inContainer) {
-                    this._container.remove(child.displayObject);
+                    child.displayObject.parentContainer.remove(child.displayObject);
                     if (this._childrenRenderOrder == ChildrenRenderOrder.Arch) {
                         if (!this._buildNativeTime) this._buildNativeTime = this.scene.time.addEvent(this._buildNativeEvent);
                     }
@@ -469,6 +469,7 @@ export class GComponent extends GObject {
             return;
 
         if (child.internalVisible) { // && child.displayObject !== this._displayObject.mask) {
+            // 没有父容器 直接添加在scene的根容器上
             if (!child.displayObject.parentContainer) {
                 var index: number = 0
                 if (this._childrenRenderOrder == ChildrenRenderOrder.Ascent) {
@@ -480,7 +481,11 @@ export class GComponent extends GObject {
                         if (g.displayObject && g.displayObject.parentContainer)
                             index++;
                     }
-                    this._container.addAt(child.displayObject, index);
+                    if (this._container) {
+                        this._container.addAt(child.displayObject, index);
+                    } else {
+                        GRoot.inst.addToStage(child.displayObject);
+                    }
                     // console.log("add display", child);
                 }
                 else if (this._childrenRenderOrder == ChildrenRenderOrder.Descent) {
@@ -1302,18 +1307,24 @@ export class GComponent extends GObject {
                 this.buildNativeDisplayList();
                 this.setBoundsChangedFlag();
 
-                if (contentItem.objectType != ObjectType.Component)
-                    this.constructExtension(buffer);
-
-                this.onConstruct();
-                reslove();
-                return;
+                if (contentItem.objectType != ObjectType.Component) {
+                    this.constructExtension(buffer).then(() => {
+                        this.onConstruct();
+                        reslove();
+                    });
+                } else {
+                    this.onConstruct();
+                    reslove();
+                }
             }
             fun(0);
         });
     }
 
-    protected constructExtension(buffer: ByteBuffer): void {
+    protected constructExtension(buffer: ByteBuffer): Promise<void> {
+        return new Promise((resolve) => {
+            resolve();
+        });
     }
 
     protected onConstruct(): void {
@@ -1354,6 +1365,19 @@ export class GComponent extends GObject {
                     obj.setProp(propertyId, value);
             }
         }
+    }
+
+
+    public setXY(xv: number, yv: number): void {
+        super.setXY(xv, yv);
+        this._children.forEach((obj) => {
+            if (obj && obj instanceof GComponent) {
+                const component = (<GComponent>obj);
+                if (component._scrollPane) {
+                    component._scrollPane.maskPosChange(xv, yv);
+                }
+            }
+        });
     }
 
     protected ___added(): void {

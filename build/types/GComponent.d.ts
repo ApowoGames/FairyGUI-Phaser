@@ -102,10 +102,11 @@ export declare class GComponent extends GObject {
     childSortingOrderChanged(child: GObject, oldValue: number, newValue: number): void;
     constructFromResource(): Promise<void>;
     constructFromResource2(objectPool: GObject[], poolIndex: number): Promise<void>;
-    protected constructExtension(buffer: ByteBuffer): void;
+    protected constructExtension(buffer: ByteBuffer): Promise<void>;
     protected onConstruct(): void;
     protected constructFromXML(xml: Object): void;
     setup_afterAdd(buffer: ByteBuffer, beginPos: number): void;
+    setXY(xv: number, yv: number): void;
     protected ___added(): void;
     protected ___removed(): void;
 }

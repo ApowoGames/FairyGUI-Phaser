@@ -388,29 +388,32 @@ export class GButton extends GComponent {
         }
     }
 
-    protected constructExtension(buffer: ByteBuffer): void {
-        buffer.seek(0, 6);
+    protected constructExtension(buffer: ByteBuffer): Promise<void> {
+        return new Promise((resolve, reject) => {
+            buffer.seek(0, 6);
 
-        this._mode = buffer.readByte();
-        var str: string = buffer.readS();
-        if (str)
-            this._sound = str;
-        this._soundVolumeScale = buffer.readFloat();
-        this._downEffect = buffer.readByte();
-        this._downEffectValue = buffer.readFloat();
-        if (this._downEffect == 2)
-            this.setPivot(0.5, 0.5, this.pivotAsAnchor);
-
-        this._buttonController = this.getController("button");
-        this._titleObject = this.getChild("title");
-        this._iconObject = this.getChild("icon");
-        if (this._titleObject)
-            this._title = this._titleObject.text;
-        if (this._iconObject)
-            this._icon = this._iconObject.icon;
-
-        if (this._mode == ButtonMode.Common)
-            this.setState(GButton.UP);
+            this._mode = buffer.readByte();
+            var str: string = buffer.readS();
+            if (str)
+                this._sound = str;
+            this._soundVolumeScale = buffer.readFloat();
+            this._downEffect = buffer.readByte();
+            this._downEffectValue = buffer.readFloat();
+            if (this._downEffect == 2)
+                this.setPivot(0.5, 0.5, this.pivotAsAnchor);
+    
+            this._buttonController = this.getController("button");
+            this._titleObject = this.getChild("title");
+            this._iconObject = this.getChild("icon");
+            if (this._titleObject)
+                this._title = this._titleObject.text;
+            if (this._iconObject)
+                this._icon = this._iconObject.icon;
+    
+            if (this._mode == ButtonMode.Common)
+                this.setState(GButton.UP);
+            resolve();
+        });
     }
 
     public addListener() {

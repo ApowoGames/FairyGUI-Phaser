@@ -146,9 +146,12 @@ export class GLabel extends GComponent {
         }
     }
 
-    protected constructExtension(buffer: ByteBuffer): void {
-        this._titleObject = this.getChild("title");
-        this._iconObject = this.getChild("icon");
+    protected constructExtension(buffer: ByteBuffer): Promise<void> {
+        return new Promise((resolve, reject) => {
+            this._titleObject = this.getChild("title");
+            this._iconObject = this.getChild("icon");
+            resolve();
+        });
     }
 
     public setup_afterAdd(buffer: ByteBuffer, beginPos: number): void {

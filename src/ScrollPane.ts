@@ -900,7 +900,7 @@ export class ScrollPane {
                 this._mask.fillStyle(0x00ff00, .4);
                 this._mask.fillRect(this._owner.x, this._owner.y, this.maskScrollRect.width, this.maskScrollRect.height);
                 this._maskContainer.setInteractive(this.maskScrollRect, Phaser.Geom.Rectangle.Contains);
-                // this._maskContainer.add(this._mask);
+                this._maskContainer.add(this._mask);
                 // const g = this._mask.createGeometryMask();
                 // console.log("g====>", g);
                 this._maskContainer.setMask(this._mask.createGeometryMask());
@@ -1394,6 +1394,34 @@ export class ScrollPane {
         }
 
         this.startTween(2);
+    }
+
+    public maskPosChange(x: number, y: number) {
+        if (this.maskScrollRect) {
+            // var rect: Phaser.Geom.Rectangle = new Phaser.Geom.Rectangle()//this._maskContainer["scrollRect"];
+            // if (rect) {
+            //     rect.width = this._viewSize.x;
+            //     rect.height = this._viewSize.y;
+            //     if (this._vScrollNone && this._vtScrollBar)
+            //         rect.width += this._vtScrollBar.width;
+            //     if (this._hScrollNone && this._hzScrollBar)
+            //         rect.height += this._hzScrollBar.height;
+            //     if (this._dontClipMargin) {
+            //         rect.width += (this._owner.margin.left + this._owner.margin.right);
+            //         rect.height += (this._owner.margin.top + this._owner.margin.bottom);
+            //     }
+            // this.maskScrollRect = rect;
+            this._maskContainer.clearMask();
+            this._mask.clear();
+            this._mask.fillStyle(0x00ff00, .4);
+            this._mask.fillRect(x, y, this.maskScrollRect.width, this.maskScrollRect.height);
+            this._maskContainer.setInteractive(this.maskScrollRect, Phaser.Geom.Rectangle.Contains);
+            this._maskContainer.add(this._mask);
+            // const g = this._mask.createGeometryMask();
+            // console.log("g====>", g);
+            this._maskContainer.setMask(this._mask.createGeometryMask());
+            //  }
+        }
     }
 
     private __click(): void {

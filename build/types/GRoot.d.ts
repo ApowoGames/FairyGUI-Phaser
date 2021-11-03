@@ -66,5 +66,9 @@ export declare class GRoot extends GComponent {
     private $winResize;
     private updateContentScaleLevel;
     showPopup(popup: GObject, target?: GObject, dir?: PopupDirection | boolean): void;
+    hidePopup(popup?: GObject): void;
+    private closePopup;
+    checkPopups(clickTarget: Phaser.GameObjects.Container): void;
+    togglePopup(popup: GObject, target?: GObject, dir?: PopupDirection | boolean): void;
     private adjustModalLayer;
 }
