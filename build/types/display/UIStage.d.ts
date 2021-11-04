@@ -71,6 +71,7 @@ export declare class UIStage extends Phaser.Events.EventEmitter {
     get nativeStage(): Phaser.Input.InputPlugin;
     get stageWidth(): number;
     get stageHeight(): number;
+    get displayObject(): Phaser.GameObjects.Container;
     addChild(child: Phaser.GameObjects.GameObject, type: UISceneDisplay, index?: number): void;
     removeChild(child: Phaser.GameObjects.GameObject, type: UISceneDisplay): void;
     /**@internal */

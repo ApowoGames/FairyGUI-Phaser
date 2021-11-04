@@ -668,7 +668,7 @@ export class GList extends GComponent {
     }
 
     protected __clickItem(pointer: Phaser.Input.Pointer, gameObject: Phaser.GameObjects.GameObject): void {
-        if ((this._scrollPane && this._scrollPane.isDragged) || !gameObject || !gameObject[0])
+        if ((this._scrollPane && this._scrollPane.isDragged) || !gameObject || !gameObject[0] || pointer.downX !== pointer.upX || pointer.downY !== pointer.upY)
             return;
         let item: GObject = <GObject>(gameObject[0]["$owner"]);
         // 如果clickitem的父对象为空，不可能为glist则直接跳出
@@ -689,7 +689,7 @@ export class GList extends GComponent {
             }
         }
         // 如果clickitem的父对象为空，不可能为glist则直接跳出
-        if (!item.parent) return;
+        if (!item || !item.parent) return;
         this.setSelectionOnEvent(item, { target });
 
         if (this._scrollPane && this.scrollItemToViewOnClick)
@@ -699,7 +699,7 @@ export class GList extends GComponent {
     }
 
     protected dispatchItemEvent(item: GObject, evt: any): void {
-        this.displayObject.emit(Events.CLICK_ITEM, [item, evt]);
+        this.displayObject.emit(Events.CLICK_ITEM, item, evt);
     }
 
     protected setSelectionOnEvent(item: GObject, evt: any): void {

@@ -530,15 +530,16 @@ export class GComboBox extends GComponent {
     private __clickItem2(index: number, evt: any): void {
         if (this.dropdown.parent instanceof GRoot)
             this.dropdown.parent.hidePopup();
-
         this._selectedIndex = -1;
         this.selectedIndex = index;
+
         Events.dispatch(Events.STATE_CHANGED, this.displayObject, evt);
+
     }
 
     private __rollover(): void {
         this._over = true;
-        if (this._down || this.dropdown && this.dropdown.parent)
+        if (this._down && this.dropdown)
             return;
 
         this.setState(GButton.OVER);
@@ -546,9 +547,8 @@ export class GComboBox extends GComponent {
 
     private __rollout(): void {
         this._over = false;
-        if (this._down || this.dropdown && this.dropdown.parent)
+        if (this._down && this.dropdown)
             return;
-
         this.setState(GButton.UP);
     }
 
@@ -559,22 +559,30 @@ export class GComboBox extends GComponent {
         this._down = true;
         GRoot.inst.checkPopups(<Phaser.GameObjects.Container>this.displayObject);
 
-        this.scene.input.on("pointerup", this.__mouseup, this);
 
-        if (this.dropdown)
-            this.showDropdown();
+        if (this.dropdown) {
+            this.showDropdown().then(() => {
+                this.scene.input.off("pointerup", this.__mouseup, this);
+                this.scene.input.on("pointerup", this.__mouseup, this);
+            });
+        }
+
     }
 
-    private __mouseup(): void {
+    private __mouseup(pointer, gameObject): void {
         if (this._down) {
-            this._down = false;
-            this.scene.input.off("pointerup", this.__mouseup, this);
-
-            if (this.dropdown && !this.dropdown.parent) {
-                if (this._over)
-                    this.setState(GButton.OVER);
-                else
-                    this.setState(GButton.UP);
+            if (this.dropdown) {
+                // fairgui 没有处理未点击到combox时列表是否缩起的处理
+                if (!this.dropdown.parent) {
+                    this._down = false;
+                    this.scene.input.off("pointerup", this.__mouseup, this);
+                    if (this._over) {
+                        this.setState(GButton.OVER);
+                    }
+                    else {
+                        this.setState(GButton.UP);
+                    }
+                }
             }
         }
     }

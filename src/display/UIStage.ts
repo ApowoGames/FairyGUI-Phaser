@@ -158,6 +158,10 @@ export class UIStage extends Phaser.Events.EventEmitter {
         return this.$height;
     }
 
+    public get displayObject(): Phaser.GameObjects.Container {
+        return this.rootContainer;
+    }
+
     addChild(child: Phaser.GameObjects.GameObject, type: UISceneDisplay, index: number = -1) {
         switch (type) {
             case UISceneDisplay.LAYER_ROOT:

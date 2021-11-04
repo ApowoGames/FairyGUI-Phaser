@@ -228,6 +228,8 @@ export class GRoot extends GComponent {
     }
 
     public createDisplayObject() {
+        this._displayObject = this._uiStage.displayObject;
+        this._displayObject["$owner"] = this;
         // this._displayObject = this.scene.make.container(undefined, false);
         // this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this._width, this._height), Phaser.Geom.Rectangle.Contains);
         // this._displayObject["$owner"] = this;
@@ -326,7 +328,7 @@ export class GRoot extends GComponent {
 
         popup.x = xx;
         popup.y = yy;
-        
+
     }
 
     public hidePopup(popup?: GObject): void {

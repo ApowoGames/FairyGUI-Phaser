@@ -6504,6 +6504,9 @@ class UIStage extends Phaser.Events.EventEmitter {
     get stageHeight() {
         return this.$height;
     }
+    get displayObject() {
+        return this.rootContainer;
+    }
     addChild(child, type, index = -1) {
         switch (type) {
             case UISceneDisplay.LAYER_ROOT:
@@ -8820,7 +8823,7 @@ class ScrollPane {
                 this._mask.fillStyle(0x00ff00, .4);
                 this._mask.fillRect(this._owner.x, this._owner.y, this.maskScrollRect.width, this.maskScrollRect.height);
                 this._maskContainer.setInteractive(this.maskScrollRect, Phaser.Geom.Rectangle.Contains);
-                this._maskContainer.add(this._mask);
+                // this._maskContainer.add(this._mask);
                 // const g = this._mask.createGeometryMask();
                 // console.log("g====>", g);
                 this._maskContainer.setMask(this._mask.createGeometryMask());
@@ -9269,7 +9272,7 @@ class ScrollPane {
             this._mask.fillStyle(0x00ff00, .4);
             this._mask.fillRect(x, y, this.maskScrollRect.width, this.maskScrollRect.height);
             this._maskContainer.setInteractive(this.maskScrollRect, Phaser.Geom.Rectangle.Contains);
-            this._maskContainer.add(this._mask);
+            // this._maskContainer.add(this._mask);
             // const g = this._mask.createGeometryMask();
             // console.log("g====>", g);
             this._maskContainer.setMask(this._mask.createGeometryMask());
@@ -11702,6 +11705,10 @@ class GComponent extends GObject {
         // else 
         if (this.hitArea instanceof Phaser.Geom.Rectangle) {
             this.hitArea.setTo(this.initWidth >> 1, this.initHeight >> 1, this.initWidth, this.initHeight);
+            if (this._opaque) {
+                this.displayObject.disableInteractive();
+                this.displayObject.setInteractive(this.hitArea, Phaser.Geom.Rectangle.Contains);
+            }
         }
     }
     updateMask() {
@@ -11745,8 +11752,9 @@ class GComponent extends GObject {
             this._scrollPane.onOwnerSizeChanged();
         else if (this.scrollRect)
             this.updateMask();
-        if (this.hitArea)
+        if (this.hitArea) {
             this.updateHitArea();
+        }
     }
     handleGrayedChanged() {
         var c = this.getController("grayed");
@@ -11821,6 +11829,20 @@ class GComponent extends GObject {
     }
     setBounds(ax, ay, aw, ah) {
         this._boundsChanged = false;
+        if (this._opaque) {
+            this._displayObject.disableInteractive();
+            this.hitArea = new Phaser.Geom.Rectangle(ax + aw >> 1, ay + ah >> 1, aw, ah);
+            console.log("set bounds", aw, ah);
+            this._displayObject.setInteractive(this.hitArea, Phaser.Geom.Rectangle.Contains);
+            // if (this._g) {
+            //     this._g.clear();
+            // } else {
+            //     this._g = this.scene.make.graphics(undefined, false);
+            // }
+            // this._g.fillStyle(0xFFCC00, .4);
+            // this._g.fillRect(0, 0, aw, ah);
+            //(<Phaser.GameObjects.Container>this.displayObject).add(this._g);
+        }
         if (this._scrollPane)
             this._scrollPane.setContentSize(aw, ah);
     }
@@ -12413,6 +12435,8 @@ class GRoot extends GComponent {
         win.hide();
     }
     createDisplayObject() {
+        this._displayObject = this._uiStage.displayObject;
+        this._displayObject["$owner"] = this;
         // this._displayObject = this.scene.make.container(undefined, false);
         // this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this._width, this._height), Phaser.Geom.Rectangle.Contains);
         // this._displayObject["$owner"] = this;
@@ -15573,13 +15597,13 @@ class GComboBox extends GComponent {
     }
     __rollover() {
         this._over = true;
-        if (this._down || this.dropdown && this.dropdown.parent)
+        if (this._down && this.dropdown)
             return;
         this.setState(GButton.OVER);
     }
     __rollout() {
         this._over = false;
-        if (this._down || this.dropdown && this.dropdown.parent)
+        if (this._down && this.dropdown)
             return;
         this.setState(GButton.UP);
     }
@@ -15588,19 +15612,27 @@ class GComboBox extends GComponent {
         //     return;
         this._down = true;
         GRoot.inst.checkPopups(this.displayObject);
-        this.scene.input.on("pointerup", this.__mouseup, this);
-        if (this.dropdown)
-            this.showDropdown();
+        if (this.dropdown) {
+            this.showDropdown().then(() => {
+                this.scene.input.off("pointerup", this.__mouseup, this);
+                this.scene.input.on("pointerup", this.__mouseup, this);
+            });
+        }
     }
-    __mouseup() {
+    __mouseup(pointer, gameObject) {
         if (this._down) {
-            this._down = false;
-            this.scene.input.off("pointerup", this.__mouseup, this);
-            if (this.dropdown && !this.dropdown.parent) {
-                if (this._over)
-                    this.setState(GButton.OVER);
-                else
-                    this.setState(GButton.UP);
+            if (this.dropdown) {
+                // fairgui 没有处理未点击到combox时列表是否缩起的处理
+                if (!this.dropdown.parent) {
+                    this._down = false;
+                    this.scene.input.off("pointerup", this.__mouseup, this);
+                    if (this._over) {
+                        this.setState(GButton.OVER);
+                    }
+                    else {
+                        this.setState(GButton.UP);
+                    }
+                }
             }
         }
     }
@@ -16718,7 +16750,7 @@ class GList extends GComponent {
         }
     }
     __clickItem(pointer, gameObject) {
-        if ((this._scrollPane && this._scrollPane.isDragged) || !gameObject || !gameObject[0])
+        if ((this._scrollPane && this._scrollPane.isDragged) || !gameObject || !gameObject[0] || pointer.downX !== pointer.upX || pointer.downY !== pointer.upY)
             return;
         let item = (gameObject[0]["$owner"]);
         // 如果clickitem的父对象为空，不可能为glist则直接跳出
@@ -16742,7 +16774,7 @@ class GList extends GComponent {
             }
         }
         // 如果clickitem的父对象为空，不可能为glist则直接跳出
-        if (!item.parent)
+        if (!item || !item.parent)
             return;
         this.setSelectionOnEvent(item, { target });
         if (this._scrollPane && this.scrollItemToViewOnClick)
@@ -16750,7 +16782,7 @@ class GList extends GComponent {
         this.dispatchItemEvent(item, Events.createEvent(Events.CLICK_ITEM, this.displayObject, { target, touchId: pointer.id }));
     }
     dispatchItemEvent(item, evt) {
-        this.displayObject.emit(Events.CLICK_ITEM, [item, evt]);
+        this.displayObject.emit(Events.CLICK_ITEM, item, evt);
     }
     setSelectionOnEvent(item, evt) {
         if (!(item instanceof GButton) || this._selectionMode == ListSelectionMode.None)

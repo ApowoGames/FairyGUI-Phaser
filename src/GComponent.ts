@@ -20,6 +20,7 @@ export class GComponent extends GObject {
     private _opaque: boolean;
     private _applyingController?: Controller;
     private _mask?: Graphics;
+    // private _g: Phaser.GameObjects.Graphics;
 
     protected _renderEvent: any;//Phaser.Time.TimerEvent;
     protected _renderTime: Phaser.Time.TimerEvent;
@@ -40,6 +41,8 @@ export class GComponent extends GObject {
     public _container: Phaser.GameObjects.Container;
     public _scrollPane?: ScrollPane;
     public _alignOffset: Phaser.Geom.Point;
+
+
 
     constructor(scene?: Phaser.Scene, type?: number) {
         super(scene, type);
@@ -765,6 +768,10 @@ export class GComponent extends GObject {
         // else 
         if (this.hitArea instanceof Phaser.Geom.Rectangle) {
             this.hitArea.setTo(this.initWidth >> 1, this.initHeight >> 1, this.initWidth, this.initHeight);
+            if (this._opaque) {
+                this.displayObject.disableInteractive();
+                this.displayObject.setInteractive(this.hitArea, Phaser.Geom.Rectangle.Contains);
+            }
         }
     }
 
@@ -815,8 +822,10 @@ export class GComponent extends GObject {
         else if (this.scrollRect)
             this.updateMask();
 
-        if (this.hitArea)
+        if (this.hitArea) {
             this.updateHitArea();
+        }
+
     }
 
     protected handleGrayedChanged(): void {
@@ -911,6 +920,20 @@ export class GComponent extends GObject {
     public setBounds(ax: number, ay: number, aw: number, ah: number): void {
         this._boundsChanged = false;
 
+        if (this._opaque) {
+            this._displayObject.disableInteractive();
+            this.hitArea = new Phaser.Geom.Rectangle(ax + aw >> 1, ay + ah >> 1, aw, ah);
+            console.log("set bounds", aw, ah);
+            this._displayObject.setInteractive(this.hitArea, Phaser.Geom.Rectangle.Contains);
+            // if (this._g) {
+            //     this._g.clear();
+            // } else {
+            //     this._g = this.scene.make.graphics(undefined, false);
+            // }
+            // this._g.fillStyle(0xFFCC00, .4);
+            // this._g.fillRect(0, 0, aw, ah);
+            //(<Phaser.GameObjects.Container>this.displayObject).add(this._g);
+        }
         if (this._scrollPane)
             this._scrollPane.setContentSize(aw, ah);
     }

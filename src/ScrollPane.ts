@@ -900,7 +900,7 @@ export class ScrollPane {
                 this._mask.fillStyle(0x00ff00, .4);
                 this._mask.fillRect(this._owner.x, this._owner.y, this.maskScrollRect.width, this.maskScrollRect.height);
                 this._maskContainer.setInteractive(this.maskScrollRect, Phaser.Geom.Rectangle.Contains);
-                this._maskContainer.add(this._mask);
+                // this._maskContainer.add(this._mask);
                 // const g = this._mask.createGeometryMask();
                 // console.log("g====>", g);
                 this._maskContainer.setMask(this._mask.createGeometryMask());
@@ -1416,7 +1416,7 @@ export class ScrollPane {
             this._mask.fillStyle(0x00ff00, .4);
             this._mask.fillRect(x, y, this.maskScrollRect.width, this.maskScrollRect.height);
             this._maskContainer.setInteractive(this.maskScrollRect, Phaser.Geom.Rectangle.Contains);
-            this._maskContainer.add(this._mask);
+            // this._maskContainer.add(this._mask);
             // const g = this._mask.createGeometryMask();
             // console.log("g====>", g);
             this._maskContainer.setMask(this._mask.createGeometryMask());
