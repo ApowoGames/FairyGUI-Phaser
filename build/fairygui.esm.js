@@ -670,7 +670,9 @@ class ToolSet {
                 return;
             }
         }
-        obj.setTint(color);
+        if (obj instanceof Phaser.GameObjects.Image || obj instanceof Phaser.GameObjects.Text) {
+            obj.setTint(color);
+        }
         // console.log("todo color filter");
         // throw new Error("TODO");
         // var filter: Laya.ColorFilter = (<any>obj).$_colorFilter_; //cached instance
@@ -1489,10 +1491,21 @@ var s_vec2$1 = new Phaser.Geom.Point();
 
 class TweenManager {
     static createTween() {
-        {
-            // TODO
-            throw new Error("TODO");
+        if (!_inited) {
+            TweenManager.update();
+            // Laya.timer.frameLoop(1, null, TweenManager.update);
+            _inited = true;
         }
+        var tweener;
+        var cnt = _tweenerPool.length;
+        if (cnt > 0) {
+            tweener = _tweenerPool.pop();
+        }
+        else
+            tweener = new GTweener();
+        tweener._init();
+        _activeTweens[_totalActiveTweens++] = tweener;
+        return tweener;
     }
     static isTweening(target, propType) {
         if (target == null)
@@ -1537,49 +1550,50 @@ class TweenManager {
         return null;
     }
     static update() {
-        // var dt: number = Laya.timer.delta / 1000;
-        throw new Error("TODO");
-        // var cnt: number = _totalActiveTweens;
-        // var freePosStart: number = -1;
-        // for (var i: number = 0; i < cnt; i++) {
-        //     var tweener: GTweener = _activeTweens[i];
-        //     if (tweener == null) {
-        //         if (freePosStart == -1)
-        //             freePosStart = i;
-        //     }
-        //     else if (tweener._killed) {
-        //         tweener._reset();
-        //         _tweenerPool.push(tweener);
-        //         _activeTweens[i] = null;
-        //         if (freePosStart == -1)
-        //             freePosStart = i;
-        //     }
-        //     else {
-        //         if ((tweener._target instanceof GObject) && tweener._target.isDisposed)
-        //             tweener._killed = true;
-        //         else if (!tweener._paused)
-        //             tweener._update(dt);
-        //         if (freePosStart != -1) {
-        //             _activeTweens[freePosStart] = tweener;
-        //             _activeTweens[i] = null;
-        //             freePosStart++;
-        //         }
-        //     }
-        // }
-        // if (freePosStart >= 0) {
-        //     if (_totalActiveTweens != cnt) //new tweens added
-        //     {
-        //         var j: number = cnt;
-        //         cnt = _totalActiveTweens - cnt;
-        //         for (i = 0; i < cnt; i++)
-        //             _activeTweens[freePosStart++] = _activeTweens[j++];
-        //     }
-        //     _totalActiveTweens = freePosStart;
-        // }
+        var dt = GRoot.inst.scene.game.config.fps.target / 1000;
+        var cnt = _totalActiveTweens;
+        var freePosStart = -1;
+        for (var i = 0; i < cnt; i++) {
+            var tweener = _activeTweens[i];
+            if (tweener == null) {
+                if (freePosStart == -1)
+                    freePosStart = i;
+            }
+            else if (tweener._killed) {
+                tweener._reset();
+                _tweenerPool.push(tweener);
+                _activeTweens[i] = null;
+                if (freePosStart == -1)
+                    freePosStart = i;
+            }
+            else {
+                if ((tweener._target instanceof GObject) && tweener._target.isDisposed)
+                    tweener._killed = true;
+                else if (!tweener._paused)
+                    tweener._update(dt);
+                if (freePosStart != -1) {
+                    _activeTweens[freePosStart] = tweener;
+                    _activeTweens[i] = null;
+                    freePosStart++;
+                }
+            }
+        }
+        if (freePosStart >= 0) {
+            if (_totalActiveTweens != cnt) //new tweens added
+             {
+                var j = cnt;
+                cnt = _totalActiveTweens - cnt;
+                for (i = 0; i < cnt; i++)
+                    _activeTweens[freePosStart++] = _activeTweens[j++];
+            }
+            _totalActiveTweens = freePosStart;
+        }
     }
 }
 var _activeTweens = [];
+var _tweenerPool = [];
 var _totalActiveTweens = 0;
+var _inited = false;
 
 class GTween {
     static to(start, end, duration) {

@@ -139,7 +139,9 @@ export class ToolSet {
             }
 
         }
-        obj.setTint(color);
+        if (obj instanceof Phaser.GameObjects.Image || obj instanceof Phaser.GameObjects.Text) {
+            (<any>obj).setTint(color);
+        }
         // console.log("todo color filter");
         // throw new Error("TODO");
         // var filter: Laya.ColorFilter = (<any>obj).$_colorFilter_; //cached instance
