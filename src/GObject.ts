@@ -1200,7 +1200,7 @@ export class GObject {
 
     public createDisplayObject(): void {
         this._displayObject = this.scene.make.container(undefined, false);
-        GRoot.inst.addToStage(this._displayObject);
+        // GRoot.inst.addToStage(this._displayObject);
         // (<any>this._scene).stage.addChild(this._displayObject, 1);
         this._displayObject["$owner"] = this;
     }

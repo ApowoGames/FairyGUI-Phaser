@@ -3986,7 +3986,7 @@ class GObject {
     }
     createDisplayObject() {
         this._displayObject = this.scene.make.container(undefined, false);
-        GRoot.inst.addToStage(this._displayObject);
+        // GRoot.inst.addToStage(this._displayObject);
         // (<any>this._scene).stage.addChild(this._displayObject, 1);
         this._displayObject["$owner"] = this;
     }
@@ -11095,7 +11095,7 @@ class GComponent extends GObject {
     }
     createDisplayObject() {
         this._displayObject = this.scene.make.container(undefined, false);
-        GRoot.inst.addToStage(this._displayObject);
+        // GRoot.inst.addToStage(this._displayObject);
         this._displayObject["$owner"] = this;
         this._container = this._displayObject;
         const _delay = 0.001;
@@ -12518,10 +12518,10 @@ class GRoot extends GComponent {
         if (((dir === undefined || dir === PopupDirection.Auto) && pos.y + popup.height > this.height)
             || dir === false || dir === PopupDirection.Up) {
             yy = pos.y - popup.height - 1;
-            if (yy < 0) {
-                yy = 0;
-                xx += sizeW / 2;
-            }
+            // if (yy < 0) {
+            //     yy = 0;
+            //     xx += sizeW / 2;
+            // }
         }
         popup.x = xx;
         popup.y = yy;

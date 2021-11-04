@@ -58,7 +58,7 @@ export class GComponent extends GObject {
 
     public createDisplayObject(): void {
         this._displayObject = this.scene.make.container(undefined, false);
-        GRoot.inst.addToStage(this._displayObject);
+        // GRoot.inst.addToStage(this._displayObject);
         this._displayObject["$owner"] = this;
         this._container = this._displayObject;
         const _delay = 0.001;

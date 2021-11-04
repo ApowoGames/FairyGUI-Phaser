@@ -320,10 +320,10 @@ export class GRoot extends GComponent {
         if (((dir === undefined || dir === PopupDirection.Auto) && pos.y + popup.height > this.height)
             || dir === false || dir === PopupDirection.Up) {
             yy = pos.y - popup.height - 1;
-            if (yy < 0) {
-                yy = 0;
-                xx += sizeW / 2;
-            }
+            // if (yy < 0) {
+            //     yy = 0;
+            //     xx += sizeW / 2;
+            // }
         }
 
         popup.x = xx;
