@@ -174,6 +174,35 @@ export class ScrollPane {
         if (scrollBarDisplay == ScrollBarDisplayType.Default)
             scrollBarDisplay = UIConfig.defaultScrollBarDisplay;
 
+        const fun1 = (): Promise<void> => {
+            return new Promise((resolve, reject) => {
+                if (headerRes) {
+                    UIPackage.createObjectFromURL(headerRes).then((header: GComponent) => {
+                        this._header = header;
+                        if (!this._header)
+                            throw new Error("FairyGUI: cannot create scrollPane this.header from " + headerRes);
+                        resolve();
+                    });
+                } else {
+                    resolve();
+                }
+            });
+        }
+
+        const fun2 = (): Promise<void> => {
+            return new Promise((resolve, reject) => {
+                if (footerRes) {
+                    UIPackage.createObjectFromURL(footerRes).then((footer: GComponent) => {
+                        this._footer = footer;
+                        if (!this._footer)
+                            throw new Error("FairyGUI: cannot create scrollPane this.footer from " + footerRes);
+                        resolve();
+                    });
+                } else {
+                    resolve();
+                }
+            })
+        }
         if (scrollBarDisplay != ScrollBarDisplayType.Hidden) {
             if (this._scrollType == ScrollType.Both || this._scrollType == ScrollType.Vertical) {
                 var res: string = vtScrollBarRes ? vtScrollBarRes : UIConfig.verticalScrollBar;
@@ -184,12 +213,23 @@ export class ScrollPane {
                             throw "cannot create scrollbar from " + res;
                         this._vtScrollBar.setScrollPane(this, true);
                         (<Phaser.GameObjects.Container>this._owner.displayObject).add(this._vtScrollBar.displayObject);
+                        if (scrollBarDisplay == ScrollBarDisplayType.Auto)
+                            this._scrollBarDisplayAuto = true;
+                        if (this._scrollBarDisplayAuto) {
+                            if (this._vtScrollBar)
+                                (<Phaser.GameObjects.Container>this._vtScrollBar.displayObject).visible = false;
+                            if (this._hzScrollBar)
+                                (<Phaser.GameObjects.Container>this._hzScrollBar.displayObject).visible = false;
+                        }
+                        fun1().then(() => {
+                            fun2().then(() => {
+                                if (this._header || this._footer)
+                                    this._refreshBarAxis = (this._scrollType == ScrollType.Both || this._scrollType == ScrollType.Vertical) ? "y" : "x";
+                                this.setSize(this.owner.initWidth, this.owner.initHeight);
+                            });
+                        });
+
                     });
-                    // this._vtScrollBar = <GScrollBar>(UIPackage.createObjectFromURL(res));
-                    // if (!this._vtScrollBar)
-                    //     throw "cannot create scrollbar from " + res;
-                    // this._vtScrollBar.setScrollPane(this, true);
-                    // (<Phaser.GameObjects.Container>this._owner.displayObject).add(this._vtScrollBar.displayObject);
                 }
             }
             if (this._scrollType == ScrollType.Both || this._scrollType == ScrollType.Horizontal) {
@@ -201,43 +241,39 @@ export class ScrollPane {
                             throw "cannot create scrollbar from " + res;
                         this._hzScrollBar.setScrollPane(this, false);
                         (<Phaser.GameObjects.Container>this._owner.displayObject).add(this._hzScrollBar.displayObject);
+                        if (scrollBarDisplay == ScrollBarDisplayType.Auto)
+                            this._scrollBarDisplayAuto = true;
+                        if (this._scrollBarDisplayAuto) {
+                            if (this._vtScrollBar)
+                                (<Phaser.GameObjects.Container>this._vtScrollBar.displayObject).visible = false;
+                            if (this._hzScrollBar)
+                                (<Phaser.GameObjects.Container>this._hzScrollBar.displayObject).visible = false;
+                        }
+
+                        fun1().then(() => {
+                            fun2().then(() => {
+                                if (this._header || this._footer)
+                                    this._refreshBarAxis = (this._scrollType == ScrollType.Both || this._scrollType == ScrollType.Vertical) ? "y" : "x";
+                                this.setSize(this.owner.initWidth, this.owner.initHeight);
+                            });
+                        });
+
                     });
                 }
             }
-
-            if (scrollBarDisplay == ScrollBarDisplayType.Auto)
-                this._scrollBarDisplayAuto = true;
-            if (this._scrollBarDisplayAuto) {
-                if (this._vtScrollBar)
-                    (<Phaser.GameObjects.Container>this._vtScrollBar.displayObject).visible = false;
-                if (this._hzScrollBar)
-                    (<Phaser.GameObjects.Container>this._hzScrollBar.displayObject).visible = false;
-            }
         }
-        else
+        else {
             this._mouseWheelEnabled = false;
-
-        if (headerRes) {
-            UIPackage.createObjectFromURL(headerRes).then((header: GComponent) => {
-                this._header = this.header;
-                if (!this._header)
-                    throw new Error("FairyGUI: cannot create scrollPane this.header from " + headerRes);
+            fun1().then(() => {
+                fun2().then(() => {
+                    if (this._header || this._footer)
+                        this._refreshBarAxis = (this._scrollType == ScrollType.Both || this._scrollType == ScrollType.Vertical) ? "y" : "x";
+                    this.setSize(this.owner.initWidth, this.owner.initHeight);
+                });
             });
         }
 
-        if (footerRes) {
-            UIPackage.createObjectFromURL(footerRes).then((footer: GComponent) => {
-                this._footer = footer;
-                if (!this._footer)
-                    throw new Error("FairyGUI: cannot create scrollPane this.footer from " + footerRes);
-            });
 
-        }
-
-        if (this._header || this._footer)
-            this._refreshBarAxis = (this._scrollType == ScrollType.Both || this._scrollType == ScrollType.Vertical) ? "y" : "x";
-
-        this.setSize(this.owner.initWidth, this.owner.initHeight);
     }
 
     public dispose(): void {
@@ -967,7 +1003,13 @@ export class ScrollPane {
             this._aniFlag = -1;
 
         this._needRefresh = true;
-        if (!this._refreshTime) this._refreshTime = this._owner.scene.time.addEvent(this._refreshTimeEvent);
+        // if (this._refreshTime) {
+        //     this._refreshTime.remove(false);
+        //     this._refreshTime = null;
+        //     // console.log("remove refreshTime");
+        // }
+        // this._refreshTime = this._owner.scene.time.addEvent(this._refreshTimeEvent);
+        this.refresh();
         // Laya.timer.callLater(this, this.refresh);
     }
 
@@ -1047,6 +1089,8 @@ export class ScrollPane {
 
             this.loopCheckingCurrent();
         }
+
+        console.log("refresh ===>", this._xPos, this._yPos);
 
         if (this._pageMode)
             this.updatePageController();

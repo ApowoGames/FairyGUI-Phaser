@@ -45,8 +45,9 @@ export class GScrollBar extends GComponent {
 
     public setScrollPerc(val: number) {
         this._scrollPerc = val;
-        if (this._vertical)
+        if (this._vertical) {
             this._grip.y = this._bar.y + (this._bar.height - this._grip.height) * this._scrollPerc;
+        }
         else
             this._grip.x = this._bar.x + (this._bar.width - this._grip.width) * this._scrollPerc;
     }
@@ -67,113 +68,102 @@ export class GScrollBar extends GComponent {
             buffer.seek(0, 6);
 
             this._fixedGripSize = buffer.readBool();
-    
+
             this._grip = this.getChild("grip");
             if (!this._grip) {
                 console.log("需要定义grip");
                 return;
             }
-    
+
             this._bar = this.getChild("bar");
             if (!this._bar) {
                 console.log("需要定义bar");
                 return;
             }
-    
+
             this._arrowButton1 = this.getChild("arrow1");
             this._arrowButton2 = this.getChild("arrow2");
-    
+
             this._grip.on("pointerdown", this.__gripMouseDown, this);
-    
+
             if (this._arrowButton1)
                 this._arrowButton1.on("pointerdown", this.__arrowButton1Click, this);
             if (this._arrowButton2)
                 this._arrowButton2.on("pointerdown", this.__arrowButton2Click, this);
-    
+
             this.on("pointerdown", this.__barMouseDown, this);
             resolve();
         });
     }
 
-    private __gripMouseDown(evt: any): void {
-        throw new Error("TODO");
-        // evt.stopPropagation();
+    private __gripMouseDown(pointer: Phaser.Input.Pointer): void {
 
-        // this._gripDragging = true;
-        // this._target.updateScrollBarVisible();
+        this._gripDragging = true;
+        this._target.updateScrollBarVisible();
 
-        // Laya.stage.on(Laya.Event.MOUSE_MOVE, this, this.__gripMouseMove);
-        // Laya.stage.on(Laya.Event.MOUSE_UP, this, this.__gripMouseUp);
+        this.scene.input.on("pointermove", this.__gripMouseMove, this);
+        this.scene.input.on("pointerup", this.__gripMouseUp, this);
 
-        // this.globalToLocal(Laya.stage.mouseX, Laya.stage.mouseY, this._dragOffset);
-        // this._dragOffset.x -= this._grip.x;
-        // this._dragOffset.y -= this._grip.y;
+        // this.globalToLocal(pointer.x, pointer.y, this._dragOffset);
+        this._dragOffset.x = pointer.worldX - this._grip.x;
+        this._dragOffset.y = pointer.worldY - this._grip.y;
     }
 
-    private __gripMouseMove(): void {
-        throw new Error("TODO");
-        // if (!this.onStage)
-        //     return;
+    private __gripMouseMove(pointer: Phaser.Input.Pointer): void {
+        if (!this.onStage)
+            return;
 
-        // var pt: Laya.Point = this.globalToLocal(Laya.stage.mouseX, Laya.stage.mouseY, s_vec2);
-        // if (this._vertical) {
-        //     var curY: number = pt.y - this._dragOffset.y;
-        //     this._target.setPercY((curY - this._bar.y) / (this._bar.height - this._grip.height), false);
-        // }
-        // else {
-        //     var curX: number = pt.x - this._dragOffset.x;
-        //     this._target.setPercX((curX - this._bar.x) / (this._bar.width - this._grip.width), false);
-        // }
+        // var pt: Phaser.Geom.Point = this.globalToLocal(pointer.x, pointer.y, s_vec2);
+        if (this._vertical) {
+            var curY: number = pointer.worldY - this._dragOffset.y;
+            this._target.setPercY((curY - this._bar.y) / (this._bar.height - this._grip.height), false);
+        }
+        else {
+            var curX: number = pointer.worldX - this._dragOffset.x;
+            this._target.setPercX((curX - this._bar.x) / (this._bar.width - this._grip.width), false);
+        }
     }
 
-    private __gripMouseUp(evt: any): void {
-        throw new Error("TODO");
-        // if (!this.onStage)
-        //     return;
+    private __gripMouseUp(pointer: Phaser.Input.Pointer): void {
+        if (!this.onStage)
+            return;
 
-        // Laya.stage.off(Laya.Event.MOUSE_MOVE, this, this.__gripMouseMove);
-        // Laya.stage.off(Laya.Event.MOUSE_UP, this, this.__gripMouseUp);
+        this.scene.input.off("pointermove", this.__gripMouseMove, this);
+        this.scene.input.off("pointerup", this.__gripMouseUp, this);
 
-        // this._gripDragging = false;
-        // this._target.updateScrollBarVisible();
+        this._gripDragging = false;
+        this._target.updateScrollBarVisible();
     }
 
-    private __arrowButton1Click(evt: any): void {
-        throw new Error("TODO");
-        // evt.stopPropagation();
-
-        // if (this._vertical)
-        //     this._target.scrollUp();
-        // else
-        //     this._target.scrollLeft();
+    private __arrowButton1Click(pointer: Phaser.Input.Pointer): void {
+        if (this._vertical)
+            this._target.scrollUp();
+        else
+            this._target.scrollLeft();
     }
 
-    private __arrowButton2Click(evt: any): void {
-        throw new Error("TODO");
-        // evt.stopPropagation();
-
-        // if (this._vertical)
-        //     this._target.scrollDown();
-        // else
-        //     this._target.scrollRight();
+    private __arrowButton2Click(pointer: Phaser.Input.Pointer): void {
+        if (this._vertical)
+            this._target.scrollDown();
+        else
+            this._target.scrollRight();
     }
 
-    private __barMouseDown(evt: any): void {
-        throw new Error("TODO");
-        // var pt: Laya.Point = this._grip.globalToLocal(Laya.stage.mouseX, Laya.stage.mouseY, s_vec2);
-        // if (this._vertical) {
-        //     if (pt.y < 0)
-        //         this._target.scrollUp(4);
-        //     else
-        //         this._target.scrollDown(4);
-        // }
-        // else {
-        //     if (pt.x < 0)
-        //         this._target.scrollLeft(4);
-        //     else
-        //         this._target.scrollRight(4);
-        // }
+    private __barMouseDown(pointer: Phaser.Input.Pointer): void {
+        // var pt: Phaser.Geom.Point = this._grip.globalToLocal(pointer.x, pointer.y, s_vec2);
+        if (this._vertical) {
+            if (pointer.y < 0)
+                this._target.scrollUp(4);
+            else
+                this._target.scrollDown(4);
+        }
+        else {
+            if (pointer.x < 0)
+                this._target.scrollLeft(4);
+            else
+                this._target.scrollRight(4);
+        }
     }
 }
 
-var s_vec2: Phaser.Geom.Point = new Phaser.Geom.Point();
+// var s_vec2: Phaser.Geom.Point = new Phaser.Geom.Point();

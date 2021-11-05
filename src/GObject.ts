@@ -703,8 +703,7 @@ export class GObject {
     }
 
     public get onStage(): boolean {
-        return this._displayObject != null;
-        // return this._displayObject != null && this._displayObject.stage != null;
+        return this._displayObject !== null && this.scene !== null;
     }
 
     public get resourceURL(): string {

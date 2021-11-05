@@ -3585,8 +3585,7 @@
             return this._displayObject != null && this._displayObject.parentContainer != null;
         }
         get onStage() {
-            return this._displayObject != null;
-            // return this._displayObject != null && this._displayObject.stage != null;
+            return this._displayObject !== null && this.scene !== null;
         }
         get resourceURL() {
             if (this.packageItem)
@@ -8234,6 +8233,36 @@
                 this._dontClipMargin = true;
             if (scrollBarDisplay == exports.ScrollBarDisplayType.Default)
                 scrollBarDisplay = UIConfig.defaultScrollBarDisplay;
+            const fun1 = () => {
+                return new Promise((resolve, reject) => {
+                    if (headerRes) {
+                        UIPackage.createObjectFromURL(headerRes).then((header) => {
+                            this._header = header;
+                            if (!this._header)
+                                throw new Error("FairyGUI: cannot create scrollPane this.header from " + headerRes);
+                            resolve();
+                        });
+                    }
+                    else {
+                        resolve();
+                    }
+                });
+            };
+            const fun2 = () => {
+                return new Promise((resolve, reject) => {
+                    if (footerRes) {
+                        UIPackage.createObjectFromURL(footerRes).then((footer) => {
+                            this._footer = footer;
+                            if (!this._footer)
+                                throw new Error("FairyGUI: cannot create scrollPane this.footer from " + footerRes);
+                            resolve();
+                        });
+                    }
+                    else {
+                        resolve();
+                    }
+                });
+            };
             if (scrollBarDisplay != exports.ScrollBarDisplayType.Hidden) {
                 if (this._scrollType == exports.ScrollType.Both || this._scrollType == exports.ScrollType.Vertical) {
                     var res = vtScrollBarRes ? vtScrollBarRes : UIConfig.verticalScrollBar;
@@ -8244,12 +8273,22 @@
                                 throw "cannot create scrollbar from " + res;
                             this._vtScrollBar.setScrollPane(this, true);
                             this._owner.displayObject.add(this._vtScrollBar.displayObject);
+                            if (scrollBarDisplay == exports.ScrollBarDisplayType.Auto)
+                                this._scrollBarDisplayAuto = true;
+                            if (this._scrollBarDisplayAuto) {
+                                if (this._vtScrollBar)
+                                    this._vtScrollBar.displayObject.visible = false;
+                                if (this._hzScrollBar)
+                                    this._hzScrollBar.displayObject.visible = false;
+                            }
+                            fun1().then(() => {
+                                fun2().then(() => {
+                                    if (this._header || this._footer)
+                                        this._refreshBarAxis = (this._scrollType == exports.ScrollType.Both || this._scrollType == exports.ScrollType.Vertical) ? "y" : "x";
+                                    this.setSize(this.owner.initWidth, this.owner.initHeight);
+                                });
+                            });
                         });
-                        // this._vtScrollBar = <GScrollBar>(UIPackage.createObjectFromURL(res));
-                        // if (!this._vtScrollBar)
-                        //     throw "cannot create scrollbar from " + res;
-                        // this._vtScrollBar.setScrollPane(this, true);
-                        // (<Phaser.GameObjects.Container>this._owner.displayObject).add(this._vtScrollBar.displayObject);
                     }
                 }
                 if (this._scrollType == exports.ScrollType.Both || this._scrollType == exports.ScrollType.Horizontal) {
@@ -8261,37 +8300,35 @@
                                 throw "cannot create scrollbar from " + res;
                             this._hzScrollBar.setScrollPane(this, false);
                             this._owner.displayObject.add(this._hzScrollBar.displayObject);
+                            if (scrollBarDisplay == exports.ScrollBarDisplayType.Auto)
+                                this._scrollBarDisplayAuto = true;
+                            if (this._scrollBarDisplayAuto) {
+                                if (this._vtScrollBar)
+                                    this._vtScrollBar.displayObject.visible = false;
+                                if (this._hzScrollBar)
+                                    this._hzScrollBar.displayObject.visible = false;
+                            }
+                            fun1().then(() => {
+                                fun2().then(() => {
+                                    if (this._header || this._footer)
+                                        this._refreshBarAxis = (this._scrollType == exports.ScrollType.Both || this._scrollType == exports.ScrollType.Vertical) ? "y" : "x";
+                                    this.setSize(this.owner.initWidth, this.owner.initHeight);
+                                });
+                            });
                         });
                     }
                 }
-                if (scrollBarDisplay == exports.ScrollBarDisplayType.Auto)
-                    this._scrollBarDisplayAuto = true;
-                if (this._scrollBarDisplayAuto) {
-                    if (this._vtScrollBar)
-                        this._vtScrollBar.displayObject.visible = false;
-                    if (this._hzScrollBar)
-                        this._hzScrollBar.displayObject.visible = false;
-                }
             }
-            else
+            else {
                 this._mouseWheelEnabled = false;
-            if (headerRes) {
-                UIPackage.createObjectFromURL(headerRes).then((header) => {
-                    this._header = this.header;
-                    if (!this._header)
-                        throw new Error("FairyGUI: cannot create scrollPane this.header from " + headerRes);
+                fun1().then(() => {
+                    fun2().then(() => {
+                        if (this._header || this._footer)
+                            this._refreshBarAxis = (this._scrollType == exports.ScrollType.Both || this._scrollType == exports.ScrollType.Vertical) ? "y" : "x";
+                        this.setSize(this.owner.initWidth, this.owner.initHeight);
+                    });
                 });
             }
-            if (footerRes) {
-                UIPackage.createObjectFromURL(footerRes).then((footer) => {
-                    this._footer = footer;
-                    if (!this._footer)
-                        throw new Error("FairyGUI: cannot create scrollPane this.footer from " + footerRes);
-                });
-            }
-            if (this._header || this._footer)
-                this._refreshBarAxis = (this._scrollType == exports.ScrollType.Both || this._scrollType == exports.ScrollType.Vertical) ? "y" : "x";
-            this.setSize(this.owner.initWidth, this.owner.initHeight);
         }
         dispose() {
             if (ScrollPane.draggingPane == this) {
@@ -8896,8 +8933,13 @@
             else if (this._aniFlag == 1 && !ani)
                 this._aniFlag = -1;
             this._needRefresh = true;
-            if (!this._refreshTime)
-                this._refreshTime = this._owner.scene.time.addEvent(this._refreshTimeEvent);
+            // if (this._refreshTime) {
+            //     this._refreshTime.remove(false);
+            //     this._refreshTime = null;
+            //     // console.log("remove refreshTime");
+            // }
+            // this._refreshTime = this._owner.scene.time.addEvent(this._refreshTimeEvent);
+            this.refresh();
             // Laya.timer.callLater(this, this.refresh);
         }
         refresh() {
@@ -8966,6 +9008,7 @@
                 this._container.setPosition(Math.floor(-this._xPos), Math.floor(-this._yPos));
                 this.loopCheckingCurrent();
             }
+            console.log("refresh ===>", this._xPos, this._yPos);
             if (this._pageMode)
                 this.updatePageController();
         }
@@ -16103,8 +16146,9 @@
         }
         setScrollPerc(val) {
             this._scrollPerc = val;
-            if (this._vertical)
+            if (this._vertical) {
                 this._grip.y = this._bar.y + (this._bar.height - this._grip.height) * this._scrollPerc;
+            }
             else
                 this._grip.x = this._bar.x + (this._bar.width - this._grip.width) * this._scrollPerc;
         }
@@ -16142,74 +16186,65 @@
                 resolve();
             });
         }
-        __gripMouseDown(evt) {
-            throw new Error("TODO");
-            // evt.stopPropagation();
-            // this._gripDragging = true;
-            // this._target.updateScrollBarVisible();
-            // Laya.stage.on(Laya.Event.MOUSE_MOVE, this, this.__gripMouseMove);
-            // Laya.stage.on(Laya.Event.MOUSE_UP, this, this.__gripMouseUp);
-            // this.globalToLocal(Laya.stage.mouseX, Laya.stage.mouseY, this._dragOffset);
-            // this._dragOffset.x -= this._grip.x;
-            // this._dragOffset.y -= this._grip.y;
+        __gripMouseDown(pointer) {
+            this._gripDragging = true;
+            this._target.updateScrollBarVisible();
+            this.scene.input.on("pointermove", this.__gripMouseMove, this);
+            this.scene.input.on("pointerup", this.__gripMouseUp, this);
+            // this.globalToLocal(pointer.x, pointer.y, this._dragOffset);
+            this._dragOffset.x = pointer.worldX - this._grip.x;
+            this._dragOffset.y = pointer.worldY - this._grip.y;
         }
-        __gripMouseMove() {
-            throw new Error("TODO");
-            // if (!this.onStage)
-            //     return;
-            // var pt: Laya.Point = this.globalToLocal(Laya.stage.mouseX, Laya.stage.mouseY, s_vec2);
-            // if (this._vertical) {
-            //     var curY: number = pt.y - this._dragOffset.y;
-            //     this._target.setPercY((curY - this._bar.y) / (this._bar.height - this._grip.height), false);
-            // }
-            // else {
-            //     var curX: number = pt.x - this._dragOffset.x;
-            //     this._target.setPercX((curX - this._bar.x) / (this._bar.width - this._grip.width), false);
-            // }
+        __gripMouseMove(pointer) {
+            if (!this.onStage)
+                return;
+            // var pt: Phaser.Geom.Point = this.globalToLocal(pointer.x, pointer.y, s_vec2);
+            if (this._vertical) {
+                var curY = pointer.worldY - this._dragOffset.y;
+                this._target.setPercY((curY - this._bar.y) / (this._bar.height - this._grip.height), false);
+            }
+            else {
+                var curX = pointer.worldX - this._dragOffset.x;
+                this._target.setPercX((curX - this._bar.x) / (this._bar.width - this._grip.width), false);
+            }
         }
-        __gripMouseUp(evt) {
-            throw new Error("TODO");
-            // if (!this.onStage)
-            //     return;
-            // Laya.stage.off(Laya.Event.MOUSE_MOVE, this, this.__gripMouseMove);
-            // Laya.stage.off(Laya.Event.MOUSE_UP, this, this.__gripMouseUp);
-            // this._gripDragging = false;
-            // this._target.updateScrollBarVisible();
+        __gripMouseUp(pointer) {
+            if (!this.onStage)
+                return;
+            this.scene.input.off("pointermove", this.__gripMouseMove, this);
+            this.scene.input.off("pointerup", this.__gripMouseUp, this);
+            this._gripDragging = false;
+            this._target.updateScrollBarVisible();
         }
-        __arrowButton1Click(evt) {
-            throw new Error("TODO");
-            // evt.stopPropagation();
-            // if (this._vertical)
-            //     this._target.scrollUp();
-            // else
-            //     this._target.scrollLeft();
+        __arrowButton1Click(pointer) {
+            if (this._vertical)
+                this._target.scrollUp();
+            else
+                this._target.scrollLeft();
         }
-        __arrowButton2Click(evt) {
-            throw new Error("TODO");
-            // evt.stopPropagation();
-            // if (this._vertical)
-            //     this._target.scrollDown();
-            // else
-            //     this._target.scrollRight();
+        __arrowButton2Click(pointer) {
+            if (this._vertical)
+                this._target.scrollDown();
+            else
+                this._target.scrollRight();
         }
-        __barMouseDown(evt) {
-            throw new Error("TODO");
-            // var pt: Laya.Point = this._grip.globalToLocal(Laya.stage.mouseX, Laya.stage.mouseY, s_vec2);
-            // if (this._vertical) {
-            //     if (pt.y < 0)
-            //         this._target.scrollUp(4);
-            //     else
-            //         this._target.scrollDown(4);
-            // }
-            // else {
-            //     if (pt.x < 0)
-            //         this._target.scrollLeft(4);
-            //     else
-            //         this._target.scrollRight(4);
-            // }
+        __barMouseDown(pointer) {
+            // var pt: Phaser.Geom.Point = this._grip.globalToLocal(pointer.x, pointer.y, s_vec2);
+            if (this._vertical) {
+                if (pointer.y < 0)
+                    this._target.scrollUp(4);
+                else
+                    this._target.scrollDown(4);
+            }
+            else {
+                if (pointer.x < 0)
+                    this._target.scrollLeft(4);
+                else
+                    this._target.scrollRight(4);
+            }
         }
     }
-    new Phaser.Geom.Point();
+    // var s_vec2: Phaser.Geom.Point = new Phaser.Geom.Point();
 
     class GList extends GComponent {
         constructor(scene, type) {
