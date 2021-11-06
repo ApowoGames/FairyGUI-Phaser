@@ -23,6 +23,10 @@ export class GScrollBar extends GComponent {
         this._scrollPerc = 0;
     }
 
+    public get hasDrag(): boolean {
+        return this._gripDragging;
+    }
+
     public setScrollPane(target: ScrollPane, vertical: boolean): void {
         this._target = target;
         this._vertical = vertical;
@@ -116,11 +120,11 @@ export class GScrollBar extends GComponent {
         // var pt: Phaser.Geom.Point = this.globalToLocal(pointer.x, pointer.y, s_vec2);
         if (this._vertical) {
             var curY: number = pointer.worldY - this._dragOffset.y;
-            this._target.setPercY((curY - this._bar.y) / (this._bar.height - this._grip.height), false);
+            this._target.setPercY((curY) / (this._bar.height - this._grip.height), false);
         }
         else {
             var curX: number = pointer.worldX - this._dragOffset.x;
-            this._target.setPercX((curX - this._bar.x) / (this._bar.width - this._grip.width), false);
+            this._target.setPercX((curX) / (this._bar.width - this._grip.width), false);
         }
     }
 

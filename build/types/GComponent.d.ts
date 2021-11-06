@@ -8,7 +8,7 @@ import { Graphics } from './display/Graphics';
 import { GObject } from './GObject';
 export declare class GComponent extends GObject {
     private _sortingChildCount;
-    private _opaque;
+    protected _opaque: boolean;
     private _applyingController?;
     private _mask?;
     protected _renderEvent: any;

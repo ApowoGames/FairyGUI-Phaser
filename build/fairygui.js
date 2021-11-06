@@ -9005,16 +9005,20 @@
             else {
                 if (this._tweening != 0)
                     this.killTween();
+                console.log("refresh ===>", this._xPos, this._yPos);
                 this._container.setPosition(Math.floor(-this._xPos), Math.floor(-this._yPos));
                 this.loopCheckingCurrent();
             }
-            console.log("refresh ===>", this._xPos, this._yPos);
             if (this._pageMode)
                 this.updatePageController();
         }
-        __mouseDown(pointer) {
+        __mouseDown(pointer, gameobject) {
             if (!this._touchEffect)
                 return;
+            if ((this._vtScrollBar && this.checkInBounds(pointer, this._vtScrollBar.displayObject))
+                || (this._hzScrollBar && this.checkInBounds(pointer, this._hzScrollBar.displayObject))) {
+                return;
+            }
             if (this._tweening != 0) {
                 this.killTween();
                 this._dragged = true;
@@ -9023,7 +9027,7 @@
                 this._dragged = false;
             }
             // ==== check pointer in owner.displayobject
-            if (this.checkInBounds(pointer)) {
+            if (this.checkInBounds(pointer, this.owner.displayObject)) {
                 var pt = new Phaser.Geom.Point(pointer.downX, pointer.downY); //this._owner.globalToLocal(pointer.worldX, pointer.worldY, s_vec2);
                 this._containerPos.setTo(this._container.x, this._container.y);
                 this._beginTouchPos.setTo(pt.x, pt.y);
@@ -9038,11 +9042,10 @@
                 // this._owner.scene.input.on("pointerout", this.__mouseUp, this);
             }
         }
-        checkInBounds(pointer) {
+        checkInBounds(pointer, gameObject) {
             if (!this.mRectangle) {
                 this.mRectangle = new Phaser.Geom.Rectangle(0, 0, 0, 0);
             }
-            const gameObject = this.owner.displayObject;
             const worldMatrix = gameObject.getWorldTransformMatrix();
             const zoom = worldMatrix.scaleX ? worldMatrix.scaleX : 1;
             this.mRectangle.left = 0;
@@ -9062,7 +9065,7 @@
                 return;
             if (ScrollPane.draggingPane && ScrollPane.draggingPane != this || GObject.draggingObject) //已经有其他拖动
                 return;
-            if (!this.checkInBounds(pointer)) {
+            if (!this.checkInBounds(pointer, this.owner.displayObject)) {
                 // 防止出框后回弹
                 // this.__mouseUp();
                 return;
@@ -14594,6 +14597,7 @@
             // GRoot.inst.addToStage(this._displayObject);
             this._displayObject["$owner"] = this;
             this._container = this._displayObject;
+            this.addListener();
         }
         get icon() {
             return this._icon;
@@ -16127,6 +16131,9 @@
             this._dragOffset = new Phaser.Geom.Point();
             this._scrollPerc = 0;
         }
+        get hasDrag() {
+            return this._gripDragging;
+        }
         setScrollPane(target, vertical) {
             this._target = target;
             this._vertical = vertical;
@@ -16201,11 +16208,11 @@
             // var pt: Phaser.Geom.Point = this.globalToLocal(pointer.x, pointer.y, s_vec2);
             if (this._vertical) {
                 var curY = pointer.worldY - this._dragOffset.y;
-                this._target.setPercY((curY - this._bar.y) / (this._bar.height - this._grip.height), false);
+                this._target.setPercY((curY) / (this._bar.height - this._grip.height), false);
             }
             else {
                 var curX = pointer.worldX - this._dragOffset.x;
-                this._target.setPercX((curX - this._bar.x) / (this._bar.width - this._grip.width), false);
+                this._target.setPercX((curX) / (this._bar.width - this._grip.width), false);
             }
         }
         __gripMouseUp(pointer) {

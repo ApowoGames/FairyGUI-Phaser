@@ -13,6 +13,7 @@ export declare class GScrollBar extends GComponent {
     private _dragOffset;
     private _gripDragging;
     constructor(scene: Phaser.Scene, type: any);
+    get hasDrag(): boolean;
     setScrollPane(target: ScrollPane, vertical: boolean): void;
     setDisplayPerc(value: number): void;
     setScrollPerc(val: number): void;

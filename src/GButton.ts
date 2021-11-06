@@ -62,6 +62,7 @@ export class GButton extends GComponent {
         // GRoot.inst.addToStage(this._displayObject);
         this._displayObject["$owner"] = this;
         this._container = this._displayObject;
+        this.addListener();
     }
 
     public get icon(): string {

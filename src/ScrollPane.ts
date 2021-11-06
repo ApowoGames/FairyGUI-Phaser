@@ -1084,22 +1084,24 @@ export class ScrollPane {
         else {
             if (this._tweening != 0)
                 this.killTween();
-
+            console.log("refresh ===>", this._xPos, this._yPos);
             this._container.setPosition(Math.floor(-this._xPos), Math.floor(-this._yPos));
 
             this.loopCheckingCurrent();
         }
 
-        console.log("refresh ===>", this._xPos, this._yPos);
-
         if (this._pageMode)
             this.updatePageController();
     }
 
-    private __mouseDown(pointer: Phaser.Input.Pointer): void {
+    private __mouseDown(pointer: Phaser.Input.Pointer, gameobject): void {
         if (!this._touchEffect)
             return;
 
+        if ((this._vtScrollBar && this.checkInBounds(pointer, <Phaser.GameObjects.Container>this._vtScrollBar.displayObject))
+            || (this._hzScrollBar && this.checkInBounds(pointer, <Phaser.GameObjects.Container>this._hzScrollBar.displayObject))) {
+            return;
+        }
         if (this._tweening != 0) {
             this.killTween();
             this._dragged = true;
@@ -1109,7 +1111,7 @@ export class ScrollPane {
         }
 
         // ==== check pointer in owner.displayobject
-        if (this.checkInBounds(pointer)) {
+        if (this.checkInBounds(pointer, <Phaser.GameObjects.Container>this.owner.displayObject)) {
             var pt: Phaser.Geom.Point = new Phaser.Geom.Point(pointer.downX, pointer.downY); //this._owner.globalToLocal(pointer.worldX, pointer.worldY, s_vec2);
 
             this._containerPos.setTo(this._container.x, this._container.y);
@@ -1128,11 +1130,10 @@ export class ScrollPane {
 
     }
 
-    private checkInBounds(pointer: Phaser.Input.Pointer): boolean {
+    private checkInBounds(pointer: Phaser.Input.Pointer, gameObject: Phaser.GameObjects.Container): boolean {
         if (!this.mRectangle) {
             this.mRectangle = new Phaser.Geom.Rectangle(0, 0, 0, 0);
         }
-        const gameObject = <Phaser.GameObjects.Container>this.owner.displayObject;
         const worldMatrix = gameObject.getWorldTransformMatrix();
         const zoom = worldMatrix.scaleX ? worldMatrix.scaleX : 1;
         this.mRectangle.left = 0;
@@ -1156,7 +1157,7 @@ export class ScrollPane {
         if (ScrollPane.draggingPane && ScrollPane.draggingPane != this || GObject.draggingObject) //已经有其他拖动
             return;
 
-        if (!this.checkInBounds(pointer)) {
+        if (!this.checkInBounds(pointer,  <Phaser.GameObjects.Container>this.owner.displayObject)) {
             // 防止出框后回弹
             // this.__mouseUp();
             return;

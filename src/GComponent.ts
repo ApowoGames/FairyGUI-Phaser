@@ -17,7 +17,7 @@ import { Decls, UIPackage } from './UIPackage';
 import { GRoot } from '.';
 export class GComponent extends GObject {
     private _sortingChildCount: number = 0;
-    private _opaque: boolean;
+    protected _opaque: boolean;
     private _applyingController?: Controller;
     private _mask?: Graphics;
     // private _g: Phaser.GameObjects.Graphics;
