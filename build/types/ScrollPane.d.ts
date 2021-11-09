@@ -68,7 +68,7 @@ export declare class ScrollPane {
     static draggingPane: ScrollPane;
     private mRectangle;
     constructor(owner: GComponent);
-    setup(buffer: ByteBuffer): void;
+    setup(buffer: ByteBuffer): Promise<void>;
     dispose(): void;
     get owner(): GComponent;
     get hzScrollBar(): GScrollBar;

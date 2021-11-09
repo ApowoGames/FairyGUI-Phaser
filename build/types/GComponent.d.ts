@@ -80,7 +80,7 @@ export declare class GComponent extends GObject {
     get baseUserData(): string;
     protected updateHitArea(): void;
     protected updateMask(): void;
-    protected setupScroll(buffer: ByteBuffer): void;
+    protected setupScroll(buffer: ByteBuffer): Promise<void>;
     protected setupOverflow(overflow: number): void;
     protected handleSizeChanged(): void;
     protected handleGrayedChanged(): void;

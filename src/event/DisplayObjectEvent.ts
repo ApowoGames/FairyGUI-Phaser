@@ -5,7 +5,9 @@ export class DisplayObjectEvent {
     static SIZE_CHANGED = "__sizeChanged";
     static VISIBLE_CHANGED = "__visibleChanged";
     static SIZE_DELAY_CHANGE = "__sizeDelayChange";
-    static MOUSE_WHEEL = "__mouseWheel"
+    static MOUSE_WHEEL = "__mouseWheel";
+    public static PULL_DOWN_RELEASE: string = "fui_pull_down_release";
+    public static PULL_UP_RELEASE: string = "fui_pull_up_release";
 }
 export class InteractiveEvent {
     static POINTER_DOWN = "pointerdown";

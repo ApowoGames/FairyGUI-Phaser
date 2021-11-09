@@ -1822,6 +1822,8 @@
     DisplayObjectEvent.VISIBLE_CHANGED = "__visibleChanged";
     DisplayObjectEvent.SIZE_DELAY_CHANGE = "__sizeDelayChange";
     DisplayObjectEvent.MOUSE_WHEEL = "__mouseWheel";
+    DisplayObjectEvent.PULL_DOWN_RELEASE = "fui_pull_down_release";
+    DisplayObjectEvent.PULL_UP_RELEASE = "fui_pull_up_release";
     class InteractiveEvent {
         /**键盘值*/
         // keyCode: number;
@@ -8148,10 +8150,10 @@
 
     class ScrollPane {
         constructor(owner) {
-            this._timeDelta = 0.01;
+            this._timeDelta = 0.1;
             this._owner = owner;
             this._refreshTimeEvent = { delay: this._timeDelta, callback: this.refresh, callbackScope: this };
-            const _tweenUp = this._timeDelta / owner.scene.game.config.fps.target;
+            const _tweenUp = this._timeDelta; //  / owner.scene.game.config.fps.target;
             this._tweenUpdateTimeEvent = { delay: _tweenUp, callback: this.tweenUpdate, callbackScope: this, loop: true };
             this._mask = this._owner.scene.make.graphics(undefined, false);
             this._maskContainer = this._owner.scene.make.container(undefined);
@@ -8190,145 +8192,170 @@
             // this._owner.on("wheel", this.__mouseWheel, this);
         }
         setup(buffer) {
-            this._scrollType = buffer.readByte();
-            var scrollBarDisplay = buffer.readByte();
-            var flags = buffer.readInt();
-            if (buffer.readBool()) {
-                this._scrollBarMargin.top = buffer.readInt();
-                this._scrollBarMargin.bottom = buffer.readInt();
-                this._scrollBarMargin.left = buffer.readInt();
-                this._scrollBarMargin.right = buffer.readInt();
-            }
-            var vtScrollBarRes = buffer.readS();
-            var hzScrollBarRes = buffer.readS();
-            var headerRes = buffer.readS();
-            var footerRes = buffer.readS();
-            if ((flags & 1) != 0)
-                this._displayOnLeft = true;
-            if ((flags & 2) != 0)
-                this._snapToItem = true;
-            if ((flags & 4) != 0)
-                this._displayInDemand = true;
-            if ((flags & 8) != 0)
-                this._pageMode = true;
-            if (flags & 16)
-                this._touchEffect = true;
-            else if (flags & 32)
-                this._touchEffect = false;
-            else
-                this._touchEffect = UIConfig.defaultScrollTouchEffect;
-            if (flags & 64)
-                this._bouncebackEffect = true;
-            else if (flags & 128)
-                this._bouncebackEffect = false;
-            else
-                this._bouncebackEffect = UIConfig.defaultScrollBounceEffect;
-            if ((flags & 256) != 0)
-                this._inertiaDisabled = true;
-            if ((flags & 512) == 0)
-                this.maskScrollRect = new Phaser.Geom.Rectangle(); //this._maskContainer["scrollRect"] = new Phaser.Geom.Rectangle();
-            if ((flags & 1024) != 0)
-                this._floating = true;
-            if ((flags & 2048) != 0)
-                this._dontClipMargin = true;
-            if (scrollBarDisplay == exports.ScrollBarDisplayType.Default)
-                scrollBarDisplay = UIConfig.defaultScrollBarDisplay;
-            const fun1 = () => {
-                return new Promise((resolve, reject) => {
-                    if (headerRes) {
-                        UIPackage.createObjectFromURL(headerRes).then((header) => {
-                            this._header = header;
-                            if (!this._header)
-                                throw new Error("FairyGUI: cannot create scrollPane this.header from " + headerRes);
-                            resolve();
-                        });
-                    }
-                    else {
-                        resolve();
-                    }
-                });
-            };
-            const fun2 = () => {
-                return new Promise((resolve, reject) => {
-                    if (footerRes) {
-                        UIPackage.createObjectFromURL(footerRes).then((footer) => {
-                            this._footer = footer;
-                            if (!this._footer)
-                                throw new Error("FairyGUI: cannot create scrollPane this.footer from " + footerRes);
-                            resolve();
-                        });
-                    }
-                    else {
-                        resolve();
-                    }
-                });
-            };
-            if (scrollBarDisplay != exports.ScrollBarDisplayType.Hidden) {
-                if (this._scrollType == exports.ScrollType.Both || this._scrollType == exports.ScrollType.Vertical) {
-                    var res = vtScrollBarRes ? vtScrollBarRes : UIConfig.verticalScrollBar;
-                    if (res) {
-                        UIPackage.createObjectFromURL(res).then((scrollBar) => {
-                            this._vtScrollBar = scrollBar;
-                            if (!this._vtScrollBar)
-                                throw "cannot create scrollbar from " + res;
-                            this._vtScrollBar.setScrollPane(this, true);
-                            this._owner.displayObject.add(this._vtScrollBar.displayObject);
-                            if (scrollBarDisplay == exports.ScrollBarDisplayType.Auto)
-                                this._scrollBarDisplayAuto = true;
-                            if (this._scrollBarDisplayAuto) {
-                                if (this._vtScrollBar)
-                                    this._vtScrollBar.displayObject.visible = false;
-                                if (this._hzScrollBar)
-                                    this._hzScrollBar.displayObject.visible = false;
-                            }
-                            fun1().then(() => {
-                                fun2().then(() => {
-                                    if (this._header || this._footer)
-                                        this._refreshBarAxis = (this._scrollType == exports.ScrollType.Both || this._scrollType == exports.ScrollType.Vertical) ? "y" : "x";
-                                    this.setSize(this.owner.initWidth, this.owner.initHeight);
-                                });
-                            });
-                        });
-                    }
+            return new Promise((resolve, reject) => {
+                this._scrollType = buffer.readByte();
+                var scrollBarDisplay = buffer.readByte();
+                var flags = buffer.readInt();
+                if (buffer.readBool()) {
+                    this._scrollBarMargin.top = buffer.readInt();
+                    this._scrollBarMargin.bottom = buffer.readInt();
+                    this._scrollBarMargin.left = buffer.readInt();
+                    this._scrollBarMargin.right = buffer.readInt();
                 }
-                if (this._scrollType == exports.ScrollType.Both || this._scrollType == exports.ScrollType.Horizontal) {
-                    res = hzScrollBarRes ? hzScrollBarRes : UIConfig.horizontalScrollBar;
-                    if (res) {
-                        UIPackage.createObjectFromURL(res).then((scrollBar) => {
-                            this._hzScrollBar = scrollBar;
-                            if (!this._hzScrollBar)
-                                throw "cannot create scrollbar from " + res;
-                            this._hzScrollBar.setScrollPane(this, false);
-                            this._owner.displayObject.add(this._hzScrollBar.displayObject);
-                            if (scrollBarDisplay == exports.ScrollBarDisplayType.Auto)
-                                this._scrollBarDisplayAuto = true;
-                            if (this._scrollBarDisplayAuto) {
-                                if (this._vtScrollBar)
-                                    this._vtScrollBar.displayObject.visible = false;
-                                if (this._hzScrollBar)
-                                    this._hzScrollBar.displayObject.visible = false;
-                            }
-                            fun1().then(() => {
-                                fun2().then(() => {
-                                    if (this._header || this._footer)
-                                        this._refreshBarAxis = (this._scrollType == exports.ScrollType.Both || this._scrollType == exports.ScrollType.Vertical) ? "y" : "x";
-                                    this.setSize(this.owner.initWidth, this.owner.initHeight);
-                                });
+                var vtScrollBarRes = buffer.readS();
+                var hzScrollBarRes = buffer.readS();
+                var headerRes = buffer.readS();
+                var footerRes = buffer.readS();
+                if ((flags & 1) != 0)
+                    this._displayOnLeft = true;
+                if ((flags & 2) != 0)
+                    this._snapToItem = true;
+                if ((flags & 4) != 0)
+                    this._displayInDemand = true;
+                if ((flags & 8) != 0)
+                    this._pageMode = true;
+                if (flags & 16)
+                    this._touchEffect = true;
+                else if (flags & 32)
+                    this._touchEffect = false;
+                else
+                    this._touchEffect = UIConfig.defaultScrollTouchEffect;
+                if (flags & 64)
+                    this._bouncebackEffect = true;
+                else if (flags & 128)
+                    this._bouncebackEffect = false;
+                else
+                    this._bouncebackEffect = UIConfig.defaultScrollBounceEffect;
+                if ((flags & 256) != 0)
+                    this._inertiaDisabled = true;
+                if ((flags & 512) == 0)
+                    this.maskScrollRect = new Phaser.Geom.Rectangle(); //this._maskContainer["scrollRect"] = new Phaser.Geom.Rectangle();
+                if ((flags & 1024) != 0)
+                    this._floating = true;
+                if ((flags & 2048) != 0)
+                    this._dontClipMargin = true;
+                if (scrollBarDisplay == exports.ScrollBarDisplayType.Default)
+                    scrollBarDisplay = UIConfig.defaultScrollBarDisplay;
+                const fun1 = () => {
+                    return new Promise((resolve, reject) => {
+                        if (headerRes) {
+                            UIPackage.createObjectFromURL(headerRes).then((header) => {
+                                this._header = header;
+                                if (!this._header)
+                                    throw new Error("FairyGUI: cannot create scrollPane this.header from " + headerRes);
+                                resolve();
                             });
-                        });
-                    }
-                }
-            }
-            else {
-                this._mouseWheelEnabled = false;
-                fun1().then(() => {
-                    fun2().then(() => {
-                        if (this._header || this._footer)
-                            this._refreshBarAxis = (this._scrollType == exports.ScrollType.Both || this._scrollType == exports.ScrollType.Vertical) ? "y" : "x";
-                        this.setSize(this.owner.initWidth, this.owner.initHeight);
+                        }
+                        else {
+                            resolve();
+                        }
                     });
-                });
-            }
+                };
+                const fun2 = () => {
+                    return new Promise((resolve, reject) => {
+                        if (footerRes) {
+                            UIPackage.createObjectFromURL(footerRes).then((footer) => {
+                                this._footer = footer;
+                                if (!this._footer)
+                                    throw new Error("FairyGUI: cannot create scrollPane this.footer from " + footerRes);
+                                resolve();
+                            });
+                        }
+                        else {
+                            resolve();
+                        }
+                    });
+                };
+                if (scrollBarDisplay != exports.ScrollBarDisplayType.Hidden) {
+                    if (this._scrollType == exports.ScrollType.Both || this._scrollType == exports.ScrollType.Vertical) {
+                        var res = vtScrollBarRes ? vtScrollBarRes : UIConfig.verticalScrollBar;
+                        if (res) {
+                            UIPackage.createObjectFromURL(res).then((scrollBar) => {
+                                this._vtScrollBar = scrollBar;
+                                if (!this._vtScrollBar)
+                                    throw "cannot create scrollbar from " + res;
+                                this._vtScrollBar.setScrollPane(this, true);
+                                this._owner.displayObject.add(this._vtScrollBar.displayObject);
+                                if (scrollBarDisplay == exports.ScrollBarDisplayType.Auto)
+                                    this._scrollBarDisplayAuto = true;
+                                if (this._scrollBarDisplayAuto) {
+                                    if (this._vtScrollBar)
+                                        this._vtScrollBar.displayObject.visible = false;
+                                    if (this._hzScrollBar)
+                                        this._hzScrollBar.displayObject.visible = false;
+                                }
+                                fun1().then(() => {
+                                    fun2().then(() => {
+                                        if (this._header || this._footer)
+                                            this._refreshBarAxis = (this._scrollType == exports.ScrollType.Both || this._scrollType == exports.ScrollType.Vertical) ? "y" : "x";
+                                        this.setSize(this.owner.initWidth, this.owner.initHeight);
+                                        resolve();
+                                    });
+                                });
+                            });
+                        }
+                        else {
+                            fun1().then(() => {
+                                fun2().then(() => {
+                                    if (this._header || this._footer)
+                                        this._refreshBarAxis = (this._scrollType == exports.ScrollType.Both || this._scrollType == exports.ScrollType.Vertical) ? "y" : "x";
+                                    this.setSize(this.owner.initWidth, this.owner.initHeight);
+                                    resolve();
+                                });
+                            });
+                        }
+                    }
+                    if (this._scrollType == exports.ScrollType.Both || this._scrollType == exports.ScrollType.Horizontal) {
+                        res = hzScrollBarRes ? hzScrollBarRes : UIConfig.horizontalScrollBar;
+                        if (res) {
+                            UIPackage.createObjectFromURL(res).then((scrollBar) => {
+                                this._hzScrollBar = scrollBar;
+                                if (!this._hzScrollBar)
+                                    throw "cannot create scrollbar from " + res;
+                                this._hzScrollBar.setScrollPane(this, false);
+                                this._owner.displayObject.add(this._hzScrollBar.displayObject);
+                                if (scrollBarDisplay == exports.ScrollBarDisplayType.Auto)
+                                    this._scrollBarDisplayAuto = true;
+                                if (this._scrollBarDisplayAuto) {
+                                    if (this._vtScrollBar)
+                                        this._vtScrollBar.displayObject.visible = false;
+                                    if (this._hzScrollBar)
+                                        this._hzScrollBar.displayObject.visible = false;
+                                }
+                                fun1().then(() => {
+                                    fun2().then(() => {
+                                        if (this._header || this._footer)
+                                            this._refreshBarAxis = (this._scrollType == exports.ScrollType.Both || this._scrollType == exports.ScrollType.Vertical) ? "y" : "x";
+                                        this.setSize(this.owner.initWidth, this.owner.initHeight);
+                                        resolve();
+                                    });
+                                });
+                            });
+                        }
+                        else {
+                            fun1().then(() => {
+                                fun2().then(() => {
+                                    if (this._header || this._footer)
+                                        this._refreshBarAxis = (this._scrollType == exports.ScrollType.Both || this._scrollType == exports.ScrollType.Vertical) ? "y" : "x";
+                                    this.setSize(this.owner.initWidth, this.owner.initHeight);
+                                    resolve();
+                                });
+                            });
+                        }
+                    }
+                }
+                else {
+                    this._mouseWheelEnabled = false;
+                    fun1().then(() => {
+                        fun2().then(() => {
+                            if (this._header || this._footer)
+                                this._refreshBarAxis = (this._scrollType == exports.ScrollType.Both || this._scrollType == exports.ScrollType.Vertical) ? "y" : "x";
+                            this.setSize(this.owner.initWidth, this.owner.initHeight);
+                            resolve();
+                        });
+                    });
+                }
+            });
         }
         dispose() {
             if (ScrollPane.draggingPane == this) {
@@ -11786,12 +11813,16 @@
             this.scrollRect = rect;
         }
         setupScroll(buffer) {
-            if (this._displayObject == this._container) {
-                this._container = new Phaser.GameObjects.Container(this.scene);
-                this._displayObject.add(this._container);
-            }
-            this._scrollPane = new ScrollPane(this);
-            this._scrollPane.setup(buffer);
+            return new Promise((resolve, reject) => {
+                if (this._displayObject == this._container) {
+                    this._container = new Phaser.GameObjects.Container(this.scene);
+                    this._displayObject.add(this._container);
+                }
+                this._scrollPane = new ScrollPane(this);
+                this._scrollPane.setup(buffer).then(() => {
+                    resolve();
+                });
+            });
         }
         setupOverflow(overflow) {
             if (overflow == exports.OverflowType.Hidden) {
@@ -12071,191 +12102,199 @@
                         this._margin.left = buffer.readInt();
                         this._margin.right = buffer.readInt();
                     }
-                    var overflow = buffer.readByte();
-                    if (overflow == exports.OverflowType.Scroll) {
-                        var savedPos = buffer.position;
-                        buffer.seek(0, 7);
-                        this.setupScroll(buffer);
-                        buffer.position = savedPos;
-                    }
-                    else
-                        this.setupOverflow(overflow);
-                    if (buffer.readBool())
-                        buffer.skip(8);
-                    this._buildingDisplayList = true;
-                    buffer.seek(0, 1);
-                    var controllerCount = buffer.readShort();
-                    for (i = 0; i < controllerCount; i++) {
-                        nextPos = buffer.readShort();
-                        nextPos += buffer.position;
-                        var controller = new Controller();
-                        this._controllers.push(controller);
-                        controller.parent = this;
-                        controller.setup(buffer);
-                        buffer.position = nextPos;
-                    }
-                    buffer.seek(0, 2);
-                    var child;
-                    var childCount = buffer.readShort();
-                    let hasAsync = false;
-                    let delayNum = -1;
-                    const fun = (index) => {
-                        for (i = index; i < childCount; i++) {
-                            if (hasAsync) {
-                                return;
-                            }
-                            dataLen = buffer.readShort();
-                            curPos = buffer.position;
-                            if (objectPool) {
-                                child = objectPool[poolIndex + i];
-                            }
-                            else {
-                                buffer.seek(curPos, 0);
-                                var type = buffer.readByte();
-                                var src = buffer.readS();
-                                var pkgId = buffer.readS();
-                                var pi = null;
-                                if (src != null) {
-                                    var pkg;
-                                    if (pkgId != null)
-                                        pkg = UIPackage.getById(pkgId);
-                                    else
-                                        pkg = contentItem.owner;
-                                    pi = pkg ? pkg.getItemById(src) : null;
+                    // ===================
+                    const fun0 = () => {
+                        if (buffer.readBool())
+                            buffer.skip(8);
+                        this._buildingDisplayList = true;
+                        buffer.seek(0, 1);
+                        var controllerCount = buffer.readShort();
+                        for (i = 0; i < controllerCount; i++) {
+                            nextPos = buffer.readShort();
+                            nextPos += buffer.position;
+                            var controller = new Controller();
+                            this._controllers.push(controller);
+                            controller.parent = this;
+                            controller.setup(buffer);
+                            buffer.position = nextPos;
+                        }
+                        buffer.seek(0, 2);
+                        var child;
+                        var childCount = buffer.readShort();
+                        let hasAsync = false;
+                        let delayNum = -1;
+                        const fun = (index) => {
+                            for (i = index; i < childCount; i++) {
+                                if (hasAsync) {
+                                    return;
                                 }
-                                if (pi) {
-                                    delayNum = i;
-                                    hasAsync = true;
-                                    child = Decls.UIObjectFactory.newObject(pi);
-                                    child.constructFromResource().then(() => {
-                                        child._underConstruct = true;
-                                        if (child.type == exports.ObjectType.Tree) {
-                                            // @ts-ignore
-                                            child.setup_beforeAdd(buffer, curPos).then(() => {
+                                dataLen = buffer.readShort();
+                                curPos = buffer.position;
+                                if (objectPool) {
+                                    child = objectPool[poolIndex + i];
+                                }
+                                else {
+                                    buffer.seek(curPos, 0);
+                                    var type = buffer.readByte();
+                                    var src = buffer.readS();
+                                    var pkgId = buffer.readS();
+                                    var pi = null;
+                                    if (src != null) {
+                                        var pkg;
+                                        if (pkgId != null)
+                                            pkg = UIPackage.getById(pkgId);
+                                        else
+                                            pkg = contentItem.owner;
+                                        pi = pkg ? pkg.getItemById(src) : null;
+                                    }
+                                    if (pi) {
+                                        delayNum = i;
+                                        hasAsync = true;
+                                        child = Decls.UIObjectFactory.newObject(pi);
+                                        child.constructFromResource().then(() => {
+                                            child._underConstruct = true;
+                                            if (child.type == exports.ObjectType.Tree) {
+                                                // @ts-ignore
+                                                child.setup_beforeAdd(buffer, curPos).then(() => {
+                                                    hasAsync = false;
+                                                    child.parent = this;
+                                                    this._children.push(child);
+                                                    buffer.position = curPos + dataLen;
+                                                    fun(++delayNum);
+                                                });
+                                            }
+                                            else {
                                                 hasAsync = false;
+                                                child.setup_beforeAdd(buffer, curPos);
                                                 child.parent = this;
                                                 this._children.push(child);
                                                 buffer.position = curPos + dataLen;
                                                 fun(++delayNum);
-                                            });
-                                        }
-                                        else {
-                                            hasAsync = false;
-                                            child.setup_beforeAdd(buffer, curPos);
-                                            child.parent = this;
-                                            this._children.push(child);
-                                            buffer.position = curPos + dataLen;
-                                            fun(++delayNum);
-                                        }
+                                            }
+                                        });
+                                        return;
+                                    }
+                                    else {
+                                        child = Decls.UIObjectFactory.newObject(type);
+                                    }
+                                }
+                                child._underConstruct = true;
+                                if (child.type == exports.ObjectType.Tree) {
+                                    delayNum = i;
+                                    hasAsync = true;
+                                    // @ts-ignore
+                                    child.setup_beforeAdd(buffer, curPos).then(() => {
+                                        hasAsync = false;
+                                        child.parent = this;
+                                        this._children.push(child);
+                                        buffer.position = curPos + dataLen;
+                                        fun(++delayNum);
                                     });
-                                    return;
                                 }
                                 else {
-                                    child = Decls.UIObjectFactory.newObject(type);
-                                }
-                            }
-                            child._underConstruct = true;
-                            if (child.type == exports.ObjectType.Tree) {
-                                delayNum = i;
-                                hasAsync = true;
-                                // @ts-ignore
-                                child.setup_beforeAdd(buffer, curPos).then(() => {
-                                    hasAsync = false;
+                                    child.setup_beforeAdd(buffer, curPos);
                                     child.parent = this;
                                     this._children.push(child);
                                     buffer.position = curPos + dataLen;
-                                    fun(++delayNum);
+                                }
+                                // child.setup_beforeAdd(buffer, curPos);
+                                // child.parent = this;
+                                // this._children.push(child);
+                                // buffer.position = curPos + dataLen;
+                            }
+                            if (hasAsync) {
+                                return;
+                            }
+                            buffer.seek(0, 3);
+                            this.relations.setup(buffer, true);
+                            buffer.seek(0, 2);
+                            buffer.skip(2);
+                            for (i = 0; i < childCount; i++) {
+                                nextPos = buffer.readShort();
+                                nextPos += buffer.position;
+                                buffer.seek(buffer.position, 3);
+                                this._children[i].relations.setup(buffer, false);
+                                buffer.position = nextPos;
+                            }
+                            buffer.seek(0, 2);
+                            buffer.skip(2);
+                            for (i = 0; i < childCount; i++) {
+                                nextPos = buffer.readShort();
+                                nextPos += buffer.position;
+                                child = this._children[i];
+                                child.setup_afterAdd(buffer, buffer.position);
+                                child._underConstruct = false;
+                                buffer.position = nextPos;
+                            }
+                            buffer.seek(0, 4);
+                            buffer.skip(2); //customData
+                            this.opaque = buffer.readBool();
+                            var maskId = buffer.readShort();
+                            if (maskId != -1) {
+                                this.setMask(this.getChildAt(maskId).displayObject, buffer.readBool());
+                            }
+                            var hitTestId = buffer.readS();
+                            i1 = buffer.readInt();
+                            i2 = buffer.readInt();
+                            var hitArea;
+                            if (hitTestId) {
+                                pi = contentItem.owner.getItemById(hitTestId);
+                                if (pi && pi.pixelHitTestData)
+                                    hitArea = new PixelHitTest(pi.pixelHitTestData, i1, i2);
+                            }
+                            if (hitArea) {
+                                this._displayObject.setInteractive(hitArea, Phaser.Geom.Rectangle.Contains);
+                                this.hitArea = hitArea;
+                                // console.log("hitArea", this.hitArea);
+                                // this._displayObject.mouseThrough = false;
+                                // this._displayObject.hitTestPrior = true;
+                            }
+                            buffer.seek(0, 5);
+                            var transitionCount = buffer.readShort();
+                            for (i = 0; i < transitionCount; i++) {
+                                nextPos = buffer.readShort();
+                                nextPos += buffer.position;
+                                var trans = new Transition(this);
+                                trans.setup(buffer);
+                                this._transitions.push(trans);
+                                buffer.position = nextPos;
+                            }
+                            if (this._transitions.length > 0) {
+                                this.displayObject.on(Phaser.GameObjects.Events.ADDED_TO_SCENE, this.___added, this);
+                                this.displayObject.on(Phaser.GameObjects.Events.REMOVED_FROM_SCENE, this.___removed, this);
+                            }
+                            this.applyAllControllers();
+                            this._buildingDisplayList = false;
+                            this._underConstruct = false;
+                            this.buildNativeDisplayList();
+                            this.setBoundsChangedFlag();
+                            if (contentItem.objectType != exports.ObjectType.Component) {
+                                this.constructExtension(buffer).then(() => {
+                                    this.onConstruct();
+                                    reslove();
                                 });
                             }
                             else {
-                                child.setup_beforeAdd(buffer, curPos);
-                                child.parent = this;
-                                this._children.push(child);
-                                buffer.position = curPos + dataLen;
-                            }
-                            // child.setup_beforeAdd(buffer, curPos);
-                            // child.parent = this;
-                            // this._children.push(child);
-                            // buffer.position = curPos + dataLen;
-                        }
-                        if (hasAsync) {
-                            return;
-                        }
-                        buffer.seek(0, 3);
-                        this.relations.setup(buffer, true);
-                        buffer.seek(0, 2);
-                        buffer.skip(2);
-                        for (i = 0; i < childCount; i++) {
-                            nextPos = buffer.readShort();
-                            nextPos += buffer.position;
-                            buffer.seek(buffer.position, 3);
-                            this._children[i].relations.setup(buffer, false);
-                            buffer.position = nextPos;
-                        }
-                        buffer.seek(0, 2);
-                        buffer.skip(2);
-                        for (i = 0; i < childCount; i++) {
-                            nextPos = buffer.readShort();
-                            nextPos += buffer.position;
-                            child = this._children[i];
-                            child.setup_afterAdd(buffer, buffer.position);
-                            child._underConstruct = false;
-                            buffer.position = nextPos;
-                        }
-                        buffer.seek(0, 4);
-                        buffer.skip(2); //customData
-                        this.opaque = buffer.readBool();
-                        var maskId = buffer.readShort();
-                        if (maskId != -1) {
-                            this.setMask(this.getChildAt(maskId).displayObject, buffer.readBool());
-                        }
-                        var hitTestId = buffer.readS();
-                        i1 = buffer.readInt();
-                        i2 = buffer.readInt();
-                        var hitArea;
-                        if (hitTestId) {
-                            pi = contentItem.owner.getItemById(hitTestId);
-                            if (pi && pi.pixelHitTestData)
-                                hitArea = new PixelHitTest(pi.pixelHitTestData, i1, i2);
-                        }
-                        if (hitArea) {
-                            this._displayObject.setInteractive(hitArea, Phaser.Geom.Rectangle.Contains);
-                            this.hitArea = hitArea;
-                            // console.log("hitArea", this.hitArea);
-                            // this._displayObject.mouseThrough = false;
-                            // this._displayObject.hitTestPrior = true;
-                        }
-                        buffer.seek(0, 5);
-                        var transitionCount = buffer.readShort();
-                        for (i = 0; i < transitionCount; i++) {
-                            nextPos = buffer.readShort();
-                            nextPos += buffer.position;
-                            var trans = new Transition(this);
-                            trans.setup(buffer);
-                            this._transitions.push(trans);
-                            buffer.position = nextPos;
-                        }
-                        if (this._transitions.length > 0) {
-                            this.displayObject.on(Phaser.GameObjects.Events.ADDED_TO_SCENE, this.___added);
-                            this.displayObject.on(Phaser.GameObjects.Events.REMOVED_FROM_SCENE, this.___removed);
-                        }
-                        this.applyAllControllers();
-                        this._buildingDisplayList = false;
-                        this._underConstruct = false;
-                        this.buildNativeDisplayList();
-                        this.setBoundsChangedFlag();
-                        if (contentItem.objectType != exports.ObjectType.Component) {
-                            this.constructExtension(buffer).then(() => {
                                 this.onConstruct();
                                 reslove();
-                            });
-                        }
-                        else {
-                            this.onConstruct();
-                            reslove();
-                        }
+                            }
+                        };
+                        fun(0);
                     };
-                    fun(0);
+                    // ===================
+                    var overflow = buffer.readByte();
+                    if (overflow == exports.OverflowType.Scroll) {
+                        var savedPos = buffer.position;
+                        buffer.seek(0, 7);
+                        this.setupScroll(buffer).then(() => {
+                            buffer.position = savedPos;
+                            fun0();
+                        });
+                    }
+                    else {
+                        this.setupOverflow(overflow);
+                        fun0();
+                    }
                 });
             });
         }
@@ -18432,33 +18471,42 @@
                 this._margin.left = buffer.readInt();
                 this._margin.right = buffer.readInt();
             }
+            const fun0 = () => {
+                if (buffer.readBool()) //clipSoftness
+                    buffer.skip(8);
+                if (buffer.version >= 2) {
+                    this.scrollItemToViewOnClick = buffer.readBool();
+                    this.foldInvisibleItems = buffer.readBool();
+                }
+                buffer.seek(beginPos, 8);
+                this._defaultItem = buffer.readS();
+                this.readItems(buffer);
+            };
             var overflow = buffer.readByte();
             if (overflow == exports.OverflowType.Scroll) {
                 var savedPos = buffer.position;
                 buffer.seek(beginPos, 7);
-                this.setupScroll(buffer);
-                buffer.position = savedPos;
+                this.setupScroll(buffer).then(() => {
+                    buffer.position = savedPos;
+                    fun0();
+                });
             }
-            else
+            else {
                 this.setupOverflow(overflow);
-            if (buffer.readBool()) //clipSoftness
-                buffer.skip(8);
-            if (buffer.version >= 2) {
-                this.scrollItemToViewOnClick = buffer.readBool();
-                this.foldInvisibleItems = buffer.readBool();
+                fun0();
             }
-            buffer.seek(beginPos, 8);
-            this._defaultItem = buffer.readS();
-            this.readItems(buffer);
         }
         readItems(buffer) {
             return new Promise((resolve, reject) => {
                 var cnt;
-                var i;
                 var nextPos;
                 var str;
                 cnt = buffer.readShort();
-                for (i = 0; i < cnt; i++) {
+                const fun0 = (i) => {
+                    if (i >= cnt) {
+                        resolve();
+                        return;
+                    }
                     nextPos = buffer.readShort();
                     nextPos += buffer.position;
                     str = buffer.readS();
@@ -18466,7 +18514,8 @@
                         str = this._defaultItem;
                         if (!str) {
                             buffer.position = nextPos;
-                            continue;
+                            fun0(++i);
+                            return;
                         }
                     }
                     this.getFromPool(str).then((obj) => {
@@ -18475,28 +18524,55 @@
                             this.setupItem(buffer, obj);
                         }
                         buffer.position = nextPos;
+                        fun0(++i);
                     });
-                }
-                resolve();
+                };
+                fun0(0);
+                // for (i = 0; i < cnt; i++) {
+                //     nextPos = buffer.readShort();
+                //     nextPos += buffer.position;
+                //     str = buffer.readS();
+                //     if (str == null) {
+                //         str = this._defaultItem;
+                //         if (!str) {
+                //             buffer.position = nextPos;
+                //             continue;
+                //         }
+                //     }
+                //     this.getFromPool(str).then((obj) => {
+                //         if (obj) {
+                //             this.addChild(obj);
+                //             this.setupItem(buffer, obj);
+                //         }
+                //         buffer.position = nextPos;
+                //     });
+                // }
+                // resolve();
             });
         }
         setupItem(buffer, obj) {
             var str;
+            // 自对象本生有定义资源，父对象不对其进行修改
             str = buffer.readS();
             if (str != null)
-                obj.text = str;
+                if (!obj.text)
+                    obj.text = str;
             str = buffer.readS();
             if (str != null && (obj instanceof GButton))
-                obj.selectedTitle = str;
+                if (!obj.selectedTitle)
+                    obj.selectedTitle = str;
             str = buffer.readS();
             if (str != null)
-                obj.icon = str;
+                if (!obj.icon)
+                    obj.icon = str;
             str = buffer.readS();
             if (str != null && (obj instanceof GButton))
-                obj.selectedIcon = str;
+                if (!obj.selectedIcon)
+                    obj.selectedIcon = str;
             str = buffer.readS();
             if (str != null)
-                obj.name = str;
+                if (!obj.name)
+                    obj.name = str;
             var cnt;
             var i;
             if (obj instanceof GComponent) {
@@ -19175,29 +19251,35 @@
                     this._margin.left = buffer.readInt();
                     this._margin.right = buffer.readInt();
                 }
+                const fun0 = () => {
+                    if (buffer.readBool()) //clipSoftness
+                        buffer.skip(8);
+                    if (buffer.version >= 2) {
+                        this.scrollItemToViewOnClick = buffer.readBool();
+                        this.foldInvisibleItems = buffer.readBool();
+                    }
+                    buffer.seek(beginPos, 8);
+                    this._defaultItem = buffer.readS();
+                    this.readItems(buffer).then(() => {
+                        buffer.seek(beginPos, 9);
+                        this._indent = buffer.readInt();
+                        this._clickToExpand = buffer.readByte();
+                        resolve();
+                    });
+                };
                 var overflow = buffer.readByte();
                 if (overflow == exports.OverflowType.Scroll) {
                     var savedPos = buffer.position;
                     buffer.seek(beginPos, 7);
-                    this.setupScroll(buffer);
-                    buffer.position = savedPos;
+                    this.setupScroll(buffer).then(() => {
+                        buffer.position = savedPos;
+                        fun0();
+                    });
                 }
-                else
+                else {
                     this.setupOverflow(overflow);
-                if (buffer.readBool()) //clipSoftness
-                    buffer.skip(8);
-                if (buffer.version >= 2) {
-                    this.scrollItemToViewOnClick = buffer.readBool();
-                    this.foldInvisibleItems = buffer.readBool();
+                    fun0();
                 }
-                buffer.seek(beginPos, 8);
-                this._defaultItem = buffer.readS();
-                this.readItems(buffer).then(() => {
-                    buffer.seek(beginPos, 9);
-                    this._indent = buffer.readInt();
-                    this._clickToExpand = buffer.readByte();
-                    resolve();
-                });
             });
         }
         readItems(buffer) {

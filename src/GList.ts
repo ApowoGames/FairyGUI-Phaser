@@ -2470,28 +2470,35 @@ export class GList extends GComponent {
             this._margin.right = buffer.readInt();
         }
 
+        const fun0 = () => {
+            if (buffer.readBool()) //clipSoftness
+                buffer.skip(8);
+
+            if (buffer.version >= 2) {
+                this.scrollItemToViewOnClick = buffer.readBool();
+                this.foldInvisibleItems = buffer.readBool();
+            }
+
+            buffer.seek(beginPos, 8);
+
+            this._defaultItem = buffer.readS();
+            this.readItems(buffer);
+        }
+
+
         var overflow: number = buffer.readByte();
         if (overflow == OverflowType.Scroll) {
             var savedPos: number = buffer.position;
             buffer.seek(beginPos, 7);
-            this.setupScroll(buffer);
-            buffer.position = savedPos;
+            this.setupScroll(buffer).then(() => {
+                buffer.position = savedPos;
+                fun0();
+            });
         }
-        else
+        else {
             this.setupOverflow(overflow);
-
-        if (buffer.readBool()) //clipSoftness
-            buffer.skip(8);
-
-        if (buffer.version >= 2) {
-            this.scrollItemToViewOnClick = buffer.readBool();
-            this.foldInvisibleItems = buffer.readBool();
+            fun0();
         }
-
-        buffer.seek(beginPos, 8);
-
-        this._defaultItem = buffer.readS();
-        this.readItems(buffer);
     }
 
     protected readItems(buffer: ByteBuffer): Promise<void> {
@@ -2502,7 +2509,13 @@ export class GList extends GComponent {
             var str: string;
 
             cnt = buffer.readShort();
-            for (i = 0; i < cnt; i++) {
+
+
+            const fun0 = (i) => {
+                if (i >= cnt) {
+                    resolve();
+                    return;
+                }
                 nextPos = buffer.readShort();
                 nextPos += buffer.position;
 
@@ -2511,40 +2524,66 @@ export class GList extends GComponent {
                     str = this._defaultItem;
                     if (!str) {
                         buffer.position = nextPos;
-                        continue;
+                        fun0(++i);
+                        return;
                     }
                 }
-
                 this.getFromPool(str).then((obj) => {
                     if (obj) {
                         this.addChild(obj);
                         this.setupItem(buffer, obj);
                     }
                     buffer.position = nextPos;
+                    fun0(++i);
                 });
             }
-            resolve();
+            fun0(0);
+
+
+
+            // for (i = 0; i < cnt; i++) {
+            //     nextPos = buffer.readShort();
+            //     nextPos += buffer.position;
+
+            //     str = buffer.readS();
+            //     if (str == null) {
+            //         str = this._defaultItem;
+            //         if (!str) {
+            //             buffer.position = nextPos;
+            //             continue;
+            //         }
+            //     }
+
+            //     this.getFromPool(str).then((obj) => {
+            //         if (obj) {
+            //             this.addChild(obj);
+            //             this.setupItem(buffer, obj);
+            //         }
+            //         buffer.position = nextPos;
+            //     });
+            // }
+            // resolve();
         });
     }
 
     protected setupItem(buffer: ByteBuffer, obj: GObject): void {
         var str: string;
-
+        // 自对象本生有定义资源，父对象不对其进行修改
         str = buffer.readS();
         if (str != null)
-            obj.text = str;
+            if (!obj.text) obj.text = str;
         str = buffer.readS();
         if (str != null && (obj instanceof GButton))
-            obj.selectedTitle = str;
+            if (!obj.selectedTitle) obj.selectedTitle = str;
         str = buffer.readS();
         if (str != null)
-            obj.icon = str;
+            if (!obj.icon) obj.icon = str;
         str = buffer.readS();
         if (str != null && (obj instanceof GButton))
-            obj.selectedIcon = str;
+            if (!obj.selectedIcon) obj.selectedIcon = str;
         str = buffer.readS();
         if (str != null)
-            obj.name = str;
+            if (!obj.name) obj.name = str;
 
         var cnt: number;
         var i: number;

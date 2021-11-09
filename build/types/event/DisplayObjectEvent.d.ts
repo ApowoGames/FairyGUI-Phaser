@@ -4,6 +4,8 @@ export declare class DisplayObjectEvent {
     static VISIBLE_CHANGED: string;
     static SIZE_DELAY_CHANGE: string;
     static MOUSE_WHEEL: string;
+    static PULL_DOWN_RELEASE: string;
+    static PULL_UP_RELEASE: string;
 }
 export declare class InteractiveEvent {
     static POINTER_DOWN: string;

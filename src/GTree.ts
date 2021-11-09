@@ -528,34 +528,40 @@ export class GTree extends GList {
                 this._margin.right = buffer.readInt();
             }
 
+            const fun0 = () => {
+                if (buffer.readBool()) //clipSoftness
+                    buffer.skip(8);
+
+                if (buffer.version >= 2) {
+                    this.scrollItemToViewOnClick = buffer.readBool();
+                    this.foldInvisibleItems = buffer.readBool();
+                }
+
+                buffer.seek(beginPos, 8);
+
+                this._defaultItem = buffer.readS();
+                this.readItems(buffer).then(() => {
+                    buffer.seek(beginPos, 9);
+
+                    this._indent = buffer.readInt();
+                    this._clickToExpand = buffer.readByte();
+                    resolve();
+                });
+            }
+
             var overflow: number = buffer.readByte();
             if (overflow == OverflowType.Scroll) {
                 var savedPos: number = buffer.position;
                 buffer.seek(beginPos, 7);
-                this.setupScroll(buffer);
-                buffer.position = savedPos;
+                this.setupScroll(buffer).then(() => {
+                    buffer.position = savedPos;
+                    fun0();
+                });
             }
-            else
+            else {
                 this.setupOverflow(overflow);
-
-            if (buffer.readBool()) //clipSoftness
-                buffer.skip(8);
-
-            if (buffer.version >= 2) {
-                this.scrollItemToViewOnClick = buffer.readBool();
-                this.foldInvisibleItems = buffer.readBool();
+                fun0();
             }
-
-            buffer.seek(beginPos, 8);
-
-            this._defaultItem = buffer.readS();
-            this.readItems(buffer).then(() => {
-                buffer.seek(beginPos, 9);
-
-                this._indent = buffer.readInt();
-                this._clickToExpand = buffer.readByte();
-                resolve();
-            });
         });
     }
 
