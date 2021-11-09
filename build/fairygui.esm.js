@@ -16263,6 +16263,8 @@ class GList extends GComponent {
         this._virtualListChanged = 0; //1-content changed, 2-size changed
         this.itemInfoVer = 0; //用来标志item是否在本次处理中已经被重用了
         this._timeDelta = 500;
+        this.shiftKey = false;
+        this.ctrlKey = false;
         this._refreshListEvent = { delay: this._timeDelta / this.scene.game.config.fps.target, callback: this._refreshVirtualList, callbackScope: this };
         this._trackBounds = true;
         this._pool = new GObjectPool();
@@ -16278,10 +16280,45 @@ class GList extends GComponent {
         this._displayObject.add(this._container);
         // todo click 优先添加监听，防止scrollpane的pointerup将参数修改，影响glist _clickItem逻辑
         this.scene.input.on("pointerup", this.__clickItem, this);
+        if (this.scene.input.keyboard) {
+            this.scene.input.keyboard.on('keydown', this.__keyDown, this);
+            this.scene.input.keyboard.on('keyup', this.__keyUp, this);
+        }
+    }
+    __keyDown(event) {
+        switch (event.keyCode) {
+            // shift
+            case 16:
+                this.shiftKey = true;
+                break;
+            // ctrl
+            case 17:
+                this.ctrlKey = true;
+                break;
+        }
+        console.dir(event);
+    }
+    __keyUp(event) {
+        switch (event.keyCode) {
+            // shift
+            case 16:
+                this.shiftKey = false;
+                break;
+            // ctrl
+            case 17:
+                this.ctrlKey = false;
+                break;
+        }
     }
     dispose() {
         this.off(Events.SCROLL, this.__scrolled, this);
         this.scene.input.off("pointerup", this.__clickItem, this);
+        if (this.scene.input.keyboard) {
+            this.scene.input.keyboard.off('keydown', this.__keyDown, this);
+            this.scene.input.keyboard.off('keyup', this.__keyUp, this);
+        }
+        this.shiftKey = false;
+        this.ctrlKey = false;
         this._pool.clear();
         super.dispose();
     }
@@ -16852,7 +16889,7 @@ class GList extends GComponent {
             }
         }
         else {
-            if (evt.shiftKey) {
+            if (this.shiftKey) {
                 if (!item.selected) {
                     if (this._lastSelectedIndex != -1) {
                         var min = Math.min(this._lastSelectedIndex, index);
@@ -16881,7 +16918,7 @@ class GList extends GComponent {
                     }
                 }
             }
-            else if (evt.ctrlKey || this._selectionMode == ListSelectionMode.Multiple_SingleClick) {
+            else if (this.ctrlKey || this._selectionMode == ListSelectionMode.Multiple_SingleClick) {
                 item.selected = !item.selected;
             }
             else {

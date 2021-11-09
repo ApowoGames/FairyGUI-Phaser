@@ -43,7 +43,11 @@ export declare class GList extends GComponent {
     protected _timeDelta: number;
     protected _refreshListEvent: any;
     protected _refreshListTime: Phaser.Time.TimerEvent;
+    protected shiftKey: boolean;
+    protected ctrlKey: boolean;
     constructor(scene: Phaser.Scene, type: any);
+    private __keyDown;
+    private __keyUp;
     dispose(): void;
     get layout(): number;
     set layout(value: number);
