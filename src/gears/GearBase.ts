@@ -2,6 +2,9 @@ import { Controller } from "../Controller";
 import { EaseType, GTweener } from "../tween";
 import { ByteBuffer } from "../utils";
 
+/**
+ * 与controller关联，eg：一张按钮中的图片可在控制器中不同帧中表现不同
+ */
 export class GearBase {
     public static disableAllTweenEffect: boolean;
 

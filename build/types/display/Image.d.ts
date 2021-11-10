@@ -36,7 +36,7 @@ export declare class Image extends Phaser.GameObjects.Container {
     constructor(scene: Phaser.Scene);
     get curImage(): Phaser.GameObjects.Image;
     setTint(color: string): void;
-    setSize(width: number, height: number): this;
+    setSize(width: number, height: number, originFrame?: Phaser.Textures.Frame): this;
     createPatches(): void;
     drawPatches(): void;
     createPatchFrame(patch: any, x: any, y: any, width: any, height: any): void;

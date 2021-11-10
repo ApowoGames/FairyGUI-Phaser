@@ -1,6 +1,9 @@
 import { Controller } from "../Controller";
 import { GTweener } from "../tween";
 import { ByteBuffer } from "../utils";
+/**
+ * 与controller关联，eg：一张按钮中的图片可在控制器中不同帧中表现不同
+ */
 export declare class GearBase {
     static disableAllTweenEffect: boolean;
     _owner: any;

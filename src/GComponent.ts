@@ -927,7 +927,7 @@ export class GComponent extends GObject {
         if (this._opaque) {
             this._displayObject.disableInteractive();
             this.hitArea = new Phaser.Geom.Rectangle(ax + aw >> 1, ay + ah >> 1, aw, ah);
-            console.log("set bounds", aw, ah);
+            // console.log("set bounds", aw, ah);
             this._displayObject.setInteractive(this.hitArea, Phaser.Geom.Rectangle.Contains);
             // if (this._g) {
             //     this._g.clear();
@@ -1401,8 +1401,8 @@ export class GComponent extends GObject {
     }
 
 
-    public setXY(xv: number, yv: number): void {
-        super.setXY(xv, yv);
+    public setXY(xv: number, yv: number, force: boolean = false): void {
+        super.setXY(xv, yv, force);
         this._children.forEach((obj) => {
             if (obj && obj instanceof GComponent) {
                 const component = (<GComponent>obj);

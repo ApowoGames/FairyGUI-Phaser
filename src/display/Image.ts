@@ -73,7 +73,7 @@ export class Image extends Phaser.GameObjects.Container {
 
     }
 
-    public setSize(width: number, height: number): this {
+    public setSize(width: number, height: number, originFrame?: Phaser.Textures.Frame): this {
         this.width = width;
         this.height = height;
         const originWidth = this["$owner"].sourceWidth;
@@ -92,6 +92,7 @@ export class Image extends Phaser.GameObjects.Container {
             this.finalYs = [0, 0, 0, this.height];
         }
         // 有texture资源后再创建九宫图片
+        if (!this.originFrame) this.originFrame = originFrame;
         if (this.originFrame) {
             this.createPatches();
             this.drawPatches();
@@ -170,6 +171,7 @@ export class Image extends Phaser.GameObjects.Container {
     }
 
     createPatchFrame(patch, x, y, width, height) {
+        if (this.originFrame && !this._sourceTexture) this._sourceTexture = this.originFrame.texture;
         if (this._sourceTexture.frames.hasOwnProperty(patch)) {
             // console.log("patch cf", patch);
             return;

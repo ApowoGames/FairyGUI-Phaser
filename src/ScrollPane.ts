@@ -1881,7 +1881,7 @@ export class ScrollPane {
     private tweenUpdate(): void {
         var nx: number = this.runTween("x");
         var ny: number = this.runTween("y");
-        console.log("scrollpane ===>", nx, ny);
+       // console.log("scrollpane ===>", nx, ny);
         this._container.setPosition(nx, ny);
         if (this._tweening == 2) {
             if (this._overlapSize.x > 0)
@@ -1929,9 +1929,9 @@ export class ScrollPane {
             }
             else {
                 var ratio: number = easeFunc(this._tweenTime[axis], this._tweenDuration[axis]);
-                if (axis === "y") {
-                    console.log("runTween", axis, this._tweenTime, this._tweenDuration,ratio);
-                }
+                // if (axis === "y") {
+                //     console.log("runTween", axis, this._tweenTime, this._tweenDuration, ratio);
+                // }
                 newValue = this._tweenStart[axis] + Math.floor(this._tweenChange[axis] * ratio);
             }
 

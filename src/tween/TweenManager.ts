@@ -1,9 +1,12 @@
 import { GObject, GRoot } from '..';
 import { GTweener } from './GTweener';
 export class TweenManager {
+    private static updateTween: Phaser.Time.TimerEvent;
     public static createTween(): GTweener {
         if (!_inited) {
-            TweenManager.update();
+            const _timeDelta = GRoot.inst.scene.game.config.fps.target;
+            const _updateTweenEvent = { delay: _timeDelta, callback: TweenManager.update, callbackScope: this, loop: true };
+            if (!TweenManager.updateTween) GRoot.inst.scene.time.addEvent(_updateTweenEvent);
             // Laya.timer.frameLoop(1, null, TweenManager.update);
             _inited = true;
         }

@@ -1496,7 +1496,10 @@
     class TweenManager {
         static createTween() {
             if (!_inited) {
-                TweenManager.update();
+                const _timeDelta = GRoot.inst.scene.game.config.fps.target;
+                const _updateTweenEvent = { delay: _timeDelta, callback: TweenManager.update, callbackScope: this, loop: true };
+                if (!TweenManager.updateTween)
+                    GRoot.inst.scene.time.addEvent(_updateTweenEvent);
                 // Laya.timer.frameLoop(1, null, TweenManager.update);
                 _inited = true;
             }
@@ -1633,6 +1636,9 @@
     }
     GTween.catchCallbackExceptions = true;
 
+    /**
+     * 与controller关联，eg：一张按钮中的图片可在控制器中不同帧中表现不同
+     */
     class GearBase {
         dispose() {
             if (this._tweenConfig && this._tweenConfig._tweener) {
@@ -3175,8 +3181,8 @@
         set timeEvent(value) {
             this._timeEvent = value;
         }
-        setXY(xv, yv) {
-            if (this._x != xv || this._y != yv) {
+        setXY(xv, yv, force = false) {
+            if (this._x != xv || this._y != yv || force) {
                 var dx = xv - this._x;
                 var dy = yv - this._y;
                 this._x = xv;
@@ -3478,7 +3484,8 @@
             if (this._rotation != value) {
                 this._rotation = value;
                 if (this._displayObject) {
-                    this._displayObject.rotation = this.normalizeRotation;
+                    // phaser 显示对象的rotation是弧度，angle则是角度
+                    this._displayObject.rotation = this.normalizeRotation * (Math.PI / 180);
                     this.applyPivot();
                 }
                 this.updateGear(3);
@@ -5356,7 +5363,7 @@
                 }
             });
         }
-        setSize(width, height) {
+        setSize(width, height, originFrame) {
             this.width = width;
             this.height = height;
             const originWidth = this["$owner"].sourceWidth;
@@ -5376,6 +5383,8 @@
                 this.finalYs = [0, 0, 0, this.height];
             }
             // 有texture资源后再创建九宫图片
+            if (!this.originFrame)
+                this.originFrame = originFrame;
             if (this.originFrame) {
                 this.createPatches();
                 this.drawPatches();
@@ -5451,6 +5460,8 @@
             // this.add(g);
         }
         createPatchFrame(patch, x, y, width, height) {
+            if (this.originFrame && !this._sourceTexture)
+                this._sourceTexture = this.originFrame.texture;
             if (this._sourceTexture.frames.hasOwnProperty(patch)) {
                 // console.log("patch cf", patch);
                 return;
@@ -9677,6 +9688,7 @@
                     pt.setTo(this._header.width, this._header.height);
                     pt[this._refreshBarAxis] = setPosition;
                     this._header.setSize(pt.x, pt.y);
+                    this._header.setXY(0, 0, true);
                 }
                 else {
                     if (this._header.displayObject.parentContainer)
@@ -9711,7 +9723,7 @@
         tweenUpdate() {
             var nx = this.runTween("x");
             var ny = this.runTween("y");
-            console.log("scrollpane ===>", nx, ny);
+            // console.log("scrollpane ===>", nx, ny);
             this._container.setPosition(nx, ny);
             if (this._tweening == 2) {
                 if (this._overlapSize.x > 0)
@@ -9753,9 +9765,9 @@
                 }
                 else {
                     var ratio = easeFunc(this._tweenTime[axis], this._tweenDuration[axis]);
-                    if (axis === "y") {
-                        console.log("runTween", axis, this._tweenTime, this._tweenDuration, ratio);
-                    }
+                    // if (axis === "y") {
+                    //     console.log("runTween", axis, this._tweenTime, this._tweenDuration, ratio);
+                    // }
                     newValue = this._tweenStart[axis] + Math.floor(this._tweenChange[axis] * ratio);
                 }
                 var threshold1 = 0;
@@ -11932,7 +11944,7 @@
             if (this._opaque) {
                 this._displayObject.disableInteractive();
                 this.hitArea = new Phaser.Geom.Rectangle(ax + aw >> 1, ay + ah >> 1, aw, ah);
-                console.log("set bounds", aw, ah);
+                // console.log("set bounds", aw, ah);
                 this._displayObject.setInteractive(this.hitArea, Phaser.Geom.Rectangle.Contains);
                 // if (this._g) {
                 //     this._g.clear();
@@ -12340,8 +12352,8 @@
                 }
             }
         }
-        setXY(xv, yv) {
-            super.setXY(xv, yv);
+        setXY(xv, yv, force = false) {
+            super.setXY(xv, yv, force);
             this._children.forEach((obj) => {
                 if (obj && obj instanceof GComponent) {
                     const component = obj;
@@ -14488,8 +14500,8 @@
             }
             var sx = 1, sy = 1;
             if (this._fill != exports.LoaderFillType.None) {
-                sx = this.width / this.sourceWidth;
-                sy = this.height / this.sourceHeight;
+                sx = this.initWidth / this.sourceWidth;
+                sy = this.initHeight / this.sourceHeight;
                 if (sx != 1 || sy != 1) {
                     if (this._fill == exports.LoaderFillType.ScaleMatchHeight)
                         sx = sy;
@@ -14519,8 +14531,14 @@
             }
             if (this._content2)
                 this._content2.setScale(sx, sy);
-            else
-                this._content.setSize(cw, ch);
+            else {
+                this._content.setScale(sx, sy);
+                // if (this._content.frames) {
+                //     this._content.setSize(cw, ch, this._content.frames[0]);
+                // } else {
+                //     this._content.setSize(cw, ch);
+                // }
+            }
             var nx, ny;
             if (this._align == "center")
                 nx = Math.floor((this.width - cw) / 2);

@@ -106,7 +106,7 @@ export declare class GComponent extends GObject {
     protected onConstruct(): void;
     protected constructFromXML(xml: Object): void;
     setup_afterAdd(buffer: ByteBuffer, beginPos: number): void;
-    setXY(xv: number, yv: number): void;
+    setXY(xv: number, yv: number, force?: boolean): void;
     protected ___added(): void;
     protected ___removed(): void;
 }

@@ -391,8 +391,8 @@ export class GLoader extends GObject {
 
         var sx: number = 1, sy: number = 1;
         if (this._fill != LoaderFillType.None) {
-            sx = this.width / this.sourceWidth;
-            sy = this.height / this.sourceHeight;
+            sx = this.initWidth / this.sourceWidth;
+            sy = this.initHeight / this.sourceHeight;
 
             if (sx != 1 || sy != 1) {
                 if (this._fill == LoaderFillType.ScaleMatchHeight)
@@ -426,8 +426,15 @@ export class GLoader extends GObject {
 
         if (this._content2)
             this._content2.setScale(sx, sy);
-        else
-            this._content.setSize(cw, ch);
+        else {
+            this._content.setScale(sx, sy);
+            // if (this._content.frames) {
+            //     this._content.setSize(cw, ch, this._content.frames[0]);
+            // } else {
+            //     this._content.setSize(cw, ch);
+            // }
+        }
+
 
         var nx: number, ny: number;
         if (this._align == "center")

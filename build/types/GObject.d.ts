@@ -110,7 +110,7 @@ export declare class GObject {
     set scene(value: Phaser.Scene);
     get timeEvent(): Phaser.Time.TimerEvent;
     set timeEvent(value: Phaser.Time.TimerEvent);
-    setXY(xv: number, yv: number): void;
+    setXY(xv: number, yv: number, force?: boolean): void;
     get xMin(): number;
     set xMin(value: number);
     get yMin(): number;

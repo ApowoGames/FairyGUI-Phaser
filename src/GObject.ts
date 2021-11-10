@@ -210,8 +210,8 @@ export class GObject {
         this._timeEvent = value;
     }
 
-    public setXY(xv: number, yv: number): void {
-        if (this._x != xv || this._y != yv) {
+    public setXY(xv: number, yv: number, force: boolean = false): void {
+        if (this._x != xv || this._y != yv || force) {
             var dx: number = xv - this._x;
             var dy: number = yv - this._y;
             this._x = xv;
@@ -570,7 +570,8 @@ export class GObject {
         if (this._rotation != value) {
             this._rotation = value;
             if (this._displayObject) {
-                this._displayObject.rotation = this.normalizeRotation;
+                // phaser 显示对象的rotation是弧度，angle则是角度
+                this._displayObject.rotation = this.normalizeRotation * (Math.PI / 180);
                 this.applyPivot();
             }
             this.updateGear(3);
