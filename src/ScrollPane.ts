@@ -84,7 +84,7 @@ export class ScrollPane {
 
     private _refreshTimeEvent: any;//Phaser.Time.TimerEvent;
     private _refreshTime: Phaser.Time.TimerEvent;
-    private _timeDelta: number = 0.1;
+    private _timeDelta: number = 0.8;
     public static draggingPane: ScrollPane;
     // === 用于检查点击是否在区域的矩形
     private mRectangle: Phaser.Geom.Rectangle;
@@ -1105,7 +1105,7 @@ export class ScrollPane {
         else {
             if (this._tweening != 0)
                 this.killTween();
-            console.log("refresh ===>", this._xPos, this._yPos);
+            // console.log("refresh ===>", this._xPos, this._yPos);
             this._container.setPosition(Math.floor(-this._xPos), Math.floor(-this._yPos));
 
             this.loopCheckingCurrent();
@@ -1881,6 +1881,7 @@ export class ScrollPane {
     private tweenUpdate(): void {
         var nx: number = this.runTween("x");
         var ny: number = this.runTween("y");
+        console.log("scrollpane ===>", nx, ny);
         this._container.setPosition(nx, ny);
         if (this._tweening == 2) {
             if (this._overlapSize.x > 0)
@@ -1918,13 +1919,19 @@ export class ScrollPane {
     private runTween(axis: string): number {
         var newValue: number;
         if (this._tweenChange[axis] != 0) {
-            this._tweenTime[axis] += this._timeDelta; // Laya.timer.delta / 1000;
+            this._tweenTime[axis] += this.owner.scene.game.config.fps.target / 100000; // Laya.timer.delta / 1000;
+            // if (axis === "y") {
+            //     console.log("runTween", axis, this._tweenTime, this._tweenDuration);
+            // }
             if (this._tweenTime[axis] >= this._tweenDuration[axis]) {
                 newValue = this._tweenStart[axis] + this._tweenChange[axis];
                 this._tweenChange[axis] = 0;
             }
             else {
                 var ratio: number = easeFunc(this._tweenTime[axis], this._tweenDuration[axis]);
+                if (axis === "y") {
+                    console.log("runTween", axis, this._tweenTime, this._tweenDuration,ratio);
+                }
                 newValue = this._tweenStart[axis] + Math.floor(this._tweenChange[axis] * ratio);
             }
 
@@ -1973,9 +1980,6 @@ export class ScrollPane {
         else
             newValue = this._container[axis];
 
-        // if (axis === "y") {
-        //     console.log("runTween", axis, newValue);
-        // }
         return newValue;
     }
 }

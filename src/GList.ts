@@ -2571,19 +2571,19 @@ export class GList extends GComponent {
         // 自对象本生有定义资源，父对象不对其进行修改
         str = buffer.readS();
         if (str != null)
-            if (!obj.text) obj.text = str;
+            obj.text = str;
         str = buffer.readS();
         if (str != null && (obj instanceof GButton))
-            if (!obj.selectedTitle) obj.selectedTitle = str;
+            obj.selectedTitle = str;
         str = buffer.readS();
         if (str != null)
-            if (!obj.icon) obj.icon = str;
+            obj.icon = str;
         str = buffer.readS();
         if (str != null && (obj instanceof GButton))
-            if (!obj.selectedIcon) obj.selectedIcon = str;
+            obj.selectedIcon = str;
         str = buffer.readS();
         if (str != null)
-            if (!obj.name) obj.name = str;
+            obj.name = str;
 
         var cnt: number;
         var i: number;

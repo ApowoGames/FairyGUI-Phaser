@@ -174,6 +174,7 @@ export class Image extends Phaser.GameObjects.Container {
             // console.log("patch cf", patch);
             return;
         }
+        // 在texture的frames列表中添加对应增加的frame
         this._sourceTexture.add(patch, this.originFrame.sourceIndex, this.originFrame.cutX + x, this.originFrame.cutY + y, width, height);
     }
 

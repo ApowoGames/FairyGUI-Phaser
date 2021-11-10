@@ -5451,6 +5451,7 @@ class Image extends Phaser.GameObjects.Container {
             // console.log("patch cf", patch);
             return;
         }
+        // 在texture的frames列表中添加对应增加的frame
         this._sourceTexture.add(patch, this.originFrame.sourceIndex, this.originFrame.cutX + x, this.originFrame.cutY + y, width, height);
     }
     getPatchNameByIndex(index) {
@@ -8146,7 +8147,7 @@ class Margin {
 
 class ScrollPane {
     constructor(owner) {
-        this._timeDelta = 0.1;
+        this._timeDelta = 0.8;
         this._owner = owner;
         this._refreshTimeEvent = { delay: this._timeDelta, callback: this.refresh, callbackScope: this };
         const _tweenUp = this._timeDelta; //  / owner.scene.game.config.fps.target;
@@ -9028,7 +9029,7 @@ class ScrollPane {
         else {
             if (this._tweening != 0)
                 this.killTween();
-            console.log("refresh ===>", this._xPos, this._yPos);
+            // console.log("refresh ===>", this._xPos, this._yPos);
             this._container.setPosition(Math.floor(-this._xPos), Math.floor(-this._yPos));
             this.loopCheckingCurrent();
         }
@@ -9706,6 +9707,7 @@ class ScrollPane {
     tweenUpdate() {
         var nx = this.runTween("x");
         var ny = this.runTween("y");
+        console.log("scrollpane ===>", nx, ny);
         this._container.setPosition(nx, ny);
         if (this._tweening == 2) {
             if (this._overlapSize.x > 0)
@@ -9737,13 +9739,19 @@ class ScrollPane {
     runTween(axis) {
         var newValue;
         if (this._tweenChange[axis] != 0) {
-            this._tweenTime[axis] += this._timeDelta; // Laya.timer.delta / 1000;
+            this._tweenTime[axis] += this.owner.scene.game.config.fps.target / 100000; // Laya.timer.delta / 1000;
+            // if (axis === "y") {
+            //     console.log("runTween", axis, this._tweenTime, this._tweenDuration);
+            // }
             if (this._tweenTime[axis] >= this._tweenDuration[axis]) {
                 newValue = this._tweenStart[axis] + this._tweenChange[axis];
                 this._tweenChange[axis] = 0;
             }
             else {
                 var ratio = easeFunc(this._tweenTime[axis], this._tweenDuration[axis]);
+                if (axis === "y") {
+                    console.log("runTween", axis, this._tweenTime, this._tweenDuration, ratio);
+                }
                 newValue = this._tweenStart[axis] + Math.floor(this._tweenChange[axis] * ratio);
             }
             var threshold1 = 0;
@@ -9789,9 +9797,6 @@ class ScrollPane {
         }
         else
             newValue = this._container[axis];
-        // if (axis === "y") {
-        //     console.log("runTween", axis, newValue);
-        // }
         return newValue;
     }
 }
@@ -18551,24 +18556,19 @@ class GList extends GComponent {
         // 自对象本生有定义资源，父对象不对其进行修改
         str = buffer.readS();
         if (str != null)
-            if (!obj.text)
-                obj.text = str;
+            obj.text = str;
         str = buffer.readS();
         if (str != null && (obj instanceof GButton))
-            if (!obj.selectedTitle)
-                obj.selectedTitle = str;
+            obj.selectedTitle = str;
         str = buffer.readS();
         if (str != null)
-            if (!obj.icon)
-                obj.icon = str;
+            obj.icon = str;
         str = buffer.readS();
         if (str != null && (obj instanceof GButton))
-            if (!obj.selectedIcon)
-                obj.selectedIcon = str;
+            obj.selectedIcon = str;
         str = buffer.readS();
         if (str != null)
-            if (!obj.name)
-                obj.name = str;
+            obj.name = str;
         var cnt;
         var i;
         if (obj instanceof GComponent) {
