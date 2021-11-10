@@ -1,6 +1,6 @@
 {
   "name": "fairygui-phaser",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "main": "build/fairygui.js",
   "module": "build/fairygui.esm.js",
   "types": "build/types/index.d.ts",

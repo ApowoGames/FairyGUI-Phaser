@@ -9688,7 +9688,6 @@
                     pt.setTo(this._header.width, this._header.height);
                     pt[this._refreshBarAxis] = setPosition;
                     this._header.setSize(pt.x, pt.y);
-                    this._header.setXY(0, 0, true);
                 }
                 else {
                     if (this._header.displayObject.parentContainer)
@@ -9706,7 +9705,7 @@
                         pt[this._refreshBarAxis] = setPosition + this._contentSize[this._refreshBarAxis];
                     else
                         pt[this._refreshBarAxis] = Math.max(Math.min(setPosition + this._viewSize[this._refreshBarAxis], this._viewSize[this._refreshBarAxis] - this._footerLockedSize), this._viewSize[this._refreshBarAxis] - this._contentSize[this._refreshBarAxis]);
-                    this._footer.setXY(pt.x, pt.y);
+                    this._footer.setXY(pt.x, pt.y, true);
                     pt.setTo(this._footer.width, this._footer.height);
                     if (max > 0)
                         pt[this._refreshBarAxis] = -max - setPosition;

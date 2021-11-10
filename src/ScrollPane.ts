@@ -1862,7 +1862,7 @@ export class ScrollPane {
                 else
                     pt[this._refreshBarAxis] = Math.max(Math.min(setPosition + this._viewSize[this._refreshBarAxis], this._viewSize[this._refreshBarAxis] - this._footerLockedSize),
                         this._viewSize[this._refreshBarAxis] - this._contentSize[this._refreshBarAxis]);
-                this._footer.setXY(pt.x, pt.y);
+                this._footer.setXY(pt.x, pt.y, true);
 
                 pt.setTo(this._footer.width, this._footer.height);
                 if (max > 0)
@@ -1881,7 +1881,7 @@ export class ScrollPane {
     private tweenUpdate(): void {
         var nx: number = this.runTween("x");
         var ny: number = this.runTween("y");
-       // console.log("scrollpane ===>", nx, ny);
+        // console.log("scrollpane ===>", nx, ny);
         this._container.setPosition(nx, ny);
         if (this._tweening == 2) {
             if (this._overlapSize.x > 0)
