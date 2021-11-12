@@ -6,7 +6,7 @@ import { RelationType } from './FieldTypes';
 import { UIConfig } from './UIConfig';
 import { IUISource } from './IUISource';
 import { GObject } from './GObject';
-import "phaser3";
+import "phaser";
 import { GComponent } from "./GComponent";
 export class Window extends GComponent {
     private _contentPane: GComponent;
