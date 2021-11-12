@@ -19,5 +19,5 @@ export default {
     plugins: [
         nodeResolve({ extensions, }),
         typescript()],
-    external: ["phaser3"]
+    external: ["phaser"]
 }
