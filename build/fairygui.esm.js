@@ -1,4 +1,4 @@
-import 'phaser3';
+import 'phaser';
 
 var ButtonMode;
 (function (ButtonMode) {
