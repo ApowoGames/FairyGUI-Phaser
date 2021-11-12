@@ -11545,7 +11545,7 @@
             if (!child.displayObject)
                 return;
             if (child.internalVisible) { // && child.displayObject !== this._displayObject.mask) {
-                // 没有父容器 直接添加在scene的根容器上
+                // 没有父容器且没有上一级fairygui对象 直接添加在scene的根容器上
                 if (!child.displayObject.parentContainer) {
                     var index = 0;
                     if (this._childrenRenderOrder == exports.ChildrenRenderOrder.Ascent) {
@@ -11585,6 +11585,8 @@
             else {
                 if (child.displayObject.parentContainer) {
                     this._container.remove(child.displayObject);
+                    child.displayObject.removeFromUpdateList();
+                    child.displayObject.removeFromDisplayList();
                     // console.log("remove display", child);
                     if (this._childrenRenderOrder == exports.ChildrenRenderOrder.Arch) {
                         if (!this._buildNativeTime)
