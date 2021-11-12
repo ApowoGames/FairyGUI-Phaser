@@ -84,7 +84,7 @@ export class ScrollPane {
 
     private _refreshTimeEvent: any;//Phaser.Time.TimerEvent;
     private _refreshTime: Phaser.Time.TimerEvent;
-    private _timeDelta: number = 0.8;
+    private _timeDelta: number = 0.08;
     public static draggingPane: ScrollPane;
     // === 用于检查点击是否在区域的矩形
     private mRectangle: Phaser.Geom.Rectangle;
@@ -1919,7 +1919,7 @@ export class ScrollPane {
     private runTween(axis: string): number {
         var newValue: number;
         if (this._tweenChange[axis] != 0) {
-            this._tweenTime[axis] += this.owner.scene.game.config.fps.target / 100000; // Laya.timer.delta / 1000;
+            this._tweenTime[axis] += this.owner.scene.game.config.fps.target / 10000; // Laya.timer.delta / 1000;
             // if (axis === "y") {
             //     console.log("runTween", axis, this._tweenTime, this._tweenDuration);
             // }

@@ -203,7 +203,8 @@ export class UIStage extends Phaser.Events.EventEmitter {
     }
 
     removeChild(child: Phaser.GameObjects.GameObject, type: UISceneDisplay) {
-        this.scene.sys.displayList[type].removeChild(child);
+        child.removeFromUpdateList();
+        child.removeFromDisplayList();
     }
 
     /**@internal */

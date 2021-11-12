@@ -189,6 +189,8 @@ export class GComponent extends GObject {
                 child.group = null;
                 if (child.inContainer) {
                     child.displayObject.parentContainer.remove(child.displayObject);
+                    child.displayObject.removeFromDisplayList();
+                    child.displayObject.removeFromUpdateList();
                     if (this._childrenRenderOrder == ChildrenRenderOrder.Arch) {
                         if (!this._buildNativeTime) this._buildNativeTime = this.scene.time.addEvent(this._buildNativeEvent);
                     }

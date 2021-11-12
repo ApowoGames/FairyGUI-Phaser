@@ -6583,7 +6583,8 @@
             }
         }
         removeChild(child, type) {
-            this.scene.sys.displayList[type].removeChild(child);
+            child.removeFromUpdateList();
+            child.removeFromDisplayList();
         }
         /**@internal */
         updateScreenSize() {
@@ -8162,7 +8163,7 @@
 
     class ScrollPane {
         constructor(owner) {
-            this._timeDelta = 0.8;
+            this._timeDelta = 0.08;
             this._owner = owner;
             this._refreshTimeEvent = { delay: this._timeDelta, callback: this.refresh, callbackScope: this };
             const _tweenUp = this._timeDelta; //  / owner.scene.game.config.fps.target;
@@ -9754,7 +9755,7 @@
         runTween(axis) {
             var newValue;
             if (this._tweenChange[axis] != 0) {
-                this._tweenTime[axis] += this.owner.scene.game.config.fps.target / 100000; // Laya.timer.delta / 1000;
+                this._tweenTime[axis] += this.owner.scene.game.config.fps.target / 10000; // Laya.timer.delta / 1000;
                 // if (axis === "y") {
                 //     console.log("runTween", axis, this._tweenTime, this._tweenDuration);
                 // }
@@ -11312,6 +11313,8 @@
                     child.group = null;
                     if (child.inContainer) {
                         child.displayObject.parentContainer.remove(child.displayObject);
+                        child.displayObject.removeFromDisplayList();
+                        child.displayObject.removeFromUpdateList();
                         if (this._childrenRenderOrder == exports.ChildrenRenderOrder.Arch) {
                             if (!this._buildNativeTime)
                                 this._buildNativeTime = this.scene.time.addEvent(this._buildNativeEvent);
