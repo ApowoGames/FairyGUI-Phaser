@@ -35,8 +35,11 @@ export interface UIStageOptions {
     scaleMode?: StageScaleMode;
     orientation?: StageOrientation;
     resolution?: number;
-    designWidth: number;
-    designHeight: number;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    container: Phaser.GameObjects.Container,
     alignV?: StageAlign,
     alignH?: StageAlign,
     fallbackWidth?: number,
@@ -48,12 +51,15 @@ export class DefaultUIStageOptions implements UIStageOptions {
     public scaleMode?: StageScaleMode = StageScaleMode.SHOW_ALL;
     public orientation?: StageOrientation = StageOrientation.AUTO;
     public resolution?: number = 1;
-    public designWidth: number = 800;
-    public designHeight: number = 600;
+    public width: number = 800;
+    public height: number = 600;
+    public x: number = 0;
+    public y: number = 0;
     public alignV: StageAlign = StageAlign.MIDDLE;
     public alignH: StageAlign = StageAlign.CENTER;
     public fallbackWidth: number = 0;
     public fallbackHeight: number = 0;
+    public container: Phaser.GameObjects.Container;
     osd: string = "/";
     res: string = "resources/";
     resUI: string = "resources/ui";
@@ -112,10 +118,10 @@ class DefaultBoudingRectCalculator implements IBoundingRectCalculator {
 
 export class UIStage extends Phaser.Events.EventEmitter {
     protected rootContainer: Phaser.GameObjects.Container;
-    protected uiContainer: Phaser.GameObjects.Container;
-    protected dialogContainer: Phaser.GameObjects.Container;
-    protected tipsContainer: Phaser.GameObjects.Container;
-    protected maskContainer: Phaser.GameObjects.Container;
+    // protected uiContainer: Phaser.GameObjects.Container;
+    // protected dialogContainer: Phaser.GameObjects.Container;
+    // protected tipsContainer: Phaser.GameObjects.Container;
+    // protected maskContainer: Phaser.GameObjects.Container;
 
     protected $options: UIStageOptions;
     protected $width: number = 0;
@@ -130,20 +136,21 @@ export class UIStage extends Phaser.Events.EventEmitter {
 
     private $sizeCalcer: DefaultBoudingRectCalculator = new DefaultBoudingRectCalculator();
 
-    constructor(private scene: Phaser.Scene) {
+    constructor(private scene: Phaser.Scene, rootContainer: Phaser.GameObjects.Container) {
         super();
         UIStageInst.push(this);
-        this.rootContainer = this.scene.add.container(0, 0);
-        this.uiContainer = this.scene.add.container(0, 0);
-        this.dialogContainer = this.scene.add.container(0, 0);
-        this.tipsContainer = this.scene.add.container(0, 0);
-        this.maskContainer = this.scene.add.container(0, 0);
-        this.rootContainer.setInteractive(new Phaser.Geom.Rectangle(0, 0, GRoot.inst.width, GRoot.inst.height), Phaser.Geom.Rectangle.Contains);
-        this.scene.sys.displayList.add(this.rootContainer);
-        this.scene.sys.displayList.add(this.uiContainer);
-        this.scene.sys.displayList.add(this.dialogContainer);
-        this.scene.sys.displayList.add(this.tipsContainer);
-        this.scene.sys.displayList.add(this.maskContainer);
+        this.rootContainer = rootContainer;
+        // this.rootContainer = this.scene.add.container(0, 0);
+        // this.uiContainer = this.scene.add.container(0, 0);
+        // this.dialogContainer = this.scene.add.container(0, 0);
+        // this.tipsContainer = this.scene.add.container(0, 0);
+        // this.maskContainer = this.scene.add.container(0, 0);
+        // this.rootContainer.setInteractive(new Phaser.Geom.Rectangle(0, 0, GRoot.inst.width, GRoot.inst.height), Phaser.Geom.Rectangle.Contains);
+        // this.scene.sys.displayList.add(this.rootContainer);
+        // this.scene.sys.displayList.add(this.uiContainer);
+        // this.scene.sys.displayList.add(this.dialogContainer);
+        // this.scene.sys.displayList.add(this.tipsContainer);
+        // this.scene.sys.displayList.add(this.maskContainer);
     }
 
     public get nativeStage(): Phaser.Input.InputPlugin {
@@ -163,43 +170,48 @@ export class UIStage extends Phaser.Events.EventEmitter {
     }
 
     addChild(child: Phaser.GameObjects.GameObject, type: UISceneDisplay, index: number = -1) {
-        switch (type) {
-            case UISceneDisplay.LAYER_ROOT:
-                if (index < 0) {
-                    this.rootContainer.add(child);
-                } else {
-                    this.rootContainer.addAt(child, index);
-                }
-                break;
-            case UISceneDisplay.LAYER_UI:
-                if (index < 0) {
-                    this.uiContainer.add(child);
-                } else {
-                    this.uiContainer.addAt(child, index);
-                }
-                break;
-            case UISceneDisplay.LAYER_DIALOG:
-                if (index < 0) {
-                    this.dialogContainer.add(child);
-                } else {
-                    this.dialogContainer.addAt(child, index);
-                }
-                break;
-            case UISceneDisplay.LAYER_TOOLTIPS:
-                if (index < 0) {
-                    this.tipsContainer.add(child);
-                } else {
-                    this.tipsContainer.addAt(child, index);
-                }
-                break;
-            case UISceneDisplay.LAYER_MASK:
-                if (index < 0) {
-                    this.maskContainer.add(child);
-                } else {
-                    this.maskContainer.addAt(child, index);
-                }
-                break;
+        if (index < 0) {
+            this.rootContainer.add(child);
+        } else {
+            this.rootContainer.addAt(child, index);
         }
+        // switch (type) {
+        //     case UISceneDisplay.LAYER_ROOT:
+        //         if (index < 0) {
+        //             this.rootContainer.add(child);
+        //         } else {
+        //             this.rootContainer.addAt(child, index);
+        //         }
+        //         break;
+        //     case UISceneDisplay.LAYER_UI:
+        //         if (index < 0) {
+        //             this.uiContainer.add(child);
+        //         } else {
+        //             this.uiContainer.addAt(child, index);
+        //         }
+        //         break;
+        //     case UISceneDisplay.LAYER_DIALOG:
+        //         if (index < 0) {
+        //             this.dialogContainer.add(child);
+        //         } else {
+        //             this.dialogContainer.addAt(child, index);
+        //         }
+        //         break;
+        //     case UISceneDisplay.LAYER_TOOLTIPS:
+        //         if (index < 0) {
+        //             this.tipsContainer.add(child);
+        //         } else {
+        //             this.tipsContainer.addAt(child, index);
+        //         }
+        //         break;
+        //     case UISceneDisplay.LAYER_MASK:
+        //         if (index < 0) {
+        //             this.maskContainer.add(child);
+        //         } else {
+        //             this.maskContainer.addAt(child, index);
+        //         }
+        //         break;
+        // }
     }
 
     removeChild(child: Phaser.GameObjects.GameObject, type: UISceneDisplay) {

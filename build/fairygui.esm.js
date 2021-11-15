@@ -6449,8 +6449,10 @@ class DefaultUIStageOptions {
         this.scaleMode = StageScaleMode.SHOW_ALL;
         this.orientation = StageOrientation.AUTO;
         this.resolution = 1;
-        this.designWidth = 800;
-        this.designHeight = 600;
+        this.width = 800;
+        this.height = 600;
+        this.x = 0;
+        this.y = 0;
         this.alignV = StageAlign.MIDDLE;
         this.alignH = StageAlign.CENTER;
         this.fallbackWidth = 0;
@@ -6498,7 +6500,7 @@ class DefaultBoudingRectCalculator {
     }
 }
 class UIStage extends Phaser.Events.EventEmitter {
-    constructor(scene) {
+    constructor(scene, rootContainer) {
         super();
         this.scene = scene;
         this.$width = 0;
@@ -6510,17 +6512,18 @@ class UIStage extends Phaser.Events.EventEmitter {
         this.offsetY = 0;
         this.$sizeCalcer = new DefaultBoudingRectCalculator();
         UIStageInst.push(this);
-        this.rootContainer = this.scene.add.container(0, 0);
-        this.uiContainer = this.scene.add.container(0, 0);
-        this.dialogContainer = this.scene.add.container(0, 0);
-        this.tipsContainer = this.scene.add.container(0, 0);
-        this.maskContainer = this.scene.add.container(0, 0);
-        this.rootContainer.setInteractive(new Phaser.Geom.Rectangle(0, 0, GRoot.inst.width, GRoot.inst.height), Phaser.Geom.Rectangle.Contains);
-        this.scene.sys.displayList.add(this.rootContainer);
-        this.scene.sys.displayList.add(this.uiContainer);
-        this.scene.sys.displayList.add(this.dialogContainer);
-        this.scene.sys.displayList.add(this.tipsContainer);
-        this.scene.sys.displayList.add(this.maskContainer);
+        this.rootContainer = rootContainer;
+        // this.rootContainer = this.scene.add.container(0, 0);
+        // this.uiContainer = this.scene.add.container(0, 0);
+        // this.dialogContainer = this.scene.add.container(0, 0);
+        // this.tipsContainer = this.scene.add.container(0, 0);
+        // this.maskContainer = this.scene.add.container(0, 0);
+        // this.rootContainer.setInteractive(new Phaser.Geom.Rectangle(0, 0, GRoot.inst.width, GRoot.inst.height), Phaser.Geom.Rectangle.Contains);
+        // this.scene.sys.displayList.add(this.rootContainer);
+        // this.scene.sys.displayList.add(this.uiContainer);
+        // this.scene.sys.displayList.add(this.dialogContainer);
+        // this.scene.sys.displayList.add(this.tipsContainer);
+        // this.scene.sys.displayList.add(this.maskContainer);
     }
     get nativeStage() {
         return this.scene.input;
@@ -6535,48 +6538,49 @@ class UIStage extends Phaser.Events.EventEmitter {
         return this.rootContainer;
     }
     addChild(child, type, index = -1) {
-        switch (type) {
-            case UISceneDisplay.LAYER_ROOT:
-                if (index < 0) {
-                    this.rootContainer.add(child);
-                }
-                else {
-                    this.rootContainer.addAt(child, index);
-                }
-                break;
-            case UISceneDisplay.LAYER_UI:
-                if (index < 0) {
-                    this.uiContainer.add(child);
-                }
-                else {
-                    this.uiContainer.addAt(child, index);
-                }
-                break;
-            case UISceneDisplay.LAYER_DIALOG:
-                if (index < 0) {
-                    this.dialogContainer.add(child);
-                }
-                else {
-                    this.dialogContainer.addAt(child, index);
-                }
-                break;
-            case UISceneDisplay.LAYER_TOOLTIPS:
-                if (index < 0) {
-                    this.tipsContainer.add(child);
-                }
-                else {
-                    this.tipsContainer.addAt(child, index);
-                }
-                break;
-            case UISceneDisplay.LAYER_MASK:
-                if (index < 0) {
-                    this.maskContainer.add(child);
-                }
-                else {
-                    this.maskContainer.addAt(child, index);
-                }
-                break;
+        if (index < 0) {
+            this.rootContainer.add(child);
         }
+        else {
+            this.rootContainer.addAt(child, index);
+        }
+        // switch (type) {
+        //     case UISceneDisplay.LAYER_ROOT:
+        //         if (index < 0) {
+        //             this.rootContainer.add(child);
+        //         } else {
+        //             this.rootContainer.addAt(child, index);
+        //         }
+        //         break;
+        //     case UISceneDisplay.LAYER_UI:
+        //         if (index < 0) {
+        //             this.uiContainer.add(child);
+        //         } else {
+        //             this.uiContainer.addAt(child, index);
+        //         }
+        //         break;
+        //     case UISceneDisplay.LAYER_DIALOG:
+        //         if (index < 0) {
+        //             this.dialogContainer.add(child);
+        //         } else {
+        //             this.dialogContainer.addAt(child, index);
+        //         }
+        //         break;
+        //     case UISceneDisplay.LAYER_TOOLTIPS:
+        //         if (index < 0) {
+        //             this.tipsContainer.add(child);
+        //         } else {
+        //             this.tipsContainer.addAt(child, index);
+        //         }
+        //         break;
+        //     case UISceneDisplay.LAYER_MASK:
+        //         if (index < 0) {
+        //             this.maskContainer.add(child);
+        //         } else {
+        //             this.maskContainer.addAt(child, index);
+        //         }
+        //         break;
+        // }
     }
     removeChild(child, type) {
         child.removeFromUpdateList();
@@ -12438,10 +12442,16 @@ class GRoot extends GComponent {
             this._uiStage.destroy();
         }
         this._stageOptions = stageOptions;
-        this._uiStage = new UIStage(scene);
+        let con = this._stageOptions.container;
+        if (!con) {
+            con = this.scene.add.container(this._stageOptions.x, this._stageOptions.y);
+            con.setSize(this._stageOptions.width, this._stageOptions.height);
+            // con.setInteractive(new Phaser.Geom.Rectangle(con.x, con.y, this._width, this._height), Phaser.Geom.Rectangle.Contains);
+        }
+        this._uiStage = new UIStage(scene, con);
         this._scene.stage = this._uiStage;
-        this._width = stageOptions.designWidth;
-        this._height = stageOptions.designHeight;
+        this._width = stageOptions.width;
+        this._height = stageOptions.height;
         // 初始化场景
         this.createDisplayObject();
         // this._uiStage.addChild(this._container, UISceneDisplay.LAYER_ROOT);

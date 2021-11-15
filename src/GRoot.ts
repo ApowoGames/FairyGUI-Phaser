@@ -91,11 +91,17 @@ export class GRoot extends GComponent {
         }
 
         this._stageOptions = stageOptions;
+        let con = this._stageOptions.container;
+        if (!con) {
+            con = this.scene.add.container(this._stageOptions.x, this._stageOptions.y);
+            con.setSize(this._stageOptions.width, this._stageOptions.height);
+            // con.setInteractive(new Phaser.Geom.Rectangle(con.x, con.y, this._width, this._height), Phaser.Geom.Rectangle.Contains);
+        }
 
-        this._uiStage = new UIStage(scene);
+        this._uiStage = new UIStage(scene, con);
         (<any>this._scene).stage = this._uiStage;
-        this._width = stageOptions.designWidth;
-        this._height = stageOptions.designHeight;
+        this._width = stageOptions.width;
+        this._height = stageOptions.height;
         // 初始化场景
         this.createDisplayObject();
         // this._uiStage.addChild(this._container, UISceneDisplay.LAYER_ROOT);
