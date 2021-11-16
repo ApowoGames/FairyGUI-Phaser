@@ -1,4 +1,4 @@
-import 'phaser';
+import 'phaser3';
 
 var ButtonMode;
 (function (ButtonMode) {
@@ -547,6 +547,84 @@ const LUMA_R = 0.299;
 const LUMA_G = 0.587;
 const LUMA_B = 0.114;
 
+/**
+ * 贴图颜色滤镜 只适用于texture
+ */
+class ColorShaderPipeline extends Phaser.Renderer.WebGL.Pipelines.MultiPipeline {
+    constructor(game) {
+        super({
+            game,
+            fragShader: `
+            precision mediump float;
+            
+            uniform sampler2D uMainSampler[%count%];
+            uniform float r;
+            uniform float g;
+            uniform float b;
+            uniform float a;
+            
+            varying vec2 outTexCoord;
+            varying float outTexId;
+            varying vec4 outTint;
+            varying vec2 fragCoord;
+            
+            void main()
+            {
+                vec4 texture;
+            
+                %forloop%
+            
+                gl_FragColor = texture;
+                gl_FragColor.r = r * gl_FragColor.r;
+                gl_FragColor.g = g * gl_FragColor.g;
+                gl_FragColor.b = b * gl_FragColor.b;
+                gl_FragColor.a = a * gl_FragColor.a;
+            }
+            `,
+            // @ts-ignore
+            uniforms: [
+                'uProjectionMatrix',
+                'uMainSampler',
+                'r',
+                "g",
+                "b",
+                "a"
+            ]
+        });
+        this.renderBoo = false;
+        this._a = 0;
+        this._b = 0;
+        this._g = 0;
+        this._r = 0;
+        this.renderBoo = false;
+    }
+    onPreRender() {
+        if (this.renderBoo)
+            return;
+        this.renderBoo = true;
+        this.set1f("r", this._r);
+        this.set1f("g", this._g);
+        this.set1f("b", this._b);
+        this.set1f("a", this._a);
+    }
+    set r(value) {
+        this._r = value;
+        this.renderBoo = false;
+    }
+    set g(value) {
+        this._g = value;
+        this.renderBoo = false;
+    }
+    set b(value) {
+        this._b = value;
+        this.renderBoo = false;
+    }
+    set a(value) {
+        this._a = value;
+        this.renderBoo = false;
+    }
+}
+
 class ToolSet {
     static startsWith(source, str, ignoreCase) {
         if (!source)
@@ -657,7 +735,7 @@ class ToolSet {
     static distance(x1, y1, x2, y2) {
         return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
     }
-    // public static setColorFilter(obj: Laya.Sprite, color?: string | number[] | boolean): void {
+    // color 默认是十六进制传入
     static setColorFilter(obj, color) {
         // TODO
         var tp = typeof (color);
@@ -667,12 +745,27 @@ class ToolSet {
                 color = "#C0C0C0";
             }
             else {
+                // 传入false，则表示不是灰色，后续操作直接return
                 return;
             }
         }
-        if (obj instanceof Phaser.GameObjects.Image || obj instanceof Phaser.GameObjects.Text) {
-            obj.setTint(color);
+        // @ts-ignore
+        const rgbStr = ToolSet.colorRgb(color);
+        const rgbList = rgbStr.substring(4, rgbStr.lastIndexOf(")")).split(",");
+        const renderer = GRoot.inst.scene.renderer;
+        let colorPipeLine = renderer.pipelines.get(ToolSet.Color);
+        if (!colorPipeLine) {
+            // @ts-ignore
+            colorPipeLine = renderer.pipelines.add(ToolSet.Color, new ColorShaderPipeline(GRoot.inst.scene.game));
         }
+        colorPipeLine.r = parseInt(rgbList[0]) / 255;
+        colorPipeLine.g = parseInt(rgbList[1]) / 255;
+        colorPipeLine.b = parseInt(rgbList[2]) / 255;
+        if (obj instanceof Image)
+            obj.list[0].setPipeline(colorPipeLine);
+        // if (obj instanceof Phaser.GameObjects.Image || obj instanceof Phaser.GameObjects.Text) {
+        //     (<any>obj).setTint(color);
+        // }
         // console.log("todo color filter");
         // throw new Error("TODO");
         // var filter: Laya.ColorFilter = (<any>obj).$_colorFilter_; //cached instance
@@ -735,7 +828,76 @@ class ToolSet {
         // else
         //     filter.setByMatrix(getColorMatrix(toApplyColor[0], toApplyColor[1], toApplyColor[2], toApplyColor[3]));
     }
+    /**
+     * rgb值转换成十六进制
+     * @param rgbStr
+     * @returns
+     */
+    static colorHex(rgbStr) {
+        //十六进制颜色值的正则表达式
+        var reg = /^#([0-9a-fA-f]{3}|[0-9a-fA-f]{6})$/;
+        // 如果是rgb颜色表示
+        if (/^(rgb|RGB)/.test(rgbStr)) {
+            var aColor = rgbStr.replace(/(?:\(|\)|rgb|RGB)*/g, "").split(",");
+            var strHex = "#";
+            for (var i = 0; i < aColor.length; i++) {
+                var hex = Number(aColor[i]).toString(16);
+                if (hex.length < 2) {
+                    hex = '0' + hex;
+                }
+                strHex += hex;
+            }
+            if (strHex.length !== 7) {
+                strHex = rgbStr;
+            }
+            return strHex;
+        }
+        else if (reg.test(rgbStr)) {
+            var aNum = rgbStr.replace(/#/, "").split("");
+            if (aNum.length === 6) {
+                return rgbStr;
+            }
+            else if (aNum.length === 3) {
+                var numHex = "#";
+                for (var i = 0; i < aNum.length; i += 1) {
+                    numHex += (aNum[i] + aNum[i]);
+                }
+                return numHex;
+            }
+        }
+        return rgbStr;
+    }
+    /**
+     * 十六进制转换成rgb值
+     * @param colorStr
+     * @returns
+     */
+    static colorRgb(colorStr) {
+        var sColor = colorStr.toLowerCase();
+        //十六进制颜色值的正则表达式
+        var reg = /^#([0-9a-fA-f]{3}|[0-9a-fA-f]{6})$/;
+        // 如果是16进制颜色
+        if (sColor && reg.test(sColor)) {
+            if (sColor.length === 4) {
+                var sColorNew = "#";
+                for (var i = 1; i < 4; i += 1) {
+                    sColorNew += sColor.slice(i, i + 1).concat(sColor.slice(i, i + 1));
+                }
+                sColor = sColorNew;
+            }
+            //处理六位的颜色值
+            var sColorChange = [];
+            for (var i = 1; i < 7; i += 2) {
+                sColorChange.push(parseInt("0x" + sColor.slice(i, i + 2)));
+            }
+            return "RGB(" + sColorChange.join(",") + ")";
+        }
+        return sColor;
+    }
+    ;
 }
+//
+ToolSet.Color = "color";
 new ColorMatrix();
 
 var CurveType;

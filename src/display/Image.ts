@@ -49,7 +49,6 @@ export class Image extends Phaser.GameObjects.Container {
 
     constructor(scene: Phaser.Scene) {
         super(scene);
-
         // this._renderTexture = this.scene.make.renderTexture(undefined, false);
         // this._renderTexture.setPosition(0, 0);
         // this.add(this._renderTexture);

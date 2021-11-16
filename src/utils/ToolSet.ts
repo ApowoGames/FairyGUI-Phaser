@@ -1,6 +1,10 @@
 import { ColorMatrix } from './ColorMatrix';
 import { GObject } from './../GObject';
+import { ColorShaderPipeline } from "./colorShader/ColorShaderPipeline";
+import { GRoot, Image } from '..';
 export class ToolSet {
+    //
+    public static Color: string = "color";
     public static startsWith(source: string, str: string, ignoreCase?: boolean): boolean {
         if (!source)
             return false;
@@ -126,7 +130,7 @@ export class ToolSet {
         return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
     }
 
-    // public static setColorFilter(obj: Laya.Sprite, color?: string | number[] | boolean): void {
+    // color 默认是十六进制传入
     public static setColorFilter(obj: any, color?: string | number[] | boolean): void {
         // TODO
         var tp: string = typeof (color);
@@ -135,13 +139,27 @@ export class ToolSet {
             if (tp) {
                 color = "#C0C0C0";
             } else {
+                // 传入false，则表示不是灰色，后续操作直接return
                 return;
             }
+        }
 
+        // @ts-ignore
+        const rgbStr = ToolSet.colorRgb(color);
+        const rgbList = rgbStr.substring(4, rgbStr.lastIndexOf(")")).split(",");
+        const renderer = (<Phaser.Renderer.WebGL.WebGLRenderer>GRoot.inst.scene.renderer);
+        let colorPipeLine = renderer.pipelines.get(ToolSet.Color);
+        if (!colorPipeLine) {
+            // @ts-ignore
+            colorPipeLine = renderer.pipelines.add(ToolSet.Color, new ColorShaderPipeline(GRoot.inst.scene.game));
         }
-        if (obj instanceof Phaser.GameObjects.Image || obj instanceof Phaser.GameObjects.Text) {
-            (<any>obj).setTint(color);
-        }
+        (<ColorShaderPipeline>colorPipeLine).r = parseInt(rgbList[0]) / 255;
+        (<ColorShaderPipeline>colorPipeLine).g = parseInt(rgbList[1]) / 255;
+        (<ColorShaderPipeline>colorPipeLine).b = parseInt(rgbList[2]) / 255;
+        if (obj instanceof Image) (<Phaser.GameObjects.Image>obj.list[0]).setPipeline(colorPipeLine);
+        // if (obj instanceof Phaser.GameObjects.Image || obj instanceof Phaser.GameObjects.Text) {
+        //     (<any>obj).setTint(color);
+        // }
         // console.log("todo color filter");
         // throw new Error("TODO");
         // var filter: Laya.ColorFilter = (<any>obj).$_colorFilter_; //cached instance
@@ -210,6 +228,73 @@ export class ToolSet {
         // else
         //     filter.setByMatrix(getColorMatrix(toApplyColor[0], toApplyColor[1], toApplyColor[2], toApplyColor[3]));
     }
+
+
+    /**
+     * rgb值转换成十六进制
+     * @param rgbStr 
+     * @returns 
+     */
+    public static colorHex(rgbStr: string) {
+        //十六进制颜色值的正则表达式
+        var reg = /^#([0-9a-fA-f]{3}|[0-9a-fA-f]{6})$/;
+        // 如果是rgb颜色表示
+        if (/^(rgb|RGB)/.test(rgbStr)) {
+            var aColor = rgbStr.replace(/(?:\(|\)|rgb|RGB)*/g, "").split(",");
+            var strHex = "#";
+            for (var i = 0; i < aColor.length; i++) {
+                var hex = Number(aColor[i]).toString(16);
+                if (hex.length < 2) {
+                    hex = '0' + hex;
+                }
+                strHex += hex;
+            }
+            if (strHex.length !== 7) {
+                strHex = rgbStr;
+            }
+            return strHex;
+        } else if (reg.test(rgbStr)) {
+            var aNum = rgbStr.replace(/#/, "").split("");
+            if (aNum.length === 6) {
+                return rgbStr;
+            } else if (aNum.length === 3) {
+                var numHex = "#";
+                for (var i = 0; i < aNum.length; i += 1) {
+                    numHex += (aNum[i] + aNum[i]);
+                }
+                return numHex;
+            }
+        }
+        return rgbStr;
+    }
+
+    /**
+     * 十六进制转换成rgb值
+     * @param colorStr 
+     * @returns 
+     */
+    public static colorRgb(colorStr: string) {
+        var sColor = colorStr.toLowerCase();
+        //十六进制颜色值的正则表达式
+        var reg = /^#([0-9a-fA-f]{3}|[0-9a-fA-f]{6})$/;
+        // 如果是16进制颜色
+        if (sColor && reg.test(sColor)) {
+            if (sColor.length === 4) {
+                var sColorNew = "#";
+                for (var i = 1; i < 4; i += 1) {
+                    sColorNew += sColor.slice(i, i + 1).concat(sColor.slice(i, i + 1));
+                }
+                sColor = sColorNew;
+            }
+            //处理六位的颜色值
+            var sColorChange = [];
+            for (var i = 1; i < 7; i += 2) {
+                sColorChange.push(parseInt("0x" + sColor.slice(i, i + 2)));
+            }
+            return "RGB(" + sColorChange.join(",") + ")";
+        }
+        return sColor;
+    };
 }
 
 let helper: ColorMatrix = new ColorMatrix();

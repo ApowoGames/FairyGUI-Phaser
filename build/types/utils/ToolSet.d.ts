@@ -1,5 +1,6 @@
 import { GObject } from './../GObject';
 export declare class ToolSet {
+    static Color: string;
     static startsWith(source: string, str: string, ignoreCase?: boolean): boolean;
     static endsWith(source: string, str: string, ignoreCase?: boolean): boolean;
     static trimRight(targetString: string): string;
@@ -13,4 +14,16 @@ export declare class ToolSet {
     static repeat(t: number, length: number): number;
     static distance(x1: number, y1: number, x2: number, y2: number): number;
     static setColorFilter(obj: any, color?: string | number[] | boolean): void;
+    /**
+     * rgb值转换成十六进制
+     * @param rgbStr
+     * @returns
+     */
+    static colorHex(rgbStr: string): string;
+    /**
+     * 十六进制转换成rgb值
+     * @param colorStr
+     * @returns
+     */
+    static colorRgb(colorStr: string): string;
 }

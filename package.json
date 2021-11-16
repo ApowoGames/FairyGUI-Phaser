@@ -19,7 +19,7 @@
     "dts-bundle": "^0.7.3",
     "file-loader": "^6.2.0",
     "genversion": "^2.2.0",
-    "phaser": "^3.55.2",
+    "phaser3": "git+ssh://git@code.apowo.com:opensource/phaser3.git",
     "rimraf": "^3.0.2",
     "rollup": "^2.56.2",
     "rollup-plugin-typescript": "^1.0.1",
