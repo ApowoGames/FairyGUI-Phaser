@@ -137,7 +137,6 @@ export declare class GObject {
     get skewY(): number;
     set skewY(value: number);
     setSkew(sx: number, sy: number): void;
-    protected _adjustTransform(): Phaser.GameObjects.Components.TransformMatrix;
     get pivotX(): number;
     set pivotX(value: number);
     get pivotY(): number;

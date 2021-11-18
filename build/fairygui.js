@@ -3508,41 +3508,13 @@
                 this._skewX = sx;
                 this._skewY = sy;
                 if (this._displayObject) {
-                    this._displayStyle.skewX = -sx,
-                        this._displayStyle.skewY = sy;
-                    this._adjustTransform();
-                    // this._displayObject.skew(-sx, sy);
+                    this._displayStyle.skewX = (-sx * Math.PI) / 180;
+                    this._displayStyle.skewY = (sy * Math.PI) / 180;
+                    this._displayObject.skewX = this._displayStyle.skewX;
+                    this._displayObject.skewY = this._displayStyle.skewY;
                     this.applyPivot();
                 }
             }
-        }
-        _adjustTransform() {
-            var sx = this._displayStyle.scaleX, sy = this._displayStyle.scaleY;
-            var sskx = this._displayStyle.skewX;
-            var ssky = this._displayStyle.skewY;
-            var rot = this._displayStyle.rotation;
-            const m = this._displayObject.getLocalTransformMatrix();
-            // var m: Matrix = this._transform || (this._transform = this._createTransform());
-            if (rot || sx !== 1 || sy !== 1 || sskx !== 0 || ssky !== 0) {
-                // m._bTransform = true;
-                var skx = (rot - sskx) * 0.0174532922222222; //laya.CONST.PI180;
-                var sky = (rot + ssky) * 0.0174532922222222;
-                var cx = Math.cos(sky);
-                var ssx = Math.sin(sky);
-                var cy = Math.sin(skx);
-                var ssy = Math.cos(skx);
-                m.a = sx * cx;
-                m.b = sx * ssx;
-                m.c = -sy * cy;
-                m.d = sy * ssy;
-                m.tx = m.ty = 0;
-            }
-            else {
-                m.loadIdentity();
-                // this._renderType &= ~SpriteConst.TRANSFORM;
-                // this._setRenderType(this._renderType);
-            }
-            return m;
         }
         get pivotX() {
             return this._pivotX;
@@ -3579,12 +3551,12 @@
             if (this._displayObject) {
                 const transform = this._displayObject.getLocalTransformMatrix();
                 if (transform && (this._pivotX != 0 || this._pivotY != 0)) {
-                    sHelperPoint.x = this._pivotX * this._width;
-                    sHelperPoint.y = this._pivotY * this._height;
+                    sHelperPoint.x = this._pivotX * this.initWidth;
+                    sHelperPoint.y = this._pivotY * this.initHeight;
                     const pt = new Phaser.Geom.Point();
-                    transform.transformPoint(this._pivotX * this._width, this._pivotY * this._height, pt);
-                    this._pivotOffsetX = this._pivotX * this._width - pt.x;
-                    this._pivotOffsetY = this._pivotY * this._height - pt.y;
+                    transform.transformPoint(this._pivotX * this.initWidth, this._pivotY * this.initHeight, pt);
+                    this._pivotOffsetX = this.x - pt.x;
+                    this._pivotOffsetY = this.y - pt.y;
                 }
                 else {
                     this._pivotOffsetX = 0;
