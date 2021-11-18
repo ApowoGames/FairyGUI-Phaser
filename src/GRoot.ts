@@ -1,3 +1,4 @@
+import { ObjectType } from './FieldTypes';
 import { ToolSet } from './utils/ToolSet';
 import { GObject } from './GObject';
 import { GGraph } from './GGraph';
@@ -6,7 +7,7 @@ import { GComponent } from "./GComponent";
 import { DisplayObjectEvent } from './event/DisplayObjectEvent';
 import { UIConfig } from './UIConfig';
 import { UIPackage } from './UIPackage';
-import { PopupDirection, Window } from '.';
+import { PopupDirection, RelationType, Window } from '.';
 
 export class GRootMouseStatus {
     public touchDown: boolean = false;
@@ -182,6 +183,7 @@ export class GRoot extends GComponent {
         }
     }
 
+
     public showTooltipsWin(tooltipWin: GObject, xx?: number, yy?: number): void {
         // this.hideTooltips();
 
@@ -236,6 +238,12 @@ export class GRoot extends GComponent {
     public createDisplayObject() {
         this._displayObject = this._uiStage.displayObject;
         this._displayObject["$owner"] = this;
+
+        this._modalLayer = new GGraph(this.scene, ObjectType.Graph);
+        this._modalLayer.setSize(this.width, this.height);
+        this._modalLayer.drawRect(0, null, UIConfig.modalLayerColor);
+        this._modalLayer.addRelation(this, RelationType.Size);
+        this.addToStage(this._modalLayer.displayObject);
         // this._displayObject = this.scene.make.container(undefined, false);
         // this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this._width, this._height), Phaser.Geom.Rectangle.Contains);
         // this._displayObject["$owner"] = this;

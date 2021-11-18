@@ -12,7 +12,7 @@ export class UIConfig {
   public static globalModalWaiting: string;
 
   //When a modal window is in front, the background becomes dark.
-  public static modalLayerColor: string = "rgba(33,33,33,0.2)";
+  public static modalLayerColor: string = "rgba(240,255,255,0.8)";
 
   //Default button click sound
   public static buttonSound: string;

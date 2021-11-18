@@ -1945,7 +1945,7 @@ class UIConfig {
 //Default font name
 UIConfig.defaultFont = "SimSun";
 //When a modal window is in front, the background becomes dark.
-UIConfig.modalLayerColor = "rgba(33,33,33,0.2)";
+UIConfig.modalLayerColor = "rgba(240,255,255,0.8)";
 UIConfig.buttonSoundVolumeScale = 1;
 //Scrolling step in pixels
 UIConfig.defaultScrollStep = 25;
@@ -4906,22 +4906,28 @@ class GGraph extends GObject {
         var h = this.height;
         if (w == 0 || h == 0)
             return;
-        const fillColor = Utils.toNumColor(this._fillColor);
-        const lineColor = Utils.toNumColor(this._lineColor);
-        // ============= 暂时屏蔽 rgba颜色值转换，没必要，简单最好
-        // if (/*Render.isWebGL &&*/ ToolSet.startsWith(fillColor, "rgba")) {
-        //     //webgl下laya未支持rgba格式
-        //     var arr: any[] = fillColor.substring(5, fillColor.lastIndexOf(")")).split(",");
-        //     var a: number = parseFloat(arr[3]);
-        //     if (a == 0)
-        //         fillColor = null;
-        //     else {
-        //         fillColor = Utils.toHexColor((parseInt(arr[0]) << 16) + (parseInt(arr[1]) << 8) + parseInt(arr[2]));
-        //         this.alpha = a;
-        //     }
-        // }
+        let fillColor;
+        let lineColor;
+        if (this._lineColor)
+            lineColor = Utils.toNumColor(this._lineColor);
+        // ============= rgba颜色值转换
+        if ( /*Render.isWebGL &&*/ToolSet.startsWith(this._fillColor, "rgba")) {
+            //webgl下laya未支持rgba格式
+            var arr = this._fillColor.substring(5, this._fillColor.lastIndexOf(")")).split(",");
+            var a = parseFloat(arr[3]);
+            if (a == 0)
+                fillColor = null;
+            else {
+                fillColor = Utils.toNumColor(Utils.toHexColor((parseInt(arr[0]) << 16) + (parseInt(arr[1]) << 8) + parseInt(arr[2])));
+                this.alpha = a;
+            }
+        }
+        else {
+            fillColor = Utils.toNumColor(this._fillColor);
+        }
         this._graphics.fillStyle(fillColor, this.alpha);
-        this._graphics.lineStyle(this._lineSize, lineColor);
+        if (this._lineSize && lineColor)
+            this._graphics.lineStyle(this._lineSize, lineColor);
         if (this._type == 1) {
             // 画圆角
             if (this._cornerRadius) {
@@ -12701,6 +12707,11 @@ class GRoot extends GComponent {
     createDisplayObject() {
         this._displayObject = this._uiStage.displayObject;
         this._displayObject["$owner"] = this;
+        this._modalLayer = new GGraph(this.scene, ObjectType.Graph);
+        this._modalLayer.setSize(this.width, this.height);
+        this._modalLayer.drawRect(0, null, UIConfig.modalLayerColor);
+        this._modalLayer.addRelation(this, RelationType.Size);
+        this.addToStage(this._modalLayer.displayObject);
         // this._displayObject = this.scene.make.container(undefined, false);
         // this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this._width, this._height), Phaser.Geom.Rectangle.Contains);
         // this._displayObject["$owner"] = this;

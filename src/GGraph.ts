@@ -92,22 +92,25 @@ export class GGraph extends GObject {
         if (w == 0 || h == 0)
             return;
 
-        const fillColor = Utils.toNumColor(this._fillColor);
-        const lineColor = Utils.toNumColor(this._lineColor);
-        // ============= 暂时屏蔽 rgba颜色值转换，没必要，简单最好
-        // if (/*Render.isWebGL &&*/ ToolSet.startsWith(fillColor, "rgba")) {
-        //     //webgl下laya未支持rgba格式
-        //     var arr: any[] = fillColor.substring(5, fillColor.lastIndexOf(")")).split(",");
-        //     var a: number = parseFloat(arr[3]);
-        //     if (a == 0)
-        //         fillColor = null;
-        //     else {
-        //         fillColor = Utils.toHexColor((parseInt(arr[0]) << 16) + (parseInt(arr[1]) << 8) + parseInt(arr[2]));
-        //         this.alpha = a;
-        //     }
-        // }
+        let fillColor;
+        let lineColor;
+        if (this._lineColor) lineColor = Utils.toNumColor(this._lineColor);
+        // ============= rgba颜色值转换
+        if (/*Render.isWebGL &&*/ ToolSet.startsWith(this._fillColor, "rgba")) {
+            //webgl下laya未支持rgba格式
+            var arr: any[] = this._fillColor.substring(5, this._fillColor.lastIndexOf(")")).split(",");
+            var a: number = parseFloat(arr[3]);
+            if (a == 0)
+                fillColor = null;
+            else {
+                fillColor = Utils.toNumColor(Utils.toHexColor((parseInt(arr[0]) << 16) + (parseInt(arr[1]) << 8) + parseInt(arr[2])));
+                this.alpha = a;
+            }
+        } else {
+            fillColor = Utils.toNumColor(this._fillColor);
+        }
         this._graphics.fillStyle(fillColor, this.alpha);
-        this._graphics.lineStyle(this._lineSize, lineColor);
+        if (this._lineSize && lineColor) this._graphics.lineStyle(this._lineSize, lineColor);
         if (this._type == 1) {
             // 画圆角
             if (this._cornerRadius) {
