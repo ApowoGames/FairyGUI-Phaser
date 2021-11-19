@@ -7766,7 +7766,7 @@ class UIPackage {
     static getItemAssetByURL(url) {
         var item = UIPackage.getItemByURL(url);
         if (item == null)
-            return null;
+            return Promise.reject(`item ${url} does not exist`);
         return item.owner.getItemAsset(item);
     }
     static normalizeURL(url) {
@@ -12889,8 +12889,8 @@ var TextType;
 class GTextField extends GObject {
     constructor(scene, type) {
         super(scene, type);
-        this._align = "";
-        this._valign = "";
+        this._align = "left";
+        this._valign = "top";
         // console.log("text create", this);
     }
     get font() {
@@ -12959,6 +12959,12 @@ class GTextField extends GObject {
         return 0;
     }
     set stroke(value) {
+    }
+    setStroke(color, thickness) {
+    }
+    setShadowStyle(val) {
+    }
+    setShadowOffset(x, y) {
     }
     get strokeColor() {
         return null;
@@ -13086,7 +13092,7 @@ class GTextField extends GObject {
         iv = buffer.readByte();
         this.align = iv == 0 ? "left" : (iv == 1 ? "center" : "right");
         iv = buffer.readByte();
-        this.valign = iv == 0 ? "top" : (iv == 1 ? "middle" : "bottom");
+        this.valign = iv == 0 ? "top" : (iv == 1 ? "center" : "bottom");
         this.leading = buffer.readShort();
         this.letterSpacing = buffer.readShort();
         this.ubbEnabled = buffer.readBool();
@@ -13096,11 +13102,15 @@ class GTextField extends GObject {
         this.bold = buffer.readBool();
         this.singleLine = buffer.readBool();
         if (buffer.readBool()) {
-            this.strokeColor = buffer.readColorS();
-            this.stroke = buffer.readFloat() + 1;
+            const strokeColor = buffer.readColorS();
+            const stroke = buffer.readFloat() + 1;
+            this.setStroke(strokeColor, stroke);
         }
-        if (buffer.readBool()) //shadow
-            buffer.skip(12);
+        //shadow
+        if (buffer.readBool()) {
+            this.setShadowStyle(buffer.readColorS());
+            this.setShadowOffset(buffer.readFloat(), buffer.readFloat());
+        }
         if (buffer.readBool())
             this._templateVars = {};
         this._touchable = false;
@@ -13120,530 +13130,1957 @@ class GTextField extends GObject {
     }
 }
 
-class UBBParser {
-    constructor() {
-        this._readPos = 0;
-        this.defaultImgWidth = 0;
-        this.defaultImgHeight = 0;
-        this._handlers = {};
-        this._handlers["url"] = this.onTag_URL;
-        this._handlers["img"] = this.onTag_IMG;
-        this._handlers["b"] = this.onTag_B;
-        this._handlers["i"] = this.onTag_I;
-        this._handlers["u"] = this.onTag_U;
-        this._handlers["sup"] = this.onTag_Simple;
-        this._handlers["sub"] = this.onTag_Simple;
-        this._handlers["color"] = this.onTag_COLOR;
-        this._handlers["font"] = this.onTag_FONT;
-        this._handlers["size"] = this.onTag_SIZE;
+//  bitmask flag for GameObject.renderMask
+const _VISIBLE_FLAG = 1;
+const _ALPHA_FLAG = 2; // 0010
+const _TRANSFORM_FLAG = 4; // 0100
+class DisplayObject extends Phaser.GameObjects.GameObject {
+    constructor(scene, type = "DisplayObject") {
+        super(scene, type);
+        this.x = 0;
+        this.y = 0;
+        this.width = 1;
+        this.height = 1;
+        this.flipX = false;
+        this.flipY = false;
+        this.originX = 0.5;
+        this.originY = 0.5;
+        this.scrollFactorX = 1;
+        this.scrollFactorY = 1;
+        this.autoRound = true;
+        this.tintTopLeft = 0xffffff;
+        this.tintTopRight = 0xffffff;
+        this.tintBottomLeft = 0xffffff;
+        this.tintBottomRight = 0xffffff;
+        this.tintFill = false;
+        this._alpha = 1;
+        this._alphaTL = 1;
+        this._alphaTR = 1;
+        this._alphaBL = 1;
+        this._alphaBR = 1;
+        this._visible = true;
+        this._scaleX = 1;
+        this._scaleY = 1;
+        this._rotation = 0;
+        this._displayOriginX = 0;
+        this._displayOriginY = 0;
+        this._originComponent = true;
+        this._blendMode = Phaser.BlendModes.NORMAL;
     }
-    onTag_URL(tagName, end, attr) {
-        if (!end) {
-            if (attr != null)
-                return "<a href=\"" + attr + "\" target=\"_blank\">";
-            else {
-                var href = this.getTagText();
-                return "<a href=\"" + href + "\" target=\"_blank\">";
+    setOrigin(x, y) {
+        if (x === undefined)
+            x = 0.5;
+        if (y === undefined)
+            y = 0.5;
+        this.originX = x;
+        this.originY = y;
+        return this.updateDisplayOrigin();
+    }
+    updateDisplayOrigin() {
+        this._displayOriginX = this.originX * this.width;
+        this._displayOriginY = this.originY * this.height;
+        return this;
+    }
+    setVisible(val) {
+        this.visible = val;
+        return this;
+    }
+    setMask(mask) {
+        this.mask = mask;
+    }
+    clearMask(destroyMask = false) {
+        if (destroyMask && this.mask) {
+            this.mask.destroy();
+        }
+        this.mask = null;
+        return this;
+    }
+    setScale() {
+    }
+    setSize(w, h) {
+        this.width = w;
+        this.height = h;
+        return this;
+    }
+    setPosition(x, y) {
+        this.x = x;
+        this.y = y;
+        return this;
+    }
+    setAlpha(topLeft, topRight, bottomLeft, bottomRight) {
+        if (topLeft === undefined) {
+            topLeft = 1;
+        }
+        if (topRight === undefined) {
+            this.alpha = topLeft;
+        }
+        return this;
+    }
+    getLocalTransformMatrix(tempMatrix) {
+        if (!tempMatrix) {
+            tempMatrix = new Phaser.GameObjects.Components.TransformMatrix();
+        }
+        return tempMatrix.applyITRS(this.x, this.y, this._rotation, this.scaleX, this.scaleY);
+    }
+    getWorldTransformMatrix(tempMatrix, parentMatrix) {
+        if (!tempMatrix) {
+            tempMatrix = new Phaser.GameObjects.Components.TransformMatrix();
+        }
+        if (!parentMatrix) {
+            parentMatrix = new Phaser.GameObjects.Components.TransformMatrix();
+        }
+        let parent = this.parentContainer;
+        if (!parent) {
+            return this.getLocalTransformMatrix(tempMatrix);
+        }
+        tempMatrix.applyITRS(this.x, this.y, this._rotation, this._scaleX, this._scaleY);
+        while (parent) {
+            parentMatrix.applyITRS(parent.x, parent.y, parent.rotation, parent.scaleX, parent.scaleY);
+            parentMatrix.multiply(tempMatrix, tempMatrix);
+            parent = parent.parentContainer;
+        }
+        return tempMatrix;
+    }
+    getLocalPoint(x, y, point, camera) {
+        if (!point)
+            point = new Phaser.Math.Vector2();
+        if (!camera)
+            camera = this.scene.sys.cameras.main;
+        const csx = camera.scrollX;
+        const csy = camera.scrollY;
+        const px = x + (csx * this.scrollFactorX) - csx;
+        const py = y + (csy * this.scrollFactorY) - csy;
+        if (this.parentContainer) {
+            this.getWorldTransformMatrix().applyInverse(px, py, point);
+        }
+        else {
+            Phaser.Math.TransformXY(px, py, this.x, this.y, this._rotation, this.scaleX, this.scaleY, point);
+        }
+        //  Normalize origin
+        if (this._originComponent) {
+            point.x += this._displayOriginX;
+            point.y += this._displayOriginY;
+        }
+        return point;
+    }
+    getParentRotation() {
+        let rotation = 0;
+        let parent = this.parentContainer;
+        while (parent) {
+            rotation += parent.rotation;
+            parent = parent.parentContainer;
+        }
+        return rotation;
+    }
+    initPipeline(pipeline) {
+        if (!pipeline) {
+            pipeline = Phaser.Renderer.WebGL.Pipelines.MULTI_PIPELINE;
+        }
+        const renderer = this.scene.sys.renderer;
+        if (!renderer) {
+            return false;
+        }
+        const pipelines = renderer.pipelines;
+        if (pipelines) {
+            const instance = pipelines.get(pipeline);
+            if (instance) {
+                this.defaultPipeline = instance;
+                this.pipeline = instance;
+                return true;
             }
         }
-        else
-            return "</a>";
+        return false;
     }
-    onTag_IMG(tagName, end, attr) {
-        if (!end) {
-            var src = this.getTagText(true);
-            if (!src)
-                return null;
-            if (this.defaultImgWidth)
-                return "<img src=\"" + src + "\" width=\"" + this.defaultImgWidth + "\" height=\"" + this.defaultImgHeight + "\"/>";
-            else
-                return "<img src=\"" + src + "\"/>";
+    setPipeline(pipeline, pipelineData, copyData = true) {
+        const renderer = this.scene.sys.renderer;
+        if (!renderer) {
+            return this;
         }
-        else
-            return null;
-    }
-    onTag_B(tagName, end, attr) {
-        return end ? ("</span>") : ("<span style='font-weight:bold'>");
-    }
-    onTag_I(tagName, end, attr) {
-        return end ? ("</span>") : ("<span style='font-style:italic'>");
-    }
-    onTag_U(tagName, end, attr) {
-        return end ? ("</span>") : ("<span style='text-decoration:underline'>");
-    }
-    onTag_Simple(tagName, end, attr) {
-        return end ? ("</" + tagName + ">") : ("<" + tagName + ">");
-    }
-    onTag_COLOR(tagName, end, attr) {
-        if (!end) {
-            this.lastColor = attr;
-            return "<span style=\"color:" + attr + "\">";
-        }
-        else
-            return "</span>";
-    }
-    onTag_FONT(tagName, end, attr) {
-        if (!end)
-            return "<span style=\"font-family:" + attr + "\">";
-        else
-            return "</span>";
-    }
-    onTag_SIZE(tagName, end, attr) {
-        if (!end) {
-            this.lastSize = attr;
-            return "<span style=\"font-size:" + attr + "\">";
-        }
-        else
-            return "</span>";
-    }
-    getTagText(remove) {
-        var pos1 = this._readPos;
-        var pos2;
-        var result = "";
-        while ((pos2 = this._text.indexOf("[", pos1)) != -1) {
-            if (this._text.charCodeAt(pos2 - 1) == 92) //\
-             {
-                result += this._text.substring(pos1, pos2 - 1);
-                result += "[";
-                pos1 = pos2 + 1;
+        const pipelines = renderer.pipelines;
+        if (pipelines) {
+            const instance = pipelines.get(pipeline);
+            if (instance) {
+                this.pipeline = instance;
             }
-            else {
-                result += this._text.substring(pos1, pos2);
-                break;
+            if (pipelineData) {
+                this.pipelineData = (copyData) ? Phaser.Utils.Objects.DeepCopy(pipelineData) : pipelineData;
             }
         }
-        if (pos2 == -1)
-            return null;
-        if (remove)
-            this._readPos = pos2;
-        return result;
+        return this;
     }
-    parse(text, remove) {
-        this._text = text;
-        this.lastColor = null;
-        this.lastSize = null;
-        var pos1 = 0, pos2, pos3;
-        var end;
-        var tag, attr;
-        var repl;
-        var func;
-        var result = "";
-        while ((pos2 = this._text.indexOf("[", pos1)) != -1) {
-            if (pos2 > 0 && this._text.charCodeAt(pos2 - 1) == 92) //\
-             {
-                result += this._text.substring(pos1, pos2 - 1);
-                result += "[";
-                pos1 = pos2 + 1;
-                continue;
-            }
-            result += this._text.substring(pos1, pos2);
-            pos1 = pos2;
-            pos2 = this._text.indexOf("]", pos1);
-            if (pos2 == -1)
-                break;
-            end = this._text.charAt(pos1 + 1) == '/';
-            tag = this._text.substring(end ? pos1 + 2 : pos1 + 1, pos2);
-            this._readPos = pos2 + 1;
-            attr = null;
-            repl = null;
-            pos3 = tag.indexOf("=");
-            if (pos3 != -1) {
-                attr = tag.substring(pos3 + 1);
-                tag = tag.substring(0, pos3);
-            }
-            tag = tag.toLowerCase();
-            func = this._handlers[tag];
-            if (func != null) {
-                if (!remove) {
-                    repl = func.call(this, tag, end, attr);
-                    if (repl != null)
-                        result += repl;
-                }
-            }
-            else
-                result += this._text.substring(pos1, this._readPos);
-            pos1 = this._readPos;
+    setPipelineData(key, value) {
+        const data = this.pipelineData;
+        if (value === undefined) {
+            delete data[key];
         }
-        if (pos1 < this._text.length)
-            result += this._text.substr(pos1);
-        this._text = null;
-        return result;
+        else {
+            data[key] = value;
+        }
+        return this;
+    }
+    setBlendMode(val) {
+        this.blendMode = val;
+    }
+    setScrollFactor(x, y) {
+        if (y === undefined) {
+            y = x;
+        }
+        this.scrollFactorX = x;
+        this.scrollFactorY = y;
+        return this;
+    }
+    renderCanvas(renderer, src, camera, parentMatrix) {
+    }
+    renderWebGL(renderer, src, camera, parentMatrix) {
+    }
+    preDestroy() {
+    }
+    set scale(val) {
+        this._scaleX = val;
+        this._scaleY = val;
+        if (val === 0) {
+            this.renderFlags &= ~_TRANSFORM_FLAG;
+        }
+        else {
+            this.renderFlags |= _TRANSFORM_FLAG;
+        }
+    }
+    get scale() {
+        return (this._scaleX + this._scaleY) / 2;
+    }
+    get scaleX() {
+        return this._scaleX;
+    }
+    set scaleX(val) {
+        this._scaleX = val;
+        if (val === 0) {
+            this.renderFlags &= _TRANSFORM_FLAG;
+        }
+        else {
+            this.renderFlags |= _TRANSFORM_FLAG;
+        }
+    }
+    get scaleY() {
+        return this._scaleY;
+    }
+    set scaleY(val) {
+        this._scaleY = val;
+        if (val === 0) {
+            this.renderFlags &= _TRANSFORM_FLAG;
+        }
+        else {
+            this.renderFlags |= _TRANSFORM_FLAG;
+        }
+    }
+    get rotation() {
+        return this._rotation;
+    }
+    set rotation(val) {
+        this._rotation = Phaser.Math.Angle.Wrap(val);
+    }
+    get angle() {
+        return Phaser.Math.Angle.WrapDegrees(this._rotation * Phaser.Math.RAD_TO_DEG);
+    }
+    set angle(val) {
+        this._rotation = Phaser.Math.Angle.WrapDegrees(val) * Phaser.Math.DEG_TO_RAD;
+    }
+    get displayOriginX() {
+        return this._displayOriginX;
+    }
+    set displayOriginX(val) {
+        this._displayOriginX = val;
+        this.originX = val / this.width;
+    }
+    get displayOriginY() {
+        return this._displayOriginY;
+    }
+    set displayOriginY(val) {
+        this._displayOriginY = val;
+        this.originY = val / this.height;
+    }
+    get displayWidth() {
+        return this.width * this.scaleX;
+    }
+    set displayWidth(val) {
+        this.scaleX = val / this.width;
+    }
+    get displayHeight() {
+        return this.height * this.scaleY;
+    }
+    set displayHeight(val) {
+        this.scaleY = val / this.height;
+    }
+    get alpha() {
+        return this._alpha;
+    }
+    set alpha(val) {
+        val = Phaser.Math.Clamp(val, 0, 1);
+        this._alpha = val;
+        if (val === 0) {
+            this.renderFlags &= ~_ALPHA_FLAG;
+        }
+        else {
+            this.renderFlags |= _ALPHA_FLAG;
+        }
+    }
+    get alphaTL() {
+        return this._alphaTL;
+    }
+    get alphaTR() {
+        return this._alphaTR;
+    }
+    get alphaBL() {
+        return this._alphaBL;
+    }
+    get alphaBR() {
+        return this._alphaBR;
+    }
+    get visible() {
+        return this._visible;
+    }
+    set visible(val) {
+        this._visible = val;
+        if (val) {
+            this.renderFlags |= ~_VISIBLE_FLAG;
+        }
+        else {
+            this.renderFlags &= _VISIBLE_FLAG;
+        }
+    }
+    get blendMode() {
+        return this._blendMode;
+    }
+    set blendMode(val) {
+        val |= 0;
+        if (val >= -1) {
+            this._blendMode = val;
+        }
     }
 }
-UBBParser.inst = new UBBParser();
 
-class GRichTextField extends GTextField {
-    constructor(scene, type) {
-        super(scene, type);
-        this._text = "";
+const GETPROP_RESULT = {
+    text: null,
+    prop: null
+};
+class Parser {
+    constructor() {
     }
-    createDisplayObject() {
-        // this._displayObject = this._div = new Laya.HTMLDivElement();
-        // this._displayObject.mouseEnabled = true;
-        // this._displayObject["$owner"] = this;
+    splitText(text, isPlainTextMode = false) {
+        const result = [];
+        let charIdx = 0;
+        while (true) {
+            const arr = RE_SPLITTEXT.exec(text);
+            if (!arr) {
+                break;
+            }
+            const match = arr[0];
+            const matchStart = RE_SPLITTEXT.lastIndex - match.length;
+            if (charIdx < matchStart) {
+                result.push(text.substring(charIdx, matchStart));
+            }
+            if (!isPlainTextMode) {
+                result.push(match);
+            }
+            charIdx = RE_SPLITTEXT.lastIndex;
+        }
+        const totalLen = text.length;
+        if (charIdx < totalLen) {
+            result.push(text.substring(charIdx, totalLen));
+        }
+        return result; // [text, ...]
     }
-    get div() {
-        // throw new Error("TODO");
-        return this._div;
+    tagTextToProp(text, prevProp) {
+        let plainText, innerMatch;
+        if (!prevProp) {
+            prevProp = {};
+        }
+        if (prevProp.img) {
+            if (prevProp.img === true) {
+                this.updateProp(prevProp, PROP_ADD, "img", text);
+            }
+            else {
+                this.updateProp(prevProp, PROP_REMOVE, "img");
+            }
+            plainText = "";
+        }
+        // Check if current fragment is a class tag
+        if (RE_BLOD_OPEN.test(text)) {
+            this.updateProp(prevProp, PROP_ADD, "b", true);
+            plainText = "";
+        }
+        else if (RE_BLOD_CLOSE.test(text)) {
+            this.updateProp(prevProp, PROP_REMOVE, "b");
+            plainText = "";
+        }
+        else if (RE_ITALICS_OPEN.test(text)) {
+            this.updateProp(prevProp, PROP_ADD, "i", true);
+            plainText = "";
+        }
+        else if (RE_ITALICS_CLOSE.test(text)) {
+            this.updateProp(prevProp, PROP_REMOVE, "i");
+            plainText = "";
+        }
+        else if (RE_SIZE_OPEN.test(text)) {
+            innerMatch = text.match(RE_SIZE_OPEN);
+            this.updateProp(prevProp, PROP_ADD, "size", `${innerMatch[1]}px`);
+            plainText = "";
+        }
+        else if (RE_SIZE_CLOSE.test(text)) {
+            this.updateProp(prevProp, PROP_REMOVE, "size");
+            plainText = "";
+        }
+        else if (RE_COLOR_OPEN.test(text)) {
+            innerMatch = text.match(RE_COLOR_OPEN);
+            this.updateProp(prevProp, PROP_ADD, "color", innerMatch[1]);
+            plainText = "";
+        }
+        else if (RE_COLOR_CLOSE.test(text)) {
+            this.updateProp(prevProp, PROP_REMOVE, "color");
+            plainText = "";
+        }
+        else if (RE_UNDERLINE_OPEN.test(text)) {
+            innerMatch = text.match(RE_UNDERLINE_OPEN);
+            this.updateProp(prevProp, PROP_ADD, "u", true);
+            plainText = "";
+        }
+        else if (RE_UNDERLINE_OPENC.test(text)) {
+            innerMatch = text.match(RE_UNDERLINE_OPENC);
+            this.updateProp(prevProp, PROP_ADD, "u", innerMatch[1]);
+            plainText = "";
+        }
+        else if (RE_UNDERLINE_CLOSE.test(text)) {
+            this.updateProp(prevProp, PROP_REMOVE, "u");
+            plainText = "";
+        }
+        else if (RE_SHADOW_OPEN.test(text)) {
+            this.updateProp(prevProp, PROP_ADD, "shadow", true);
+            plainText = "";
+        }
+        else if (RE_SHADOW_CLOSE.test(text)) {
+            this.updateProp(prevProp, PROP_REMOVE, "shadow");
+            plainText = "";
+        }
+        else if (RE_STROKE_OPEN.test(text)) {
+            this.updateProp(prevProp, PROP_ADD, "stroke", true);
+            plainText = "";
+        }
+        else if (RE_STROKE_OPENC.test(text)) {
+            innerMatch = text.match(RE_STROKE_OPENC);
+            this.updateProp(prevProp, PROP_ADD, "stroke", innerMatch[1]);
+            plainText = "";
+        }
+        else if (RE_STROKE_CLOSE.test(text)) {
+            this.updateProp(prevProp, PROP_REMOVE, "stroke");
+            plainText = "";
+        }
+        else if (RE_OFFSETY_OPEN.test(text)) {
+            innerMatch = text.match(RE_OFFSETY_OPEN);
+            this.updateProp(prevProp, PROP_ADD, "y", parseFloat(innerMatch[1]));
+            plainText = "";
+        }
+        else if (RE_OFFSETY_CLOSE.test(text)) {
+            this.updateProp(prevProp, PROP_REMOVE, "y");
+            plainText = "";
+        }
+        else if (RE_IMAGE_OPEN.test(text)) {
+            innerMatch = text.match(RE_IMAGE_OPEN);
+            this.updateProp(prevProp, PROP_ADD, "img", true);
+            plainText = "";
+        }
+        else if (RE_IMAGE_CLOSE.test(text)) {
+            this.updateProp(prevProp, PROP_REMOVE, "img");
+            plainText = "";
+        }
+        else if (RE_URL_OPEN.test(text)) {
+            innerMatch = text.match(RE_URL_OPEN);
+            this.updateProp(prevProp, PROP_ADD, "url", innerMatch[1]);
+            plainText = "";
+        }
+        else if (RE_URL_CLOSE.test(text)) {
+            this.updateProp(prevProp, PROP_REMOVE, "url");
+            plainText = "";
+        }
+        else {
+            plainText = text;
+        }
+        var result = GETPROP_RESULT;
+        result.text = plainText;
+        result.prop = prevProp;
+        return result;
     }
-    set text(value) {
-        this._text = value;
-        var text2 = this._text;
-        if (this._templateVars)
-            text2 = this.parseTemplate(text2);
-        try {
-            this._div.size(this._width, this._height);
-            if (this._ubbEnabled)
-                this._div.innerHTML = UBBParser.inst.parse(text2);
-            else
-                this._div.innerHTML = text2;
-            if (this._widthAutoSize || this._heightAutoSize) {
-                var w, h = 0;
-                if (this._widthAutoSize) {
-                    w = this._div.contextWidth;
-                    if (w > 0)
-                        w += 8;
-                }
-                else
-                    w = this._width;
-                if (this._heightAutoSize)
-                    h = this._div.contextHeight;
-                else
-                    h = this._height;
-                this._updatingSize = true;
-                this.setSize(w, h);
-                this._updatingSize = false;
+    propToContextStyle(defaultStyle, prop) {
+        var _a, _b, _c, _d;
+        const result = {};
+        if (!prop.hasOwnProperty("img")) {
+            result.image = null;
+            // if (prop.hasOwnProperty("family")) {
+            //     result.fontFamily = prop.family;
+            // } else {
+            //     result.fontFamily = defaultStyle.fontFamily;
+            // }
+            result.fontFamily = defaultStyle.fontFamily;
+            result.fontSize = (_a = prop.size) !== null && _a !== void 0 ? _a : defaultStyle.fontSize;
+            result.fontStyle = this.getFontStyle((_b = prop.b) !== null && _b !== void 0 ? _b : defaultStyle.bold, (_c = prop.i) !== null && _c !== void 0 ? _c : defaultStyle.italic);
+            result.font = `${result.fontStyle} ${result.fontSize} ${result.fontFamily}`;
+            result.fillStyle = (_d = prop.color) !== null && _d !== void 0 ? _d : defaultStyle.fillStyle;
+            result.letterSpacing = defaultStyle.letterSpacing;
+            result.lineSpacing = defaultStyle.lineSpacing;
+            if (prop.hasOwnProperty("stroke")) {
+                result.strokeStyle = prop.stroke === true ? defaultStyle.strokeStyle : prop.stroke;
+                // if (prop.stroke === true) {
+                //     result.strokeStyle = defaultStyle.strokeStyle;
+                //     result.strokeThickness = defaultStyle.strokeThickness;
+                // } else {
+                //     result.strokeStyle = prop.stroke;
+                //     result.strokeThickness = defaultStyle.strokeThickness;
+                // }
+            }
+            else {
+                result.strokeStyle = defaultStyle.strokeStyle;
+            }
+            result.strokeThickness = defaultStyle.strokeThickness;
+        }
+        else {
+            result.image = prop.img;
+        }
+        if (prop.hasOwnProperty("shadow")) {
+            if (prop.shadow === true) {
+                result.shadowColor = defaultStyle.shadowColor;
+            }
+            else {
+                result.shadowColor = prop.shadow;
+            }
+            result.shadowStroke = true;
+            result.shadowFill = true;
+        }
+        else {
+            result.shadowBlur = defaultStyle.shadowBlur;
+            result.shadowStroke = defaultStyle.shadowStroke;
+            result.shadowFill = defaultStyle.shadowFill;
+        }
+        result.shadowColor = defaultStyle.shadowColor;
+        result.shadowOffsetX = defaultStyle.shadowOffsetX;
+        result.shadowOffsetY = defaultStyle.shadowOffsetY;
+        if (prop.hasOwnProperty('u')) {
+            if (typeof prop.u === "string") {
+                result.underlineColor = prop.u;
+            }
+            else {
+                result.underlineColor = defaultStyle.fillStyle;
+            }
+            result.underlineThickness = defaultStyle.underlineThickness || 2;
+            result.underlineOffsetY = defaultStyle.underlineOffsetY;
+        }
+        else {
+            result.underlineColor = defaultStyle.underlineColor;
+            result.underlineThickness = defaultStyle.underlineThickness;
+            result.underlineOffsetY = defaultStyle.underlineOffsetY;
+        }
+        if (prop.hasOwnProperty("url")) {
+            result.underlineColor = defaultStyle.fillStyle;
+            result.underlineThickness = 2;
+            result.underlineOffsetY = 5;
+        }
+        result.resolution = defaultStyle.resolution;
+        result.antialias = defaultStyle.antialias;
+        return result;
+    }
+    propToTagText(text, prop, prevProp) {
+        if (prevProp === undefined) {
+            prevProp = EMPTYPROP;
+        }
+        const headers = [];
+        for (const k in prevProp) {
+            if (!prop.hasOwnProperty(k)) {
+                headers.push(`[/${k}]`);
             }
         }
-        catch (err) {
-            console.log("laya reports html error:" + err);
+        for (const k in prop) {
+            const value = prop[k];
+            if (prevProp[k] === value) {
+                continue;
+            }
+            switch (k) {
+                case "size":
+                    headers.push(`[size=${value.replace("px", "")}]`);
+                    break;
+                case "color":
+                case "stroke":
+                case "img":
+                case "url":
+                case "y":
+                    headers.push(`[${k}=${value}]`);
+                    break;
+                case "u":
+                    if (value === true) {
+                        headers.push(`[u]`);
+                    }
+                    else {
+                        headers.push(`[u=${value}]`);
+                    }
+                    break;
+                default:
+                    headers.push(`[${k}]`);
+                    break;
+            }
         }
+        headers.push(text);
+        return headers.join("");
+    }
+    updateProp(prop, op, key, value) {
+        if (op === PROP_ADD) {
+            prop[key] = value;
+        }
+        else {
+            if (prop.hasOwnProperty(key)) {
+                delete prop[key];
+            }
+        }
+    }
+    getFontStyle(isBold, isItalic) {
+        if (isBold && isItalic) {
+            return "bold italic";
+        }
+        if (isBold) {
+            return "bold";
+        }
+        if (isItalic) {
+            return "italic";
+        }
+        return "";
+    }
+}
+const RE_SPLITTEXT = /\[b\]|\[\/b\]|\[i\]|\[\/i\]|\[size=(\d+)\]|\[\/size\]|\[color=([a-z]+|#[0-9abcdef]+)\]|\[\/color\]|\[u\]|\[u=([a-z]+|#[0-9abcdef]+)\]|\[\/u\]|\[shadow\]|\[\/shadow\]|\[stroke\]|\[stroke=([a-z]+|#[0-9abcdef]+)\]|\[\/stroke\]|\[img\]|\[\/img\]|\[url=([^\]]+)\]|\[\/url\]|\[y=([-.0-9]+)\]|\[\/y\]/ig;
+const RE_BLOD_OPEN = /\[b\]/i;
+const RE_BLOD_CLOSE = /\[\/b\]/i;
+const RE_ITALICS_OPEN = /\[i\]/i;
+const RE_ITALICS_CLOSE = /\[\/i\]/i;
+const RE_SIZE_OPEN = /\[size=(\d+)\]/i;
+const RE_SIZE_CLOSE = /\[\/size\]/i;
+const RE_COLOR_OPEN = /\[color=([a-z]+|#[0-9abcdef]+)\]/i;
+const RE_COLOR_CLOSE = /\[\/color\]/i;
+const RE_UNDERLINE_OPEN = /\[u\]/i;
+const RE_UNDERLINE_OPENC = /\[u=([a-z]+|#[0-9abcdef]+)\]/i;
+const RE_UNDERLINE_CLOSE = /\[\/u\]/i;
+const RE_SHADOW_OPEN = /\[shadow\]/i;
+const RE_SHADOW_CLOSE = /\[\/shadow\]/i;
+const RE_STROKE_OPEN = /\[stroke\]/i;
+const RE_STROKE_OPENC = /\[stroke=([a-z]+|#[0-9abcdef]+)\]/i;
+const RE_STROKE_CLOSE = /\[\/stroke\]/i;
+const RE_OFFSETY_OPEN = /\[y=([-.0-9]+)\]/i;
+const RE_OFFSETY_CLOSE = /\[\/y\]/i;
+const RE_IMAGE_OPEN = /\[img\]/i;
+const RE_IMAGE_CLOSE = /\[\/img\]/i;
+const RE_URL_OPEN = /\[url=([^\]]+)\]/i;
+const RE_URL_CLOSE = /\[\/url\]/i;
+const EMPTYPROP = {};
+const PROP_REMOVE = false;
+const PROP_ADD = true;
+
+class Pool {
+    constructor() {
+        this.items = [];
+    }
+    pop() {
+        if (this.items.length) {
+            return this.items.pop();
+        }
+    }
+    push(l) {
+        this.items.push(l);
+        return this;
+    }
+    clear() {
+        this.items.length = 0;
+        return this;
+    }
+    pushMultiple(item) {
+        this.items.push.apply(this.items, item);
+        item.length = 0;
+        return this;
+    }
+    destroy() {
+        this.clear();
+        this.items = undefined;
+    }
+}
+
+var WrapMode;
+(function (WrapMode) {
+    WrapMode[WrapMode["none"] = 0] = "none";
+    WrapMode[WrapMode["word"] = 1] = "word";
+    WrapMode[WrapMode["char"] = 2] = "char";
+})(WrapMode || (WrapMode = {}));
+var NewLineMode;
+(function (NewLineMode) {
+    NewLineMode[NewLineMode["none"] = 0] = "none";
+    NewLineMode[NewLineMode["raw"] = 1] = "raw";
+    NewLineMode[NewLineMode["wrapped"] = 2] = "wrapped";
+})(NewLineMode || (NewLineMode = {}));
+const SplitTextRegExp = /(?:\r\n|\r|\n)/;
+function WrapText(text, getTextWidthCallback, context, wrapMode, wrapWidth, offset = 0) {
+    if (wrapWidth <= 0) {
+        wrapMode = WrapMode.none;
+    }
+    let result = [];
+    if (!text || !text.length) {
+        return result;
+    }
+    let lines = text.split(SplitTextRegExp);
+    let lastLineIdx = lines.length - 1;
+    if (text.slice(-1) === '\n') {
+        lines.length -= 1;
+    }
+    let remainWidth;
+    for (let i = 0, lineCnt = lines.length; i < lineCnt; i++) {
+        let line = lines[i];
+        let newLineMode = (i === lastLineIdx) ? NewLineMode.none : NewLineMode.raw;
+        if (wrapMode === WrapMode.none) {
+            result.push(CreateLineInfo(line, getTextWidthCallback(line, context), newLineMode));
+            continue;
+        }
+        if (i === 0) {
+            remainWidth = wrapWidth - offset;
+        }
+        else {
+            remainWidth = wrapWidth;
+        }
+        // Short string testing
+        if (line.length <= 100) {
+            let textWidth = getTextWidthCallback(line, context);
+            if (textWidth <= remainWidth) {
+                result.push(CreateLineInfo(line, textWidth, newLineMode));
+                continue;
+            }
+        }
+        // Character mode
+        let tokenArray;
+        if (wrapMode === WrapMode.word) { // Word mode            
+            tokenArray = line.split(' ');
+        }
+        else {
+            tokenArray = line;
+        }
+        let curLineText = '', lineText = '', lineWidth = 0;
+        for (let j = 0, tokenLen = tokenArray.length; j < tokenLen; j++) {
+            let token = tokenArray[j];
+            if (wrapMode === WrapMode.word) {
+                curLineText += token;
+                if (j < (tokenLen - 1)) {
+                    curLineText += ' ';
+                }
+            }
+            else {
+                curLineText += token;
+            }
+            let currLineWidth = getTextWidthCallback(curLineText, context);
+            if (currLineWidth > remainWidth) {
+                // new line
+                if (j === 0) {
+                    result.push(CreateLineInfo('', 0, NewLineMode.wrapped));
+                }
+                else {
+                    result.push(CreateLineInfo(lineText, lineWidth, NewLineMode.wrapped));
+                    curLineText = token;
+                    if (wrapMode === WrapMode.word) {
+                        if (j < (tokenLen - 1)) {
+                            curLineText += ' ';
+                        }
+                    }
+                    currLineWidth = getTextWidthCallback(curLineText, context);
+                }
+                remainWidth = wrapWidth;
+            }
+            lineText = curLineText;
+            lineWidth = currLineWidth;
+        } // For token in tokenArray
+        // Flush remain text
+        result.push(CreateLineInfo(lineText, lineWidth, newLineMode));
+    } // For each line in lines
+    return result;
+}
+let CreateLineInfo = function (text, width, newLineMode) {
+    return { text: text, width: width, newLineMode: newLineMode };
+};
+
+class Line {
+    constructor() {
+        this.pens = [];
+    }
+    destroy() {
+        this.pens.length = 0;
+    }
+    addPen(pen) {
+        this.pens.push(pen);
+        return this;
+    }
+    hasPen() {
+        return this.pens.length > 0;
+    }
+    get firstPen() {
+        return this.pens[0];
+    }
+    get lastPen() {
+        return this.pens[this.pens.length - 1];
+    }
+    get pensCounts() {
+        return this.pens.length;
+    }
+    get startIndex() {
+        const firstPen = this.pens[0];
+        return firstPen ? firstPen.startIndex : 0;
+    }
+    get width() {
+        const lastPen = this.lastPen;
+        return lastPen ? lastPen.lastX : 0;
+    }
+}
+
+class Pen {
+    constructor() {
+        this.text = '';
+        this.x = 0;
+        this.y = 0;
+        this.width = 0;
+        this.height = 0;
+        this.ascent = 0;
+        this.descent = 0;
+        this.prop = {};
+        this.newLineMode = NewLineMode.none;
+        this.startIndex = 0;
+    }
+    set(text = '', x = 0, y = 0, width = 0, height = 0, ascent = 0, descent = 0, prop = {}, newLineMode = NewLineMode.none, startIndex = 0) {
+        this.text = text;
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+        this.ascent = ascent;
+        this.descent = descent;
+        this.prop = prop;
+        this.newLineMode = newLineMode;
+        this.startIndex = startIndex;
+        return this;
+    }
+    clone() {
+        const result = new Pen();
+        result.set(this.text, this.x, this.y, this.width, this.height, this.ascent, this.descent, Phaser.Utils.Objects.Clone(this.prop), this.newLineMode, this.startIndex);
+        return result;
+    }
+    get plainText() {
+        return (this.newLineMode === NewLineMode.raw) ? `${this.text}\n` : this.text;
+    }
+    get wrapText() {
+        return (this.newLineMode !== NewLineMode.none) ? `${this.text}\n` : this.text;
+    }
+    get plainTextLength() {
+        let len = this.text.length;
+        if (this.newLineMode === NewLineMode.raw) {
+            len += 1;
+        }
+        return len;
+    }
+    get endIndex() {
+        return this.startIndex + this.plainTextLength;
+    }
+    get lastX() {
+        return this.x + this.width;
+    }
+    get isTextPen() {
+        return this.text !== "";
+    }
+    get isImagePen() {
+        return Boolean(this.prop.img);
+    }
+    get hasAreaMarker() {
+        return Boolean(this.prop.url);
+    }
+}
+
+class PenManager {
+    constructor({ penPool: penPool }) {
+        this.pens = [];
+        this.lines = [];
+        this.penPool = penPool;
+    }
+    destroy() {
+        this.freePens();
+    }
+    freePens() {
+        this.penPool.pushMultiple(this.pens);
+        this.lines.forEach((l) => l.destroy());
+        this.lines.length = 0;
+        this.maxLineWidth = 0;
+        this.totalLineHeight = 0;
+        return this;
+    }
+    getLineStartIndex(index) {
+        if (index >= this.lines.length) {
+            return this.getLineEndIndex(index);
+        }
+        const line = this.lines[index];
+        return (line && line[0]) ? line[0].startIndex : 0;
+    }
+    getLineEndIndex(index) {
+        const len = this.lines.length;
+        if (index >= len) {
+            index = len - 1;
+        }
+        for (let li = index; li >= 0; li--) {
+            let line = this.lines[li];
+            if (line && line.hasPen()) {
+                return line.lastPen.endIndex;
+            }
+        }
+        return 0;
+    }
+    getLineWidth(index) {
+        let line = this.lines[index];
+        return (line) ? line.width : 0; // start from 0
+    }
+    getLineWidths() {
+        const result = [];
+        const len = this.lines.length;
+        for (let i = 0; i < len; i++) {
+            result.push(this.getLineWidth(i));
+        }
+        return result;
+    }
+    addTextPen(text, x, y, width, height, ascent, descent, prop, newLineMode = NewLineMode.none) {
+        let pen = this.penPool.pop();
+        if (!pen) {
+            pen = new Pen();
+        }
+        pen.set(text, x, y, width, height, ascent, descent, prop, newLineMode);
+        this.addPen(pen);
+        return this;
+    }
+    addImagePen(x, y, width, height, prop) {
+        this.addTextPen('', x, y, width, height, height, 0, prop, NewLineMode.none);
+        return this;
+    }
+    addNewLinePen(newLineMode) {
+        let lastPen = this.lastPen;
+        if (lastPen && (lastPen.newLineMode === NewLineMode.none)) {
+            lastPen.newLineMode = newLineMode;
+        }
+        return this;
+    }
+    addPen(pen) {
+        let previousPen = this.lastPen;
+        if (previousPen == null) {
+            pen.startIndex = 0;
+        }
+        else {
+            pen.startIndex = previousPen.endIndex;
+        }
+        this.pens.push(pen);
+        // Maintan lines
+        let line = this.lastLine;
+        if (line == null) {
+            line = new Line();
+            this.lines.push(line);
+        }
+        line.addPen(pen);
+        // New line, add an empty line
+        if (pen.newLineMode !== NewLineMode.none) {
+            line = new Line();
+            this.lines.push(line);
+        }
+        return this;
+    }
+    getSliceTagText(propToTextCallback, propToTextCallbackScope, start = 0, end, wrap = false) {
+        if (end === undefined) {
+            let lastPen = this.lastPen;
+            if (!lastPen) {
+                return "";
+            }
+            end = lastPen.endIndex;
+        }
+        let arr = [];
+        let previousProp;
+        for (var i = 0, len = this.pens.length; i < len; i++) {
+            let pen = this.pens[i];
+            let penEndIdx = pen.endIndex;
+            if (penEndIdx <= start) {
+                continue;
+            }
+            let penTxt = (!wrap) ? pen.plainText : pen.wrapText;
+            let currentProp = pen.prop;
+            let penStartIdx = pen.startIndex;
+            let isInRange = (penStartIdx >= start) && (penEndIdx <= end);
+            if (!isInRange) {
+                penTxt = penTxt.substring(start - penStartIdx, end - penStartIdx);
+            }
+            if (propToTextCallbackScope) {
+                arr.push(propToTextCallback.call(propToTextCallbackScope, penTxt, currentProp, previousProp));
+            }
+            else {
+                arr.push(propToTextCallback(penTxt, currentProp, previousProp));
+            }
+            previousProp = currentProp;
+            if (penEndIdx >= end) {
+                break;
+            }
+        }
+        return arr.join();
+    }
+    clone(targetPenManager) {
+        if (!targetPenManager) {
+            targetPenManager = new PenManager({ penPool: this.penPool });
+        }
+        targetPenManager.freePens();
+        for (const pen of this.pens) {
+            targetPenManager.addPen(pen.clone());
+        }
+        const srcLines = this.lines;
+        const targetLiens = targetPenManager.lines;
+        const len = srcLines.length;
+        for (let i = 0; i < len; i++) {
+            const srcLine = srcLines[i];
+            const targetLine = targetLiens[i];
+            targetLine.y = srcLine.y;
+            targetLine.height = srcLine.height;
+        }
+        return targetPenManager;
+    }
+    get lastPen() {
+        return this.pens[this.pens.length - 1];
+    }
+    get lastLine() {
+        return this.lines[this.lines.length - 1];
+    }
+    get linesCount() {
+        return this.lines.length;
+    }
+    get plainText() {
+        let txt = "";
+        for (const pen of this.pens) {
+            txt += pen.plainText;
+        }
+        return txt;
+    }
+    get rawTextLength() {
+        let len = 0;
+        for (const pen of this.pens) {
+            len += pen.plainTextLength;
+        }
+        return len;
+    }
+}
+
+function SyncFont(context, style) {
+    context.font = style.font;
+}
+function SyncStyle(context, style) {
+    context.textBaseline = "alphabetic";
+    context.textAlign = "start";
+    context.fillStyle = style.fillStyle;
+    context.strokeStyle = style.strokeStyle;
+    context.lineWidth = style.strokeThickness;
+    context.lineCap = "round";
+    context.lineJoin = "round";
+    context.imageSmoothingEnabled = true;
+}
+function SyncShadow(context, style, enable) {
+    if (enable) {
+        context.shadowColor = style.shadowColor;
+        context.shadowBlur = style.shadowBlur;
+        context.shadowOffsetX = style.shadowOffsetX;
+        context.shadowOffsetY = style.shadowOffsetY;
+    }
+    else {
+        context.shadowColor = "#000";
+        context.shadowBlur = 0;
+        context.shadowOffsetX = 0;
+        context.shadowOffsetY = 0;
+    }
+}
+
+function GetTextWidth(text, context) {
+    return context.measureText(text).width;
+}
+function GetTextHeightMetrics(text, context, defaultTextHeight = 0) {
+    let metrics = context.measureText(text);
+    let ascent = metrics.actualBoundingBoxAscent;
+    let descent = metrics.actualBoundingBoxDescent;
+    if ((!ascent && !descent) || text === '') {
+        ascent = defaultTextHeight;
+        descent = 0;
+    }
+    TextHeightResult.ascent = ascent;
+    TextHeightResult.descent = descent;
+    TextHeightResult.height = Math.ceil(Math.abs(ascent) + Math.abs(descent));
+    return TextHeightResult;
+}
+let TextHeightResult = {
+    ascent: 0,
+    descent: 0,
+    height: 0
+};
+
+function UpdatePenManager(penManager, text, canvasText, wrapMode, wrapWidth) {
+    penManager.freePens();
+    if (text === "") {
+        return penManager;
+    }
+    const { context, parent } = canvasText;
+    const matchs = canvasText.parser.splitText(text);
+    let curProp;
+    let wrapLines;
+    let cursorX = 0;
+    for (const match of matchs) {
+        const result = canvasText.parser.tagTextToProp(match, curProp);
+        let plainText = result.text;
+        curProp = result.prop;
+        if (typeof curProp.img === "string") {
+            let imgWidth = 0;
+            let imgHeight = 0;
+            const packageItem = UIPackage.getItemByURL(curProp.img);
+            if (packageItem) {
+                imgWidth = packageItem.width;
+                imgHeight = packageItem.height;
+            }
+            else {
+                imgWidth = 0;
+                imgHeight = 0;
+            }
+            penManager.addImagePen(cursorX, 0, imgWidth, imgHeight, Phaser.Utils.Objects.Clone(curProp));
+            cursorX += imgWidth;
+        }
+        else if (plainText !== "") {
+            context.save();
+            const curStyle = canvasText.parser.propToContextStyle(parent.style, curProp);
+            SyncFont(context, curStyle);
+            SyncStyle(context, curStyle);
+            let strokeThickness = curStyle.strokeThickness;
+            let halfStrokeThickness = strokeThickness >> 1;
+            wrapLines = WrapText(plainText, GetTextWidth, context, wrapMode, wrapWidth, cursorX);
+            // Style of wrapped lines are the same, and has the same text height
+            let textHeightResult = GetTextHeightMetrics('|MÉq', context);
+            for (const n of wrapLines) {
+                const textHeight = textHeightResult.height + strokeThickness;
+                const ascent = textHeightResult.ascent + halfStrokeThickness;
+                const descent = textHeightResult.descent + halfStrokeThickness;
+                penManager.addTextPen(n.text, cursorX, 0, n.width, textHeight, ascent, descent, Phaser.Utils.Objects.Clone(curProp), n.newLineMode);
+                if (n.newLineMode !== NewLineMode.none) {
+                    cursorX = 0;
+                }
+                else {
+                    cursorX += n.width;
+                }
+            }
+            context.restore();
+        }
+    }
+    // Update cursorY of each pen in each line
+    // Update maxLineWidth, totalLineHeight
+    let liens = penManager.lines;
+    let lineSpacing = canvasText.parent.style.lineSpacing;
+    let maxLineWidth = 0;
+    let totalLineHeight = 0;
+    for (const line of liens) {
+        const pens = line.pens;
+        // Get lineHeight and ascentY
+        let ascent = 0;
+        let descent = 0;
+        for (const pen of pens) {
+            ascent = Math.max(ascent, pen.ascent);
+            descent = Math.max(descent, pen.descent);
+        }
+        const currLineHeight = ascent + descent;
+        const cursorY = totalLineHeight + ascent;
+        for (const pen of pens) {
+            pen.y += cursorY;
+        }
+        line.y = cursorY;
+        line.height = currLineHeight;
+        maxLineWidth = Math.max(maxLineWidth, line.width);
+        totalLineHeight += currLineHeight + lineSpacing;
+    }
+    penManager.maxLineWidth = maxLineWidth;
+    penManager.totalLineHeight = totalLineHeight - lineSpacing;
+    return penManager;
+}
+
+class HitAreaManager {
+    constructor() {
+        this.hitAreas = [];
+    }
+    destroy() {
+        this.clear();
+    }
+    clear() {
+        return this;
+    }
+    add(key, x, y, width, height) {
+        const rectangle = new HitAreaRectangle(x, y, width, height);
+        rectangle.key = key;
+        this.hitAreas.push(rectangle);
+        return this;
+    }
+    getFirstHitArea(x, y) {
+        for (const area of this.hitAreas) {
+            if (area.contains(x, y)) {
+                return area;
+            }
+        }
+    }
+}
+class HitAreaRectangle extends Phaser.Geom.Rectangle {
+}
+
+function Draw(canvasText, drawBoundX, drawBoundY, drawBoundWidth, drawBoundHeight, textScrollX = 0, textScrollY = 0, penManager = canvasText.penManager) {
+    if (canvasText.hitAreaManager) {
+        canvasText.hitAreaManager.clear();
+    }
+    let totalLineHeight = penManager.totalLineHeight;
+    if (totalLineHeight === 0) {
+        return;
+    }
+    const clipMode = (drawBoundWidth < canvasText.textWidth) || drawBoundHeight < canvasText.textHeight;
+    const context = canvasText.context;
+    context.save();
+    const parent = canvasText.parent;
+    const style = parent.style;
+    Clear(canvasText);
+    if (clipMode) {
+        context.beginPath();
+        context.rect(drawBoundX, drawBoundY, drawBoundWidth, drawBoundHeight);
+        context.clip();
+    }
+    const hAlign = style.halign;
+    const vAlign = style.valign;
+    // Shift offsetY
+    let offsetY = drawBoundY - textScrollY;
+    switch (vAlign) {
+        case "center":
+            offsetY += (drawBoundHeight - totalLineHeight) / 2;
+            break;
+        case "bottom":
+            offsetY += drawBoundHeight - totalLineHeight - 2;
+            break;
+    }
+    let lineTop = offsetY;
+    const lines = penManager.lines;
+    const drawBoundBottom = drawBoundX + drawBoundHeight;
+    for (const line of lines) {
+        if (lineTop > drawBoundBottom) {
+            // Remainder lines are below draw bound
+            break;
+        }
+        const lineBottom = lineTop + line.height;
+        if (lineBottom < drawBoundY) {
+            // Lines above draw bound
+            lineTop = lineBottom;
+            continue;
+        }
+        let lineWidth = line.width;
+        if (lineWidth === 0) {
+            // Line has no valid text pen
+            lineTop = lineBottom;
+            continue;
+        }
+        // Shift offsetX
+        let offsetX = drawBoundX - textScrollX;
+        switch (hAlign) {
+            case "center":
+                offsetX += (drawBoundWidth - lineWidth) / 2;
+                break;
+            case "right":
+                offsetX += drawBoundWidth - lineWidth;
+                break;
+        }
+        // Draw each pen in this line
+        let pens = line.pens;
+        for (const pen of pens) {
+            DrawPen(canvasText, pen, offsetX, offsetY);
+        }
+        lineTop = lineBottom;
+    }
+    context.restore();
+}
+function DrawPen(canvasText, pen, offsetX, offsetY) {
+    return __awaiter(this, void 0, void 0, function* () {
+        offsetX += pen.x;
+        offsetY += pen.y + (pen.prop.y || 0);
+        const context = canvasText.context;
+        const defaultStyle = canvasText.parent.style;
+        context.save();
+        const curStyle = canvasText.parser.propToContextStyle(defaultStyle, pen.prop);
+        SyncFont(context, curStyle);
+        SyncStyle(context, curStyle);
+        // Underline
+        if ((curStyle.underlineThickness > 0) && (pen.width > 0)) {
+            DrawUnderline(canvasText, offsetX, offsetY, pen.width, curStyle);
+        }
+        // Text
+        if (pen.isTextPen) {
+            DrawText(canvasText, offsetX, offsetY, pen.text, curStyle);
+        }
+        // Image
+        if (pen.isImagePen) {
+            yield DrawImage(canvasText, offsetX, offsetY, pen.prop.img);
+        }
+        context.restore();
+        if (pen.hasAreaMarker && pen.width > 0) {
+            if (!canvasText.hitAreaManager) {
+                canvasText.hitAreaManager = new HitAreaManager();
+            }
+            canvasText.hitAreaManager.add(pen.prop.url, offsetX, offsetY, pen.width, pen.height);
+        }
+    });
+}
+function Clear(canvasText, style) {
+    let canvas = canvasText.canvas, context = canvasText.context;
+    context.clearRect(0, 0, canvas.width, canvas.height);
+}
+function DrawText(canvasText, x, y, text, style) {
+    const context = canvasText.context;
+    const { strokeStyle, strokeThickness, fillStyle } = style;
+    if (strokeStyle && (strokeStyle !== "none" && strokeThickness > 0)) {
+        SyncShadow(context, style, style.shadowFill);
+        context.strokeText(text, x, y);
+    }
+    if (fillStyle && fillStyle !== "none") {
+        SyncShadow(context, style, style.shadowFill);
+        context.fillText(text, x, y);
+    }
+}
+function DrawUnderline(canvasText, x, y, width, style) {
+    y += (style.underlineOffsetY - style.underlineThickness / 2) * style.resolution;
+    const context = canvasText.context;
+    const savedLineCap = context.lineCap;
+    context.lineCap = "butt";
+    context.beginPath();
+    context.strokeStyle = style.underlineColor;
+    context.lineWidth = style.underlineThickness * style.resolution;
+    context.moveTo(x, y);
+    context.lineTo(x + width, y);
+    context.stroke();
+    context.lineCap = savedLineCap;
+}
+function DrawImage(canvasText, x, y, imgKey, style) {
+    const imageManager = canvasText.imageManager;
+    if (!imageManager) {
+        return;
+    }
+    // TODO
+    // const imgInfo = imageManager.get(imgKey);
+    UIPackage.getItemAssetByURL(imgKey);
+    // x += imgInfo.left;
+    // y += imgInfo.y - imgInfo.height;
+    // const context = canvasText.context;
+    // context.drawImage();
+}
+
+class CanvasText {
+    constructor(config) {
+        this._parent = config.parent;
+        this._context = config.context;
+        this._canvas = config.canvas;
+        this._parser = config.parse;
+        this.defaultStyle = this._parent.style;
+        this.autoRound = true;
+        this.penPool = config.pensPool ? config.pensPool : new Pool();
+        this._tmpPenManager = null;
+        this._penManager = new PenManager({ penPool: this.penPool });
+        const context = this._context;
+        this.getTextWidth = function (text) {
+            return context.measureText(text).width;
+        };
+    }
+    updatePenManager(text, wrapMode, wrapWidth, penManager) {
+        return UpdatePenManager(this._penManager, text, this, wrapMode, wrapWidth);
+    }
+    draw(x, y, width, height, textScrollX = 0, textScrollY = 0) {
+        Draw(this, x, y, width, height, textScrollX, textScrollY);
+        return this;
+    }
+    destroy() {
+        this._context = undefined;
+        this._canvas = undefined;
+        this._parser = undefined;
+        this.defaultStyle = undefined;
+        if (this._penManager) {
+            this._penManager.destroy();
+            this._penManager = undefined;
+        }
+        if (this._tmpPenManager) {
+            this._tmpPenManager.destroy();
+            this._tmpPenManager = undefined;
+        }
+        if (this.hitAreaManager) {
+            this.hitAreaManager.destroy();
+            this.hitAreaManager = undefined;
+        }
+    }
+    getPlainText(text, start, end) {
+        let plainText;
+        if (!text) {
+            plainText = this._penManager.plainText;
+        }
+        else {
+            plainText = this._parser.splitText(text, true).join("");
+        }
+        if ((start != null) || (end != null)) {
+            if (start == null) {
+                start = 0;
+            }
+            if (end == null) {
+                end = plainText.length;
+            }
+            plainText = plainText.substring(start, end);
+        }
+        return plainText;
+    }
+    getPenManager(text, retPenManager) {
+        if (!text) {
+            return this.clonePenManager(retPenManager, this._penManager);
+        }
+        if (!retPenManager) {
+            retPenManager = new PenManager({ penPool: this.penPool });
+        }
+        const defaultStyle = this.defaultStyle;
+        this.updatePenManager(text, defaultStyle.wrapMode, defaultStyle.wrapWidth, retPenManager);
+        return retPenManager;
+    }
+    getText(text, start, end, wrap) {
+        if (text == null) {
+            return this._penManager.getSliceTagText(this._parser.propToTagText, this._parser, start, end, wrap);
+        }
+        const penManager = this._tmpPenManager;
+        const defaultStyle = this.defaultStyle;
+        this.updatePenManager(text, defaultStyle.wrapMode, defaultStyle.wrapWidth, penManager);
+        return penManager.getSliceTagText(this._parser.propToTagText, this._parser, start, end, wrap);
+    }
+    clonePenManager(ret, src) {
+        if (src === undefined) {
+            src = this._penManager;
+        }
+        return src.clone(ret);
+    }
+    getLastPen(penManager) {
+        if (penManager === undefined) {
+            penManager = this._penManager;
+        }
+        return penManager.lastPen;
+    }
+    setInteractive() {
+        const parent = this.parent;
+        if (!parent) {
+            return;
+        }
+        parent.off(Phaser.Input.Events.POINTER_DOWN, this.pointerDownHandler, this);
+        parent.off(Phaser.Input.Events.POINTER_UP, this.pointerDownHandler, this);
+        parent.on(Phaser.Input.Events.POINTER_DOWN, this.pointerDownHandler, this);
+        parent.on(Phaser.Input.Events.POINTER_UP, this.pointerUpHandler, this);
+    }
+    clear() {
+        const canvas = this._canvas;
+        this._context.clearRect(0, 0, canvas.width, canvas.height);
+    }
+    pointerDownHandler(pointer, localX, localY, event) {
+        this.fireEvent("areadown", pointer, localX, localY);
+    }
+    pointerUpHandler(pointer, localX, localY, event) {
+        this.fireEvent("areaup", pointer, localX, localY);
+    }
+    fireEvent(eventName, pointer, localX, localY) {
+        if (!this.hitAreaManager) {
+            return;
+        }
+        const area = this.hitAreaManager.getFirstHitArea(localX, localY);
+        if (!area) {
+            return;
+        }
+        const key = area.key;
+        this.parent.emit(`${eventName}-${key}`, pointer, localX, localY);
+        this.parent.emit(eventName, key, pointer, localX, localY);
+    }
+    get imageManager() {
+        return this.parent.imageManager;
+    }
+    get startXOffset() {
+        return this.defaultStyle.strokeThickness / 2;
+    }
+    get startYOffset() {
+        const defaultStyle = this.defaultStyle;
+        return defaultStyle.strokeThickness / 2 + defaultStyle.metrics.ascent;
+    }
+    get lines() {
+        return this._penManager.lines;
+    }
+    get context() {
+        return this._context;
+    }
+    get canvas() {
+        return this._canvas;
+    }
+    get penManager() {
+        return this._penManager;
+    }
+    get textWidth() {
+        return this.penManager.maxLineWidth;
+    }
+    get textHeight() {
+        return this.penManager.totalLineHeight;
+    }
+    get parent() {
+        return this._parent;
+    }
+    get parser() {
+        return this._parser;
+    }
+}
+
+class ImageManager {
+    constructor() {
+        this.images = new Map();
+    }
+    add(key, config) {
+        if (typeof key === "string") {
+            this._add(key, config);
+        }
+        else if (Array.isArray(key)) {
+            for (const k of key) {
+                this._add(k);
+            }
+        }
+        else {
+            const data = key;
+            for (const key in data) {
+                this._add(key, data[key]);
+            }
+        }
+        return this;
+    }
+    remove(key) {
+        this.images.delete(key);
+        return this;
+    }
+    get(key) {
+        return this.images.get(key);
+    }
+    destroy() {
+        this.images.clear();
+    }
+    getOuterWidth(key) {
+        const imageInfo = this.images.get(key);
+        return imageInfo ? (imageInfo.width + imageInfo.left + imageInfo.right) : 0;
+    }
+    getOuterHeight(key) {
+        const imageInfo = this.images.get(key);
+        return imageInfo ? (imageInfo.height + imageInfo.top + imageInfo.bottom) : 0;
+    }
+    _add(key, config) {
+        // TODO add image
+    }
+}
+
+function TextCanvasRenderer(renderer, src, camera, parentMatrix) {
+    if (src.width === 0 || src.height === 0) {
+        return;
+    }
+    camera.addToRenderList(src);
+    renderer.batchSprite(src, src.frame, camera, parentMatrix);
+}
+
+function TextWebGLRenderer(renderer, src, camera, parentMatrix) {
+    if (src.width === 0 || src.height === 0) {
+        return;
+    }
+    camera.addToRenderList(src);
+    var frame = src.frame;
+    var width = frame.width;
+    var height = frame.height;
+    var getTint = Phaser.Renderer.WebGL.Utils.getTintAppendFloatAlpha;
+    var pipeline = renderer.pipelines.set(src.pipeline, src);
+    var textureUnit = pipeline.setTexture2D(frame.glTexture);
+    renderer.pipelines.preBatch(src);
+    pipeline.batchTexture(src, frame.glTexture, width, height, src.x, src.y, width, height, src.scaleX, src.scaleY, src.rotation, src.flipX, src.flipY, src.scrollFactorX, src.scrollFactorY, src.displayOriginX, src.displayOriginY, 0, 0, width, height, getTint(src.tintTopLeft, camera.alpha * src.alphaTL), getTint(src.tintTopRight, camera.alpha * src.alphaTR), getTint(src.tintBottomLeft, camera.alpha * src.alphaBL), getTint(src.tintBottomRight, camera.alpha * src.alphaBR), 0, 0, 0, camera, parentMatrix, false, textureUnit);
+    renderer.pipelines.postBatch(src);
+}
+
+const CONST = {
+    // new line mode
+    NO_NEWLINE: 0,
+    RAW_NEWLINE: 1,
+    WRAPPED_NEWLINE: 2,
+    // wrap mode
+    NO_WRAP: 0,
+    WORD_WRAP: 1,
+    CHAR_WRAP: 2,
+    // split lines
+    SPLITREGEXP: /(?:\r\n|\r|\n)/
+};
+
+class TextStyle {
+    constructor(text, style) {
+        this.fontFamily = UIConfig.defaultFont;
+        this.fontSize = "16px";
+        this.fontStyle = "";
+        this.bold = false;
+        this.italic = false;
+        this.fillStyle = "#000";
+        this.strokeStyle = "#000";
+        this.strokeThickness = 0;
+        // shadow
+        this.shadowOffsetX = 0;
+        this.shadowOffsetY = 0;
+        this.shadowColor = "#000";
+        this.shadowBlur = 0;
+        this.shadowStroke = false;
+        this.shadowFill = false;
+        this.underlineThickness = 0;
+        this.underlineOffsetY = 5;
+        // align
+        this.halign = "left";
+        this.valign = "top";
+        // size
+        this.fixedWidth = 0;
+        this.fixedHeight = 0;
+        this.resolution = 1;
+        this.lineSpacing = 0;
+        this.letterSpacing = 0;
+        this.rtl = false;
+        this.antialias = true;
+        this.parent = text;
+        this.setStyle(style);
+        const metrics = style.metrics;
+        if (metrics) {
+            this._metrics = {
+                ascent: metrics.ascent || 0,
+                descent: metrics.descent || 0,
+                fontSize: metrics.fontSize || 0
+            };
+        }
+    }
+    setStyle(style, updateText = true) {
+        if (style && style.hasOwnProperty("wrap")) ;
+        if (style && style.fontSize && typeof style.fontSize === "number") {
+            style.fontSize = style.fontSize.toString() + "px";
+        }
+    }
+    update(recalculateMetrics) {
+        if (recalculateMetrics) {
+            this._font = `${this.fontStyle} ${this.fontSize} ${this.fontFamily}`;
+            // TODO
+            // this.metrics = Phaser.GameObjects.MeasureText(this);
+        }
+        return this.parent.updateText(recalculateMetrics);
+    }
+    buildFont() {
+        const newFont = this.fontStyle + " " + this.fontSize + " " + this.fontFamily;
+        if (newFont !== this._font) {
+            this._font = newFont;
+        }
+        return this;
+    }
+    setFont(font) {
+        return this.update(true);
+    }
+    setFontFamily(family) {
+        this.fontFamily = family;
+        return this.update(true);
+    }
+    setFontStyle(style) {
+        this.fontStyle = style;
+        return this.update(true);
+    }
+    setFontSize(size) {
+        if (typeof size === "number") {
+            size = size.toString() + "px";
+        }
+        this.fontSize = size;
+        return this.update(true);
+    }
+    setFixedSize(width, height) {
+        this.fixedWidth = width;
+        this.fixedHeight = height;
+        if (width) {
+            this.parent.width = width;
+        }
+        if (height) {
+            this.parent.height = height;
+        }
+        return this.update(this.isWrapFitMode);
+    }
+    setFill(color) {
+    }
+    setLineSpacing(value) {
+        this.lineSpacing = value;
+        this.update(false);
+    }
+    setStroke(style, thickness) {
+        this.strokeStyle = style;
+        this.strokeThickness = thickness;
+        // return this.update(true);
+    }
+    setUnderLine(color, o) {
+        this.underlineColor = color;
+        // this.underlineOffset = offset;
+        // this.underlineThickness = thickness;
+    }
+    setSingleLine(value) {
+    }
+    get canvas() {
+        return this.parent.canvasText.canvas;
+    }
+    get context() {
+        return this.parent.canvasText.context;
+    }
+    get isWrapFitMode() {
+        return (this.fixedWidth > 0) && (this.wrapMode !== CONST.NO_WRAP) && (this.wrapWidth === 0);
+    }
+    get lineHeight() {
+        return this._metrics.fontSize + this.strokeThickness + this.lineSpacing;
+    }
+    get metrics() {
+        return this._metrics;
+    }
+}
+
+class TextField extends DisplayObject {
+    constructor(scene) {
+        super(scene, "TextField");
+        this.renderer = scene.sys.game.renderer;
+        this.canvas = Phaser.Display.Canvas.CanvasPool.create(this);
+        this.context = this.canvas.getContext("2d");
+        this._text = undefined;
+        this.width = 1;
+        this.height = 1;
+        this._style = new TextStyle(this, {});
+        this.dirty = false;
+        this.texture = scene.sys.textures.addCanvas(null, this.canvas, true);
+        this.frame = this.texture.get();
+        this.frame.source.resolution = this._style.resolution;
+        const webglRenderer = this.renderer;
+        if (webglRenderer && webglRenderer.gl) {
+            webglRenderer.deleteTexture(this.frame.source.glTexture);
+            this.frame.source.glTexture = null;
+        }
+        this.setOrigin(0, 0);
+        this.initPipeline();
+        this.setPosition(0, 0);
+        this.padding = new Phaser.Geom.Rectangle();
+        this._canvasText = new CanvasText({
+            parent: this,
+            canvas: this.canvas,
+            context: this.context,
+            parse: new Parser(),
+        });
+        this.scene.sys.game.events.on(Phaser.Core.Events.CONTEXT_RESTORED, this.onContextRestored, this);
+        this.on("areadown", (pointer, localX, localY, event) => {
+            console.log("areadown: ", pointer, localX, localY);
+        }, this);
+    }
+    setText(value) {
+        if (!value) {
+            value = "";
+        }
+        if (Array.isArray(value)) {
+            value = value.join("\n");
+        }
+        if (value !== this._text) {
+            this._text = value;
+            this.updateText();
+        }
+        return this;
+    }
+    // public setStyle(style) {
+    //     this._style.setStyle(style);
+    //     return this;
+    // }
+    // public setFont(font) {
+    //     this._style.setFont(font);
+    //     return this;
+    // }
+    addImage(key, config) {
+        this.imageManager.add(key, config);
+        return this;
+    }
+    drawAreaBounds(graphics, color) {
+        // TODO
+        return this;
+    }
+    updateText(runWrap = true) {
+        if (this._text === undefined) {
+            return;
+        }
+        const canvasText = this.canvasText;
+        const style = this._style;
+        if (runWrap) {
+            canvasText.updatePenManager(this._text, style.wrapMode, style.wrapWidth);
+        }
+        const padding = this.padding;
+        let textWidth, textHeight;
+        if (style.fixedWidth === 0) {
+            textWidth = canvasText.textWidth;
+            this.width = textWidth + padding.left + padding.right;
+        }
+        else {
+            this.width = style.fixedWidth;
+            textWidth = this.width - padding.left - padding.right;
+            if (textWidth > canvasText.textWidth) {
+                textWidth = canvasText.textWidth;
+            }
+        }
+        if (style.fixedHeight === 0) {
+            textHeight = canvasText.textHeight;
+            this.height = textHeight + padding.top + padding.bottom;
+        }
+        else {
+            this.height = style.fixedHeight;
+            textHeight = this.height - padding.top - padding.bottom;
+            if (textHeight < canvasText.textHeight) {
+                textHeight = canvasText.textHeight;
+            }
+        }
+        let w = this.width;
+        let h = this.height;
+        this.updateDisplayOrigin();
+        const resolution = style.resolution;
+        w *= resolution;
+        h *= resolution;
+        w = Math.max(Math.ceil(w), 1);
+        h = Math.max(Math.ceil(h), 1);
+        const canvas = this.canvas;
+        const context = this.context;
+        if (canvas.width !== w || canvas.height !== h) {
+            canvas.width = w;
+            canvas.height = h;
+            this.frame.setSize(w, h);
+        }
+        else {
+            context.clearRect(0, 0, w, h);
+        }
+        context.save();
+        context.scale(resolution, resolution);
+        // draw
+        canvasText.draw(padding.left, padding.top, textWidth, textHeight);
+        context.restore();
+        const webglRenderer = this.renderer;
+        if (webglRenderer.gl) {
+            this.frame.source.glTexture = webglRenderer.canvasToTexture(canvas, this.frame.source.glTexture, true);
+            this.frame.glTexture = this.frame.source.glTexture;
+        }
+        this.dirty = true;
+        const input = this.input;
+        if (input && !input.customHitArea) {
+            input.hitArea.width = this.width;
+            input.hitArea.height = this.height;
+        }
+        return this;
+    }
+    setWordWrapWidth(width, useAdvancedWrap) {
+        this._style.wrapMode = WrapMode.char;
+        this._style.wrapWidth = width;
+    }
+    setSingleLine(val) {
+        this._style.wrapMode = val ? WrapMode.none : WrapMode.char;
+    }
+    setInteractive(hitArea, callback, dropZone) {
+        super.setInteractive(hitArea, callback, dropZone);
+        this.canvasText.setInteractive();
+        return this;
+    }
+    renderCanvas(renderer, src, camera, parentMatrix) {
+        TextCanvasRenderer(renderer, src, camera, parentMatrix);
+    }
+    renderWebGL(renderer, src, camera, parentMatrix) {
+        TextWebGLRenderer(renderer, src, camera, parentMatrix);
+    }
+    setColor(val) {
+        this._style.fillStyle = val;
+        this.updateText();
+    }
+    setAlign(val) {
+        this._style.halign = val;
+    }
+    setVAlign(val) {
+        this._style.valign = val;
+    }
+    setBold(val) {
+        this._style.bold = val;
+    }
+    setItalic(val) {
+        this._style.italic = val;
+    }
+    setUnderline(thickness = 2, style, offsetY) {
+        if (!style) {
+            style = this._style.fillStyle;
+        }
+        const _style = this._style;
+        _style.underlineColor = style;
+        _style.underlineThickness = thickness;
+        if (offsetY)
+            _style.underlineOffsetY = offsetY;
+    }
+    setShadowStyle(color) {
+        this._style.shadowColor = color;
+    }
+    setShadowOffset(x, y) {
+        this._style.shadowFill = (x !== 0 || y !== 0);
+        this._style.shadowOffsetX = x;
+        this._style.shadowOffsetY = y;
+    }
+    setShadowFill(val) {
+        this._style.shadowFill = val;
+    }
+    setLetterSpacing(val) {
+        this._style.letterSpacing = val;
+    }
+    setStroke(color, thickness) {
+        this._style.setStroke(color, thickness);
+    }
+    setLineSpacing(val) {
+        this._style.lineSpacing = val;
+    }
+    setFont(font) {
+        this._style.fontFamily = font;
+    }
+    setFontSize(fontSize) {
+        if (typeof fontSize === "number") {
+            fontSize = fontSize + "px";
+        }
+        this._style.fontSize = fontSize;
+    }
+    setValign(val) {
+        this._style.valign = val;
+    }
+    onContextRestored() {
+        this.dirty = true;
+    }
+    preDestroy() {
+        if (this._canvasText) {
+            this._canvasText.destroy();
+            this._canvasText = undefined;
+        }
+        if (this._imageManager) {
+            this._imageManager.destroy();
+            this._imageManager = undefined;
+        }
+        super.preDestroy();
+        this.scene.sys.game.events.off(Phaser.Core.Events.CONTEXT_RESTORED, this.onContextRestored, this);
+    }
+    get imageManager() {
+        if (!this._imageManager) {
+            this._imageManager = new ImageManager();
+        }
+        return this._imageManager;
+    }
+    get canvasText() {
+        return this._canvasText;
+    }
+    get style() {
+        return this._style;
     }
     get text() {
         return this._text;
     }
-    get font() {
-        return this._div.style.font;
-    }
-    set font(value) {
-        if (value)
-            this._div.style.font = value;
-        else
-            this._div.style.font = UIConfig.defaultFont;
-    }
-    get fontSize() {
-        return this._div.style.fontSize;
-    }
-    set fontSize(value) {
-        this._div.style.fontSize = value;
-    }
-    get color() {
-        return this._div.style.color;
-    }
-    set color(value) {
-        if (this._div.style.color != value) {
-            this._div.style.color = value;
-            this.refresh();
-            this.updateGear(4);
-        }
-    }
-    get align() {
-        return this._div.style.align;
-    }
-    set align(value) {
-        if (this._div.style.align != value) {
-            this._div.style.align = value;
-            this.refresh();
-        }
-    }
-    get valign() {
-        return this._div.style.valign;
-    }
-    set valign(value) {
-        if (this._div.style.valign != value) {
-            this._div.style.valign = value;
-            this.refresh();
-        }
-    }
-    get leading() {
-        return this._div.style.leading;
-    }
-    set leading(value) {
-        if (this._div.style.leading != value) {
-            this._div.style.leading = value;
-            this.refresh();
-        }
-    }
-    get bold() {
-        return this._div.style.bold;
-    }
-    set bold(value) {
-        if (this._div.style.bold != value) {
-            this._div.style.bold = value;
-            this.refresh();
-        }
-    }
-    get italic() {
-        return this._div.style.italic;
-    }
-    set italic(value) {
-        if (this._div.style.italic != value) {
-            this._div.style.italic = value;
-            this.refresh();
-        }
-    }
-    get stroke() {
-        return this._div.style.stroke;
-    }
-    set stroke(value) {
-        if (this._div.style.stroke != value) {
-            this._div.style.stroke = value;
-            this.refresh();
-        }
-    }
-    get strokeColor() {
-        return this._div.style.strokeColor;
-    }
-    set strokeColor(value) {
-        if (this._div.style.strokeColor != value) {
-            this._div.style.strokeColor = value;
-            this.refresh();
-            this.updateGear(4);
-        }
-    }
-    set ubbEnabled(value) {
-        this._ubbEnabled = value;
-    }
-    get ubbEnabled() {
-        return this._ubbEnabled;
-    }
-    get textWidth() {
-        var w = this._div.contextWidth;
-        if (w > 0)
-            w += 8;
-        return w;
-    }
-    refresh() {
-        if (this._text.length > 0 && this._div._refresh)
-            this._div._refresh();
-    }
-    updateAutoSize() {
-        this._div.style.wordWrap = !this._widthAutoSize;
-    }
-    handleSizeChanged() {
-        if (this._updatingSize)
-            return;
-        this._div.size(this._width, this._height);
-        this._div.style.width = this._width;
-        this._div.style.height = this._height;
-    }
-}
-
-class TextField extends Phaser.GameObjects.Text {
-    constructor(owner) {
-        super(owner.scene, 0, 0, "", undefined);
-        this._owner = owner;
-    }
-    baseTypeset() {
-        this._lock = true;
-        this.typeset();
-        this._lock = false;
-    }
-    typeset() {
-        // this._sizeDirty = true; //阻止SIZE_DELAY_CHANGE的触发
-        // super.typeset();
-        // if (!this._lock)
-        //     this._owner.typeset();
-        // if (this._isChanged) {
-        //     Laya.timer.clear(this, this.typeset);
-        //     this._isChanged = false;
-        // }
-        this._sizeDirty = false;
-        this.setChanged();
-    }
-    setChanged() {
-        this.isChanged = true;
-    }
-    set isChanged(value) {
-        if (value && !this._sizeDirty) {
-            if (this._owner.autoSize != AutoSizeType.None && this._owner.parent) {
-                this._sizeDirty = true;
-                this.emit(DisplayObjectEvent.SIZE_DELAY_CHANGE);
-            }
-        }
-        super["isChanged"] = value;
-    }
-}
-
-class InputTextField extends TextField {
-    constructor(owner) {
-        super(owner);
-        this._text2 = "";
-        this.editable = true;
-        this.setOrigin(0);
-    }
-    onFocusHandler() {
-        if (!this.editable || this._editing)
-            return;
-        // if (!this._font)
-        //     this.applyFormat();
-        if (!this._element)
-            this.createElement();
-        this._element.setVisible(true);
-        const inputElement = this._element.node;
-        inputElement.value = this._text2;
-        inputElement.style.fontSize = this.style.fontSize;
-        inputElement.style.textAlign = this.style.align;
-        if (this.maxLength !== undefined)
-            inputElement.maxLength = this.maxLength;
-        this.scene.input.on("pointerdown", this.onPointerSceneHandler, this);
-        inputElement.focus();
-        this.disableInteractive();
-        this._editing = true;
-        this.setVisible(false);
-    }
-    onBlurHandler() {
-        this.scene.input.off("pointerdown", this.onPointerSceneHandler, this);
-        this._inputNode.blur();
-        this._element.setVisible(false);
-        this.setInteractive();
-        this._text2 = this._inputNode.value;
-        this._inputNode = null;
-        this._element.destroy();
-        this._element = null;
-        this._editing = false;
-        this.updateTextField();
-        this.setVisible(true);
-    }
-    createElement() {
-        this._element = new Phaser.GameObjects.DOMElement(this.scene);
-        let e;
-        // if (this["$owner"].singleLine) {
-        {
-            e = document.createElement("input");
-        }
-        this._inputNode = e;
-        e.style.outline = "none";
-        e.style.borderWidth = "0px";
-        e.style.padding = "0px";
-        e.style.margin = "0px";
-        e.style.position = "absolute";
-        e.style.display = "none";
-        e.style.background = 'transparent';
-        e.style.transformOrigin = e.style["WebkitTransformOrigin"] = "0 0 0";
-        e.style.width = `${this._width}px`;
-        e.style.height = `${this._height}px`;
-        this._element.setElement(e);
-        this._element.setOrigin(this.originX, this.originY);
-        this._element.setPosition(this.x, this.y);
-        this.parentContainer.add(this._element);
-    }
-    updateTextField() {
-        if (this._editing)
-            this._inputNode.value = this._text2;
-        else if (this._text2.length === 0 && this._promptText) ;
-        else if (this.password) {
-            super.setText("*".repeat(this._text2.length));
-        }
-        else {
-            super.setText(this._text2);
-        }
-    }
-    /**
-     * Don"t propagate touch/mouse events to parent(game canvas)
-     * @param element
-     */
-    stopPropagationTouchEvents(e) {
-        const callback = function (e) {
-            e.stopPropagation();
-        };
-        // Don't propagate touch/mouse events to parent(game canvas)
-        e.addEventListener("touchstart", callback, false);
-        e.addEventListener("touchmove", callback, false);
-        e.addEventListener("touchend", callback, false);
-        e.addEventListener("mousedown", callback, false);
-        e.addEventListener("mouseup", callback, false);
-        e.addEventListener("mousemove", callback, false);
-    }
-    routeEvents(gameObject, element, elementEvents) {
-        for (let eventName in elementEvents) { // Note: Don't use `var` here
-            element[elementEvents[eventName]] = function (e) {
-                gameObject.emit(eventName, gameObject, e);
-            };
-        }
-    }
-    getText() {
-        if (this._editing) {
-            this._text2 = this._element.node.value;
-        }
-        return this._text2;
-    }
-    setText(value) {
-        this._text2 = value;
-        this.updateTextField();
-        if (value) {
-            this.setInteractive();
-            this.on("pointerup", this.onFocusHandler, this);
-        }
-        return this;
-    }
-    selectText() {
-        if (this._inputNode)
-            this._inputNode.select();
-        return this;
-    }
-    get placeholder() {
-        return this._promptText;
-    }
-    set placeholder(value) {
-        // this._inputNode.placeholder = value;
-        this._promptText = value;
-        if (this._editing) {
-            this._inputNode.placeholder = this._promptText;
-        }
-    }
-    setPlaceholder(value) {
-        this.placeholder = value;
-        return this;
-    }
-    setEnabled(enabled) {
-        if (enabled === undefined) {
-            enabled = true;
-        }
-        this._inputNode.disabled = !enabled;
-        return this;
-    }
-    setBlur() {
-        this._inputNode.blur();
-        return this;
-    }
-    setFocus() {
-        this._inputNode.focus();
-        return this;
-    }
-    setSize(width, height) {
-        if (this.scene.scale.autoRound) {
-            width = Math.floor(width);
-            height = Math.floor(height);
-        }
-        if (this._width === width && this._height === height) {
-            return;
-        }
-        this._width = width;
-        this._height = height;
-        super.setSize(width, height);
-        if (this._inputNode) {
-            const style = this._inputNode.style;
-            style.width = `${width}px`;
-            style.height = `${height}px`;
-        }
-        // this.updateSize();
-        return this;
-    }
-    onPointerSceneHandler() {
-        console.log("onPointerSceneHandler", this._editing);
-        if (this._editing)
-            this.onBlurHandler();
+    set text(val) {
+        this.setText(val);
     }
 }
 
@@ -13660,9 +15097,7 @@ class GBasicTextField extends GTextField {
         // this._textField["_sizeDirty"] = false;
     }
     createDisplayObject() {
-        this._displayObject = this._textField = new TextField(this);
-        this._textField.setColor(this._color);
-        this._displayObject["$owner"] = this;
+        this._displayObject = this._textField = new TextField(this.scene);
         this._displayObject.mouseEnabled = false;
     }
     get nativeText() {
@@ -13676,19 +15111,19 @@ class GBasicTextField extends GTextField {
             if (this._widthAutoSize)
                 this._textField.width = 10000;
             var text2 = this._text;
-            if (this._templateVars)
-                text2 = this.parseTemplate(text2);
-            if (this._ubbEnabled) //laya还不支持同一个文本不同样式
-                this._textField.text = UBBParser.inst.parse(text2, true);
-            else
-                this._textField.text = text2;
+            // if (this._templateVars)
+            // text2 = this.parseTemplate(text2);
+            // if (this._ubbEnabled) //laya还不支持同一个文本不同样式
+            //     this._textField.text = UBBParser.inst.parse(text2, true);
+            // else
+            this._textField.text = text2;
         }
         else {
             this._textField.text = "";
             this._textField["setChanged"]();
         }
         if (this.parent && this.parent._underConstruct) {
-            this._textField.typeset();
+            // this._textField.typeset();
             this.updateSize();
             this.doAlign();
         }
@@ -13722,7 +15157,11 @@ class GBasicTextField extends GTextField {
         // }
     }
     get fontSize() {
-        return parseInt(this._textField.style.fontSize);
+        const fontSize = this._textField.style.fontSize;
+        if (typeof fontSize === "number") {
+            return fontSize;
+        }
+        return parseInt(fontSize);
     }
     set fontSize(value) {
         this._textField.setFontSize(value);
@@ -13754,12 +15193,11 @@ class GBasicTextField extends GTextField {
     }
     set valign(value) {
         this._valign = value;
-        this._textField.setAlign(this._valign);
+        this._textField.setVAlign(this._valign);
         this.doAlign();
     }
     get leading() {
-        return this._textField.lineSpacing;
-        // return this._textField.leading;
+        return this._textField.style.lineSpacing;
     }
     set leading(value) {
         this._textField.setLineSpacing(value);
@@ -13770,28 +15208,27 @@ class GBasicTextField extends GTextField {
     }
     set letterSpacing(value) {
         this._letterSpacing = value;
+        this._textField.setLetterSpacing(value);
     }
     get bold() {
-        return false;
+        return this._textField.style.bold;
     }
     set bold(value) {
         // todo bold
         // this._textField.bold = value;
+        this._textField.setBold(value);
     }
     get italic() {
-        return false;
+        return this._textField.style.italic;
     }
     set italic(value) {
-        // todo italic
-        // this._textField.italic = value;
+        this._textField.setItalic(value);
     }
     get underline() {
         return false;
-        // return this._textField.underline;
     }
     set underline(value) {
-        // todo underline
-        // this._textField.underline = value;
+        this._textField.setUnderline(value ? 2 : 0);
     }
     get singleLine() {
         return this._singleLine;
@@ -13800,9 +15237,11 @@ class GBasicTextField extends GTextField {
         this._singleLine = value;
         if (!this._widthAutoSize && !this._singleLine) {
             // 设置换行宽度，是否忽略空格
-            this._textField.setWordWrapWidth(this._textWidth, true);
+            this._textField.setWordWrapWidth(this.initWidth, true);
         }
-        // this._textField.wordWrap = !this._widthAutoSize && !this._singleLine;
+        else {
+            this._textField.setSingleLine(true);
+        }
     }
     get stroke() {
         return this._textField.style.strokeThickness;
@@ -13820,14 +15259,20 @@ class GBasicTextField extends GTextField {
             this.updateGear(4);
         }
     }
+    setStroke(color, thickness) {
+        if (this._strokeColor !== color || this._stroke !== thickness) {
+            this._strokeColor = color;
+            this._stroke = thickness;
+            this._textField.setStroke(color, thickness);
+        }
+    }
+    setShadowStyle(color) {
+        this._textField.setShadowStyle(color);
+    }
+    setShadowOffset(x, y) {
+        this._textField.setShadowOffset(x, y);
+    }
     updateAutoSize() {
-        /*一般没有剪裁文字的需要，感觉HIDDEN有消耗，所以不用了
-        if(this._heightAutoSize)
-        this._textField.overflow = Text.VISIBLE;
-        else
-        this._textField.overflow = Text.HIDDEN;*/
-        // todo phaser默认自动换行
-        // this._textField.wordWrap = !this._widthAutoSize && !this._singleLine;
         if (!this._underConstruct) {
             if (!this._heightAutoSize)
                 this._textField.setSize(this.width, this.height);
@@ -13836,13 +15281,11 @@ class GBasicTextField extends GTextField {
         }
     }
     get textWidth() {
-        if (this._textField["_isChanged"])
-            this._textField.typeset();
         return this._textWidth;
     }
     ensureSizeCorrect() {
-        if (!this._underConstruct && this._textField["_isChanged"])
-            this._textField.typeset();
+        // if (!this._underConstruct && this._textField["_isChanged"])
+        // this._textField.typeset();
     }
     typeset() {
         if (this._bitmapFont)
@@ -13858,8 +15301,6 @@ class GBasicTextField extends GTextField {
             w = this._textWidth;
             if (this._textField.displayWidth != w) {
                 this._textField.displayWidth = w;
-                if (this._textField.style.align != "left")
-                    this._textField["baseTypeset"]();
             }
         }
         else
@@ -14102,28 +15543,28 @@ class GBasicTextField extends GTextField {
         //     }//this.text loop
         // }//line loop
     }
-    handleSizeChanged() {
-        if (this._updatingSize)
-            return;
-        if (this._underConstruct)
-            this._textField.setSize(this._width, this._height);
-        else {
-            if (this._bitmapFont) {
-                if (!this._widthAutoSize)
-                    this._textField["setChanged"]();
-                else
-                    this.doAlign();
-            }
-            else {
-                if (!this._widthAutoSize) {
-                    if (!this._heightAutoSize)
-                        this.setSize(this._width, this._height);
-                    else
-                        this._textField.width = this._width;
-                }
-            }
-        }
-    }
+    // protected handleSizeChanged(): void {
+    // if (this._updatingSize)
+    //     return;
+    // if (this._underConstruct)
+    //     this._textField.setSize(this._width, this._height);
+    // else {
+    //     if (this._bitmapFont) {
+    //         if (!this._widthAutoSize)
+    //             this._textField["setChanged"]();
+    //         else
+    //             this.doAlign();
+    //     }
+    //     else {
+    //         if (!this._widthAutoSize) {
+    //             if (!this._heightAutoSize)
+    //                 this.setSize(this._width, this._height);
+    //             else
+    //                 this._textField.width = this._width;
+    //         }
+    //     }
+    // }
+    // }
     handleGrayedChanged() {
         super.handleGrayedChanged();
         // if (this.grayed)
@@ -14155,7 +15596,7 @@ class GBasicTextField extends GTextField {
             var dh = this.height - this._textHeight;
             if (dh < 0)
                 dh = 0;
-            if (this.valign == "middle")
+            if (this.valign == "center")
                 this._yOffset = Math.floor(dh / 2);
             else
                 this._yOffset = Math.floor(dh);
@@ -14168,6 +15609,185 @@ class GBasicTextField extends GTextField {
 }
 const GUTTER_X = 2;
 const GUTTER_Y = 2;
+
+class GRichTextField extends GBasicTextField {
+    constructor(scene, type) {
+        super(scene, type);
+        this._text = "";
+    }
+}
+
+class InputTextField extends TextField {
+    constructor(owner) {
+        super(owner.scene);
+        this._text2 = "";
+        this.editable = true;
+        this.setOrigin(0);
+    }
+    onFocusHandler() {
+        if (!this.editable || this._editing)
+            return;
+        // if (!this._font)
+        //     this.applyFormat();
+        if (!this._element)
+            this.createElement();
+        this._element.setVisible(true);
+        const inputElement = this._element.node;
+        inputElement.value = this._text2;
+        // inputElement.style.fontSize = this.style.fontSize;
+        // inputElement.style.textAlign = this.style.align;
+        if (this.maxLength !== undefined)
+            inputElement.maxLength = this.maxLength;
+        this.scene.input.on("pointerdown", this.onPointerSceneHandler, this);
+        inputElement.focus();
+        this.disableInteractive();
+        this._editing = true;
+        this.setVisible(false);
+    }
+    onBlurHandler() {
+        this.scene.input.off("pointerdown", this.onPointerSceneHandler, this);
+        this._inputNode.blur();
+        this._element.setVisible(false);
+        this.setInteractive();
+        this._text2 = this._inputNode.value;
+        this._inputNode = null;
+        this._element.destroy();
+        this._element = null;
+        this._editing = false;
+        this.updateTextField();
+        this.setVisible(true);
+    }
+    createElement() {
+        this._element = new Phaser.GameObjects.DOMElement(this.scene);
+        let e;
+        // if (this["$owner"].singleLine) {
+        {
+            e = document.createElement("input");
+        }
+        this._inputNode = e;
+        e.style.outline = "none";
+        e.style.borderWidth = "0px";
+        e.style.padding = "0px";
+        e.style.margin = "0px";
+        e.style.position = "absolute";
+        e.style.display = "none";
+        e.style.background = 'transparent';
+        e.style.transformOrigin = e.style["WebkitTransformOrigin"] = "0 0 0";
+        e.style.width = `${this._width}px`;
+        e.style.height = `${this._height}px`;
+        this._element.setElement(e);
+        this._element.setOrigin(this.originX, this.originY);
+        this._element.setPosition(this.x, this.y);
+        this.parentContainer.add(this._element);
+    }
+    updateTextField() {
+        if (this._editing)
+            this._inputNode.value = this._text2;
+        else if (this._text2.length === 0 && this._promptText) ;
+        else if (this.password) {
+            super.setText("*".repeat(this._text2.length));
+        }
+        else {
+            super.setText(this._text2);
+        }
+    }
+    /**
+     * Don"t propagate touch/mouse events to parent(game canvas)
+     * @param element
+     */
+    stopPropagationTouchEvents(e) {
+        const callback = function (e) {
+            e.stopPropagation();
+        };
+        // Don't propagate touch/mouse events to parent(game canvas)
+        e.addEventListener("touchstart", callback, false);
+        e.addEventListener("touchmove", callback, false);
+        e.addEventListener("touchend", callback, false);
+        e.addEventListener("mousedown", callback, false);
+        e.addEventListener("mouseup", callback, false);
+        e.addEventListener("mousemove", callback, false);
+    }
+    routeEvents(gameObject, element, elementEvents) {
+        for (let eventName in elementEvents) { // Note: Don't use `var` here
+            element[elementEvents[eventName]] = function (e) {
+                gameObject.emit(eventName, gameObject, e);
+            };
+        }
+    }
+    getText() {
+        if (this._editing) {
+            this._text2 = this._element.node.value;
+        }
+        return this._text2;
+    }
+    setText(value) {
+        this._text2 = value;
+        this.updateTextField();
+        if (value) {
+            this.setInteractive();
+            this.on("pointerup", this.onFocusHandler, this);
+        }
+        return this;
+    }
+    selectText() {
+        if (this._inputNode)
+            this._inputNode.select();
+        return this;
+    }
+    get placeholder() {
+        return this._promptText;
+    }
+    set placeholder(value) {
+        // this._inputNode.placeholder = value;
+        this._promptText = value;
+        if (this._editing) {
+            this._inputNode.placeholder = this._promptText;
+        }
+    }
+    setPlaceholder(value) {
+        this.placeholder = value;
+        return this;
+    }
+    setEnabled(enabled) {
+        if (enabled === undefined) {
+            enabled = true;
+        }
+        this._inputNode.disabled = !enabled;
+        return this;
+    }
+    setBlur() {
+        this._inputNode.blur();
+        return this;
+    }
+    setFocus() {
+        this._inputNode.focus();
+        return this;
+    }
+    setSize(width, height) {
+        if (this.scene.scale.autoRound) {
+            width = Math.floor(width);
+            height = Math.floor(height);
+        }
+        if (this._width === width && this._height === height) {
+            return;
+        }
+        this._width = width;
+        this._height = height;
+        super.setSize(width, height);
+        if (this._inputNode) {
+            const style = this._inputNode.style;
+            style.width = `${width}px`;
+            style.height = `${height}px`;
+        }
+        // this.updateSize();
+        return this;
+    }
+    onPointerSceneHandler() {
+        console.log("onPointerSceneHandler", this._editing);
+        if (this._editing)
+            this.onBlurHandler();
+    }
+}
 
 class InputType {
 }
@@ -21025,6 +22645,158 @@ Byte.BIG_ENDIAN = "bigEndian";
 Byte.LITTLE_ENDIAN = "littleEndian";
 /**@private */
 Byte._sysEndian = null;
+
+class UBBParser {
+    constructor() {
+        this._readPos = 0;
+        this.defaultImgWidth = 0;
+        this.defaultImgHeight = 0;
+        this._handlers = {};
+        this._handlers["url"] = this.onTag_URL;
+        this._handlers["img"] = this.onTag_IMG;
+        this._handlers["b"] = this.onTag_B;
+        this._handlers["i"] = this.onTag_I;
+        this._handlers["u"] = this.onTag_U;
+        this._handlers["sup"] = this.onTag_Simple;
+        this._handlers["sub"] = this.onTag_Simple;
+        this._handlers["color"] = this.onTag_COLOR;
+        this._handlers["font"] = this.onTag_FONT;
+        this._handlers["size"] = this.onTag_SIZE;
+    }
+    onTag_URL(tagName, end, attr) {
+        if (!end) {
+            if (attr != null)
+                return "<a href=\"" + attr + "\" target=\"_blank\">";
+            else {
+                var href = this.getTagText();
+                return "<a href=\"" + href + "\" target=\"_blank\">";
+            }
+        }
+        else
+            return "</a>";
+    }
+    onTag_IMG(tagName, end, attr) {
+        if (!end) {
+            var src = this.getTagText(true);
+            if (!src)
+                return null;
+            if (this.defaultImgWidth)
+                return "<img src=\"" + src + "\" width=\"" + this.defaultImgWidth + "\" height=\"" + this.defaultImgHeight + "\"/>";
+            else
+                return "<img src=\"" + src + "\"/>";
+        }
+        else
+            return null;
+    }
+    onTag_B(tagName, end, attr) {
+        return end ? ("</span>") : ("<span style='font-weight:bold'>");
+    }
+    onTag_I(tagName, end, attr) {
+        return end ? ("</span>") : ("<span style='font-style:italic'>");
+    }
+    onTag_U(tagName, end, attr) {
+        return end ? ("</span>") : ("<span style='text-decoration:underline'>");
+    }
+    onTag_Simple(tagName, end, attr) {
+        return end ? ("</" + tagName + ">") : ("<" + tagName + ">");
+    }
+    onTag_COLOR(tagName, end, attr) {
+        if (!end) {
+            this.lastColor = attr;
+            return "<span style=\"color:" + attr + "\">";
+        }
+        else
+            return "</span>";
+    }
+    onTag_FONT(tagName, end, attr) {
+        if (!end)
+            return "<span style=\"font-family:" + attr + "\">";
+        else
+            return "</span>";
+    }
+    onTag_SIZE(tagName, end, attr) {
+        if (!end) {
+            this.lastSize = attr;
+            return "<span style=\"font-size:" + attr + "\">";
+        }
+        else
+            return "</span>";
+    }
+    getTagText(remove) {
+        var pos1 = this._readPos;
+        var pos2;
+        var result = "";
+        while ((pos2 = this._text.indexOf("[", pos1)) != -1) {
+            if (this._text.charCodeAt(pos2 - 1) == 92) //\
+             {
+                result += this._text.substring(pos1, pos2 - 1);
+                result += "[";
+                pos1 = pos2 + 1;
+            }
+            else {
+                result += this._text.substring(pos1, pos2);
+                break;
+            }
+        }
+        if (pos2 == -1)
+            return null;
+        if (remove)
+            this._readPos = pos2;
+        return result;
+    }
+    parse(text, remove) {
+        this._text = text;
+        this.lastColor = null;
+        this.lastSize = null;
+        var pos1 = 0, pos2, pos3;
+        var end;
+        var tag, attr;
+        var repl;
+        var func;
+        var result = "";
+        while ((pos2 = this._text.indexOf("[", pos1)) != -1) {
+            if (pos2 > 0 && this._text.charCodeAt(pos2 - 1) == 92) //\
+             {
+                result += this._text.substring(pos1, pos2 - 1);
+                result += "[";
+                pos1 = pos2 + 1;
+                continue;
+            }
+            result += this._text.substring(pos1, pos2);
+            pos1 = pos2;
+            pos2 = this._text.indexOf("]", pos1);
+            if (pos2 == -1)
+                break;
+            end = this._text.charAt(pos1 + 1) == '/';
+            tag = this._text.substring(end ? pos1 + 2 : pos1 + 1, pos2);
+            this._readPos = pos2 + 1;
+            attr = null;
+            repl = null;
+            pos3 = tag.indexOf("=");
+            if (pos3 != -1) {
+                attr = tag.substring(pos3 + 1);
+                tag = tag.substring(0, pos3);
+            }
+            tag = tag.toLowerCase();
+            func = this._handlers[tag];
+            if (func != null) {
+                if (!remove) {
+                    repl = func.call(this, tag, end, attr);
+                    if (repl != null)
+                        result += repl;
+                }
+            }
+            else
+                result += this._text.substring(pos1, this._readPos);
+            pos1 = this._readPos;
+        }
+        if (pos1 < this._text.length)
+            result += this._text.substr(pos1);
+        this._text = null;
+        return result;
+    }
+}
+UBBParser.inst = new UBBParser();
 
 /**
      * <p><code>Handler</code> 是事件处理器类。</p>

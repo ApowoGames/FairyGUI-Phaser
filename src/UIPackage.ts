@@ -240,7 +240,7 @@ export class UIPackage {
     public static getItemAssetByURL(url: string): Promise<Object> {
         var item: PackageItem = UIPackage.getItemByURL(url);
         if (item == null)
-            return null;
+            return Promise.reject(`item ${url} does not exist`);
         return item.owner.getItemAsset(item);
     }
 

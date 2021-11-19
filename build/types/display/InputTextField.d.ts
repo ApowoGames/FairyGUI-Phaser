@@ -1,5 +1,5 @@
 import { GBasicTextField } from "../GBasicTextField";
-import { TextField } from "./TextField";
+import { TextField } from "./text/TextField";
 export declare class InputTextField extends TextField {
     maxLength: number;
     keyboardType: string;

@@ -1,5 +1,6 @@
 import { ByteBuffer } from './utils/ByteBuffer';
 import { GObject } from './GObject';
+import { HAlignModeString, VAlignModeString } from './display/text/Types';
 export declare enum TextType {
     BASIC = 0,
     RICH = 1,
@@ -15,8 +16,8 @@ export declare class GTextField extends GObject {
     protected _heightAutoSize: boolean;
     protected _ubbEnabled: boolean;
     protected _updatingSize: boolean;
-    protected _align: string;
-    protected _valign: string;
+    protected _align: HAlignModeString;
+    protected _valign: VAlignModeString;
     protected _font: string;
     protected _fontSize: number;
     protected _color: string;
@@ -29,10 +30,10 @@ export declare class GTextField extends GObject {
     set fontSize(value: number);
     get color(): string;
     set color(value: string);
-    get align(): string;
-    set align(value: string);
-    get valign(): string;
-    set valign(value: string);
+    get align(): HAlignModeString;
+    set align(value: HAlignModeString);
+    get valign(): VAlignModeString;
+    set valign(value: VAlignModeString);
     get leading(): number;
     set leading(value: number);
     get letterSpacing(): number;
@@ -47,6 +48,9 @@ export declare class GTextField extends GObject {
     set singleLine(value: boolean);
     get stroke(): number;
     set stroke(value: number);
+    setStroke(color: string, thickness: number): void;
+    setShadowStyle(val: string): void;
+    setShadowOffset(x: number, y: number): void;
     get strokeColor(): string;
     set strokeColor(value: string);
     set ubbEnabled(value: boolean);

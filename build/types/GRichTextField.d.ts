@@ -1,35 +1,4 @@
-import { GTextField } from './GTextField';
-export declare class GRichTextField extends GTextField {
-    private _div;
+import { GBasicTextField } from './GBasicTextField';
+export declare class GRichTextField extends GBasicTextField {
     constructor(scene: Phaser.Scene, type: any);
-    createDisplayObject(): void;
-    get div(): any;
-    set text(value: string);
-    get text(): string;
-    get font(): string;
-    set font(value: string);
-    get fontSize(): number;
-    set fontSize(value: number);
-    get color(): string;
-    set color(value: string);
-    get align(): string;
-    set align(value: string);
-    get valign(): string;
-    set valign(value: string);
-    get leading(): number;
-    set leading(value: number);
-    get bold(): boolean;
-    set bold(value: boolean);
-    get italic(): boolean;
-    set italic(value: boolean);
-    get stroke(): number;
-    set stroke(value: number);
-    get strokeColor(): string;
-    set strokeColor(value: string);
-    set ubbEnabled(value: boolean);
-    get ubbEnabled(): boolean;
-    get textWidth(): number;
-    private refresh;
-    protected updateAutoSize(): void;
-    protected handleSizeChanged(): void;
 }
