@@ -12,6 +12,7 @@ import { GComponent } from "./GComponent";
 import { GList } from './GList';
 import { GTween } from './tween/GTween';
 import { Events } from './Events';
+import { Utils } from './utils/Utils';
 
 export class ScrollPane {
     private _owner: GComponent;
@@ -1286,7 +1287,7 @@ export class ScrollPane {
 
 
         //更新速度
-        var frameRate: number = this._owner.scene.game.config.fps.target;
+        var frameRate: number = Utils.FPSTarget;
         var now: number = this._owner.scene.time.now; // Laya.timer.currTimer / 1000;
         var deltaTime: number = Math.max(now - this._lastMoveTime, 1 / frameRate);
         var deltaPositionX: number = pt.x - this._lastTouchPos.x;
@@ -1425,7 +1426,7 @@ export class ScrollPane {
         else {
             //更新速度
             if (!this._inertiaDisabled) {
-                var frameRate: number = this._owner.scene.game.config.fps.target; // Laya.stage.frameRate == Laya.Stage.FRAME_SLOW ? 30 : 60;
+                var frameRate: number = Utils.FPSTarget; // Laya.stage.frameRate == Laya.Stage.FRAME_SLOW ? 30 : 60;
                 var now: number = this._owner.scene.time.now;
                 var elapsed: number = (now - this._lastMoveTime) * frameRate - 1;
                 if (elapsed > 1) {
@@ -1919,7 +1920,7 @@ export class ScrollPane {
     private runTween(axis: string): number {
         var newValue: number;
         if (this._tweenChange[axis] != 0) {
-            this._tweenTime[axis] += this.owner.scene.game.config.fps.target / 10000; // Laya.timer.delta / 1000;
+            this._tweenTime[axis] += Utils.FPSTarget / 10000; // Laya.timer.delta / 1000;
             // if (axis === "y") {
             //     console.log("runTween", axis, this._tweenTime, this._tweenDuration);
             // }

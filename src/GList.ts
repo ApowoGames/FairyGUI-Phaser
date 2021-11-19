@@ -9,6 +9,7 @@ import { GComponent } from "./GComponent";
 import { GObject } from "./GObject";
 import { Events } from './Events';
 import { Handler } from './utils/Handler';
+import { Utils } from './utils/Utils';
 export class GList extends GComponent {
     /**
      * this.itemRenderer(number index, GObject item);
@@ -57,7 +58,7 @@ export class GList extends GComponent {
     protected ctrlKey: boolean = false;
     constructor(scene: Phaser.Scene, type) {
         super(scene, type);
-        this._refreshListEvent = { delay: this._timeDelta / this.scene.game.config.fps.target, callback: this._refreshVirtualList, callbackScope: this };
+        this._refreshListEvent = { delay: this._timeDelta / Utils.FPSTarget, callback: this._refreshVirtualList, callbackScope: this };
         this._trackBounds = true;
         this._pool = new GObjectPool();
         this._layout = ListLayoutType.SingleColumn;

@@ -329,8 +329,9 @@ export class GObject {
                         this.setXY(this.x - this._pivotX * dWidth, this.y - this._pivotY * dHeight);
                     this.updatePivotOffset();
                 }
-                else
+                else {
                     this.applyPivot();
+                }
             }
 
             if (this instanceof GGroup)
@@ -438,14 +439,14 @@ export class GObject {
     }
 
     public setPivot(xv: number, yv: number = 0, asAnchor?: boolean): void {
-        if (this._pivotX != xv || this._pivotY != yv || this._pivotAsAnchor != asAnchor) {
-            this._pivotX = xv;
-            this._pivotY = yv;
-            this._pivotAsAnchor = asAnchor;
+        // if (this._pivotX != xv || this._pivotY != yv || this._pivotAsAnchor != asAnchor) {
+        //     this._pivotX = xv;
+        //     this._pivotY = yv;
+        //     this._pivotAsAnchor = asAnchor;
 
-            this.updatePivotOffset();
-            this.handleXYChanged();
-        }
+        //     this.updatePivotOffset();
+        //     this.handleXYChanged();
+        // }
     }
 
     public get pivotAsAnchor(): boolean {
@@ -1194,7 +1195,7 @@ export class GObject {
             yv = Math.round(yv);
         }
 
-        this._displayObject.setPosition(xv + this._pivotOffsetX, yv + this._pivotOffsetY);
+        this._displayObject.setPosition(xv - this.initWidth / 2, yv - this.initHeight / 2);
     }
 
     protected handleSizeChanged(): void {

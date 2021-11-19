@@ -1,10 +1,11 @@
 import { GObject, GRoot } from '..';
+import { Utils } from '../utils/Utils';
 import { GTweener } from './GTweener';
 export class TweenManager {
     private static updateTween: Phaser.Time.TimerEvent;
     public static createTween(): GTweener {
         if (!_inited) {
-            const _timeDelta = GRoot.inst.scene.game.config.fps.target;
+            const _timeDelta = Utils.FPSTarget;
             const _updateTweenEvent = { delay: _timeDelta, callback: TweenManager.update, callbackScope: this, loop: true };
             if (!TweenManager.updateTween) GRoot.inst.scene.time.addEvent(_updateTweenEvent);
             // Laya.timer.frameLoop(1, null, TweenManager.update);
@@ -76,7 +77,7 @@ export class TweenManager {
     }
 
     public static update(): void {
-        var dt: number = GRoot.inst.scene.game.config.fps.target / 1000;
+        var dt: number = Utils.FPSTarget / 1000;
         var cnt: number = _totalActiveTweens;
         var freePosStart: number = -1;
         for (var i: number = 0; i < cnt; i++) {
