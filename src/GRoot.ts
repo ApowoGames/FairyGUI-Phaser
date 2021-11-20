@@ -240,11 +240,11 @@ export class GRoot extends GComponent {
         this._displayObject = this._uiStage.displayObject;
         this._displayObject["$owner"] = this;
 
-        this._modalLayer = new GGraph(this.scene, ObjectType.Graph);
-        this._modalLayer.setSize(this.width, this.height);
-        this._modalLayer.drawRect(0, null, UIConfig.modalLayerColor);
-        this._modalLayer.addRelation(this, RelationType.Size);
-        this.addToStage(this._modalLayer.displayObject);
+        // this._modalLayer = new GGraph(this.scene, ObjectType.Graph);
+        // this._modalLayer.setSize(this.width, this.height);
+        // this._modalLayer.drawRect(0, null, UIConfig.modalLayerColor);
+        // this._modalLayer.addRelation(this, RelationType.Size);
+        // this.addToStage(this._modalLayer.displayObject);
         // this._displayObject = this.scene.make.container(undefined, false);
         // this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this._width, this._height), Phaser.Geom.Rectangle.Contains);
         // this._displayObject["$owner"] = this;

@@ -439,14 +439,14 @@ export class GObject {
     }
 
     public setPivot(xv: number, yv: number = 0, asAnchor?: boolean): void {
-        // if (this._pivotX != xv || this._pivotY != yv || this._pivotAsAnchor != asAnchor) {
-        //     this._pivotX = xv;
-        //     this._pivotY = yv;
-        //     this._pivotAsAnchor = asAnchor;
+        if (this._pivotX != xv || this._pivotY != yv || this._pivotAsAnchor != asAnchor) {
+            this._pivotX = xv;
+            this._pivotY = yv;
+            this._pivotAsAnchor = asAnchor;
 
-        //     this.updatePivotOffset();
-        //     this.handleXYChanged();
-        // }
+            this.updatePivotOffset();
+            this.handleXYChanged();
+        }
     }
 
     public get pivotAsAnchor(): boolean {
