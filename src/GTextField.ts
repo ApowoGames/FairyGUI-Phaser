@@ -1,6 +1,7 @@
 import { ByteBuffer } from './utils/ByteBuffer';
 import { AutoSizeType, ObjectPropID } from './FieldTypes';
 import { GObject } from './GObject';
+import { HAlignModeString, VAlignModeString } from './display/text/Types';
 
 export enum TextType {
     BASIC,
@@ -15,8 +16,8 @@ export class GTextField extends GObject {
     protected _heightAutoSize: boolean;
     protected _ubbEnabled: boolean;
     protected _updatingSize: boolean;
-    protected _align: string = "";
-    protected _valign: string = "";
+    protected _align: HAlignModeString = "left";
+    protected _valign: VAlignModeString = "top";
     protected _font: string;
     protected _fontSize: number;
     protected _color: string;
@@ -52,20 +53,20 @@ export class GTextField extends GObject {
         this._color = value;
     }
 
-    public get align(): string {
+    public get align(): HAlignModeString {
         return this._align;
     }
 
-    public set align(value: string) {
+    public set align(value: HAlignModeString) {
         this._align = value;
         this.doAlign();
     }
 
-    public get valign(): string {
+    public get valign(): VAlignModeString {
         return this._valign;
     }
 
-    public set valign(value: string) {
+    public set valign(value: VAlignModeString) {
         this._valign = value;
         this.doAlign();
     }
@@ -117,6 +118,15 @@ export class GTextField extends GObject {
     }
 
     public set stroke(value: number) {
+    }
+
+    public setStroke(color: string, thickness: number) {
+    }
+
+    public setShadowStyle(val: string) {
+    }
+
+    public setShadowOffset(x: number, y: number) {
     }
 
     public get strokeColor(): string {
@@ -271,7 +281,7 @@ export class GTextField extends GObject {
         iv = buffer.readByte();
         this.align = iv == 0 ? "left" : (iv == 1 ? "center" : "right");
         iv = buffer.readByte();
-        this.valign = iv == 0 ? "top" : (iv == 1 ? "middle" : "bottom");
+        this.valign = iv == 0 ? "top" : (iv == 1 ? "center" : "bottom");
         this.leading = buffer.readShort();
         this.letterSpacing = buffer.readShort();
         this.ubbEnabled = buffer.readBool();
@@ -281,12 +291,16 @@ export class GTextField extends GObject {
         this.bold = buffer.readBool();
         this.singleLine = buffer.readBool();
         if (buffer.readBool()) {
-            this.strokeColor = buffer.readColorS();
-            this.stroke = buffer.readFloat() + 1;
+            const strokeColor = buffer.readColorS();
+            const stroke = buffer.readFloat() + 1;
+            this.setStroke(strokeColor, stroke);
         }
 
-        if (buffer.readBool()) //shadow
-            buffer.skip(12);
+        //shadow
+        if (buffer.readBool()) {
+            this.setShadowStyle(buffer.readColorS());
+            this.setShadowOffset(buffer.readFloat(), buffer.readFloat())
+        }
 
         if (buffer.readBool())
             this._templateVars = {};

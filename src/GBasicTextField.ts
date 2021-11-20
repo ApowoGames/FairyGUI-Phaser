@@ -1,9 +1,9 @@
-import { UBBParser } from './utils/UBBParser';
 import { AutoSizeType } from './FieldTypes';
 import { BitmapFont } from './display/BitmapFont';
 import { GTextField } from './GTextField';
-import { TextField } from './display/TextField';
+import { TextField } from './display/text/TextField';
 import { UIConfig } from '.';
+import { HAlignModeString, VAlignModeString } from './display/text/Types';
 export class GBasicTextField extends GTextField {
     protected _textField: TextField;
 
@@ -26,13 +26,11 @@ export class GBasicTextField extends GTextField {
     }
 
     public createDisplayObject(): void {
-        this._displayObject = this._textField = new TextField(this);
-        this._textField.setColor(this._color);
-        this._displayObject["$owner"] = this;
+        this._displayObject = this._textField = new TextField(this.scene);
         this._displayObject.mouseEnabled = false;
     }
 
-    public get nativeText(): Phaser.GameObjects.Text {
+    public get nativeText(): TextField {
         return this._textField;
     }
 
@@ -45,11 +43,11 @@ export class GBasicTextField extends GTextField {
             if (this._widthAutoSize)
                 this._textField.width = 10000;
             var text2: string = this._text;
-            if (this._templateVars)
-                text2 = this.parseTemplate(text2);
-            if (this._ubbEnabled) //laya还不支持同一个文本不同样式
-                this._textField.text = UBBParser.inst.parse(text2, true);
-            else
+            // if (this._templateVars)
+                // text2 = this.parseTemplate(text2);
+            // if (this._ubbEnabled) //laya还不支持同一个文本不同样式
+            //     this._textField.text = UBBParser.inst.parse(text2, true);
+            // else
                 this._textField.text = text2;
         }
         else {
@@ -58,7 +56,7 @@ export class GBasicTextField extends GTextField {
         }
 
         if (this.parent && this.parent._underConstruct) {
-            this._textField.typeset();
+            // this._textField.typeset();
             this.updateSize();
             this.doAlign();
         }
@@ -97,7 +95,11 @@ export class GBasicTextField extends GTextField {
     }
 
     public get fontSize(): number {
-        return parseInt(this._textField.style.fontSize);
+        const fontSize = this._textField.style.fontSize;
+        if (typeof fontSize === "number") {
+            return fontSize;
+        }
+        return parseInt(fontSize);
     }
 
     public set fontSize(value: number) {
@@ -122,29 +124,28 @@ export class GBasicTextField extends GTextField {
         }
     }
 
-    public get align(): string {
+    public get align(): HAlignModeString {
         return this._align;
     }
 
-    public set align(value: string) {
+    public set align(value: HAlignModeString) {
         this._align = value;
         this._textField.setAlign(this._align);
         this.doAlign();
     }
 
-    public get valign(): string {
+    public get valign(): VAlignModeString {
         return this._valign;
     }
 
-    public set valign(value: string) {
+    public set valign(value: VAlignModeString) {
         this._valign = value;
-        this._textField.setAlign(this._valign);
+        this._textField.setVAlign(this._valign);
         this.doAlign();
     }
 
     public get leading(): number {
-        return this._textField.lineSpacing;
-        // return this._textField.leading;
+        return this._textField.style.lineSpacing;
     }
 
     public set leading(value: number) {
@@ -158,34 +159,34 @@ export class GBasicTextField extends GTextField {
 
     public set letterSpacing(value: number) {
         this._letterSpacing = value;
+        this._textField.setLetterSpacing(value);
     }
 
     public get bold(): boolean {
-        return false;
+        return this._textField.style.bold;
     }
 
     public set bold(value: boolean) {
+
         // todo bold
         // this._textField.bold = value;
+        this._textField.setBold(value);
     }
 
     public get italic(): boolean {
-        return false;
+        return this._textField.style.italic;
     }
 
     public set italic(value: boolean) {
-        // todo italic
-        // this._textField.italic = value;
+        this._textField.setItalic(value);
     }
 
     public get underline(): boolean {
         return false;
-        // return this._textField.underline;
     }
 
     public set underline(value: boolean) {
-        // todo underline
-        // this._textField.underline = value;
+        this._textField.setUnderline(value ? 2 : 0);
     }
 
     public get singleLine(): boolean {
@@ -196,9 +197,10 @@ export class GBasicTextField extends GTextField {
         this._singleLine = value;
         if (!this._widthAutoSize && !this._singleLine) {
             // 设置换行宽度，是否忽略空格
-            this._textField.setWordWrapWidth(this._textWidth, true);
+            this._textField.setWordWrapWidth(this.initWidth, true);
+        } else {
+            this._textField.setSingleLine(true);
         }
-        // this._textField.wordWrap = !this._widthAutoSize && !this._singleLine;
     }
 
     public get stroke(): number {
@@ -221,14 +223,23 @@ export class GBasicTextField extends GTextField {
         }
     }
 
+    public setStroke(color: string, thickness: number) {
+        if (this._strokeColor !== color || this._stroke !== thickness) {
+            this._strokeColor = color;
+            this._stroke = thickness;
+            this._textField.setStroke(color, thickness);
+        }
+    }
+
+    public setShadowStyle(color: string) {
+        this._textField.setShadowStyle(color);
+    }
+
+    public setShadowOffset(x: number, y: number) {
+        this._textField.setShadowOffset(x, y);
+    }
+
     protected updateAutoSize(): void {
-        /*一般没有剪裁文字的需要，感觉HIDDEN有消耗，所以不用了
-        if(this._heightAutoSize)
-        this._textField.overflow = Text.VISIBLE;
-        else
-        this._textField.overflow = Text.HIDDEN;*/
-        // todo phaser默认自动换行
-        // this._textField.wordWrap = !this._widthAutoSize && !this._singleLine;
         if (!this._underConstruct) {
             if (!this._heightAutoSize)
                 this._textField.setSize(this.width, this.height);
@@ -238,14 +249,12 @@ export class GBasicTextField extends GTextField {
     }
 
     public get textWidth(): number {
-        if (this._textField["_isChanged"])
-            this._textField.typeset();
         return this._textWidth;
     }
 
     public ensureSizeCorrect(): void {
-        if (!this._underConstruct && this._textField["_isChanged"])
-            this._textField.typeset();
+        // if (!this._underConstruct && this._textField["_isChanged"])
+            // this._textField.typeset();
     }
 
     public typeset(): void {
@@ -264,8 +273,6 @@ export class GBasicTextField extends GTextField {
             w = this._textWidth;
             if (this._textField.displayWidth != w) {
                 this._textField.displayWidth = w;
-                if (this._textField.style.align != "left")
-                    this._textField["baseTypeset"]();
             }
         }
         else
@@ -539,29 +546,29 @@ export class GBasicTextField extends GTextField {
         // }//line loop
     }
 
-    protected handleSizeChanged(): void {
-        if (this._updatingSize)
-            return;
+    // protected handleSizeChanged(): void {
+        // if (this._updatingSize)
+        //     return;
 
-        if (this._underConstruct)
-            this._textField.setSize(this._width, this._height);
-        else {
-            if (this._bitmapFont) {
-                if (!this._widthAutoSize)
-                    this._textField["setChanged"]();
-                else
-                    this.doAlign();
-            }
-            else {
-                if (!this._widthAutoSize) {
-                    if (!this._heightAutoSize)
-                        this.setSize(this._width, this._height);
-                    else
-                        this._textField.width = this._width;
-                }
-            }
-        }
-    }
+        // if (this._underConstruct)
+        //     this._textField.setSize(this._width, this._height);
+        // else {
+        //     if (this._bitmapFont) {
+        //         if (!this._widthAutoSize)
+        //             this._textField["setChanged"]();
+        //         else
+        //             this.doAlign();
+        //     }
+        //     else {
+        //         if (!this._widthAutoSize) {
+        //             if (!this._heightAutoSize)
+        //                 this.setSize(this._width, this._height);
+        //             else
+        //                 this._textField.width = this._width;
+        //         }
+        //     }
+        // }
+    // }
 
     protected handleGrayedChanged(): void {
         super.handleGrayedChanged();
@@ -593,7 +600,7 @@ export class GBasicTextField extends GTextField {
             var dh: number = this.height - this._textHeight;
             if (dh < 0)
                 dh = 0;
-            if (this.valign == "middle")
+            if (this.valign == "center")
                 this._yOffset = Math.floor(dh / 2);
             else
                 this._yOffset = Math.floor(dh);

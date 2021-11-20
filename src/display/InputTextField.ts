@@ -1,5 +1,5 @@
 import { GBasicTextField } from "../GBasicTextField";
-import { TextField } from "./TextField";
+import { TextField } from "./text/TextField";
 
 type InputElement = HTMLTextAreaElement | HTMLInputElement;
 
@@ -27,7 +27,7 @@ export class InputTextField extends TextField {
     private _width: number;
     private _height: number;
     constructor(owner: GBasicTextField) {
-        super(owner);
+        super(owner.scene);
 
         this._text2 = "";
         this.editable = true;
@@ -47,8 +47,8 @@ export class InputTextField extends TextField {
         this._element.setVisible(true);
         const inputElement = (<InputElement>this._element.node);
         inputElement.value = this._text2;
-        inputElement.style.fontSize = this.style.fontSize;
-        inputElement.style.textAlign = this.style.align;
+        // inputElement.style.fontSize = this.style.fontSize;
+        // inputElement.style.textAlign = this.style.align;
         if (this.maxLength !== undefined) inputElement.maxLength = this.maxLength;
 
         this.scene.input.on("pointerdown", this.onPointerSceneHandler, this);

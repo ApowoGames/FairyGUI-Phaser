@@ -1,10 +1,7 @@
 import { ByteBuffer } from './utils/ByteBuffer';
-import { UIConfig } from './UIConfig';
-import { GTextField } from './GTextField';
 import { InputTextField } from './display/InputTextField';
 import { UBBParser } from '.';
 import { GBasicTextField } from './GBasicTextField';
-
 
 export class InputType {
     /** 常规文本域。*/

@@ -1,5 +1,6 @@
 import { GTextField } from './GTextField';
-import { TextField } from './display/TextField';
+import { TextField } from './display/text/TextField';
+import { HAlignModeString, VAlignModeString } from './display/text/Types';
 export declare class GBasicTextField extends GTextField {
     protected _textField: TextField;
     private _singleLine;
@@ -10,7 +11,7 @@ export declare class GBasicTextField extends GTextField {
     private _lines?;
     constructor(scene: Phaser.Scene, type: number);
     createDisplayObject(): void;
-    get nativeText(): Phaser.GameObjects.Text;
+    get nativeText(): TextField;
     set text(value: string);
     get text(): string;
     get font(): string;
@@ -19,10 +20,10 @@ export declare class GBasicTextField extends GTextField {
     set fontSize(value: number);
     get color(): string;
     set color(value: string);
-    get align(): string;
-    set align(value: string);
-    get valign(): string;
-    set valign(value: string);
+    get align(): HAlignModeString;
+    set align(value: HAlignModeString);
+    get valign(): VAlignModeString;
+    set valign(value: VAlignModeString);
     get leading(): number;
     set leading(value: number);
     get letterSpacing(): number;
@@ -39,6 +40,9 @@ export declare class GBasicTextField extends GTextField {
     set stroke(value: number);
     get strokeColor(): string;
     set strokeColor(value: string);
+    setStroke(color: string, thickness: number): void;
+    setShadowStyle(color: string): void;
+    setShadowOffset(x: number, y: number): void;
     protected updateAutoSize(): void;
     get textWidth(): number;
     ensureSizeCorrect(): void;
@@ -46,7 +50,6 @@ export declare class GBasicTextField extends GTextField {
     protected updateSize(): void;
     setSize(w: any, h: any): void;
     private renderWithBitmapFont;
-    protected handleSizeChanged(): void;
     protected handleGrayedChanged(): void;
     protected doAlign(): void;
     flushVars(): void;
