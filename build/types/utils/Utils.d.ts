@@ -5,6 +5,7 @@ export declare class Utils {
     private static _pi;
     /**@private */
     private static _pi2;
+    static FPSTarget: number;
     /**@private */
     protected static _extReg: RegExp;
     static toHexColor(color: number): string;

@@ -400,9 +400,9 @@ export class GButton extends GComponent {
             this._soundVolumeScale = buffer.readFloat();
             this._downEffect = buffer.readByte();
             this._downEffectValue = buffer.readFloat();
-            if (this._downEffect == 2)
-                this.setPivot(0.5, 0.5, this.pivotAsAnchor);
-    
+            // if (this._downEffect == 2)
+            //     this.setPivot(0.5, 0.5, this.pivotAsAnchor);
+
             this._buttonController = this.getController("button");
             this._titleObject = this.getChild("title");
             this._iconObject = this.getChild("icon");
@@ -410,7 +410,7 @@ export class GButton extends GComponent {
                 this._title = this._titleObject.text;
             if (this._iconObject)
                 this._icon = this._iconObject.icon;
-    
+
             if (this._mode == ButtonMode.Common)
                 this.setState(GButton.UP);
             resolve();
@@ -482,6 +482,11 @@ export class GButton extends GComponent {
         if (buffer.readBool())
             this._soundVolumeScale = buffer.readFloat();
         this.selected = buffer.readBool();
+        const g = this.scene.make.graphics(undefined, false);
+        g.clear();
+        g.fillStyle(0xFFCC00);
+        g.fillRoundedRect(0, 0, this.initWidth, this.initHeight);
+        this._displayObject.addAt(g, 0);
     }
 
     public async constructFromResource2(objectPool: GObject[], poolIndex: number): Promise<void> {

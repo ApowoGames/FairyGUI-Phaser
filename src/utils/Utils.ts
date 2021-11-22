@@ -5,6 +5,8 @@ export class Utils {
     private static _pi: number = 180 / Math.PI;
     /**@private */
     private static _pi2: number = Math.PI / 180;
+
+    public static FPSTarget = 60;
     /**@private */
     protected static _extReg: RegExp = /\.(\w+)\??/g;
     static toHexColor(color: number): string {
@@ -22,6 +24,9 @@ export class Utils {
     static toNumColor(color: string): number {
         return parseInt(color.replace(/^#/, ''), 16)
     }
+
+
+   
 
 
 

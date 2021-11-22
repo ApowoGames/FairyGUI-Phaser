@@ -1203,6 +1203,42 @@
     }
     var s_points = new Array();
 
+    class Utils {
+        static toHexColor(color) {
+            if (color < 0 || isNaN(color))
+                return null;
+            var str = color.toString(16);
+            while (str.length < 6)
+                str = "0" + str;
+            return "#" + str;
+        }
+        /**
+         * 必须是16进制的颜色值规范 “#xxxxxx”
+         * @param color
+         * @returns
+         */
+        static toNumColor(color) {
+            return parseInt(color.replace(/^#/, ''), 16);
+        }
+        /**
+        * 角度转弧度。
+        * @param	angle 角度值。
+        * @return	返回弧度值。
+        */
+        static toRadian(angle) {
+            return angle * Utils._pi2;
+        }
+    }
+    /**@private */
+    Utils._gid = 1;
+    /**@private */
+    Utils._pi = 180 / Math.PI;
+    /**@private */
+    Utils._pi2 = Math.PI / 180;
+    Utils.FPSTarget = 60;
+    /**@private */
+    Utils._extReg = /\.(\w+)\??/g;
+
     class TweenValue {
         constructor() {
             this.x = this.y = this.z = this.w = 0;
@@ -1658,7 +1694,7 @@
     class TweenManager {
         static createTween() {
             if (!_inited) {
-                const _timeDelta = GRoot.inst.scene.game.config.fps.target;
+                const _timeDelta = Utils.FPSTarget;
                 const _updateTweenEvent = { delay: _timeDelta, callback: TweenManager.update, callbackScope: this, loop: true };
                 if (!TweenManager.updateTween)
                     GRoot.inst.scene.time.addEvent(_updateTweenEvent);
@@ -1719,7 +1755,7 @@
             return null;
         }
         static update() {
-            var dt = GRoot.inst.scene.game.config.fps.target / 1000;
+            var dt = Utils.FPSTarget / 1000;
             var cnt = _totalActiveTweens;
             var freePosStart = -1;
             for (var i = 0; i < cnt; i++) {
@@ -3444,8 +3480,9 @@
                             this.setXY(this.x - this._pivotX * dWidth, this.y - this._pivotY * dHeight);
                         this.updatePivotOffset();
                     }
-                    else
+                    else {
                         this.applyPivot();
+                    }
                 }
                 if (this instanceof GGroup)
                     this.resizeChildren(dWidth, dHeight);
@@ -4165,7 +4202,7 @@
                 xv = Math.round(xv);
                 yv = Math.round(yv);
             }
-            this._displayObject.setPosition(xv + this._pivotOffsetX, yv + this._pivotOffsetY);
+            this._displayObject.setPosition(xv - this.initWidth / 2, yv - this.initHeight / 2);
         }
         handleSizeChanged() {
             // (<Phaser.GameObjects.Container>this.displayObject).setDisplaySize(this._width, this._height);
@@ -4807,41 +4844,6 @@
                 this.handleVisibleChanged();
         }
     }
-
-    class Utils {
-        static toHexColor(color) {
-            if (color < 0 || isNaN(color))
-                return null;
-            var str = color.toString(16);
-            while (str.length < 6)
-                str = "0" + str;
-            return "#" + str;
-        }
-        /**
-         * 必须是16进制的颜色值规范 “#xxxxxx”
-         * @param color
-         * @returns
-         */
-        static toNumColor(color) {
-            return parseInt(color.replace(/^#/, ''), 16);
-        }
-        /**
-        * 角度转弧度。
-        * @param	angle 角度值。
-        * @return	返回弧度值。
-        */
-        static toRadian(angle) {
-            return angle * Utils._pi2;
-        }
-    }
-    /**@private */
-    Utils._gid = 1;
-    /**@private */
-    Utils._pi = 180 / Math.PI;
-    /**@private */
-    Utils._pi2 = Math.PI / 180;
-    /**@private */
-    Utils._extReg = /\.(\w+)\??/g;
 
     class GGraph extends GObject {
         constructor(scene, type) {
@@ -9343,7 +9345,7 @@
                     this._container.x = newPosX;
             }
             //更新速度
-            var frameRate = this._owner.scene.game.config.fps.target;
+            var frameRate = Utils.FPSTarget;
             var now = this._owner.scene.time.now; // Laya.timer.currTimer / 1000;
             var deltaTime = Math.max(now - this._lastMoveTime, 1 / frameRate);
             var deltaPositionX = pt.x - this._lastTouchPos.x;
@@ -9468,7 +9470,7 @@
             else {
                 //更新速度
                 if (!this._inertiaDisabled) {
-                    var frameRate = this._owner.scene.game.config.fps.target; // Laya.stage.frameRate == Laya.Stage.FRAME_SLOW ? 30 : 60;
+                    var frameRate = Utils.FPSTarget; // Laya.stage.frameRate == Laya.Stage.FRAME_SLOW ? 30 : 60;
                     var now = this._owner.scene.time.now;
                     var elapsed = (now - this._lastMoveTime) * frameRate - 1;
                     if (elapsed > 1) {
@@ -9899,7 +9901,7 @@
         runTween(axis) {
             var newValue;
             if (this._tweenChange[axis] != 0) {
-                this._tweenTime[axis] += this.owner.scene.game.config.fps.target / 10000; // Laya.timer.delta / 1000;
+                this._tweenTime[axis] += Utils.FPSTarget / 10000; // Laya.timer.delta / 1000;
                 // if (axis === "y") {
                 //     console.log("runTween", axis, this._tweenTime, this._tweenDuration);
                 // }
@@ -12578,6 +12580,7 @@
          */
         attachTo(scene, stageOptions) {
             this._scene = scene;
+            Utils.FPSTarget = this._scene.game.config.fps.target || Utils.FPSTarget;
             //this.createDisplayObject();
             // todo deal stageoptions
             if (this._uiStage) {
@@ -12711,11 +12714,11 @@
         createDisplayObject() {
             this._displayObject = this._uiStage.displayObject;
             this._displayObject["$owner"] = this;
-            this._modalLayer = new GGraph(this.scene, exports.ObjectType.Graph);
-            this._modalLayer.setSize(this.width, this.height);
-            this._modalLayer.drawRect(0, null, UIConfig.modalLayerColor);
-            this._modalLayer.addRelation(this, exports.RelationType.Size);
-            this.addToStage(this._modalLayer.displayObject);
+            // this._modalLayer = new GGraph(this.scene, ObjectType.Graph);
+            // this._modalLayer.setSize(this.width, this.height);
+            // this._modalLayer.drawRect(0, null, UIConfig.modalLayerColor);
+            // this._modalLayer.addRelation(this, RelationType.Size);
+            // this.addToStage(this._modalLayer.displayObject);
             // this._displayObject = this.scene.make.container(undefined, false);
             // this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this._width, this._height), Phaser.Geom.Rectangle.Contains);
             // this._displayObject["$owner"] = this;
@@ -16735,8 +16738,8 @@
                 this._soundVolumeScale = buffer.readFloat();
                 this._downEffect = buffer.readByte();
                 this._downEffectValue = buffer.readFloat();
-                if (this._downEffect == 2)
-                    this.setPivot(0.5, 0.5, this.pivotAsAnchor);
+                // if (this._downEffect == 2)
+                //     this.setPivot(0.5, 0.5, this.pivotAsAnchor);
                 this._buttonController = this.getController("button");
                 this._titleObject = this.getChild("title");
                 this._iconObject = this.getChild("icon");
@@ -16807,6 +16810,11 @@
             if (buffer.readBool())
                 this._soundVolumeScale = buffer.readFloat();
             this.selected = buffer.readBool();
+            const g = this.scene.make.graphics(undefined, false);
+            g.clear();
+            g.fillStyle(0xFFCC00);
+            g.fillRoundedRect(0, 0, this.initWidth, this.initHeight);
+            this._displayObject.addAt(g, 0);
         }
         constructFromResource2(objectPool, poolIndex) {
             const _super = Object.create(null, {
@@ -18113,7 +18121,7 @@
             this._timeDelta = 500;
             this.shiftKey = false;
             this.ctrlKey = false;
-            this._refreshListEvent = { delay: this._timeDelta / this.scene.game.config.fps.target, callback: this._refreshVirtualList, callbackScope: this };
+            this._refreshListEvent = { delay: this._timeDelta / Utils.FPSTarget, callback: this._refreshVirtualList, callbackScope: this };
             this._trackBounds = true;
             this._pool = new GObjectPool();
             this._layout = exports.ListLayoutType.SingleColumn;

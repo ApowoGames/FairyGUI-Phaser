@@ -509,8 +509,8 @@ path@^0.12.7:
     util "^0.10.3"
 
 "phaser3@git+ssh://git@code.apowo.com:opensource/phaser3.git":
-  version "0.4.17"
-  resolved "git+ssh://git@code.apowo.com:opensource/phaser3.git#6d5042be21e0effe6cf263f1c4e5b553b93f3413"
+  version "0.4.20"
+  resolved "git+ssh://git@code.apowo.com:opensource/phaser3.git#6de3715ab23f14ce8163e0ec1b9b9410a830ce82"
   dependencies:
     eventemitter3 "^4.0.7"
     exports-loader "^1.1.1"
