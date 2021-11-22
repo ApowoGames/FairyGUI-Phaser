@@ -149,29 +149,29 @@ export class TextStyle implements ITextStyle {
         return this;
     }
 
-    setFont(font) {
-        
-        return this.update(true);
-    }
-
     setFontFamily(family: string) {
         this.fontFamily = family;
 
         return this.update(true);
     }
 
-    setFontStyle(style) {
-        this.fontStyle = style;
-
-        return this.update(true);
+    setFontStyle(style: string) {
+        if (this.fontStyle !== style) {
+            this.fontStyle = style;
+            
+            return this.update(true);
+        }
     }
 
     setFontSize(size: string | number) {
         if (typeof size === "number") {
             size = size.toString() + "px";
         }
-        this.fontSize = size;
-        return this.update(true);
+        if (this.fontSize !== size) {
+            this.fontSize = size;
+            return this.update(true);
+        }
+    
     }
 
     setFixedSize(width: number, height: number) {
@@ -187,7 +187,11 @@ export class TextStyle implements ITextStyle {
         return this.update(this.isWrapFitMode);
     }
 
-    setFill(color) {
+    setFill(color: string) {
+        if (this.fillStyle !== color) {
+            this.fillStyle = color;
+            this.update(true);
+        }
     }
 
     setLineSpacing(value: number) {
@@ -198,13 +202,36 @@ export class TextStyle implements ITextStyle {
     setStroke(style: FillStyleType, thickness: number) {
         this.strokeStyle = style;
         this.strokeThickness = thickness;
-        // return this.update(true);
+        return this.update(true);
     }
 
-    setUnderLine(color: string, o) {
-        this.underlineColor = color;
-        // this.underlineOffset = offset;
-        // this.underlineThickness = thickness;
+    setUnderLine(thickness: number = 2, style?: FillStyleType, offsetY?: number) {
+        if (!style) {
+            style = this.fillStyle;
+        }
+
+        if (this.underlineColor !== style || this.underlineThickness !== thickness || this.underlineOffsetY !== offsetY) {
+            this.underlineColor = style;
+            this.underlineThickness = thickness;
+            if (offsetY) this.underlineOffsetY = offsetY;
+            return this.update(true);
+        }
+    }
+
+    setShadowStyle(color: string) {
+        if (this.shadowColor !== color) {
+            this.shadowColor = color;
+            return this.update(true);
+        }
+    }
+    
+    setShadowOffset(x: number, y: number) {
+        if (this.shadowOffsetX !== x || this.shadowOffsetY !== y) {
+            this.shadowFill = (x !== 0 || y !== 0);
+            this.shadowOffsetX = x;
+            this.shadowOffsetY = y;
+            return this.update(true);
+        }
     }
 
     setSingleLine(value: boolean) {
