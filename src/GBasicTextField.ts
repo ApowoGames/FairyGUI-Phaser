@@ -621,36 +621,5 @@ export interface LineInfo {
     y: number;
 }
 
-var pool: Array<LineInfo> = [];
-
-function borrow(): LineInfo {
-    if (pool.length) {
-        var ret: LineInfo = pool.pop();
-        ret.width = 0;
-        ret.height = 0;
-        ret.textHeight = 0;
-        ret.text = null;
-        ret.y = 0;
-        return ret;
-    }
-    else
-        return {
-            width: 0,
-            height: 0,
-            textHeight: 0,
-            text: null,
-            y: 0
-        };
-}
-
-function returnList(value: Array<LineInfo>): void {
-    var length: number = value.length;
-    for (var i: number = 0; i < length; i++) {
-        var li: LineInfo = value[i];
-        pool.push(li);
-    }
-    value.length = 0;
-}
-
 const GUTTER_X: number = 2;
 const GUTTER_Y: number = 2;

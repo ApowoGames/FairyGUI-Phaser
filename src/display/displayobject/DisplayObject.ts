@@ -400,9 +400,9 @@ export class DisplayObject extends Phaser.GameObjects.GameObject {
         this._visible = val;
 
         if (val) {
-            this.renderFlags |= ~_VISIBLE_FLAG;
+            this.renderFlags |= _VISIBLE_FLAG;
         } else {
-            this.renderFlags &= _VISIBLE_FLAG;
+            this.renderFlags &= ~_VISIBLE_FLAG;
         }
     }
 

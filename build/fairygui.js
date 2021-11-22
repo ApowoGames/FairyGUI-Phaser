@@ -13117,7 +13117,6 @@
             }
             if (buffer.readBool())
                 this._templateVars = {};
-            this._touchable = false;
         }
         updateSize() {
         }
@@ -13445,10 +13444,10 @@
         set visible(val) {
             this._visible = val;
             if (val) {
-                this.renderFlags |= ~_VISIBLE_FLAG;
+                this.renderFlags |= _VISIBLE_FLAG;
             }
             else {
-                this.renderFlags &= _VISIBLE_FLAG;
+                this.renderFlags &= ~_VISIBLE_FLAG;
             }
         }
         get blendMode() {
@@ -15638,7 +15637,7 @@
             this._element.setVisible(true);
             const inputElement = this._element.node;
             inputElement.value = this._text2;
-            // inputElement.style.fontSize = this.style.fontSize;
+            inputElement.style.fontSize = this.style.fontSize;
             // inputElement.style.textAlign = this.style.align;
             if (this.maxLength !== undefined)
                 inputElement.maxLength = this.maxLength;
@@ -15687,13 +15686,17 @@
         updateTextField() {
             if (this._editing)
                 this._inputNode.value = this._text2;
-            else if (this._text2.length === 0 && this._promptText) ;
+            else if (this._text2.length === 0 && this._promptText) {
+                super.setText(this._promptText);
+            }
             else if (this.password) {
                 super.setText("*".repeat(this._text2.length));
             }
             else {
                 super.setText(this._text2);
             }
+            this.off("pointerup", this.onFocusHandler, this);
+            this.on("pointerup", this.onFocusHandler, this);
         }
         /**
          * Don"t propagate touch/mouse events to parent(game canvas)
@@ -15728,7 +15731,6 @@
             this._text2 = value;
             this.updateTextField();
             if (value) {
-                this.setInteractive();
                 this.on("pointerup", this.onFocusHandler, this);
             }
             return this;
@@ -15747,6 +15749,7 @@
             if (this._editing) {
                 this._inputNode.placeholder = this._promptText;
             }
+            this.updateTextField();
         }
         setPlaceholder(value) {
             this.placeholder = value;
@@ -15872,8 +15875,8 @@
             return this.inputTextField.maxLength;
         }
         set placeholder(value) {
-            var str = UBBParser.inst.parse(value, true);
-            this.inputTextField.placeholder = str;
+            // var str: string = UBBParser.inst.parse(value, true);
+            this.inputTextField.placeholder = value;
             // if (UBBParser.inst.lastColor)
             // this._input.promptColor = UBBParser.inst.lastColor;
         }
