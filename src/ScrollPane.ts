@@ -697,6 +697,7 @@ export class ScrollPane {
         _gestureFlag = 0;
         this._dragged = false;
         this._maskContainer.disableInteractive();
+        this._maskContainer.removeInteractive();
     }
 
     public lockHeader(size: number): void {
@@ -1341,7 +1342,7 @@ export class ScrollPane {
         this._isHoldAreaDone = true;
         this._dragged = true;
         this._maskContainer.disableInteractive();
-
+        this._maskContainer.removeInteractive();
         this.updateScrollBarPos();
         this.updateScrollBarVisible();
         if (this._pageMode)

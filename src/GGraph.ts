@@ -260,6 +260,7 @@ export class GGraph extends GObject {
     public createDisplayObject(): void {
         super.createDisplayObject();
         (<Phaser.GameObjects.Container>this._displayObject).disableInteractive();
+        (<Phaser.GameObjects.Container>this._displayObject).removeInteractive();
         // this._hitArea = new HitArea();
         // this._hitArea.hit = this._displayObject.graphics;
         // this._displayObject.hitArea = this._hitArea;

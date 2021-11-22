@@ -364,8 +364,8 @@ export class GLoader extends GObject {
             return;
         }
 
-        let cw = this.sourceWidth;
-        let ch = this.sourceHeight;
+        let cw = this.parent ? this.parent.initWidth : this.sourceWidth;
+        let ch = this.parent ? this.parent.initHeight : this.sourceHeight;
 
         if (this._autoSize) {
             this._updatingLayout = true;

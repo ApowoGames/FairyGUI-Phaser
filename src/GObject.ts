@@ -481,6 +481,14 @@ export class GObject {
 
     protected applyPivot(): void {
         if (this._pivotX != 0 || this._pivotY != 0) {
+            if (this._displayObject) {
+                if (this._touchable) {
+                    this.removeInteractive();
+                    this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this.initWidth / this.scaleX, this.initHeight / this.scaleY), Phaser.Geom.Rectangle.Contains);
+                } else {
+                    this.removeInteractive();
+                }
+            }
             this.updatePivotOffset();
             this.handleXYChanged();
         }
@@ -507,11 +515,16 @@ export class GObject {
 
         if (this._displayObject)
             if (this._touchable) {
-                this._displayObject.disableInteractive();
-                this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this.initWidth / this.scaleX, this.initHeight / this.scaleY), Phaser.Geom.Rectangle.Contains);
+                this.removeInteractive();
+                this._displayObject.setInteractive(new Phaser.Geom.Rectangle(this.initWidth / 2, this.initHeight / 2, this.initWidth / this.scaleX, this.initHeight / this.scaleY), Phaser.Geom.Rectangle.Contains);
             } else {
-                this._displayObject.disableInteractive();
+                this.removeInteractive();
             }
+    }
+
+    protected removeInteractive() {
+        this._displayObject.disableInteractive();
+        this._displayObject.removeInteractive();
     }
 
     public get grayed(): boolean {
@@ -1195,7 +1208,7 @@ export class GObject {
             yv = Math.round(yv);
         }
 
-        this._displayObject.setPosition(xv - this.initWidth / 2, yv - this.initHeight / 2);
+        this._displayObject.setPosition(xv, yv);
     }
 
     protected handleSizeChanged(): void {
