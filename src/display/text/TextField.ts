@@ -240,13 +240,7 @@ export class TextField extends DisplayObject {
     }
 
     setUnderline(thickness: number = 2, style?: FillStyleType, offsetY?: number) {
-        if (!style) {
-            style = this._style.fillStyle;
-        }
-        const _style = this._style;
-        _style.underlineColor = style;
-        _style.underlineThickness = thickness;
-        if (offsetY) _style.underlineOffsetY = offsetY;
+        this._style.setUnderLine(thickness, style, offsetY);
 
     }
 
