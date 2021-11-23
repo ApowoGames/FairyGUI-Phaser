@@ -149,6 +149,7 @@ export declare class GObject {
     get touchable(): boolean;
     set touchable(value: boolean);
     setTouchable(value: boolean): void;
+    protected removeInteractive(): void;
     get grayed(): boolean;
     set grayed(value: boolean);
     get enabled(): boolean;

@@ -65,7 +65,7 @@ export class MovieClip extends Image {
                 } else {
                     this._image.setTexture(key, frame.name);
                 }
-                this._image.setOrigin(0);
+                this._image.setOrigin(0.5, 0.5);
                 this._image.setPosition(0, 0);
                 this.add(this._image);
             }

@@ -761,7 +761,7 @@ class ToolSet {
         colorPipeLine.r = parseInt(rgbList[0]) / 255;
         colorPipeLine.g = parseInt(rgbList[1]) / 255;
         colorPipeLine.b = parseInt(rgbList[2]) / 255;
-        if (obj instanceof Image)
+        if (obj instanceof Image && obj.list && obj.list.length > 0)
             obj.list[0].setPipeline(colorPipeLine);
         // if (obj instanceof Phaser.GameObjects.Image || obj instanceof Phaser.GameObjects.Text) {
         //     (<any>obj).setTint(color);
@@ -3599,6 +3599,15 @@ class GObject {
     }
     applyPivot() {
         if (this._pivotX != 0 || this._pivotY != 0) {
+            if (this._displayObject) {
+                if (this._touchable) {
+                    this.removeInteractive();
+                    this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this.initWidth / this.scaleX, this.initHeight / this.scaleY), Phaser.Geom.Rectangle.Contains);
+                }
+                else {
+                    this.removeInteractive();
+                }
+            }
             this.updatePivotOffset();
             this.handleXYChanged();
         }
@@ -3620,12 +3629,16 @@ class GObject {
         //     return;
         if (this._displayObject)
             if (this._touchable) {
-                this._displayObject.disableInteractive();
-                this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this.initWidth / this.scaleX, this.initHeight / this.scaleY), Phaser.Geom.Rectangle.Contains);
+                this.removeInteractive();
+                this._displayObject.setInteractive(new Phaser.Geom.Rectangle(this.initWidth / 2, this.initHeight / 2, this.initWidth / this.scaleX, this.initHeight / this.scaleY), Phaser.Geom.Rectangle.Contains);
             }
             else {
-                this._displayObject.disableInteractive();
+                this.removeInteractive();
             }
+    }
+    removeInteractive() {
+        this._displayObject.disableInteractive();
+        this._displayObject.removeInteractive();
     }
     get grayed() {
         return this._grayed;
@@ -4198,7 +4211,7 @@ class GObject {
             xv = Math.round(xv);
             yv = Math.round(yv);
         }
-        this._displayObject.setPosition(xv - this.initWidth / 2, yv - this.initHeight / 2);
+        this._displayObject.setPosition(xv, yv);
     }
     handleSizeChanged() {
         // (<Phaser.GameObjects.Container>this.displayObject).setDisplaySize(this._width, this._height);
@@ -5062,6 +5075,7 @@ class GGraph extends GObject {
     createDisplayObject() {
         super.createDisplayObject();
         this._displayObject.disableInteractive();
+        this._displayObject.removeInteractive();
         // this._hitArea = new HitArea();
         // this._hitArea.hit = this._displayObject.graphics;
         // this._displayObject.hitArea = this._hitArea;
@@ -6048,7 +6062,7 @@ class MovieClip extends Image {
                 else {
                     this._image.setTexture(key, frame.name);
                 }
-                this._image.setOrigin(0);
+                this._image.setOrigin(0.5, 0.5);
                 this._image.setPosition(0, 0);
                 this.add(this._image);
             }
@@ -8831,6 +8845,7 @@ class ScrollPane {
         _gestureFlag = 0;
         this._dragged = false;
         this._maskContainer.disableInteractive();
+        this._maskContainer.removeInteractive();
     }
     lockHeader(size) {
         if (this._headerLockedSize == size)
@@ -9391,6 +9406,7 @@ class ScrollPane {
         this._isHoldAreaDone = true;
         this._dragged = true;
         this._maskContainer.disableInteractive();
+        this._maskContainer.removeInteractive();
         this.updateScrollBarPos();
         this.updateScrollBarVisible();
         if (this._pageMode)
@@ -11387,6 +11403,24 @@ class GComponent extends GObject {
     get displayListContainer() {
         return this._container;
     }
+    realAddChildDisplayObject(child, index) {
+        const display = child.displayObject;
+        const parent = child.parent;
+        if (parent) {
+            const pivotX = parent._pivotX;
+            const pivotY = parent._pivotY;
+            if (child.type != ObjectType.Loader) {
+                display.x -= display.width * pivotX;
+                display.y -= display.height * pivotY;
+            }
+        }
+        if (index === undefined) {
+            this._container.add(display);
+        }
+        else {
+            this._container.addAt(display, index);
+        }
+    }
     addChild(child) {
         this.addChildAt(child, this._children.length);
         return child;
@@ -11717,10 +11751,11 @@ class GComponent extends GObject {
                         if (g.displayObject && g.displayObject.parentContainer)
                             index++;
                     }
-                    this._container.addAt(child.displayObject, index);
+                    this.realAddChildDisplayObject(child, index);
+                    // this._container.addAt(child.displayObject, index);
                 }
                 else {
-                    this._container.add(child.displayObject);
+                    this.realAddChildDisplayObject(child);
                     if (!this._buildNativeTime)
                         this._buildNativeTime = this.scene.time.addEvent(this._buildNativeEvent);
                     // Laya.timer.callLater(this, this.buildNativeDisplayList);
@@ -11753,8 +11788,10 @@ class GComponent extends GObject {
                 {
                     for (i = 0; i < cnt; i++) {
                         child = this._children[i];
-                        if (child.displayObject && child.internalVisible)
-                            this._container.add(child.displayObject);
+                        if (child.displayObject && child.internalVisible) {
+                            this.realAddChildDisplayObject(child);
+                        }
+                        //this._container.add(child.displayObject);
                     }
                 }
                 break;
@@ -11763,7 +11800,7 @@ class GComponent extends GObject {
                     for (i = cnt - 1; i >= 0; i--) {
                         child = this._children[i];
                         if (child.displayObject && child.internalVisible)
-                            this._container.add(child.displayObject);
+                            this.realAddChildDisplayObject(child);
                     }
                 }
                 break;
@@ -11773,12 +11810,12 @@ class GComponent extends GObject {
                     for (i = 0; i < apex; i++) {
                         child = this._children[i];
                         if (child.displayObject && child.internalVisible)
-                            this._container.add(child.displayObject);
+                            this.realAddChildDisplayObject(child);
                     }
                     for (i = cnt - 1; i >= apex; i--) {
                         child = this._children[i];
                         if (child.displayObject && child.internalVisible)
-                            this._container.add(child.displayObject);
+                            this.realAddChildDisplayObject(child);
                     }
                 }
                 break;
@@ -11875,7 +11912,8 @@ class GComponent extends GObject {
             else {
                 if (this.hitArea instanceof Phaser.Geom.Rectangle)
                     this.hitArea = null;
-                this._displayObject.disableInteractive();
+                this.removeInteractive();
+                // this._displayObject.disableInteractive();
                 // this._displayObject.mouseThrough = true;
             }
         }
@@ -11960,8 +11998,8 @@ class GComponent extends GObject {
         if (this.hitArea instanceof Phaser.Geom.Rectangle) {
             this.hitArea.setTo(this.initWidth >> 1, this.initHeight >> 1, this.initWidth, this.initHeight);
             if (this._opaque) {
-                this.displayObject.disableInteractive();
-                this.displayObject.setInteractive(this.hitArea, Phaser.Geom.Rectangle.Contains);
+                this.removeInteractive();
+                this._displayObject.setInteractive(this.hitArea, Phaser.Geom.Rectangle.Contains);
             }
         }
     }
@@ -12088,7 +12126,7 @@ class GComponent extends GObject {
     setBounds(ax, ay, aw, ah) {
         this._boundsChanged = false;
         if (this._opaque) {
-            this._displayObject.disableInteractive();
+            this.removeInteractive();
             this.hitArea = new Phaser.Geom.Rectangle(ax + aw >> 1, ay + ah >> 1, aw, ah);
             // console.log("set bounds", aw, ah);
             this._displayObject.setInteractive(this.hitArea, Phaser.Geom.Rectangle.Contains);
@@ -16254,8 +16292,8 @@ class GLoader extends GObject {
             }
             return;
         }
-        let cw = this.sourceWidth;
-        let ch = this.sourceHeight;
+        let cw = this.parent ? this.parent.initWidth : this.sourceWidth;
+        let ch = this.parent ? this.parent.initHeight : this.sourceHeight;
         if (this._autoSize) {
             this._updatingLayout = true;
             if (cw == 0)
@@ -16731,8 +16769,8 @@ class GButton extends GComponent {
             this._soundVolumeScale = buffer.readFloat();
             this._downEffect = buffer.readByte();
             this._downEffectValue = buffer.readFloat();
-            // if (this._downEffect == 2)
-            //     this.setPivot(0.5, 0.5, this.pivotAsAnchor);
+            if (this._downEffect == 2)
+                this.setPivot(0.5, 0.5, this.pivotAsAnchor);
             this._buttonController = this.getController("button");
             this._titleObject = this.getChild("title");
             this._iconObject = this.getChild("icon");
@@ -16803,11 +16841,11 @@ class GButton extends GComponent {
         if (buffer.readBool())
             this._soundVolumeScale = buffer.readFloat();
         this.selected = buffer.readBool();
-        const g = this.scene.make.graphics(undefined, false);
-        g.clear();
-        g.fillStyle(0xFFCC00);
-        g.fillRoundedRect(0, 0, this.initWidth, this.initHeight);
-        this._displayObject.addAt(g, 0);
+        // const g = this.scene.make.graphics(undefined, false);
+        // g.clear();
+        // g.fillStyle(0xFFCC00);
+        // g.fillRoundedRect(0, 0, this.initWidth, this.initHeight);
+        // this._displayObject.addAt(g, 0);
     }
     constructFromResource2(objectPool, poolIndex) {
         const _super = Object.create(null, {

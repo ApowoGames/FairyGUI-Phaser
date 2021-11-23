@@ -156,7 +156,7 @@ export class ToolSet {
         (<ColorShaderPipeline>colorPipeLine).r = parseInt(rgbList[0]) / 255;
         (<ColorShaderPipeline>colorPipeLine).g = parseInt(rgbList[1]) / 255;
         (<ColorShaderPipeline>colorPipeLine).b = parseInt(rgbList[2]) / 255;
-        if (obj instanceof Image) (<Phaser.GameObjects.Image>obj.list[0]).setPipeline(colorPipeLine);
+        if (obj instanceof Image && obj.list && obj.list.length > 0) (<Phaser.GameObjects.Image>obj.list[0]).setPipeline(colorPipeLine);
         // if (obj instanceof Phaser.GameObjects.Image || obj instanceof Phaser.GameObjects.Text) {
         //     (<any>obj).setTint(color);
         // }

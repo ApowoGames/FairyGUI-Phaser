@@ -14,7 +14,7 @@ import { Controller } from './Controller';
 import { Graphics } from './display/Graphics';
 import { GObject } from './GObject';
 import { Decls, UIPackage } from './UIPackage';
-import { GRoot } from '.';
+import { GImage, GRoot, GButton } from '.';
 export class GComponent extends GObject {
     private _sortingChildCount: number = 0;
     protected _opaque: boolean;
@@ -106,6 +106,24 @@ export class GComponent extends GObject {
 
     public get displayListContainer(): Phaser.GameObjects.Container {
         return this._container;
+    }
+
+    public realAddChildDisplayObject(child: GObject, index?: number) {
+        const display = <any>child.displayObject;
+        const parent = child.parent;
+        if (parent) {
+            const pivotX = parent._pivotX;
+            const pivotY = parent._pivotY;
+            if(child.type != ObjectType.Loader){
+                display.x -= display.width * pivotX;
+                display.y -= display.height * pivotY;
+            }
+        }
+        if (index === undefined) {
+            this._container.add(display);
+        } else {
+            this._container.addAt(display, index);
+        }
     }
 
     public addChild(child: GObject): GObject {
@@ -502,10 +520,11 @@ export class GComponent extends GObject {
                         if (g.displayObject && g.displayObject.parentContainer)
                             index++;
                     }
-                    this._container.addAt(child.displayObject, index);
+                    this.realAddChildDisplayObject(child, index);
+                    // this._container.addAt(child.displayObject, index);
                 }
                 else {
-                    this._container.add(child.displayObject);
+                    this.realAddChildDisplayObject(child);
                     if (!this._buildNativeTime) this._buildNativeTime = this.scene.time.addEvent(this._buildNativeEvent);
                     // Laya.timer.callLater(this, this.buildNativeDisplayList);
                 }
@@ -538,8 +557,10 @@ export class GComponent extends GObject {
                 {
                     for (i = 0; i < cnt; i++) {
                         child = this._children[i];
-                        if (child.displayObject && child.internalVisible)
-                            this._container.add(child.displayObject);
+                        if (child.displayObject && child.internalVisible) {
+                            this.realAddChildDisplayObject(child);
+                        }
+                        //this._container.add(child.displayObject);
                     }
                 }
                 break;
@@ -548,7 +569,7 @@ export class GComponent extends GObject {
                     for (i = cnt - 1; i >= 0; i--) {
                         child = this._children[i];
                         if (child.displayObject && child.internalVisible)
-                            this._container.add(child.displayObject);
+                            this.realAddChildDisplayObject(child);
                     }
                 }
                 break;
@@ -559,12 +580,12 @@ export class GComponent extends GObject {
                     for (i = 0; i < apex; i++) {
                         child = this._children[i];
                         if (child.displayObject && child.internalVisible)
-                            this._container.add(child.displayObject);
+                            this.realAddChildDisplayObject(child);
                     }
                     for (i = cnt - 1; i >= apex; i--) {
                         child = this._children[i];
                         if (child.displayObject && child.internalVisible)
-                            this._container.add(child.displayObject);
+                            this.realAddChildDisplayObject(child);
                     }
                 }
                 break;
