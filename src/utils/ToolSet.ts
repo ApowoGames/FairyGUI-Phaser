@@ -137,7 +137,7 @@ export class ToolSet {
         if (tp == "boolean") //gray
         {
             if (tp) {
-                color = "#C0C0C0";
+                color = "#999999";
             } else {
                 // 传入false，则表示不是灰色，后续操作直接return
                 return;
