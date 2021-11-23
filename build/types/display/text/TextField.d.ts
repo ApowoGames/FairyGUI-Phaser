@@ -35,9 +35,9 @@ export declare class TextField extends DisplayObject {
     setShadowFill(val: boolean): void;
     setLetterSpacing(val: number): void;
     setStroke(color: FillStyleType, thickness: number): void;
-    setLineSpacing(val: number): void;
-    setFont(font: string): void;
-    setFontSize(fontSize: string | number): void;
+    setLineSpacing(val: number): this;
+    setFont(font: string): this;
+    setFontSize(fontSize: string | number): this;
     setValign(val: VAlignModeString): void;
     protected onContextRestored(): void;
     protected preDestroy(): void;

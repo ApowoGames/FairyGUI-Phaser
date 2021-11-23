@@ -99,8 +99,8 @@ export class GTextInput extends GBasicTextField {
     }
 
     public set placeholder(value: string) {
-        var str: string = UBBParser.inst.parse(value, true);
-        this.inputTextField.placeholder = str;
+        // var str: string = UBBParser.inst.parse(value, true);
+        this.inputTextField.placeholder = value;
         // if (UBBParser.inst.lastColor)
             // this._input.promptColor = UBBParser.inst.lastColor;
     }

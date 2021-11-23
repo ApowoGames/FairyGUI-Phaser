@@ -12932,7 +12932,6 @@ class GTextField extends GObject {
         super(scene, type);
         this._align = "left";
         this._valign = "top";
-        // console.log("text create", this);
     }
     get font() {
         return this._font;
@@ -13154,7 +13153,6 @@ class GTextField extends GObject {
         }
         if (buffer.readBool())
             this._templateVars = {};
-        this._touchable = false;
     }
     updateSize() {
     }
@@ -13482,10 +13480,10 @@ class DisplayObject extends Phaser.GameObjects.GameObject {
     set visible(val) {
         this._visible = val;
         if (val) {
-            this.renderFlags |= ~_VISIBLE_FLAG;
+            this.renderFlags |= _VISIBLE_FLAG;
         }
         else {
-            this.renderFlags &= _VISIBLE_FLAG;
+            this.renderFlags &= ~_VISIBLE_FLAG;
         }
     }
     get blendMode() {
@@ -14818,23 +14816,24 @@ class TextStyle {
         }
         return this;
     }
-    setFont(font) {
-        return this.update(true);
-    }
     setFontFamily(family) {
         this.fontFamily = family;
         return this.update(true);
     }
     setFontStyle(style) {
-        this.fontStyle = style;
-        return this.update(true);
+        if (this.fontStyle !== style) {
+            this.fontStyle = style;
+            return this.update(true);
+        }
     }
     setFontSize(size) {
         if (typeof size === "number") {
             size = size.toString() + "px";
         }
-        this.fontSize = size;
-        return this.update(true);
+        if (this.fontSize !== size) {
+            this.fontSize = size;
+            return this.update(true);
+        }
     }
     setFixedSize(width, height) {
         this.fixedWidth = width;
@@ -14848,6 +14847,10 @@ class TextStyle {
         return this.update(this.isWrapFitMode);
     }
     setFill(color) {
+        if (this.fillStyle !== color) {
+            this.fillStyle = color;
+            this.update(true);
+        }
     }
     setLineSpacing(value) {
         this.lineSpacing = value;
@@ -14856,12 +14859,33 @@ class TextStyle {
     setStroke(style, thickness) {
         this.strokeStyle = style;
         this.strokeThickness = thickness;
-        // return this.update(true);
+        return this.update(true);
     }
-    setUnderLine(color, o) {
-        this.underlineColor = color;
-        // this.underlineOffset = offset;
-        // this.underlineThickness = thickness;
+    setUnderLine(thickness = 2, style, offsetY) {
+        if (!style) {
+            style = this.fillStyle;
+        }
+        if (this.underlineColor !== style || this.underlineThickness !== thickness || this.underlineOffsetY !== offsetY) {
+            this.underlineColor = style;
+            this.underlineThickness = thickness;
+            if (offsetY)
+                this.underlineOffsetY = offsetY;
+            return this.update(true);
+        }
+    }
+    setShadowStyle(color) {
+        if (this.shadowColor !== color) {
+            this.shadowColor = color;
+            return this.update(true);
+        }
+    }
+    setShadowOffset(x, y) {
+        if (this.shadowOffsetX !== x || this.shadowOffsetY !== y) {
+            this.shadowFill = (x !== 0 || y !== 0);
+            this.shadowOffsetX = x;
+            this.shadowOffsetY = y;
+            return this.update(true);
+        }
     }
     setSingleLine(value) {
     }
@@ -15033,8 +15057,7 @@ class TextField extends DisplayObject {
         TextWebGLRenderer(renderer, src, camera, parentMatrix);
     }
     setColor(val) {
-        this._style.fillStyle = val;
-        this.updateText();
+        this._style.setFill(val);
     }
     setAlign(val) {
         this._style.halign = val;
@@ -15049,43 +15072,34 @@ class TextField extends DisplayObject {
         this._style.italic = val;
     }
     setUnderline(thickness = 2, style, offsetY) {
-        if (!style) {
-            style = this._style.fillStyle;
-        }
-        const _style = this._style;
-        _style.underlineColor = style;
-        _style.underlineThickness = thickness;
-        if (offsetY)
-            _style.underlineOffsetY = offsetY;
+        this._style.setUnderLine(thickness, style, offsetY);
     }
     setShadowStyle(color) {
-        this._style.shadowColor = color;
+        this._style.setShadowStyle(color);
     }
     setShadowOffset(x, y) {
-        this._style.shadowFill = (x !== 0 || y !== 0);
-        this._style.shadowOffsetX = x;
-        this._style.shadowOffsetY = y;
+        this._style.setShadowOffset(x, y);
     }
     setShadowFill(val) {
         this._style.shadowFill = val;
     }
     setLetterSpacing(val) {
-        this._style.letterSpacing = val;
+        // this._style.letterSpacing = val;
     }
     setStroke(color, thickness) {
         this._style.setStroke(color, thickness);
     }
     setLineSpacing(val) {
-        this._style.lineSpacing = val;
+        this._style.setLineSpacing(val);
+        return this;
     }
     setFont(font) {
-        this._style.fontFamily = font;
+        this._style.setFontFamily(font);
+        return this;
     }
     setFontSize(fontSize) {
-        if (typeof fontSize === "number") {
-            fontSize = fontSize + "px";
-        }
-        this._style.fontSize = fontSize;
+        this._style.setFontSize(fontSize);
+        return this;
     }
     setValign(val) {
         this._style.valign = val;
@@ -15675,7 +15689,7 @@ class InputTextField extends TextField {
         this._element.setVisible(true);
         const inputElement = this._element.node;
         inputElement.value = this._text2;
-        // inputElement.style.fontSize = this.style.fontSize;
+        inputElement.style.fontSize = this.style.fontSize;
         // inputElement.style.textAlign = this.style.align;
         if (this.maxLength !== undefined)
             inputElement.maxLength = this.maxLength;
@@ -15724,13 +15738,17 @@ class InputTextField extends TextField {
     updateTextField() {
         if (this._editing)
             this._inputNode.value = this._text2;
-        else if (this._text2.length === 0 && this._promptText) ;
+        else if (this._text2.length === 0 && this._promptText) {
+            super.setText(this._promptText);
+        }
         else if (this.password) {
             super.setText("*".repeat(this._text2.length));
         }
         else {
             super.setText(this._text2);
         }
+        this.off("pointerup", this.onFocusHandler, this);
+        this.on("pointerup", this.onFocusHandler, this);
     }
     /**
      * Don"t propagate touch/mouse events to parent(game canvas)
@@ -15765,7 +15783,6 @@ class InputTextField extends TextField {
         this._text2 = value;
         this.updateTextField();
         if (value) {
-            this.setInteractive();
             this.on("pointerup", this.onFocusHandler, this);
         }
         return this;
@@ -15784,6 +15801,7 @@ class InputTextField extends TextField {
         if (this._editing) {
             this._inputNode.placeholder = this._promptText;
         }
+        this.updateTextField();
     }
     setPlaceholder(value) {
         this.placeholder = value;
@@ -15909,8 +15927,8 @@ class GTextInput extends GBasicTextField {
         return this.inputTextField.maxLength;
     }
     set placeholder(value) {
-        var str = UBBParser.inst.parse(value, true);
-        this.inputTextField.placeholder = str;
+        // var str: string = UBBParser.inst.parse(value, true);
+        this.inputTextField.placeholder = value;
         // if (UBBParser.inst.lastColor)
         // this._input.promptColor = UBBParser.inst.lastColor;
     }

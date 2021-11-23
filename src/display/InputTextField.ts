@@ -47,7 +47,7 @@ export class InputTextField extends TextField {
         this._element.setVisible(true);
         const inputElement = (<InputElement>this._element.node);
         inputElement.value = this._text2;
-        // inputElement.style.fontSize = this.style.fontSize;
+        inputElement.style.fontSize = this.style.fontSize;
         // inputElement.style.textAlign = this.style.align;
         if (this.maxLength !== undefined) inputElement.maxLength = this.maxLength;
 
@@ -105,12 +105,15 @@ export class InputTextField extends TextField {
         if (this._editing)
             this._inputNode.value = this._text2;
         else if (this._text2.length === 0 && this._promptText) {
-            // TODO set html
+            super.setText(this._promptText);
         } else if (this.password) {
             super.setText("*".repeat(this._text2.length));
         } else {
             super.setText(this._text2);
         }
+
+        this.off("pointerup", this.onFocusHandler, this);
+        this.on("pointerup", this.onFocusHandler, this);
     }
 
     /**
@@ -149,8 +152,7 @@ export class InputTextField extends TextField {
         this._text2 = value;
         this.updateTextField();
         if (value) {
-            this.setInteractive();
-            this.on("pointerup", this.onFocusHandler, this)
+            this.on("pointerup", this.onFocusHandler, this);
         }
         return this;
     }
@@ -170,6 +172,8 @@ export class InputTextField extends TextField {
         if (this._editing) {
             this._inputNode.placeholder = this._promptText;
         }
+
+        this.updateTextField();
     }
 
     setPlaceholder(value) {

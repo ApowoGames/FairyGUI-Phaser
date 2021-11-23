@@ -220,8 +220,7 @@ export class TextField extends DisplayObject {
     }
 
     setColor(val: string) {
-        this._style.fillStyle = val;
-        this.updateText();
+        this._style.setFill(val);
     }
 
     setAlign(val: HAlignModeString) {
@@ -241,24 +240,16 @@ export class TextField extends DisplayObject {
     }
 
     setUnderline(thickness: number = 2, style?: FillStyleType, offsetY?: number) {
-        if (!style) {
-            style = this._style.fillStyle;
-        }
-        const _style = this._style;
-        _style.underlineColor = style;
-        _style.underlineThickness = thickness;
-        if (offsetY) _style.underlineOffsetY = offsetY;
+        this._style.setUnderLine(thickness, style, offsetY);
 
     }
 
     public setShadowStyle(color: string) {
-        this._style.shadowColor = color;
+        this._style.setShadowStyle(color);
     }
 
     public setShadowOffset(x: number, y: number) {
-        this._style.shadowFill = (x !== 0 || y !== 0);
-        this._style.shadowOffsetX = x;
-        this._style.shadowOffsetY = y;
+        this._style.setShadowOffset(x, y);
     }
 
     public setShadowFill(val: boolean) {
@@ -266,7 +257,7 @@ export class TextField extends DisplayObject {
     }
 
     setLetterSpacing(val: number) {
-        this._style.letterSpacing = val;
+        // this._style.letterSpacing = val;
     }
 
     setStroke(color: FillStyleType, thickness: number) {
@@ -274,19 +265,21 @@ export class TextField extends DisplayObject {
     }
 
     setLineSpacing(val: number) {
-        this._style.lineSpacing = val;
+        this._style.setLineSpacing(val);
+
+        return this;
     }
 
     setFont(font: string) {
-        this._style.fontFamily = font;
+        this._style.setFontFamily(font);
+
+        return this;
     }
 
     setFontSize(fontSize: string | number) {
-        if (typeof fontSize === "number") {
-            fontSize = fontSize + "px";
-        }
-        
-        this._style.fontSize = fontSize;
+        this._style.setFontSize(fontSize);
+
+        return this;
     }
 
     setValign(val: VAlignModeString) {
