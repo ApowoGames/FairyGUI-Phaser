@@ -148,14 +148,14 @@ export class ToolSet {
         const rgbStr = ToolSet.colorRgb(color);
         const rgbList = rgbStr.substring(4, rgbStr.lastIndexOf(")")).split(",");
         const renderer = (<Phaser.Renderer.WebGL.WebGLRenderer>GRoot.inst.scene.renderer);
-        let colorPipeLine = renderer.pipelines.get(ToolSet.Color);
+        let colorPipeLine:ColorShaderPipeline = <ColorShaderPipeline>renderer.pipelines.get(ToolSet.Color);
         if (!colorPipeLine) {
-            // @ts-ignore
-            colorPipeLine = renderer.pipelines.add(ToolSet.Color, new ColorShaderPipeline(GRoot.inst.scene.game));
+            colorPipeLine = <ColorShaderPipeline>renderer.pipelines.add(ToolSet.Color, new ColorShaderPipeline(GRoot.inst.scene.game));
+            colorPipeLine.a = 1;
         }
-        (<ColorShaderPipeline>colorPipeLine).r = parseInt(rgbList[0]) / 255;
-        (<ColorShaderPipeline>colorPipeLine).g = parseInt(rgbList[1]) / 255;
-        (<ColorShaderPipeline>colorPipeLine).b = parseInt(rgbList[2]) / 255;
+        colorPipeLine.r = parseInt(rgbList[0]) / 255;
+        colorPipeLine.g = parseInt(rgbList[1]) / 255;
+        colorPipeLine.b = parseInt(rgbList[2]) / 255;
         if (obj instanceof Image && obj.list && obj.list.length > 0) (<Phaser.GameObjects.Image>obj.list[0]).setPipeline(colorPipeLine);
         // if (obj instanceof Phaser.GameObjects.Image || obj instanceof Phaser.GameObjects.Text) {
         //     (<any>obj).setTint(color);

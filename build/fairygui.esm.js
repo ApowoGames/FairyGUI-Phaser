@@ -755,8 +755,8 @@ class ToolSet {
         const renderer = GRoot.inst.scene.renderer;
         let colorPipeLine = renderer.pipelines.get(ToolSet.Color);
         if (!colorPipeLine) {
-            // @ts-ignore
             colorPipeLine = renderer.pipelines.add(ToolSet.Color, new ColorShaderPipeline(GRoot.inst.scene.game));
+            colorPipeLine.a = 1;
         }
         colorPipeLine.r = parseInt(rgbList[0]) / 255;
         colorPipeLine.g = parseInt(rgbList[1]) / 255;
@@ -6062,7 +6062,20 @@ class MovieClip extends Image {
                 else {
                     this._image.setTexture(key, frame.name);
                 }
-                this._image.setOrigin(0.5, 0.5);
+                const owner = this["$owner"];
+                let pivotX = 0;
+                let pivotY = 0;
+                if (owner) {
+                    if (owner.parent) {
+                        pivotX = owner.parent.pivotX;
+                        pivotY = owner.parent.pivotY;
+                    }
+                    else {
+                        pivotX = owner.pivotX;
+                        pivotY = owner.pivotY;
+                    }
+                }
+                this._image.setOrigin(pivotX, pivotY);
                 this._image.setPosition(0, 0);
                 this.add(this._image);
             }
