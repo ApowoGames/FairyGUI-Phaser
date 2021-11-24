@@ -1,3 +1,4 @@
+import { PackageItem } from './PackageItem';
 import { GRoot } from './GRoot';
 export enum LoaderType {
     IMAGE = "image",
@@ -11,13 +12,21 @@ export enum LoaderType {
     SPRITESHEET = "spritesheet",
 
 }
+
+export interface IResCallBackObj {
+    id: string,
+    completeCallBack: Function,
+    errorCallBack?: Function
+}
 export class AssetProxy {
     private _resMap: Map<string, string>;
-    private _completeCallBack: Function;
-    private _errorCallBack: Function;
+    private _resCallBackMap: Map<string, Map<string, IResCallBackObj>>;
+    // private _completeCallBack: Function;
+    // private _errorCallBack: Function;
     private _emitter: Phaser.Events.EventEmitter;
     constructor() {
         this._resMap = new Map();
+        this._resCallBackMap = new Map();
         this._emitter = new Phaser.Events.EventEmitter;
     }
 
@@ -33,14 +42,14 @@ export class AssetProxy {
         return AssetProxy._inst;
     }
 
-    public getRes(key: string, type: string): Promise<any> {
+    public getRes(id: string, key: string, type: string): Promise<any> {
         return new Promise((resolve, reject) => {
             if (!this._resMap.get(key)) {
                 const url = GRoot.inst.getResUIUrl(key);
-                this.load(key, url, type, (file) => {
+                this.load(id, key, url, type, (file) => {
                     this._emitter.emit(file + "_" + type + "_complete", file);
-                    resolve(file);
                     this._resMap.set(key, url);
+                    resolve(file);
                 }, () => {
                     reject("__DEFAULT");
                 });
@@ -50,15 +59,31 @@ export class AssetProxy {
         });
     }
 
-    public load(key: string, url: any, type: string, completeCallBack: Function, _errorCallBack?: Function): void {
-
-        this._completeCallBack = completeCallBack;
-        this._errorCallBack = _errorCallBack;
+    public load(id: string, key: string, url: any, type: string, completeCallBack: Function, errorCallBack?: Function): void {
+        let rescbMap = this._resCallBackMap.get(key);
+        if (!rescbMap) {
+            rescbMap = new Map();
+            rescbMap.set(id, {
+                id,
+                completeCallBack,
+                errorCallBack
+            });
+        } else {
+            if (!rescbMap.get(id)) {
+                rescbMap.set(id, {
+                    id,
+                    completeCallBack,
+                    errorCallBack
+                });
+            }
+        }
+        this._resCallBackMap.set(key, rescbMap);
         this.addListen(type, key);
         if (GRoot.inst.scene.cache.obj.has(key)) {
-            if (this._completeCallBack) {
-                return this._completeCallBack();
-            }
+            rescbMap.forEach((obj: IResCallBackObj) => {
+                obj.completeCallBack();
+            });
+            return;
         }
         switch (type) {
             case LoaderType.IMAGE:
@@ -96,8 +121,6 @@ export class AssetProxy {
     }
 
     public addListen(type: string, key: string) {
-        GRoot.inst.scene.load.off(Phaser.Loader.Events.FILE_COMPLETE + "-" + type + "-" + key, this.onLoadComplete, this);
-        GRoot.inst.scene.load.off(Phaser.Loader.Events.FILE_LOAD_ERROR + "-" + type + "-" + key, this.onLoadError, this);
         GRoot.inst.scene.load.on(Phaser.Loader.Events.FILE_COMPLETE + "-" + type + "-" + key, this.onLoadComplete, this);
         GRoot.inst.scene.load.on(Phaser.Loader.Events.FILE_LOAD_ERROR + "-" + type + "-" + key, this.onLoadError, this);
         GRoot.inst.scene.load.on(Phaser.Loader.Events.COMPLETE, this.totalComplete, this);
@@ -115,10 +138,26 @@ export class AssetProxy {
     }
 
     private onLoadComplete(key: string, file?: File) {
-        if (this._completeCallBack) this._completeCallBack(key);
+        const rescbMap = this._resCallBackMap.get(key);
+        if (rescbMap) {
+            rescbMap.forEach((obj: IResCallBackObj) => {
+                obj.completeCallBack(key);
+            });
+        }
+        this._resCallBackMap.delete(key);
+        GRoot.inst.scene.load.off(Phaser.Loader.Events.FILE_COMPLETE + "-" + file + "-" + key, this.onLoadComplete, this);
+        GRoot.inst.scene.load.off(Phaser.Loader.Events.FILE_LOAD_ERROR + "-" + file + "-" + key, this.onLoadError, this);
     }
 
-    private onLoadError(key: string) {
-        if (this._errorCallBack) this._errorCallBack();
+    private onLoadError(key: string, file?: File) {
+        const rescbMap = this._resCallBackMap.get(key);
+        if (rescbMap) {
+            rescbMap.forEach((obj: IResCallBackObj) => {
+                obj.completeCallBack(key);
+            });
+        }
+        this._resCallBackMap.delete(key);
+        GRoot.inst.scene.load.off(Phaser.Loader.Events.FILE_COMPLETE + "-" + file + "-" + key, this.onLoadComplete, this);
+        GRoot.inst.scene.load.off(Phaser.Loader.Events.FILE_LOAD_ERROR + "-" + file + "-" + key, this.onLoadError, this);
     }
 }

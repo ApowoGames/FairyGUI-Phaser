@@ -1,7 +1,7 @@
 /**
- * 贴图颜色滤镜 只适用于texture (Phaser.Image/Phaser.Sprite) 且同一时间只能实现一种变色效果
+ * 贴图颜色滤镜 只适用于texture
  */
-export class ColorShaderPipeline extends Phaser.Renderer.WebGL.Pipelines.MultiPipeline {
+ export class GrayShaderPipeline extends Phaser.Renderer.WebGL.Pipelines.MultiPipeline {
     private _a: number;
     private _r: number;
     private _g: number;

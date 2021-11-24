@@ -1,3 +1,4 @@
+import { GRoot } from './GRoot';
 import { ByteBuffer } from './utils/ByteBuffer';
 import { UIConfig } from './UIConfig';
 import { ToolSet } from './utils/ToolSet';
@@ -299,7 +300,7 @@ export class GLoader extends GObject {
     }
 
     protected loadExternal(): void {
-        AssetProxy.inst.load(this._url, this._url, LoaderType.IMAGE, this.__getResCompleted);
+        AssetProxy.inst.load(this.id, this._url, this._url, LoaderType.IMAGE, this.__getResCompleted);
         AssetProxy.inst.addListen(LoaderType.IMAGE, this._url);
         AssetProxy.inst.startLoad();
         // AssetProxy.inst.load(this._url, Laya.Handler.create(this, this.__getResCompleted), null, Laya.Loader.IMAGE);
@@ -363,9 +364,20 @@ export class GLoader extends GObject {
             }
             return;
         }
-
-        let cw = this.parent ? this.parent.initWidth : this.sourceWidth;
-        let ch = this.parent ? this.parent.initHeight : this.sourceHeight;
+        let cw;
+        let ch;
+        // if (this.parent){
+        //     if(this.parent instanceof GRoot) {
+        //         cw = this.sourceWidth;
+        //         ch = this.sourceHeight;
+        //     }else{
+        //         cw = this.parent.initWidth;
+        //         ch = this.parent.initHeight ;
+        //     }
+        // } else {
+        cw = this.sourceWidth;
+        ch = this.sourceHeight;
+        //}
 
         if (this._autoSize) {
             this._updatingLayout = true;

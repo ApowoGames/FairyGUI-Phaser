@@ -594,15 +594,15 @@ export class UIPackage {
         return false;
     }
 
-    public getItemAsset(item: PackageItem): Promise<Object> {
+    public getItemAsset(item: PackageItem, parentID?: string): Promise<Object> {
         return new Promise((reslove, reject) => {
             switch (item.type) {
                 case PackageItemType.Image:
-                    if (!item.decoded ) {
+                    if (!item.decoded) {
                         item.decoded = true;
                         const sprite: AtlasSprite = this._sprites[item.id];
                         if (sprite) {
-                            this.getItemAsset(sprite.atlas).then((texture) => {
+                            this.getItemAsset(sprite.atlas, item.id).then((texture) => {
                                 const atlasTexture: Phaser.Textures.Texture = <Phaser.Textures.Texture>texture;
                                 if (atlasTexture) {
                                     item.texture = atlasTexture;
@@ -617,10 +617,6 @@ export class UIPackage {
                                     if (!frame) {
                                         item.texture.add(name, 0, item.x, item.y, item.width, item.height);
                                     }
-                                    // Laya.Texture.create(atlasTexture,
-                                    //     sprite.rect.x, sprite.rect.y, sprite.rect.width, sprite.rect.height,
-                                    //     sprite.offset.x, sprite.offset.y,
-                                    //     sprite.originalSize.x, sprite.originalSize.y);
                                 } else {
                                     item.texture = null;
                                 }
@@ -653,7 +649,8 @@ export class UIPackage {
                                 }
                                 reslove(item);
                             } else {
-                                AssetProxy.inst.emitter.once(sprite.atlas.file + "_image" + "_complete", (file) => {
+                                AssetProxy.inst.emitter.on(sprite.atlas.file + "_image" + "_complete", (file) => {
+                                    AssetProxy.inst.emitter.off(sprite.atlas.file + "_image" + "_complete");
                                     texture = GRoot.inst.scene.textures.get(file);
                                     if (texture) {
                                         item.texture = texture;
@@ -663,6 +660,11 @@ export class UIPackage {
                                         item.ty = sprite.offset.y;
                                         item.width = sprite.rect.width;
                                         item.height = sprite.rect.height;
+                                        const name = texture.key + "_" + item.name + "_" + item.width + "_" + item.height;
+                                        const frame = texture.frames[name];
+                                        if (!frame) {
+                                            item.texture.add(name, 0, item.x, item.y, item.width, item.height);
+                                        }
                                         reslove(item);
                                     }
 
@@ -673,14 +675,13 @@ export class UIPackage {
                     break;
                 case PackageItemType.Atlas:
                     if (!item.decoded) {
-                        AssetProxy.inst.getRes(item.file, LoaderType.IMAGE).then((texturePath) => {
+                        const id = parentID ? parentID : item.id;
+                        AssetProxy.inst.getRes(id, item.file, LoaderType.IMAGE).then((texturePath) => {
                             item.decoded = true;
                             const texture = GRoot.inst.scene.textures.get(texturePath);
                             item.texture = texture;
                             reslove(item.texture);
                         });
-                        //     if(!fgui.UIConfig.textureLinearSampling)
-                        //     item.texture.isLinearSampling = false;
                     } else {
                         reslove(item.texture);
                     }
@@ -796,7 +797,7 @@ export class UIPackage {
             }
             const fun1 = (i: number, nextPos: number): Promise<number> => {
                 return new Promise((resolve) => {
-                    this.getItemAsset(sprite.atlas).then((texture: Phaser.Textures.Texture) => {
+                    this.getItemAsset(sprite.atlas, spriteId).then((texture: Phaser.Textures.Texture) => {
                         const atlasTexture: Phaser.Textures.Texture = texture;
                         const atlasX = this._sprites[spriteId].rect.x;
                         const atlasY = this._sprites[spriteId].rect.y;

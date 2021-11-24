@@ -9,17 +9,21 @@ export declare enum LoaderType {
     BITMAPFONT = "bitmapFont",
     SPRITESHEET = "spritesheet"
 }
+export interface IResCallBackObj {
+    id: string;
+    completeCallBack: Function;
+    errorCallBack?: Function;
+}
 export declare class AssetProxy {
     private _resMap;
-    private _completeCallBack;
-    private _errorCallBack;
+    private _resCallBackMap;
     private _emitter;
     constructor();
     get emitter(): Phaser.Events.EventEmitter;
     private static _inst;
     static get inst(): AssetProxy;
-    getRes(key: string, type: string): Promise<any>;
-    load(key: string, url: any, type: string, completeCallBack: Function, _errorCallBack?: Function): void;
+    getRes(id: string, key: string, type: string): Promise<any>;
+    load(id: string, key: string, url: any, type: string, completeCallBack: Function, errorCallBack?: Function): void;
     addListen(type: string, key: string): void;
     removeListen(): void;
     startLoad(): void;

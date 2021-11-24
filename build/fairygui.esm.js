@@ -548,7 +548,7 @@ const LUMA_G = 0.587;
 const LUMA_B = 0.114;
 
 /**
- * 贴图颜色滤镜 只适用于texture
+ * 贴图颜色滤镜 只适用于texture (Phaser.Image/Phaser.Sprite) 且同一时间只能实现一种变色效果
  */
 class ColorShaderPipeline extends Phaser.Renderer.WebGL.Pipelines.MultiPipeline {
     constructor(game) {
@@ -742,7 +742,7 @@ class ToolSet {
         if (tp == "boolean") //gray
          {
             if (tp) {
-                color = "#C0C0C0";
+                color = "#999999";
             }
             else {
                 // 传入false，则表示不是灰色，后续操作直接return
@@ -7510,6 +7510,7 @@ var LoaderType;
 class AssetProxy {
     constructor() {
         this._resMap = new Map();
+        this._resCallBackMap = new Map();
         this._emitter = new Phaser.Events.EventEmitter;
     }
     get emitter() {
@@ -7520,14 +7521,14 @@ class AssetProxy {
             AssetProxy._inst = new AssetProxy();
         return AssetProxy._inst;
     }
-    getRes(key, type) {
+    getRes(id, key, type) {
         return new Promise((resolve, reject) => {
             if (!this._resMap.get(key)) {
                 const url = GRoot.inst.getResUIUrl(key);
-                this.load(key, url, type, (file) => {
+                this.load(id, key, url, type, (file) => {
                     this._emitter.emit(file + "_" + type + "_complete", file);
-                    resolve(file);
                     this._resMap.set(key, url);
+                    resolve(file);
                 }, () => {
                     reject("__DEFAULT");
                 });
@@ -7537,14 +7538,32 @@ class AssetProxy {
             }
         });
     }
-    load(key, url, type, completeCallBack, _errorCallBack) {
-        this._completeCallBack = completeCallBack;
-        this._errorCallBack = _errorCallBack;
+    load(id, key, url, type, completeCallBack, errorCallBack) {
+        let rescbMap = this._resCallBackMap.get(key);
+        if (!rescbMap) {
+            rescbMap = new Map();
+            rescbMap.set(id, {
+                id,
+                completeCallBack,
+                errorCallBack
+            });
+        }
+        else {
+            if (!rescbMap.get(id)) {
+                rescbMap.set(id, {
+                    id,
+                    completeCallBack,
+                    errorCallBack
+                });
+            }
+        }
+        this._resCallBackMap.set(key, rescbMap);
         this.addListen(type, key);
         if (GRoot.inst.scene.cache.obj.has(key)) {
-            if (this._completeCallBack) {
-                return this._completeCallBack();
-            }
+            rescbMap.forEach((obj) => {
+                obj.completeCallBack();
+            });
+            return;
         }
         switch (type) {
             case LoaderType.IMAGE:
@@ -7581,8 +7600,6 @@ class AssetProxy {
         GRoot.inst.scene.load.start();
     }
     addListen(type, key) {
-        GRoot.inst.scene.load.off(Phaser.Loader.Events.FILE_COMPLETE + "-" + type + "-" + key, this.onLoadComplete, this);
-        GRoot.inst.scene.load.off(Phaser.Loader.Events.FILE_LOAD_ERROR + "-" + type + "-" + key, this.onLoadError, this);
         GRoot.inst.scene.load.on(Phaser.Loader.Events.FILE_COMPLETE + "-" + type + "-" + key, this.onLoadComplete, this);
         GRoot.inst.scene.load.on(Phaser.Loader.Events.FILE_LOAD_ERROR + "-" + type + "-" + key, this.onLoadError, this);
         GRoot.inst.scene.load.on(Phaser.Loader.Events.COMPLETE, this.totalComplete, this);
@@ -7596,12 +7613,26 @@ class AssetProxy {
     totalComplete(loader, totalComplete, totalFailed) {
     }
     onLoadComplete(key, file) {
-        if (this._completeCallBack)
-            this._completeCallBack(key);
+        const rescbMap = this._resCallBackMap.get(key);
+        if (rescbMap) {
+            rescbMap.forEach((obj) => {
+                obj.completeCallBack(key);
+            });
+        }
+        this._resCallBackMap.delete(key);
+        GRoot.inst.scene.load.off(Phaser.Loader.Events.FILE_COMPLETE + "-" + file + "-" + key, this.onLoadComplete, this);
+        GRoot.inst.scene.load.off(Phaser.Loader.Events.FILE_LOAD_ERROR + "-" + file + "-" + key, this.onLoadError, this);
     }
-    onLoadError(key) {
-        if (this._errorCallBack)
-            this._errorCallBack();
+    onLoadError(key, file) {
+        const rescbMap = this._resCallBackMap.get(key);
+        if (rescbMap) {
+            rescbMap.forEach((obj) => {
+                obj.completeCallBack(key);
+            });
+        }
+        this._resCallBackMap.delete(key);
+        GRoot.inst.scene.load.off(Phaser.Loader.Events.FILE_COMPLETE + "-" + file + "-" + key, this.onLoadComplete, this);
+        GRoot.inst.scene.load.off(Phaser.Loader.Events.FILE_LOAD_ERROR + "-" + file + "-" + key, this.onLoadError, this);
     }
 }
 
@@ -8085,7 +8116,7 @@ class UIPackage {
         }
         return false;
     }
-    getItemAsset(item) {
+    getItemAsset(item, parentID) {
         return new Promise((reslove, reject) => {
             switch (item.type) {
                 case PackageItemType.Image:
@@ -8093,7 +8124,7 @@ class UIPackage {
                         item.decoded = true;
                         const sprite = this._sprites[item.id];
                         if (sprite) {
-                            this.getItemAsset(sprite.atlas).then((texture) => {
+                            this.getItemAsset(sprite.atlas, item.id).then((texture) => {
                                 const atlasTexture = texture;
                                 if (atlasTexture) {
                                     item.texture = atlasTexture;
@@ -8108,10 +8139,6 @@ class UIPackage {
                                     if (!frame) {
                                         item.texture.add(name, 0, item.x, item.y, item.width, item.height);
                                     }
-                                    // Laya.Texture.create(atlasTexture,
-                                    //     sprite.rect.x, sprite.rect.y, sprite.rect.width, sprite.rect.height,
-                                    //     sprite.offset.x, sprite.offset.y,
-                                    //     sprite.originalSize.x, sprite.originalSize.y);
                                 }
                                 else {
                                     item.texture = null;
@@ -8148,7 +8175,8 @@ class UIPackage {
                                 reslove(item);
                             }
                             else {
-                                AssetProxy.inst.emitter.once(sprite.atlas.file + "_image" + "_complete", (file) => {
+                                AssetProxy.inst.emitter.on(sprite.atlas.file + "_image" + "_complete", (file) => {
+                                    AssetProxy.inst.emitter.off(sprite.atlas.file + "_image" + "_complete");
                                     texture = GRoot.inst.scene.textures.get(file);
                                     if (texture) {
                                         item.texture = texture;
@@ -8158,6 +8186,11 @@ class UIPackage {
                                         item.ty = sprite.offset.y;
                                         item.width = sprite.rect.width;
                                         item.height = sprite.rect.height;
+                                        const name = texture.key + "_" + item.name + "_" + item.width + "_" + item.height;
+                                        const frame = texture.frames[name];
+                                        if (!frame) {
+                                            item.texture.add(name, 0, item.x, item.y, item.width, item.height);
+                                        }
                                         reslove(item);
                                     }
                                 }, this);
@@ -8167,14 +8200,13 @@ class UIPackage {
                     break;
                 case PackageItemType.Atlas:
                     if (!item.decoded) {
-                        AssetProxy.inst.getRes(item.file, LoaderType.IMAGE).then((texturePath) => {
+                        const id = parentID ? parentID : item.id;
+                        AssetProxy.inst.getRes(id, item.file, LoaderType.IMAGE).then((texturePath) => {
                             item.decoded = true;
                             const texture = GRoot.inst.scene.textures.get(texturePath);
                             item.texture = texture;
                             reslove(item.texture);
                         });
-                        //     if(!fgui.UIConfig.textureLinearSampling)
-                        //     item.texture.isLinearSampling = false;
                     }
                     else {
                         reslove(item.texture);
@@ -8278,7 +8310,7 @@ class UIPackage {
             };
             const fun1 = (i, nextPos) => {
                 return new Promise((resolve) => {
-                    this.getItemAsset(sprite.atlas).then((texture) => {
+                    this.getItemAsset(sprite.atlas, spriteId).then((texture) => {
                         const atlasTexture = texture;
                         const atlasX = this._sprites[spriteId].rect.x;
                         const atlasY = this._sprites[spriteId].rect.y;
@@ -16267,7 +16299,7 @@ class GLoader extends GObject {
         });
     }
     loadExternal() {
-        AssetProxy.inst.load(this._url, this._url, LoaderType.IMAGE, this.__getResCompleted);
+        AssetProxy.inst.load(this.id, this._url, this._url, LoaderType.IMAGE, this.__getResCompleted);
         AssetProxy.inst.addListen(LoaderType.IMAGE, this._url);
         AssetProxy.inst.startLoad();
         // AssetProxy.inst.load(this._url, Laya.Handler.create(this, this.__getResCompleted), null, Laya.Loader.IMAGE);
@@ -16323,8 +16355,20 @@ class GLoader extends GObject {
             }
             return;
         }
-        let cw = this.parent ? this.parent.initWidth : this.sourceWidth;
-        let ch = this.parent ? this.parent.initHeight : this.sourceHeight;
+        let cw;
+        let ch;
+        // if (this.parent){
+        //     if(this.parent instanceof GRoot) {
+        //         cw = this.sourceWidth;
+        //         ch = this.sourceHeight;
+        //     }else{
+        //         cw = this.parent.initWidth;
+        //         ch = this.parent.initHeight ;
+        //     }
+        // } else {
+        cw = this.sourceWidth;
+        ch = this.sourceHeight;
+        //}
         if (this._autoSize) {
             this._updatingLayout = true;
             if (cw == 0)
