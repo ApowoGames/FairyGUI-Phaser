@@ -366,14 +366,20 @@ export class GLoader extends GObject {
         }
         let cw;
         let ch;
+        let pivotX = 0;
+        let pivotY = 0;
         if (this.parent) {
             if (this.parent.parent) {
                 if (this.parent.parent instanceof GRoot) {
                     cw = this.sourceWidth;
                     ch = this.sourceHeight;
+                    pivotX = this.pivotX;
+                    pivotY = this.pivotY;
                 } else {
                     cw = this.parent.initWidth;
                     ch = this.parent.initHeight;
+                    pivotX = this.parent.pivotX;
+                    pivotY = this.parent.pivotY;
                 }
             } else {
                 cw = this.sourceWidth;
@@ -455,22 +461,24 @@ export class GLoader extends GObject {
 
         var nx: number, ny: number;
         if (this._align == "center")
-            nx = Math.floor((this.width - cw) / 2);
+            nx = (0.5 - pivotX) * cw + Math.floor((this.width - cw) / 2);
         else if (this._align == "right")
-            nx = this.width - cw;
+            nx = (0.5 - pivotX) * cw + (this.width - cw);
         else
-            nx = 0;
+            nx = (0.5 - pivotX) * cw;
         if (this._valign == "middle")
-            ny = Math.floor((this.height - ch) / 2);
+            ny = (0.5 - pivotY) * ch + Math.floor((this.height - ch) / 2);
         else if (this._valign == "bottom")
-            ny = this.height - ch;
+            ny = (0.5 - pivotY) * ch + (this.height - ch);
         else
-            ny = 0;
+            ny = (0.5 - pivotY) * ch;
 
         if (this._content2)
             this._content2.setXY(nx, ny);
-        else
+        else {
             this._content.setPosition(nx, ny);
+        }
+
     }
 
     private clearContent(): void {

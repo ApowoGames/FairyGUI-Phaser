@@ -12527,7 +12527,7 @@ class MovieClip extends Image {
         super(scene);
         this.repeatDelay = 0;
         this.timeScale = 1;
-        this._interval = 100;
+        this._interval = 70;
         this._frameElapsed = 0; //当前帧延迟
         this._repeatedCount = 0;
         this._sourceWidth = 0;
@@ -12552,22 +12552,6 @@ class MovieClip extends Image {
         this._frames = value;
         if (value) {
             const owner = this["$owner"];
-            let pivotX = 0;
-            let pivotY = 0;
-            if (owner) {
-                if (owner.parent) {
-                    if (owner.parent.parent) {
-                        if (owner.parent.parent instanceof GRoot) {
-                            pivotX = owner.pivotX;
-                            pivotY = owner.pivotY;
-                        }
-                        else {
-                            pivotX = owner.parent.pivotX;
-                            pivotY = owner.parent.pivotY;
-                        }
-                    }
-                }
-            }
             const frame = value[0];
             if (value.length > 1) {
                 const key = frame.texture.key;
@@ -12579,11 +12563,24 @@ class MovieClip extends Image {
                 if (!this._sprite)
                     this._sprite = this.scene.make.sprite(undefined, false);
                 this._sprite.anims.create({ key: this._curKey, frames: this._sprite.anims.generateFrameNames(key, { prefix: name + "_", start: 0, end: len - 1 }), frameRate, repeat });
-                this._sprite.setOrigin(pivotX, pivotY);
+                // this._sprite.x += Math.abs(pivotX - 0.5) * this["$owner"].initWidth;
+                // this._sprite.y += Math.abs(pivotY - 0.5) * this["$owner"].initHeight;
+                // this._sprite.setOrigin(pivotX, pivotY);
                 this.add(this._sprite);
                 this.checkTimer();
             }
             else {
+                if (owner) {
+                    if (owner.parent) {
+                        if (owner.parent.parent) {
+                            if (owner.parent.parent instanceof GRoot) ;
+                            else {
+                                owner.parent.pivotX;
+                                owner.parent.pivotY;
+                            }
+                        }
+                    }
+                }
                 const key = frame.texture.key;
                 if (!this._image) {
                     this._image = new Phaser.GameObjects.Image(this.scene, 0, 0, key, frame.name);
@@ -12591,7 +12588,7 @@ class MovieClip extends Image {
                 else {
                     this._image.setTexture(key, frame.name);
                 }
-                this._image.setOrigin(pivotX, pivotY);
+                // this._image.setOrigin(pivotX, pivotY);
                 //this._image.setPosition(0, 0);
                 this.add(this._image);
             }
@@ -16362,15 +16359,21 @@ class GLoader extends GObject {
         }
         let cw;
         let ch;
+        let pivotX = 0;
+        let pivotY = 0;
         if (this.parent) {
             if (this.parent.parent) {
                 if (this.parent.parent instanceof GRoot) {
                     cw = this.sourceWidth;
                     ch = this.sourceHeight;
+                    pivotX = this.pivotX;
+                    pivotY = this.pivotY;
                 }
                 else {
                     cw = this.parent.initWidth;
                     ch = this.parent.initHeight;
+                    pivotX = this.parent.pivotX;
+                    pivotY = this.parent.pivotY;
                 }
             }
             else {
@@ -16445,21 +16448,22 @@ class GLoader extends GObject {
         }
         var nx, ny;
         if (this._align == "center")
-            nx = Math.floor((this.width - cw) / 2);
+            nx = (0.5 - pivotX) * cw + Math.floor((this.width - cw) / 2);
         else if (this._align == "right")
-            nx = this.width - cw;
+            nx = (0.5 - pivotX) * cw + (this.width - cw);
         else
-            nx = 0;
+            nx = (0.5 - pivotX) * cw;
         if (this._valign == "middle")
-            ny = Math.floor((this.height - ch) / 2);
+            ny = (0.5 - pivotY) * ch + Math.floor((this.height - ch) / 2);
         else if (this._valign == "bottom")
-            ny = this.height - ch;
+            ny = (0.5 - pivotY) * ch + (this.height - ch);
         else
-            ny = 0;
+            ny = (0.5 - pivotY) * ch;
         if (this._content2)
             this._content2.setXY(nx, ny);
-        else
+        else {
             this._content.setPosition(nx, ny);
+        }
     }
     clearContent() {
         this.clearErrorState();
