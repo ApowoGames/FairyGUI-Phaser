@@ -366,18 +366,23 @@ export class GLoader extends GObject {
         }
         let cw;
         let ch;
-        // if (this.parent){
-        //     if(this.parent instanceof GRoot) {
-        //         cw = this.sourceWidth;
-        //         ch = this.sourceHeight;
-        //     }else{
-        //         cw = this.parent.initWidth;
-        //         ch = this.parent.initHeight ;
-        //     }
-        // } else {
-        cw = this.sourceWidth;
-        ch = this.sourceHeight;
-        //}
+        if (this.parent) {
+            if (this.parent.parent) {
+                if (this.parent.parent instanceof GRoot) {
+                    cw = this.sourceWidth;
+                    ch = this.sourceHeight;
+                } else {
+                    cw = this.parent.initWidth;
+                    ch = this.parent.initHeight;
+                }
+            } else {
+                cw = this.sourceWidth;
+                ch = this.sourceHeight;
+            }
+        } else {
+            cw = this.sourceWidth;
+            ch = this.sourceHeight;
+        }
 
         if (this._autoSize) {
             this._updatingLayout = true;

@@ -1,3 +1,4 @@
+import { GRoot } from './../GRoot';
 import { GObject } from "..";
 import { Image } from "./Image";
 
@@ -47,6 +48,22 @@ export class MovieClip extends Image {
     public set frames(value: Phaser.Textures.Frame[]) {
         this._frames = value;
         if (value) {
+            const owner: GObject = this["$owner"];
+            let pivotX = 0;
+            let pivotY = 0;
+            if (owner) {
+                if (owner.parent) {
+                    if (owner.parent.parent) {
+                        if (owner.parent.parent instanceof GRoot) {
+                            pivotX = owner.pivotX;
+                            pivotY = owner.pivotY;
+                        } else {
+                            pivotX = owner.parent.pivotX;
+                            pivotY = owner.parent.pivotY;
+                        }
+                    }
+                }
+            }
             const frame: Phaser.Textures.Frame = value[0];
             if (value.length > 1) {
                 const key = frame.texture.key;
@@ -57,6 +74,7 @@ export class MovieClip extends Image {
                 const frameRate = 1000 / this._interval;
                 if (!this._sprite) this._sprite = this.scene.make.sprite(undefined, false);
                 (<Phaser.GameObjects.Sprite>this._sprite).anims.create({ key: this._curKey, frames: this._sprite.anims.generateFrameNames(key, { prefix: name + "_", start: 0, end: len - 1 }), frameRate, repeat });
+                this._sprite.setOrigin(pivotX, pivotY);
                 this.add(this._sprite);
                 this.checkTimer();
             } else {
@@ -66,20 +84,8 @@ export class MovieClip extends Image {
                 } else {
                     this._image.setTexture(key, frame.name);
                 }
-                const owner: GObject = this["$owner"];
-                let pivotX = 0;
-                let pivotY = 0;
-                if (owner) {
-                    if (owner.parent) {
-                        pivotX = owner.parent.pivotX;
-                        pivotY = owner.parent.pivotY;
-                    } else {
-                        pivotX = owner.pivotX;
-                        pivotY = owner.pivotY;
-                    }
-                }
                 this._image.setOrigin(pivotX, pivotY);
-                this._image.setPosition(0, 0);
+                //this._image.setPosition(0, 0);
                 this.add(this._image);
             }
         } else {

@@ -161,8 +161,8 @@ export class GMovieClip extends GObject {
             xv = Math.round(xv);
             yv = Math.round(yv);
         }
-        let tmpX = xv + this._pivotOffsetX + this._movieClip.frames[0].width >> 1;
-        let tmpY = yv + this._pivotOffsetY + this._movieClip.frames[0].height >> 1;
+        let tmpX = xv + this._pivotOffsetX //+ this._movieClip.frames[0].width >> 1;
+        let tmpY = yv + this._pivotOffsetY //+ this._movieClip.frames[0].height >> 1;
         this._displayObject.setPosition(tmpX, tmpY);
     }
 }
