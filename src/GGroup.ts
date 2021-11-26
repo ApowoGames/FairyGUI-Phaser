@@ -29,11 +29,12 @@ export class GGroup extends GObject {
         super.dispose();
     }
 
+    /**
+     * group 交互默认为false
+     */
     public set touchable(value: boolean) {
         this._touchable = false;
-        // if (this._touchable != value) {
-        //     this.setTouchable(value);
-        // }
+        this.setTouchable(false);
     }
 
     public get layout(): number {

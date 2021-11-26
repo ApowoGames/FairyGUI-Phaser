@@ -1,4 +1,3 @@
-import { GRoot } from './../GRoot';
 import { GObject } from "..";
 import { Image } from "./Image";
 
@@ -49,8 +48,6 @@ export class MovieClip extends Image {
         this._frames = value;
         if (value) {
             const owner: GObject = this["$owner"];
-            let pivotX = 0;
-            let pivotY = 0;
             const frame: Phaser.Textures.Frame = value[0];
             if (value.length > 1) {
                 const key = frame.texture.key;
@@ -61,33 +58,15 @@ export class MovieClip extends Image {
                 const frameRate = 1000 / this._interval;
                 if (!this._sprite) this._sprite = this.scene.make.sprite(undefined, false);
                 (<Phaser.GameObjects.Sprite>this._sprite).anims.create({ key: this._curKey, frames: this._sprite.anims.generateFrameNames(key, { prefix: name + "_", start: 0, end: len - 1 }), frameRate, repeat });
-                // this._sprite.x += Math.abs(pivotX - 0.5) * this["$owner"].initWidth;
-                // this._sprite.y += Math.abs(pivotY - 0.5) * this["$owner"].initHeight;
-                // this._sprite.setOrigin(pivotX, pivotY);
                 this.add(this._sprite);
                 this.checkTimer();
             } else {
-                if (owner) {
-                    if (owner.parent) {
-                        if (owner.parent.parent) {
-                            if (owner.parent.parent instanceof GRoot) {
-                                pivotX = owner.pivotX;
-                                pivotY = owner.pivotY;
-                            } else {
-                                pivotX = owner.parent.pivotX;
-                                pivotY = owner.parent.pivotY;
-                            }
-                        }
-                    }
-                }
                 const key = frame.texture.key;
                 if (!this._image) {
                     this._image = new Phaser.GameObjects.Image(this.scene, 0, 0, key, frame.name);
                 } else {
                     this._image.setTexture(key, frame.name);
                 }
-                // this._image.setOrigin(pivotX, pivotY);
-                //this._image.setPosition(0, 0);
                 this.add(this._image);
             }
         } else {
@@ -336,20 +315,6 @@ export class MovieClip extends Image {
         } else {
             this._sprite.stop();
         }
-
-        // if (this._playing && this._frameCount > 0 && GRoot.inst.scene != null) {
-        //     if (!this._movieTime) this._movieTime = this.scene.time.addEvent(this._movieUpdateEvent);
-        // } else {
-        //     if (this._movieTime) {
-        //         this._movieTime.remove(false);
-        //         this._movieTime = null;
-        //     }
-        // }
-        //  throw new Error("TODO");
-        // if (this._playing && this._frameCount > 0 && GRoot.inst.scene != null)
-        //     Laya.timer.frameLoop(1, this, this.update);
-        // else
-        //     Laya.timer.clear(this, this.update);
     }
 
     // private __addToStage(): void {
