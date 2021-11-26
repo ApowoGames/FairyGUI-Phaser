@@ -1,3 +1,4 @@
+import { InputManager } from './input/InputManager';
 import { GObject } from './GObject';
 import { GComponent } from "./GComponent";
 import { PopupDirection, Window } from '.';
@@ -28,9 +29,11 @@ export declare class GRoot extends GComponent {
     private _tooltipWin;
     private _defaultTooltipWin;
     private _checkPopups;
+    private _inputManager;
     constructor();
     get emitter(): Phaser.Events.EventEmitter;
     static get inst(): GRoot;
+    get input(): InputManager;
     /**
     * the current mouse/pointer data
     */

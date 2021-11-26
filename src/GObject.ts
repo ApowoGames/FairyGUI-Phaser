@@ -15,7 +15,7 @@ import { GComponent } from './GComponent';
 import { DisplayObjectEvent, InteractiveEvent } from './event/DisplayObjectEvent';
 import { GTree } from './GTree';
 import { GearAnimation, GearColor, GearFontSize, GearIcon, GearLook, GearSize, GearText, GearXY } from './gears';
-import { GButton, GGraph, GImage, GList, GLoader, GMovieClip, GRichTextField, GRoot, GTextField, GTextInput, Image } from '.';
+import { GButton, GGraph, GImage, GList, GLoader, GMovieClip, GProgressBar, GRichTextField, GRoot, GTextField, GTextInput, Image } from '.';
 export class DisplayStyle {
     static EMPTY: DisplayStyle = new DisplayStyle();
     /**水平缩放 */
@@ -832,9 +832,9 @@ export class GObject {
     //     return <GLabel><any>this;
     // }
 
-    // public get asProgress(): GProgressBar {
-    //     return <GProgressBar><any>this;
-    // }
+    public get asProgress(): GProgressBar {
+        return <GProgressBar><any>this;
+    }
 
     public get asTextField(): GTextField {
         return <GTextField><any>this;
@@ -939,11 +939,11 @@ export class GObject {
     }
 
     public onClick(listener: Function, context: any): void {
-        this.on(InteractiveEvent.POINTER_DOWN, listener, context);
+        this.on(InteractiveEvent.GAMEOBJECT_DOWN, listener, context);
     }
 
-    public offClick(listener: Function, context: any, once: boolean = false): void {
-        this.off(InteractiveEvent.POINTER_DOWN, listener, once, context);
+    public offClick(listener: Function, context: any): void {
+        this.off(InteractiveEvent.GAMEOBJECT_DOWN, listener, context);
     }
 
     public hasClickListener(): boolean {
@@ -951,11 +951,13 @@ export class GObject {
     }
 
     public on(type: string, listener: Function, context: any = this): void {
-        this._displayObject.on(type, listener, context);
+        if (this._touchable) {
+            GRoot.inst.input.addToListener(type, this._displayObject, listener, context);
+        }
     }
 
-    public off(type: string, listener: Function, context: any = this, once: boolean = false): void {
-        this._displayObject.off(type, listener, once, context);
+    public off(type: string, listener: Function, context: any = this): void {
+        GRoot.inst.input.removeFromListener(type, this._displayObject, context);
     }
 
     public get draggable(): boolean {

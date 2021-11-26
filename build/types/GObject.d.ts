@@ -7,7 +7,7 @@ import { Relations } from './Relations';
 import { PackageItem } from './PackageItem';
 import { GComponent } from './GComponent';
 import { GTree } from './GTree';
-import { GButton, GGraph, GImage, GList, GLoader, GMovieClip, GRichTextField, GRoot, GTextField, GTextInput } from '.';
+import { GButton, GGraph, GImage, GList, GLoader, GMovieClip, GProgressBar, GRichTextField, GRoot, GTextField, GTextInput } from '.';
 export declare class DisplayStyle {
     static EMPTY: DisplayStyle;
     /**水平缩放 */
@@ -199,6 +199,7 @@ export declare class GObject {
     get root(): GRoot;
     get asCom(): GComponent;
     get asButton(): GButton;
+    get asProgress(): GProgressBar;
     get asTextField(): GTextField;
     get asRichTextField(): GRichTextField;
     get asTextInput(): GTextInput;
@@ -225,10 +226,10 @@ export declare class GObject {
     set hitArea(value: any);
     dispose(): void;
     onClick(listener: Function, context: any): void;
-    offClick(listener: Function, context: any, once?: boolean): void;
+    offClick(listener: Function, context: any): void;
     hasClickListener(): boolean;
     on(type: string, listener: Function, context?: any): void;
-    off(type: string, listener: Function, context?: any, once?: boolean): void;
+    off(type: string, listener: Function, context?: any): void;
     get draggable(): boolean;
     set draggable(value: boolean);
     get dragBounds(): Phaser.Geom.Rectangle;

@@ -16,6 +16,9 @@ export declare class GGroup extends GObject {
     _updating: number;
     constructor(scene: Phaser.Scene, type: any);
     dispose(): void;
+    /**
+     * group 交互默认为false
+     */
     set touchable(value: boolean);
     get layout(): number;
     set layout(value: number);

@@ -8,3 +8,4 @@ export * from "./PixelHitTest";
 export * from "./ToolSet";
 export * from "./UBBParser";
 export * from "./Handler";
+export * from "./Utils";

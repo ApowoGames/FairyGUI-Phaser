@@ -3888,9 +3888,9 @@ class GObject {
     // public get asLabel(): GLabel {
     //     return <GLabel><any>this;
     // }
-    // public get asProgress(): GProgressBar {
-    //     return <GProgressBar><any>this;
-    // }
+    get asProgress() {
+        return this;
+    }
     get asTextField() {
         return this;
     }
@@ -3971,19 +3971,21 @@ class GObject {
         }
     }
     onClick(listener, context) {
-        this.on(InteractiveEvent.POINTER_DOWN, listener, context);
+        this.on(InteractiveEvent.GAMEOBJECT_DOWN, listener, context);
     }
-    offClick(listener, context, once = false) {
-        this.off(InteractiveEvent.POINTER_DOWN, listener, once, context);
+    offClick(listener, context) {
+        this.off(InteractiveEvent.GAMEOBJECT_DOWN, listener, context);
     }
     hasClickListener() {
         return this._displayObject && this._touchable; // hasListener(InteractiveEvent.CLICK);
     }
     on(type, listener, context = this) {
-        this._displayObject.on(type, listener, context);
+        if (this._touchable) {
+            GRoot.inst.input.addToListener(type, this._displayObject, listener, context);
+        }
     }
-    off(type, listener, context = this, once = false) {
-        this._displayObject.off(type, listener, once, context);
+    off(type, listener, context = this) {
+        GRoot.inst.input.removeFromListener(type, this._displayObject, context);
     }
     get draggable() {
         return this._draggable;
@@ -4497,12 +4499,12 @@ class GGroup extends GObject {
         this._boundsChanged = false;
         super.dispose();
     }
+    /**
+     * group 交互默认为false
+     */
     set touchable(value) {
         this._touchable = false;
         this.setTouchable(false);
-        // if (this._touchable != value) {
-        //     this.setTouchable(value);
-        // }
     }
     get layout() {
         return this._layout;
@@ -6426,6 +6428,71 @@ class GMovieClip extends GObject {
         let tmpX = xv + this._pivotOffsetX; //+ this._movieClip.frames[0].width >> 1;
         let tmpY = yv + this._pivotOffsetY; //+ this._movieClip.frames[0].height >> 1;
         this._displayObject.setPosition(tmpX, tmpY);
+    }
+}
+
+class InputManager {
+    constructor() {
+        this._downHandlerMap = new Map();
+        this._upHandlerMap = new Map();
+    }
+    setScene(scene) {
+        this.removeListener();
+        this._scene = scene;
+        this.addListener();
+    }
+    destroy() {
+        this._downHandlerMap.clear();
+        this._downHandlerMap = null;
+        this._upHandlerMap.clear();
+        this._upHandlerMap = null;
+        this.removeListener();
+    }
+    addToListener(type, gameObject, fun, context) {
+        switch (type) {
+            case InteractiveEvent.GAMEOBJECT_DOWN:
+                if (!this._downHandlerMap.get(gameObject))
+                    this._downHandlerMap.set(gameObject, { fun, context });
+                break;
+            case InteractiveEvent.GAMEOBJECT_UP:
+                if (!this._upHandlerMap.get(gameObject))
+                    this._upHandlerMap.set(gameObject, { fun, context });
+                break;
+        }
+    }
+    removeFromListener(type, gameObject, context) {
+        switch (type) {
+            case InteractiveEvent.GAMEOBJECT_DOWN:
+                if (this._downHandlerMap.get(gameObject))
+                    this._downHandlerMap.delete(gameObject);
+                break;
+            case InteractiveEvent.GAMEOBJECT_UP:
+                if (this._upHandlerMap.get(gameObject))
+                    this._upHandlerMap.delete(gameObject);
+                break;
+        }
+    }
+    addListener() {
+        this._scene.input.on(InteractiveEvent.GAMEOBJECT_DOWN, this.gameDown, this);
+        this._scene.input.on(InteractiveEvent.GAMEOBJECT_UP, this.gameUp, this);
+    }
+    removeListener() {
+        if (!this._scene)
+            return;
+        this._scene.input.off(InteractiveEvent.GAMEOBJECT_DOWN, this.gameDown, this);
+        this._scene.input.off(InteractiveEvent.GAMEOBJECT_UP, this.gameUp, this);
+    }
+    gameDown(pointer, gameObject) {
+        const obj = this._downHandlerMap.get(gameObject);
+        if (obj) {
+            obj.fun.call(obj.context || this, pointer, gameObject);
+        }
+    }
+    gameUp(pointer, gameObject) {
+        const obj = this._upHandlerMap.get(gameObject);
+        if (obj) {
+            obj.fun.call(obj.context || this, pointer, gameObject);
+        }
     }
 }
 
@@ -12603,6 +12670,7 @@ class GRoot extends GComponent {
         super();
         this._popupStack = [];
         this._justClosedPopups = [];
+        this._inputManager = new InputManager();
     }
     get emitter() {
         return this._uiStage;
@@ -12611,6 +12679,9 @@ class GRoot extends GComponent {
         if (GRoot._inst == null)
             GRoot._inst = new GRoot();
         return GRoot._inst;
+    }
+    get input() {
+        return this._inputManager;
     }
     /**
     * the current mouse/pointer data
@@ -12633,6 +12704,7 @@ class GRoot extends GComponent {
      */
     attachTo(scene, stageOptions) {
         this._scene = scene;
+        this._inputManager.setScene(scene);
         Utils.FPSTarget = this._scene.game.config.fps.target || Utils.FPSTarget;
         //this.createDisplayObject();
         // todo deal stageoptions
@@ -23012,5 +23084,5 @@ Handler._pool = [];
 /**@private */
 Handler._gid = 1;
 
-export { AlignType, AsyncOperation, AutoSizeType, BitmapFont, ButtonMode, Byte, ByteBuffer, ChildHitArea, ChildrenRenderOrder, ColorMatrix, Controller, CurveType, DOMEventManager, DefaultUIStageOptions, DisplayObjectEvent, DragDropManager, EaseType, Event, FillMethod, FillOrigin, FillOrigin90, FlipType, GButton, GComboBox, GComponent, GGraph, GGroup, GImage, GLabel, GList, GLoader, GMovieClip, GObject, GObjectPool, GPath, GPathPoint, GProgressBar, GRAPHICSTYPE, GRichTextField, GRoot, GScrollBar, GSlider, GTextField, GTextInput, GTree, GTreeNode, GTween, GTweener, Graphics, GroupLayoutType, Handler, HitArea, Image, InteractiveEvent, ListLayoutType, ListSelectionMode, LoaderFillType, MovieClip, ObjectPropID, ObjectType, OverflowType, PackageItem, PackageItemType, PixelHitTest, PixelHitTestData, PopupDirection, PopupMenu, ProgressTitleType, RelationType, ScrollBarDisplayType, ScrollPane, ScrollType, StageAlign, StageOrientation, StageScaleMode, ToolSet, Transition, TranslationHelper, TweenManager, TweenValue, UBBParser, UIConfig, UIObjectFactory, UIPackage, UIStage, VertAlignType, Window, evaluateEase, fillImage };
+export { AlignType, AsyncOperation, AutoSizeType, BitmapFont, ButtonMode, Byte, ByteBuffer, ChildHitArea, ChildrenRenderOrder, ColorMatrix, Controller, CurveType, DOMEventManager, DefaultUIStageOptions, DisplayObjectEvent, DragDropManager, EaseType, Event, FillMethod, FillOrigin, FillOrigin90, FlipType, GButton, GComboBox, GComponent, GGraph, GGroup, GImage, GLabel, GList, GLoader, GMovieClip, GObject, GObjectPool, GPath, GPathPoint, GProgressBar, GRAPHICSTYPE, GRichTextField, GRoot, GScrollBar, GSlider, GTextField, GTextInput, GTree, GTreeNode, GTween, GTweener, Graphics, GroupLayoutType, Handler, HitArea, Image, InteractiveEvent, ListLayoutType, ListSelectionMode, LoaderFillType, MovieClip, ObjectPropID, ObjectType, OverflowType, PackageItem, PackageItemType, PixelHitTest, PixelHitTestData, PopupDirection, PopupMenu, ProgressTitleType, RelationType, ScrollBarDisplayType, ScrollPane, ScrollType, StageAlign, StageOrientation, StageScaleMode, ToolSet, Transition, TranslationHelper, TweenManager, TweenValue, UBBParser, UIConfig, UIObjectFactory, UIPackage, UIStage, Utils, VertAlignType, Window, evaluateEase, fillImage };
 //# sourceMappingURL=fairygui.esm.js.map

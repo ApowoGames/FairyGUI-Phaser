@@ -1,3 +1,4 @@
+import { InputManager } from './input/InputManager';
 import { ObjectType } from './FieldTypes';
 import { ToolSet } from './utils/ToolSet';
 import { GObject } from './GObject';
@@ -39,10 +40,12 @@ export class GRoot extends GComponent {
     private _tooltipWin: GObject;
     private _defaultTooltipWin: GObject;
     private _checkPopups: boolean;
+    private _inputManager: InputManager;
     constructor() {
         super();
         this._popupStack = [];
         this._justClosedPopups = [];
+        this._inputManager = new InputManager();
     }
 
     public get emitter(): Phaser.Events.EventEmitter {
@@ -53,6 +56,10 @@ export class GRoot extends GComponent {
         if (GRoot._inst == null)
             GRoot._inst = new GRoot();
         return GRoot._inst;
+    }
+
+    public get input(): InputManager {
+        return this._inputManager;
     }
 
     /**
@@ -83,6 +90,7 @@ export class GRoot extends GComponent {
     public attachTo(scene: Phaser.Scene, stageOptions?: any): void {
 
         this._scene = scene;
+        this._inputManager.setScene(scene);
         Utils.FPSTarget = this._scene.game.config.fps.target || Utils.FPSTarget;
         //this.createDisplayObject();
         // todo deal stageoptions
