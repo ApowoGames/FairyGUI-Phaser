@@ -87,6 +87,9 @@ export class GGraph extends GObject {
         this._displayObject.mouseEnabled = this.touchable;
         if (this._graphics) this._graphics.clear();
         this._graphics = this.scene.make.graphics(undefined, false);
+        if (this._skewX != 0 || this._skewY != 0) {
+            this.setSkew(this._skewX, this._skewY);
+        }
         var w: number = this.width;
         var h: number = this.height;
         if (w == 0 || h == 0)
@@ -285,6 +288,20 @@ export class GGraph extends GObject {
 
         if (this._type != 0)
             this.updateGraph();
+    }
+
+    public setSkew(sx: number, sy: number): void {
+        // if (this._skewX != sx || this._skewY != sy) {
+        this._skewX = sx;
+        this._skewY = sy;
+        if (this._graphics) {
+            this._displayStyle.skewX = (-sx * Math.PI) / 180;
+            this._displayStyle.skewY = (sy * Math.PI) / 180;
+            this._graphics.skewX = this._displayStyle.skewX;
+            this._graphics.skewY = this._displayStyle.skewY;
+            this.applyPivot();
+        }
+        // }
     }
 
     public setup_beforeAdd(buffer: ByteBuffer, beginPos: number): void {

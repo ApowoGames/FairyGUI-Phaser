@@ -4924,6 +4924,9 @@
             if (this._graphics)
                 this._graphics.clear();
             this._graphics = this.scene.make.graphics(undefined, false);
+            if (this._skewX != 0 || this._skewY != 0) {
+                this.setSkew(this._skewX, this._skewY);
+            }
             var w = this.width;
             var h = this.height;
             if (w == 0 || h == 0)
@@ -5103,6 +5106,19 @@
             super.handleSizeChanged();
             if (this._type != 0)
                 this.updateGraph();
+        }
+        setSkew(sx, sy) {
+            // if (this._skewX != sx || this._skewY != sy) {
+            this._skewX = sx;
+            this._skewY = sy;
+            if (this._graphics) {
+                this._displayStyle.skewX = (-sx * Math.PI) / 180;
+                this._displayStyle.skewY = (sy * Math.PI) / 180;
+                this._graphics.skewX = this._displayStyle.skewX;
+                this._graphics.skewY = this._displayStyle.skewY;
+                this.applyPivot();
+            }
+            // }
         }
         setup_beforeAdd(buffer, beginPos) {
             super.setup_beforeAdd(buffer, beginPos);
@@ -6445,10 +6461,14 @@
             this._scene = scene;
             this.addListener();
         }
-        destroy() {
+        clear() {
+            // 切换ui，把上一个ui监听的函数全部清空
             this._downHandlerMap.clear();
-            this._downHandlerMap = null;
             this._upHandlerMap.clear();
+        }
+        destroy() {
+            this.clear();
+            this._downHandlerMap = null;
             this._upHandlerMap = null;
             this.removeListener();
         }

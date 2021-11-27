@@ -58,8 +58,8 @@ export class GObject {
     private _draggable?: boolean;
     private _scaleX: number = 1;
     private _scaleY: number = 1;
-    private _skewX: number = 0;
-    private _skewY: number = 0;
+    protected _skewX: number = 0;
+    protected _skewY: number = 0;
     protected _pivotX: number = 0;
     protected _pivotY: number = 0;
     protected _pivotAsAnchor: boolean;
@@ -78,7 +78,7 @@ export class GObject {
     private _dragTesting?: boolean;
     private _dragStartPos?: Phaser.Geom.Point;
 
-    private _displayStyle: DisplayStyle;
+    protected _displayStyle: DisplayStyle;
     private _timeEvent: Phaser.Time.TimerEvent;
 
     protected _displayObject: any;

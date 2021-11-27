@@ -48,8 +48,8 @@ export declare class GObject {
     private _draggable?;
     private _scaleX;
     private _scaleY;
-    private _skewX;
-    private _skewY;
+    protected _skewX: number;
+    protected _skewY: number;
     protected _pivotX: number;
     protected _pivotY: number;
     protected _pivotAsAnchor: boolean;
@@ -66,7 +66,7 @@ export declare class GObject {
     private _dragBounds?;
     private _dragTesting?;
     private _dragStartPos?;
-    private _displayStyle;
+    protected _displayStyle: DisplayStyle;
     private _timeEvent;
     protected _displayObject: any;
     protected _xOffset: number;

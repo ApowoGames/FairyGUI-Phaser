@@ -8,6 +8,7 @@ export declare class InputManager {
     private _upHandlerMap;
     constructor();
     setScene(scene: Phaser.Scene): void;
+    clear(): void;
     destroy(): void;
     addToListener(type: string, gameObject: Phaser.GameObjects.GameObject, fun: Function, context: any): void;
     removeFromListener(type: string, gameObject: Phaser.GameObjects.GameObject, context: any): void;

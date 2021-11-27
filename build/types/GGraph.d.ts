@@ -31,5 +31,6 @@ export declare class GGraph extends GObject {
     getProp(index: number): any;
     setProp(index: number, value: any): void;
     protected handleSizeChanged(): void;
+    setSkew(sx: number, sy: number): void;
     setup_beforeAdd(buffer: ByteBuffer, beginPos: number): void;
 }

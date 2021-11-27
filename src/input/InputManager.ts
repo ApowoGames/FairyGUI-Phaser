@@ -19,10 +19,15 @@ export class InputManager {
         this.addListener();
     }
 
-    destroy() {
+    clear() {
+        // 切换ui，把上一个ui监听的函数全部清空
         this._downHandlerMap.clear();
-        this._downHandlerMap = null;
         this._upHandlerMap.clear();
+    }
+
+    destroy() {
+        this.clear();
+        this._downHandlerMap = null;
         this._upHandlerMap = null;
         this.removeListener();
     }
