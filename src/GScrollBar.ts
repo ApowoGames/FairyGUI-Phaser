@@ -1,3 +1,4 @@
+import { InteractiveEvent } from './event/DisplayObjectEvent';
 import { ByteBuffer } from './utils/ByteBuffer';
 import { ScrollPane } from './ScrollPane';
 import { GObject } from './GObject';
@@ -88,14 +89,14 @@ export class GScrollBar extends GComponent {
             this._arrowButton1 = this.getChild("arrow1");
             this._arrowButton2 = this.getChild("arrow2");
 
-            this._grip.on("pointerdown", this.__gripMouseDown, this);
+            this._grip.on(InteractiveEvent.GAMEOBJECT_DOWN, this.__gripMouseDown, this);
 
             if (this._arrowButton1)
-                this._arrowButton1.on("pointerdown", this.__arrowButton1Click, this);
+                this._arrowButton1.on(InteractiveEvent.GAMEOBJECT_DOWN, this.__arrowButton1Click, this);
             if (this._arrowButton2)
-                this._arrowButton2.on("pointerdown", this.__arrowButton2Click, this);
+                this._arrowButton2.on(InteractiveEvent.GAMEOBJECT_DOWN, this.__arrowButton2Click, this);
 
-            this.on("pointerdown", this.__barMouseDown, this);
+            this.on(InteractiveEvent.GAMEOBJECT_DOWN, this.__barMouseDown, this);
             resolve();
         });
     }
@@ -105,8 +106,8 @@ export class GScrollBar extends GComponent {
         this._gripDragging = true;
         this._target.updateScrollBarVisible();
 
-        this.scene.input.on("pointermove", this.__gripMouseMove, this);
-        this.scene.input.on("pointerup", this.__gripMouseUp, this);
+        this.scene.input.on(InteractiveEvent.GAMEOBJECT_MOVE, this.__gripMouseMove, this);
+        this.scene.input.on(InteractiveEvent.GAMEOBJECT_UP, this.__gripMouseUp, this);
 
         // this.globalToLocal(pointer.x, pointer.y, this._dragOffset);
         this._dragOffset.x = pointer.worldX - this._grip.x;
@@ -132,8 +133,8 @@ export class GScrollBar extends GComponent {
         if (!this.onStage)
             return;
 
-        this.scene.input.off("pointermove", this.__gripMouseMove, this);
-        this.scene.input.off("pointerup", this.__gripMouseUp, this);
+        this.scene.input.off(InteractiveEvent.GAMEOBJECT_MOVE, this.__gripMouseMove, this);
+        this.scene.input.off(InteractiveEvent.GAMEOBJECT_UP, this.__gripMouseUp, this);
 
         this._gripDragging = false;
         this._target.updateScrollBarVisible();
