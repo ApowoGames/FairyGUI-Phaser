@@ -9639,16 +9639,21 @@
                 //         rect.height += (this._owner.margin.top + this._owner.margin.bottom);
                 //     }
                 // this.maskScrollRect = rect;
-                this._maskContainer.clearMask();
-                this._mask.clear();
-                this._mask.fillStyle(0x00ff00, .4);
-                this._mask.fillRect(x, y, this.maskScrollRect.width, this.maskScrollRect.height);
-                this._maskContainer.setInteractive(this.maskScrollRect, Phaser.Geom.Rectangle.Contains);
-                // this._maskContainer.add(this._mask);
-                // const g = this._mask.createGeometryMask();
-                // console.log("g====>", g);
-                this._maskContainer.setMask(this._mask.createGeometryMask());
-                //  }
+                if (this._mask) {
+                    const x = this._owner.parent ? this._owner.parent.x : this._owner.x;
+                    const y = this._owner.parent ? this._owner.parent.y : this._owner.y;
+                    this._mask.setPosition(x, y);
+                }
+                // this._maskContainer.clearMask();
+                // this._mask.clear();
+                // this._mask.fillStyle(0x00ff00, .4);
+                // this._mask.fillRect(x, y, this.maskScrollRect.width, this.maskScrollRect.height);
+                // this._maskContainer.setInteractive(this.maskScrollRect, Phaser.Geom.Rectangle.Contains);
+                // // this._maskContainer.add(this._mask);
+                // // const g = this._mask.createGeometryMask();
+                // // console.log("g====>", g);
+                // this._maskContainer.setMask(this._mask.createGeometryMask());
+                // //  }
             }
         }
         __click() {
