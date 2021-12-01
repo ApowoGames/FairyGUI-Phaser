@@ -18,6 +18,7 @@ export class MovieClip extends Image {
     private _image: Phaser.GameObjects.Image;
     private _sourceWidth: number = 0;
     private _sourceHeight: number = 0;
+    private _pipeline: Phaser.Renderer.WebGL.Pipelines.MultiPipeline;
     // private _movieUpdateEvent: any;
     // private _movieTime: Phaser.Time.TimerEvent;
 
@@ -29,6 +30,18 @@ export class MovieClip extends Image {
         // this._movieUpdateEvent = { delay: this.interval, callback: this.update, callbackScope: this }
         // this.on(Laya.Event.DISPLAY, this, this.__addToStage);
         // this.on(Laya.Event.UNDISPLAY, this, this.__removeFromStage);
+    }
+
+    public get display(): any {
+        return this._image || this._sprite;
+    }
+
+    public setFilter(colorPipeLine: Phaser.Renderer.WebGL.Pipelines.MultiPipeline) {
+        if (this.display) {
+            this.display.setPipeline(colorPipeLine);
+        } else {
+            this._pipeline = colorPipeLine;
+        }
     }
 
     public set interval(val) {
@@ -69,6 +82,7 @@ export class MovieClip extends Image {
                 }
                 this.add(this._image);
             }
+            if (this._pipeline) this.setFilter(this._pipeline);
         } else {
             if (this._sprite) {
                 this._sprite.stop();
@@ -304,6 +318,7 @@ export class MovieClip extends Image {
         //     this._movieTime.remove(false);
         //     this._movieTime = null;
         // }
+        this._pipeline = null;
         super.destroy();
     }
 

@@ -13,7 +13,10 @@ export declare class MovieClip extends Image {
     private _image;
     private _sourceWidth;
     private _sourceHeight;
+    private _pipeline;
     constructor(scene: Phaser.Scene);
+    get display(): any;
+    setFilter(colorPipeLine: Phaser.Renderer.WebGL.Pipelines.MultiPipeline): void;
     set interval(val: number);
     get interval(): number;
     get frames(): Phaser.Textures.Frame[];

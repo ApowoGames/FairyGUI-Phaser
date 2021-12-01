@@ -811,8 +811,14 @@ class ToolSet {
             colorPipeLine.g = parseInt(rgbList[1]) / 255;
             colorPipeLine.b = parseInt(rgbList[2]) / 255;
         }
-        if (obj instanceof Image && obj.list && obj.list.length > 0)
-            obj.list[0].setPipeline(colorPipeLine);
+        if (obj.list && obj.list.length > 0) {
+            if (obj instanceof Image) {
+                obj.list[0].setPipeline(colorPipeLine);
+            }
+            else if (obj["$owner"] instanceof GLoader) {
+                obj.list[0].setFilter(colorPipeLine);
+            }
+        }
     }
     /**
      * rgb值转换成十六进制
@@ -6036,6 +6042,17 @@ class MovieClip extends Image {
         // this.on(Laya.Event.DISPLAY, this, this.__addToStage);
         // this.on(Laya.Event.UNDISPLAY, this, this.__removeFromStage);
     }
+    get display() {
+        return this._image || this._sprite;
+    }
+    setFilter(colorPipeLine) {
+        if (this.display) {
+            this.display.setPipeline(colorPipeLine);
+        }
+        else {
+            this._pipeline = colorPipeLine;
+        }
+    }
     set interval(val) {
         this._interval = val;
         // this._movieUpdateEvent = { delay: this._interval, callback: this.update, callbackScope: this, loop: true}
@@ -6074,6 +6091,8 @@ class MovieClip extends Image {
                 }
                 this.add(this._image);
             }
+            if (this._pipeline)
+                this.setFilter(this._pipeline);
         }
         else {
             if (this._sprite) {

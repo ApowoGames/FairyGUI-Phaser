@@ -1,7 +1,8 @@
+import { MovieClip } from './../display/MovieClip';
 import { ColorMatrix } from './ColorMatrix';
 import { GObject } from './../GObject';
 import { ColorShaderPipeline } from "./colorShader/ColorShaderPipeline";
-import { GRoot, Image } from '..';
+import { GLoader, GRoot, Image } from '..';
 import { GrayShaderPipeline } from './colorShader/GrayShaderPipeline';
 export class ToolSet {
     //
@@ -167,7 +168,13 @@ export class ToolSet {
             colorPipeLine.g = parseInt(rgbList[1]) / 255;
             colorPipeLine.b = parseInt(rgbList[2]) / 255;
         }
-        if (obj instanceof Image && obj.list && obj.list.length > 0) (<Phaser.GameObjects.Image>obj.list[0]).setPipeline(colorPipeLine);
+        if (obj.list && obj.list.length > 0) {
+            if (obj instanceof Image) {
+                (<Phaser.GameObjects.Image>obj.list[0]).setPipeline(colorPipeLine);
+            } else if (obj["$owner"] instanceof GLoader) {
+                (<MovieClip>obj.list[0]).setFilter(colorPipeLine);
+            }
+        }
     }
 
 
