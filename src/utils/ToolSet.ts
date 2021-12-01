@@ -2,9 +2,14 @@ import { ColorMatrix } from './ColorMatrix';
 import { GObject } from './../GObject';
 import { ColorShaderPipeline } from "./colorShader/ColorShaderPipeline";
 import { GRoot, Image } from '..';
+import { GrayShaderPipeline } from './colorShader/GrayShaderPipeline';
 export class ToolSet {
     //
     public static Color: string = "color";
+    public static Gray: string = "gray";
+    public static Red: string = "red";
+    public static Green: string = "green";
+    public static Blue: string = "blue";
     public static startsWith(source: string, str: string, ignoreCase?: boolean): boolean {
         if (!source)
             return false;
@@ -132,101 +137,37 @@ export class ToolSet {
 
     // color 默认是十六进制传入
     public static setColorFilter(obj: any, color?: string | number[] | boolean): void {
-        // TODO
         var tp: string = typeof (color);
+        const renderer = (<Phaser.Renderer.WebGL.WebGLRenderer>GRoot.inst.scene.renderer);
+        let colorPipeLine;
+        let name: string;
         if (tp == "boolean") //gray
         {
             if (tp) {
-                color = "#999999";
+                name = ToolSet.Gray;
+                colorPipeLine = <GrayShaderPipeline>renderer.pipelines.get(name);
+                if (!colorPipeLine) {
+                    colorPipeLine = <GrayShaderPipeline>renderer.pipelines.add(name, new GrayShaderPipeline(GRoot.inst.scene.game));
+                }
             } else {
                 // 传入false，则表示不是灰色，后续操作直接return
                 return;
             }
+        } else {
+            // @ts-ignore
+            const rgbStr = ToolSet.colorRgb(color);
+            const rgbList = rgbStr.substring(4, rgbStr.lastIndexOf(")")).split(",");
+            name = ToolSet.Color;
+            colorPipeLine = <ColorShaderPipeline>renderer.pipelines.get(name);
+            if (!colorPipeLine) {
+                colorPipeLine = <ColorShaderPipeline>renderer.pipelines.add(name, new ColorShaderPipeline(GRoot.inst.scene.game));
+                colorPipeLine.a = 1;
+            }
+            colorPipeLine.r = parseInt(rgbList[0]) / 255;
+            colorPipeLine.g = parseInt(rgbList[1]) / 255;
+            colorPipeLine.b = parseInt(rgbList[2]) / 255;
         }
-
-        // @ts-ignore
-        const rgbStr = ToolSet.colorRgb(color);
-        const rgbList = rgbStr.substring(4, rgbStr.lastIndexOf(")")).split(",");
-        const renderer = (<Phaser.Renderer.WebGL.WebGLRenderer>GRoot.inst.scene.renderer);
-        let colorPipeLine:ColorShaderPipeline = <ColorShaderPipeline>renderer.pipelines.get(ToolSet.Color);
-        if (!colorPipeLine) {
-            colorPipeLine = <ColorShaderPipeline>renderer.pipelines.add(ToolSet.Color, new ColorShaderPipeline(GRoot.inst.scene.game));
-            colorPipeLine.a = 1;
-        }
-        colorPipeLine.r = parseInt(rgbList[0]) / 255;
-        colorPipeLine.g = parseInt(rgbList[1]) / 255;
-        colorPipeLine.b = parseInt(rgbList[2]) / 255;
         if (obj instanceof Image && obj.list && obj.list.length > 0) (<Phaser.GameObjects.Image>obj.list[0]).setPipeline(colorPipeLine);
-        // if (obj instanceof Phaser.GameObjects.Image || obj instanceof Phaser.GameObjects.Text) {
-        //     (<any>obj).setTint(color);
-        // }
-        // console.log("todo color filter");
-        // throw new Error("TODO");
-        // var filter: Laya.ColorFilter = (<any>obj).$_colorFilter_; //cached instance
-        // var filters: any[] = obj.filters;
-
-        // var toApplyColor: any;
-        // var toApplyGray: boolean;
-        // var tp: string = typeof (color);
-        // if (tp == "boolean") //gray
-        // {
-        //     toApplyColor = filter ? (<any>filter).$_color_ : null;
-        //     toApplyGray = <boolean>color;
-        // }
-        // else {
-        //     if (tp == "string") {
-        //         var arr: any[] = Laya.ColorUtils.create(color).arrColor;
-        //         if (arr[0] == 1 && arr[1] == 1 && arr[2] == 1)
-        //             color = null;
-        //         else {
-        //             color = [arr[0], 0, 0, 0, 0,
-        //                 0, arr[1], 0, 0, 0,
-        //                 0, 0, arr[2], 0, 0,
-        //                 0, 0, 0, 1, 0];
-        //         }
-        //     }
-        //     toApplyColor = color;
-        //     toApplyGray = filter ? (<any>filter).$_grayed_ : false;
-        // }
-
-        // if ((!toApplyColor && toApplyColor != 0) && !toApplyGray) {
-        //     if (filters && filter) {
-        //         let i: number = filters.indexOf(filter);
-        //         if (i != -1) {
-        //             filters.splice(i, 1);
-        //             if (filters.length > 0)
-        //                 obj.filters = filters;
-        //             else
-        //                 obj.filters = null;
-        //         }
-        //     }
-        //     return;
-        // }
-
-        // if (!filter) {
-        //     filter = new Laya.ColorFilter();
-        //     (<any>obj).$_colorFilter_ = filter;
-        // }
-        // if (!filters)
-        //     filters = [filter];
-        // else {
-        //     let i: number = filters.indexOf(filter);
-        //     if (i == -1)
-        //         filters.push(filter);
-        // }
-        // obj.filters = filters;
-
-        // (<any>filter).$_color_ = toApplyColor;
-        // (<any>filter).$_grayed_ = toApplyGray;
-
-        // filter.reset();
-
-        // if (toApplyGray)
-        //     filter.gray();
-        // else if (toApplyColor.length == 20)
-        //     filter.setByMatrix(toApplyColor);
-        // else
-        //     filter.setByMatrix(getColorMatrix(toApplyColor[0], toApplyColor[1], toApplyColor[2], toApplyColor[3]));
     }
 
 

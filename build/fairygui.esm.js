@@ -558,9 +558,75 @@ class ColorShaderPipeline extends Phaser.Renderer.WebGL.Pipelines.MultiPipeline 
             precision mediump float;
             
             uniform sampler2D uMainSampler[%count%];
-            uniform float r;
-            uniform float g;
-            uniform float b;
+            uniform vec4 rgba;
+            
+            varying vec2 outTexCoord;
+            varying float outTexId;
+            varying vec4 outTint;
+            varying vec2 fragCoord;
+            
+            void main()
+            {
+                vec4 texture;
+            
+                %forloop%
+            
+                gl_FragColor = texture;
+                gl_FragColor.r = rgba.x * gl_FragColor.r;
+                gl_FragColor.g = rgba.y * gl_FragColor.g;
+                gl_FragColor.b = rgba.z * gl_FragColor.b;
+                gl_FragColor.a = rgba.w * gl_FragColor.a;
+            }
+            `,
+            // @ts-ignore
+            uniforms: [
+                'uProjectionMatrix',
+                'uMainSampler',
+                'rgba',
+            ]
+        });
+        this.renderBoo = false;
+        this._a = 0;
+        this._b = 0;
+        this._g = 0;
+        this._r = 0;
+        this.renderBoo = false;
+    }
+    onPreRender() {
+        if (this.renderBoo)
+            return;
+        this.renderBoo = true;
+        this.set4f("rgba", this._r, this._g, this._b, this._a);
+    }
+    set r(value) {
+        this._r = value;
+        this.renderBoo = false;
+    }
+    set g(value) {
+        this._g = value;
+        this.renderBoo = false;
+    }
+    set b(value) {
+        this._b = value;
+        this.renderBoo = false;
+    }
+    set a(value) {
+        this._a = value;
+        this.renderBoo = false;
+    }
+}
+
+/**
+ * 贴图灰色滤镜 只适用于texture
+ */
+class GrayShaderPipeline extends Phaser.Renderer.WebGL.Pipelines.MultiPipeline {
+    constructor(game) {
+        super({
+            game,
+            fragShader: `
+            precision mediump float;
+            
+            uniform sampler2D uMainSampler[%count%];
             uniform float a;
             
             varying vec2 outTexCoord;
@@ -575,49 +641,25 @@ class ColorShaderPipeline extends Phaser.Renderer.WebGL.Pipelines.MultiPipeline 
                 %forloop%
             
                 gl_FragColor = texture;
-                gl_FragColor.r = r * gl_FragColor.r;
-                gl_FragColor.g = g * gl_FragColor.g;
-                gl_FragColor.b = b * gl_FragColor.b;
-                gl_FragColor.a = a * gl_FragColor.a;
+                gl_FragColor.rgb = mix(gl_FragColor.rgb,vec3(0.2126 * gl_FragColor.r + 0.7152 * gl_FragColor.g + 0.0722 * gl_FragColor.b),a);
             }
             `,
             // @ts-ignore
             uniforms: [
                 'uProjectionMatrix',
                 'uMainSampler',
-                'r',
-                "g",
-                "b",
-                "a"
+                'a',
             ]
         });
         this.renderBoo = false;
-        this._a = 0;
-        this._b = 0;
-        this._g = 0;
-        this._r = 0;
+        this._a = 1;
         this.renderBoo = false;
     }
     onPreRender() {
         if (this.renderBoo)
             return;
         this.renderBoo = true;
-        this.set1f("r", this._r);
-        this.set1f("g", this._g);
-        this.set1f("b", this._b);
         this.set1f("a", this._a);
-    }
-    set r(value) {
-        this._r = value;
-        this.renderBoo = false;
-    }
-    set g(value) {
-        this._g = value;
-        this.renderBoo = false;
-    }
-    set b(value) {
-        this._b = value;
-        this.renderBoo = false;
     }
     set a(value) {
         this._a = value;
@@ -737,96 +779,40 @@ class ToolSet {
     }
     // color 默认是十六进制传入
     static setColorFilter(obj, color) {
-        // TODO
         var tp = typeof (color);
+        const renderer = GRoot.inst.scene.renderer;
+        let colorPipeLine;
+        let name;
         if (tp == "boolean") //gray
          {
             if (tp) {
-                color = "#999999";
+                name = ToolSet.Gray;
+                colorPipeLine = renderer.pipelines.get(name);
+                if (!colorPipeLine) {
+                    colorPipeLine = renderer.pipelines.add(name, new GrayShaderPipeline(GRoot.inst.scene.game));
+                }
             }
             else {
                 // 传入false，则表示不是灰色，后续操作直接return
                 return;
             }
         }
-        // @ts-ignore
-        const rgbStr = ToolSet.colorRgb(color);
-        const rgbList = rgbStr.substring(4, rgbStr.lastIndexOf(")")).split(",");
-        const renderer = GRoot.inst.scene.renderer;
-        let colorPipeLine = renderer.pipelines.get(ToolSet.Color);
-        if (!colorPipeLine) {
-            colorPipeLine = renderer.pipelines.add(ToolSet.Color, new ColorShaderPipeline(GRoot.inst.scene.game));
-            colorPipeLine.a = 1;
+        else {
+            // @ts-ignore
+            const rgbStr = ToolSet.colorRgb(color);
+            const rgbList = rgbStr.substring(4, rgbStr.lastIndexOf(")")).split(",");
+            name = ToolSet.Color;
+            colorPipeLine = renderer.pipelines.get(name);
+            if (!colorPipeLine) {
+                colorPipeLine = renderer.pipelines.add(name, new ColorShaderPipeline(GRoot.inst.scene.game));
+                colorPipeLine.a = 1;
+            }
+            colorPipeLine.r = parseInt(rgbList[0]) / 255;
+            colorPipeLine.g = parseInt(rgbList[1]) / 255;
+            colorPipeLine.b = parseInt(rgbList[2]) / 255;
         }
-        colorPipeLine.r = parseInt(rgbList[0]) / 255;
-        colorPipeLine.g = parseInt(rgbList[1]) / 255;
-        colorPipeLine.b = parseInt(rgbList[2]) / 255;
         if (obj instanceof Image && obj.list && obj.list.length > 0)
             obj.list[0].setPipeline(colorPipeLine);
-        // if (obj instanceof Phaser.GameObjects.Image || obj instanceof Phaser.GameObjects.Text) {
-        //     (<any>obj).setTint(color);
-        // }
-        // console.log("todo color filter");
-        // throw new Error("TODO");
-        // var filter: Laya.ColorFilter = (<any>obj).$_colorFilter_; //cached instance
-        // var filters: any[] = obj.filters;
-        // var toApplyColor: any;
-        // var toApplyGray: boolean;
-        // var tp: string = typeof (color);
-        // if (tp == "boolean") //gray
-        // {
-        //     toApplyColor = filter ? (<any>filter).$_color_ : null;
-        //     toApplyGray = <boolean>color;
-        // }
-        // else {
-        //     if (tp == "string") {
-        //         var arr: any[] = Laya.ColorUtils.create(color).arrColor;
-        //         if (arr[0] == 1 && arr[1] == 1 && arr[2] == 1)
-        //             color = null;
-        //         else {
-        //             color = [arr[0], 0, 0, 0, 0,
-        //                 0, arr[1], 0, 0, 0,
-        //                 0, 0, arr[2], 0, 0,
-        //                 0, 0, 0, 1, 0];
-        //         }
-        //     }
-        //     toApplyColor = color;
-        //     toApplyGray = filter ? (<any>filter).$_grayed_ : false;
-        // }
-        // if ((!toApplyColor && toApplyColor != 0) && !toApplyGray) {
-        //     if (filters && filter) {
-        //         let i: number = filters.indexOf(filter);
-        //         if (i != -1) {
-        //             filters.splice(i, 1);
-        //             if (filters.length > 0)
-        //                 obj.filters = filters;
-        //             else
-        //                 obj.filters = null;
-        //         }
-        //     }
-        //     return;
-        // }
-        // if (!filter) {
-        //     filter = new Laya.ColorFilter();
-        //     (<any>obj).$_colorFilter_ = filter;
-        // }
-        // if (!filters)
-        //     filters = [filter];
-        // else {
-        //     let i: number = filters.indexOf(filter);
-        //     if (i == -1)
-        //         filters.push(filter);
-        // }
-        // obj.filters = filters;
-        // (<any>filter).$_color_ = toApplyColor;
-        // (<any>filter).$_grayed_ = toApplyGray;
-        // filter.reset();
-        // if (toApplyGray)
-        //     filter.gray();
-        // else if (toApplyColor.length == 20)
-        //     filter.setByMatrix(toApplyColor);
-        // else
-        //     filter.setByMatrix(getColorMatrix(toApplyColor[0], toApplyColor[1], toApplyColor[2], toApplyColor[3]));
     }
     /**
      * rgb值转换成十六进制
@@ -898,6 +884,10 @@ class ToolSet {
 }
 //
 ToolSet.Color = "color";
+ToolSet.Gray = "gray";
+ToolSet.Red = "red";
+ToolSet.Green = "green";
+ToolSet.Blue = "blue";
 new ColorMatrix();
 
 var CurveType;

@@ -2,11 +2,11 @@
  * 贴图颜色滤镜 只适用于texture (Phaser.Image/Phaser.Sprite) 且同一时间只能实现一种变色效果
  */
 export class ColorShaderPipeline extends Phaser.Renderer.WebGL.Pipelines.MultiPipeline {
-    private _a: number;
-    private _r: number;
-    private _g: number;
-    private _b: number;
-    private renderBoo: boolean = false;
+    protected _a: number;
+    protected _r: number;
+    protected _g: number;
+    protected _b: number;
+    protected renderBoo: boolean = false;
     constructor(game) {
         super({
             game,
@@ -14,10 +14,7 @@ export class ColorShaderPipeline extends Phaser.Renderer.WebGL.Pipelines.MultiPi
             precision mediump float;
             
             uniform sampler2D uMainSampler[%count%];
-            uniform float r;
-            uniform float g;
-            uniform float b;
-            uniform float a;
+            uniform vec4 rgba;
             
             varying vec2 outTexCoord;
             varying float outTexId;
@@ -31,20 +28,17 @@ export class ColorShaderPipeline extends Phaser.Renderer.WebGL.Pipelines.MultiPi
                 %forloop%
             
                 gl_FragColor = texture;
-                gl_FragColor.r = r * gl_FragColor.r;
-                gl_FragColor.g = g * gl_FragColor.g;
-                gl_FragColor.b = b * gl_FragColor.b;
-                gl_FragColor.a = a * gl_FragColor.a;
+                gl_FragColor.r = rgba.x * gl_FragColor.r;
+                gl_FragColor.g = rgba.y * gl_FragColor.g;
+                gl_FragColor.b = rgba.z * gl_FragColor.b;
+                gl_FragColor.a = rgba.w * gl_FragColor.a;
             }
             `,
             // @ts-ignore
             uniforms: [
                 'uProjectionMatrix',
                 'uMainSampler',
-                'r',
-                "g",
-                "b",
-                "a"
+                'rgba',
             ]
         });
 
@@ -58,10 +52,7 @@ export class ColorShaderPipeline extends Phaser.Renderer.WebGL.Pipelines.MultiPi
     onPreRender() {
         if (this.renderBoo) return;
         this.renderBoo = true;
-        this.set1f("r", this._r);
-        this.set1f("g", this._g);
-        this.set1f("b", this._b);
-        this.set1f("a", this._a);
+        this.set4f("rgba", this._r, this._g, this._b, this._a);
     }
 
     set r(value) {

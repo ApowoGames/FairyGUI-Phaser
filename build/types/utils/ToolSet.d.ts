@@ -1,6 +1,10 @@
 import { GObject } from './../GObject';
 export declare class ToolSet {
     static Color: string;
+    static Gray: string;
+    static Red: string;
+    static Green: string;
+    static Blue: string;
     static startsWith(source: string, str: string, ignoreCase?: boolean): boolean;
     static endsWith(source: string, str: string, ignoreCase?: boolean): boolean;
     static trimRight(targetString: string): string;
