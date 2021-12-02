@@ -14,12 +14,14 @@ import { Controller } from './Controller';
 import { Graphics } from './display/Graphics';
 import { GObject } from './GObject';
 import { Decls, UIPackage } from './UIPackage';
-import { GImage, GRoot, GButton } from '.';
+import { GImage, GRoot, GButton, GGraph } from '.';
 export class GComponent extends GObject {
     private _sortingChildCount: number = 0;
     protected _opaque: boolean;
     private _applyingController?: Controller;
-    private _mask?: Graphics;
+    private _mask?: any;
+    private _maskReversed: boolean = false;
+    private _maskDisplay;
     // private _g: Phaser.GameObjects.Graphics;
 
     protected _renderEvent: any;//Phaser.Time.TimerEvent;
@@ -114,7 +116,7 @@ export class GComponent extends GObject {
         if (parent) {
             const pivotX = parent._pivotX;
             const pivotY = parent._pivotY;
-            if(child.type != ObjectType.Loader){
+            if (child.type != ObjectType.Loader) {
                 display.x -= display.width * pivotX;
                 display.y -= display.height * pivotY;
             }
@@ -684,8 +686,10 @@ export class GComponent extends GObject {
         if (this._opaque != value) {
             this._opaque = value;
             if (this._opaque) {
-                if (!this.hitArea)
+                if (!this.hitArea) {
                     this.hitArea = new Phaser.Geom.Rectangle();
+                }
+
 
                 if (this.hitArea instanceof Phaser.Geom.Rectangle)
                     this.hitArea.setTo(this.initWidth >> 1, this.initHeight >> 1, this.initWidth, this.initHeight);
@@ -746,35 +750,20 @@ export class GComponent extends GObject {
         this.setMask(value, false);
     }
 
-    public setMask(value: Graphics, reversed: boolean): void {
+    public setMask(value, reversed: boolean): void {
         if (this._mask && this._mask != value) {
             if (this._mask.blendMode == "destination-out")
                 this._mask.blendMode = null;
         }
 
         this._mask = value;
+        this._maskReversed = reversed;
         if (!this._mask) {
-            this._displayObject.mask = null;
+            this._displayObject.clearMask();
             if (this.hitArea instanceof ChildHitArea)
                 this.hitArea = null;
             return;
         }
-
-        // if (this._mask.displayObject.input.hitArea) {
-        // this.hitArea = new ChildHitArea(this._mask, reversed);
-        // this._displayObject.mouseThrough = false;
-        // this._displayObject.hitTestPrior = true;
-        // }
-        const maskObj = new GObject(this.scene, ObjectType.Graph);
-        maskObj.setDisplayObject(this._mask);
-        this.hitArea = new ChildHitArea(maskObj, reversed);
-        if (reversed) {
-            this._displayObject.mask = null;
-            // this._displayObject.cacheAs = "bitmap";
-            this._mask.blendMode = "destination-out";
-        }
-        else
-            this._displayObject.mask = this._mask.createGeometryMask();
     }
 
     public get baseUserData(): string {
@@ -1424,6 +1413,46 @@ export class GComponent extends GObject {
                     obj.setProp(propertyId, value);
             }
         }
+        if (this._mask) this.checkMask();
+    }
+
+    public checkMask() {
+        const mx = this._displayObject.getWorldTransformMatrix();
+        if (!this._maskDisplay) {
+            this.hitArea = new ChildHitArea(this._mask["$owner"], this._maskReversed);
+            if (this._mask instanceof Phaser.GameObjects.Container) {
+                this._maskDisplay = this._mask.list[0];
+            } else if (this._mask instanceof Graphics) {
+                this._maskDisplay = this._mask;
+            }
+            let isGraphic: boolean = false;
+            if (this._maskDisplay instanceof Phaser.GameObjects.Image) {
+                isGraphic = false;
+            } else if (this._maskDisplay instanceof Phaser.GameObjects.Graphics) {
+                isGraphic = true;
+            }
+            this._maskDisplay.setPosition(mx.tx, mx.ty);
+            if (this._maskReversed) {
+                if (isGraphic) {
+                    this._displayObject.setMask(this._maskDisplay.createGeometryMask().setInvertAlpha(true));
+                } else {
+                    this._displayObject.setMask(this._maskDisplay.createBitmapMask().setInvertAlpha(true));
+                }
+            }
+            else {
+                if (isGraphic) {
+                    this._displayObject.setMask(this._maskDisplay.createGeometryMask());
+                } else {
+                    this._displayObject.setMask(this._maskDisplay.createBitmapMask());
+                }
+            }
+        } else {
+            this._maskDisplay.setPosition(mx.tx, mx.ty);
+        }
+
+        if (this._maskDisplay.parentContainer) this._displayObject.remove(this._maskDisplay.parentContainer);
+
+
     }
 
 
@@ -1435,8 +1464,17 @@ export class GComponent extends GObject {
                 if (component._scrollPane) {
                     component._scrollPane.maskPosChange(xv, yv);
                 }
+                const list = component._children;
+                list.forEach((obj) => {
+                    if (obj && obj instanceof GComponent && obj._mask) {
+                        obj.checkMask();
+                    }
+                });
             }
         });
+        if (this._mask) {
+            this.checkMask();
+        }
     }
 
     protected ___added(): void {

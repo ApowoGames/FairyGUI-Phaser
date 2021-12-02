@@ -1,5 +1,6 @@
 import { ByteBuffer } from './utils/ByteBuffer';
 import { GObject } from './GObject';
+import { Graphics } from '.';
 export declare class GGraph extends GObject {
     private _type;
     private _lineSize;
@@ -13,6 +14,8 @@ export declare class GGraph extends GObject {
     private _distances?;
     private _graphics;
     constructor(scene: Phaser.Scene, type: any);
+    get displayType(): number;
+    get graphics(): Graphics;
     drawRect(lineSize: number, lineColor: string, fillColor: string, cornerRadius?: number[]): void;
     drawEllipse(lineSize: number, lineColor: string, fillColor: string): void;
     drawRegularPolygon(lineSize: number, lineColor: string, fillColor: string, sides: number, startAngle?: number, distances?: number[]): void;

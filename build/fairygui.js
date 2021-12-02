@@ -4865,6 +4865,12 @@
             this._lineColor = "#000000";
             this._fillColor = "#FFFFFF";
         }
+        get displayType() {
+            return this._type;
+        }
+        get graphics() {
+            return this._graphics;
+        }
         drawRect(lineSize, lineColor, fillColor, cornerRadius) {
             this._type = 1;
             this._lineSize = lineSize;
@@ -4919,7 +4925,7 @@
             this._displayObject.mouseEnabled = this.touchable;
             if (this._graphics)
                 this._graphics.clear();
-            this._graphics = this.scene.make.graphics(undefined, false);
+            this._graphics = new Graphics(this.scene);
             if (this._skewX != 0 || this._skewY != 0) {
                 this.setSkew(this._skewX, this._skewY);
             }
@@ -6305,6 +6311,7 @@
             //     this._movieTime.remove(false);
             //     this._movieTime = null;
             // }
+            this._pipeline = null;
             super.destroy();
         }
         checkTimer(playBoo = true) {
@@ -7325,10 +7332,10 @@
             this._tPos = new Phaser.Geom.Point();
             this._child = child;
             this._reversed = reversed;
-            if (this._reversed)
-                this.unHit = child.hitArea.hit;
-            else
-                this.hit = child.hitArea.hit;
+            // if (this._reversed)
+            //     this.unHit = child.hitArea.hit;
+            // else
+            //     this.hit = child.hitArea.hit;
         }
         ;
         contains(x, y) {
@@ -11474,6 +11481,7 @@
         constructor(scene, type) {
             super(scene, type);
             this._sortingChildCount = 0;
+            this._maskReversed = false;
             this._children = [];
             this._controllers = [];
             this._transitions = [];
@@ -12027,8 +12035,9 @@
             if (this._opaque != value) {
                 this._opaque = value;
                 if (this._opaque) {
-                    if (!this.hitArea)
+                    if (!this.hitArea) {
                         this.hitArea = new Phaser.Geom.Rectangle();
+                    }
                     if (this.hitArea instanceof Phaser.Geom.Rectangle)
                         this.hitArea.setTo(this.initWidth >> 1, this.initHeight >> 1, this.initWidth, this.initHeight);
                     this._displayObject.setInteractive(this.hitArea, Phaser.Geom.Rectangle.Contains);
@@ -12083,27 +12092,13 @@
                     this._mask.blendMode = null;
             }
             this._mask = value;
+            this._maskReversed = reversed;
             if (!this._mask) {
-                this._displayObject.mask = null;
+                this._displayObject.clearMask();
                 if (this.hitArea instanceof ChildHitArea)
                     this.hitArea = null;
                 return;
             }
-            // if (this._mask.displayObject.input.hitArea) {
-            // this.hitArea = new ChildHitArea(this._mask, reversed);
-            // this._displayObject.mouseThrough = false;
-            // this._displayObject.hitTestPrior = true;
-            // }
-            const maskObj = new GObject(this.scene, exports.ObjectType.Graph);
-            maskObj.setDisplayObject(this._mask);
-            this.hitArea = new ChildHitArea(maskObj, reversed);
-            if (reversed) {
-                this._displayObject.mask = null;
-                // this._displayObject.cacheAs = "bitmap";
-                this._mask.blendMode = "destination-out";
-            }
-            else
-                this._displayObject.mask = this._mask.createGeometryMask();
         }
         get baseUserData() {
             var buffer = this.packageItem.rawData;
@@ -12659,6 +12654,49 @@
                         obj.setProp(propertyId, value);
                 }
             }
+            if (this._mask)
+                this.checkMask();
+        }
+        checkMask() {
+            const mx = this._displayObject.getWorldTransformMatrix();
+            if (!this._maskDisplay) {
+                this.hitArea = new ChildHitArea(this._mask["$owner"], this._maskReversed);
+                if (this._mask instanceof Phaser.GameObjects.Container) {
+                    this._maskDisplay = this._mask.list[0];
+                }
+                else if (this._mask instanceof Graphics) {
+                    this._maskDisplay = this._mask;
+                }
+                let isGraphic = false;
+                if (this._maskDisplay instanceof Phaser.GameObjects.Image) {
+                    isGraphic = false;
+                }
+                else if (this._maskDisplay instanceof Phaser.GameObjects.Graphics) {
+                    isGraphic = true;
+                }
+                this._maskDisplay.setPosition(mx.tx, mx.ty);
+                if (this._maskReversed) {
+                    if (isGraphic) {
+                        this._displayObject.setMask(this._maskDisplay.createGeometryMask().setInvertAlpha(true));
+                    }
+                    else {
+                        this._displayObject.setMask(this._maskDisplay.createBitmapMask().setInvertAlpha(true));
+                    }
+                }
+                else {
+                    if (isGraphic) {
+                        this._displayObject.setMask(this._maskDisplay.createGeometryMask());
+                    }
+                    else {
+                        this._displayObject.setMask(this._maskDisplay.createBitmapMask());
+                    }
+                }
+            }
+            else {
+                this._maskDisplay.setPosition(mx.tx, mx.ty);
+            }
+            if (this._maskDisplay.parentContainer)
+                this._displayObject.remove(this._maskDisplay.parentContainer);
         }
         setXY(xv, yv, force = false) {
             super.setXY(xv, yv, force);
@@ -12668,8 +12706,17 @@
                     if (component._scrollPane) {
                         component._scrollPane.maskPosChange(xv, yv);
                     }
+                    const list = component._children;
+                    list.forEach((obj) => {
+                        if (obj && obj instanceof GComponent && obj._mask) {
+                            obj.checkMask();
+                        }
+                    });
                 }
             });
+            if (this._mask) {
+                this.checkMask();
+            }
         }
         ___added() {
             var cnt = this._transitions.length;

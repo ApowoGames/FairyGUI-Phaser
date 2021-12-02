@@ -14,10 +14,10 @@ export class ChildHitArea extends HitArea {
         this._child = child;
         this._reversed = reversed;
 
-        if (this._reversed)
-            this.unHit = child.hitArea.hit;
-        else
-            this.hit = child.hitArea.hit;
+        // if (this._reversed)
+        //     this.unHit = child.hitArea.hit;
+        // else
+        //     this.hit = child.hitArea.hit;
     }
 
     public contains(x: number, y: number): boolean {

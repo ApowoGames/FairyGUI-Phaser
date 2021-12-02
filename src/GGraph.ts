@@ -1,7 +1,7 @@
 import { ByteBuffer } from './utils/ByteBuffer';
 import { ObjectPropID } from './FieldTypes';
 import { GObject } from './GObject';
-import { HitArea, ToolSet } from '.';
+import { Graphics, HitArea, ToolSet } from '.';
 import { Utils } from './utils/Utils';
 export class GGraph extends GObject {
     private _type: number;
@@ -15,7 +15,7 @@ export class GGraph extends GObject {
     private _polygonPoints?: number[];
     private _distances?: number[];
 
-    private _graphics: Phaser.GameObjects.Graphics;
+    private _graphics: Graphics;
     constructor(scene: Phaser.Scene, type) {
         super(scene, type);
 
@@ -23,6 +23,14 @@ export class GGraph extends GObject {
         this._lineSize = 1;
         this._lineColor = "#000000"
         this._fillColor = "#FFFFFF";
+    }
+
+    public get displayType(): number {
+        return this._type;
+    }
+
+    public get graphics(): Graphics {
+        return this._graphics;
     }
 
     public drawRect(lineSize: number, lineColor: string, fillColor: string, cornerRadius?: number[]): void {
@@ -86,7 +94,7 @@ export class GGraph extends GObject {
     private updateGraph(): void {
         this._displayObject.mouseEnabled = this.touchable;
         if (this._graphics) this._graphics.clear();
-        this._graphics = this.scene.make.graphics(undefined, false);
+        this._graphics = new Graphics(this.scene);
         if (this._skewX != 0 || this._skewY != 0) {
             this.setSkew(this._skewX, this._skewY);
         }

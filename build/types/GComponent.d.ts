@@ -11,6 +11,8 @@ export declare class GComponent extends GObject {
     protected _opaque: boolean;
     private _applyingController?;
     private _mask?;
+    private _maskReversed;
+    private _maskDisplay;
     protected _renderEvent: any;
     protected _renderTime: Phaser.Time.TimerEvent;
     protected _buildNativeEvent: any;
@@ -77,7 +79,7 @@ export declare class GComponent extends GObject {
     set apexIndex(value: number);
     get mask(): Graphics;
     set mask(value: Graphics);
-    setMask(value: Graphics, reversed: boolean): void;
+    setMask(value: any, reversed: boolean): void;
     get baseUserData(): string;
     protected updateHitArea(): void;
     protected updateMask(): void;
@@ -107,6 +109,7 @@ export declare class GComponent extends GObject {
     protected onConstruct(): void;
     protected constructFromXML(xml: Object): void;
     setup_afterAdd(buffer: ByteBuffer, beginPos: number): void;
+    checkMask(): void;
     setXY(xv: number, yv: number, force?: boolean): void;
     protected ___added(): void;
     protected ___removed(): void;
