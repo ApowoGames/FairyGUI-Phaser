@@ -66,6 +66,6 @@ Create the ui object in the corresponding package，you can adjust the view posi
 
 Run the project, you can see that the ui has been displayed in the scene
 
-Api address：https://www.fairygui.com/learn
+[Api address](https://www.fairygui.com/learn)
 
 You can use the [editor on GitHub](https://github.com/ApowoGames/FairyGUI-Phaser/edit/dev/docs/index.md) to maintain and preview the content for your website in Markdown files.
