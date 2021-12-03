@@ -14,6 +14,9 @@ export declare class Image extends Phaser.GameObjects.Container {
     protected _endAt: number;
     protected _status: number;
     protected _frameImgs: Map<string, Phaser.GameObjects.Image>;
+    /**
+     * 无论九宫还是非九宫的，基础贴图
+     */
     protected _curImg: Phaser.GameObjects.Image;
     private _tileGridIndice;
     private _sizeGrid;
@@ -24,9 +27,11 @@ export declare class Image extends Phaser.GameObjects.Container {
     private _fillClockwise?;
     private _mask?;
     private _color;
+    private _valueName;
     private finalXs;
     private finalYs;
     private originFrame;
+    private _renderTexture;
     private internalTint;
     private tintFill;
     /**
@@ -35,15 +40,19 @@ export declare class Image extends Phaser.GameObjects.Container {
     private patchKey;
     constructor(scene: Phaser.Scene);
     get curImage(): Phaser.GameObjects.Image;
+    /**
+     * 九宫图的原始图片名字
+     */
+    get valueName(): string;
     setTint(color: string): void;
-    setSize(width: number, height: number, originFrame?: Phaser.Textures.Frame): this;
+    changeSize(width: number, height: number, originFrame?: Phaser.Textures.Frame): Promise<Phaser.GameObjects.Container>;
     createPatches(): void;
     drawPatches(): void;
     createPatchFrame(patch: any, x: any, y: any, width: any, height: any): void;
     getPatchNameByIndex(index: any): string;
     get texture(): Phaser.Textures.Texture;
     set texture(value: Phaser.Textures.Texture);
-    setPackItem(value: PackageItem): void;
+    setPackItem(value: PackageItem): Promise<void>;
     get scale9Grid(): Phaser.Geom.Rectangle;
     set scale9Grid(value: Phaser.Geom.Rectangle);
     get scaleByTile(): boolean;

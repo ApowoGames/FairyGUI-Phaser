@@ -5531,6 +5531,12 @@
         get curImage() {
             return this._curImg;
         }
+        /**
+         * 九宫图的原始图片名字
+         */
+        get valueName() {
+            return this._valueName;
+        }
         setTint(color) {
             const _color = Utils.toNumColor(color);
             this.list.forEach((img) => {
@@ -5540,34 +5546,58 @@
                 }
             });
         }
-        setSize(width, height, originFrame) {
-            this.width = width;
-            this.height = height;
-            const originWidth = this["$owner"].sourceWidth;
-            const originHeight = this["$owner"].sourceHeight;
-            if (this._scale9Grid) {
-                const _left = this._scale9Grid.left;
-                const _right = originWidth - this._scale9Grid.right;
-                const _top = this._scale9Grid.top;
-                const _bottom = originHeight - this._scale9Grid.bottom;
-                this._scale9Grid.width; // right - left
-                this._scale9Grid.height; // bottom - top
-                this.finalXs = [0, _left, width - _left - _right, width];
-                this.finalYs = [0, _top, height - _top - _bottom, height];
-            }
-            else {
-                this.finalXs = [0, 0, 0, this.width];
-                this.finalYs = [0, 0, 0, this.height];
-            }
-            // 有texture资源后再创建九宫图片
-            if (!this.originFrame)
-                this.originFrame = originFrame;
-            if (this.originFrame) {
-                this.createPatches();
-                this.drawPatches();
-            }
-            this.markChanged(1);
-            return this;
+        changeSize(width, height, originFrame) {
+            return new Promise((resolve, reject) => {
+                this.width = width;
+                this.height = height;
+                const originWidth = this["$owner"].sourceWidth;
+                const originHeight = this["$owner"].sourceHeight;
+                if (this._scale9Grid) {
+                    const _left = this._scale9Grid.left;
+                    const _right = originWidth - this._scale9Grid.right;
+                    const _top = this._scale9Grid.top;
+                    const _bottom = originHeight - this._scale9Grid.bottom;
+                    this._scale9Grid.width; // right - left
+                    this._scale9Grid.height; // bottom - top
+                    this.finalXs = [0, _left, width - _left - _right, width];
+                    this.finalYs = [0, _top, height - _top - _bottom, height];
+                }
+                else {
+                    this.finalXs = [0, 0, 0, this.width];
+                    this.finalYs = [0, 0, 0, this.height];
+                }
+                // 有texture资源后再创建九宫图片
+                if (!this.originFrame)
+                    this.originFrame = originFrame;
+                if (this.originFrame) {
+                    this.createPatches();
+                    if (!this._renderTexture && this._scale9Grid) {
+                        this._renderTexture = this.scene.make.renderTexture({ x: 0, y: 0, width: this.width, height: this.height }, false);
+                    }
+                    this.drawPatches();
+                    if (this._renderTexture) {
+                        const key = this.valueName;
+                        if (this.scene.textures.exists(key)) {
+                            this._curImg = this.scene.make.image({ key }, false);
+                            resolve(this);
+                        }
+                        else {
+                            this._renderTexture.snapshot((img) => {
+                                this.scene.textures.once("addtexture", function () {
+                                    this._curImg = this.scene.make.image({ key }, false);
+                                    this.markChanged(1);
+                                    resolve(this);
+                                }, this);
+                                this.scene.textures.addBase64(key, img.src);
+                                this._renderTexture.destroy();
+                            });
+                        }
+                    }
+                    else {
+                        resolve(this);
+                    }
+                }
+            });
         }
         createPatches() {
             // The positions we want from the base texture
@@ -5589,6 +5619,7 @@
         drawPatches() {
             const tintFill = this.tintFill;
             this.removeAll(true);
+            // 非九宫直接画texture
             if (!this._scale9Grid) {
                 const patch = this._sourceTexture.frames[this.getPatchNameByIndex(8)];
                 if (this._curImg) {
@@ -5621,6 +5652,7 @@
                     patchImg.displayWidth = this.finalXs[xi + 1] - this.finalXs[xi]; //+ (xi < 2 ? this.mCorrection : 0);
                     patchImg.displayHeight = this.finalYs[yi + 1] - this.finalYs[yi]; //+ (yi < 2 ? this.mCorrection : 0);
                     // console.log("drawImage ===>", patchImg, this.finalXs, this.finalYs);
+                    this._renderTexture.draw(patchImg, patchImg.x, patchImg.y);
                     this.add(patchImg);
                     if (this.internalTint)
                         patchImg.setTint(this.internalTint);
@@ -5656,9 +5688,9 @@
             if (this._sourceTexture != value) {
                 this._sourceTexture = value;
                 if (this._sourceTexture)
-                    this.setSize(this.width, this.height);
+                    this.changeSize(this.width, this.height);
                 else
-                    this.setSize(0, 0);
+                    this.changeSize(0, 0);
                 // todo 重绘
                 // this.scene.add.image(0, 0, this._sourceTexture);
                 // const frames = value.getFrameNames();
@@ -5669,15 +5701,53 @@
             }
         }
         setPackItem(value) {
-            if (!value || !value.texture) {
-                // console.log("setpackitem ===>", value);
-                return;
-            }
-            const _texture = value.texture;
-            const name = _texture.key + "_" + value.name + "_" + this["$owner"].width + "_" + this["$owner"].height;
-            this.patchKey = name;
-            if (!this._scale9Grid) {
-                if (this.width !== _texture.frames["__BASE"].cutWidth || this.height !== _texture.frames["__BASE"].cutHeight) {
+            return new Promise((resolve, reject) => {
+                if (!value || !value.texture) {
+                    console.log("no packitem ===>", value);
+                    reject();
+                    return;
+                }
+                const _texture = value.texture;
+                this._valueName = _texture.key + "_" + value.name;
+                const name = this._valueName + "_" + this["$owner"].width + "_" + this["$owner"].height;
+                this.patchKey = name;
+                if (!this._scale9Grid) {
+                    if (this.width !== _texture.frames["__BASE"].cutWidth || this.height !== _texture.frames["__BASE"].cutHeight) {
+                        // 手动将packitem数据组织成frame格式添加到大图集的frames中，内部会去重
+                        _texture.add(name, 0, value.x, value.y, value.width, value.height);
+                        if (!this.scene.textures.exists(name)) {
+                            const canvas = this.scene.textures.createCanvas(name, value.width, value.height);
+                            canvas.drawFrame(_texture.key, name, 0, 0);
+                            if (canvas && this._sourceTexture != canvas) {
+                                this._sourceTexture = canvas;
+                                this.originFrame = this._sourceTexture.frames["__BASE"];
+                                this.changeSize(value.width, value.height).then(() => {
+                                    this.markChanged(1);
+                                    resolve();
+                                });
+                            }
+                        }
+                        else {
+                            let texture = this.scene.textures.get(name);
+                            if (texture && this._sourceTexture != texture) {
+                                this._sourceTexture = texture;
+                                this.originFrame = this._sourceTexture.frames["__BASE"];
+                                this.changeSize(value.width, value.height).then(() => {
+                                    this.markChanged(1);
+                                    resolve();
+                                });
+                            }
+                        }
+                    }
+                    else {
+                        const img = this.scene.make.image(undefined, false);
+                        img.setTexture(_texture.key);
+                        this.add(img);
+                        this.markChanged(1);
+                        resolve();
+                    }
+                }
+                else {
                     // 手动将packitem数据组织成frame格式添加到大图集的frames中，内部会去重
                     _texture.add(name, 0, value.x, value.y, value.width, value.height);
                     if (!this.scene.textures.exists(name)) {
@@ -5686,7 +5756,10 @@
                         if (canvas && this._sourceTexture != canvas) {
                             this._sourceTexture = canvas;
                             this.originFrame = this._sourceTexture.frames["__BASE"];
-                            this.setSize(value.width, value.height);
+                            this.changeSize(value.width, value.height).then(() => {
+                                this.markChanged(1);
+                                resolve();
+                            });
                         }
                     }
                     else {
@@ -5694,38 +5767,14 @@
                         if (texture && this._sourceTexture != texture) {
                             this._sourceTexture = texture;
                             this.originFrame = this._sourceTexture.frames["__BASE"];
-                            this.setSize(value.width, value.height);
+                            this.changeSize(value.width, value.height).then(() => {
+                                this.markChanged(1);
+                                resolve();
+                            });
                         }
                     }
                 }
-                else {
-                    const img = this.scene.make.image(undefined, false);
-                    img.setTexture(_texture.key);
-                    this.add(img);
-                }
-            }
-            else {
-                // 手动将packitem数据组织成frame格式添加到大图集的frames中，内部会去重
-                _texture.add(name, 0, value.x, value.y, value.width, value.height);
-                if (!this.scene.textures.exists(name)) {
-                    const canvas = this.scene.textures.createCanvas(name, value.width, value.height);
-                    canvas.drawFrame(_texture.key, name, 0, 0);
-                    if (canvas && this._sourceTexture != canvas) {
-                        this._sourceTexture = canvas;
-                        this.originFrame = this._sourceTexture.frames["__BASE"];
-                        this.setSize(value.width, value.height);
-                    }
-                }
-                else {
-                    let texture = this.scene.textures.get(name);
-                    if (texture && this._sourceTexture != texture) {
-                        this._sourceTexture = texture;
-                        this.originFrame = this._sourceTexture.frames["__BASE"];
-                        this.setSize(value.width, value.height);
-                    }
-                }
-            }
-            this.markChanged(1);
+            });
         }
         get scale9Grid() {
             return this._scale9Grid;
@@ -5861,7 +5910,7 @@
                 // if (!this._sizeGrid) {
                 //     var tw: number = tex.source[0].width;
                 //     var th: number = tex.source[0].height;
-                //     this.setSize(tw, th);
+                //     this.changeSize(tw, th);
                 //     var left: number = this._scale9Grid.x;
                 //     var right: number = Math.max(tw - this._scale9Grid.right, 0);
                 //     var top: number = this._scale9Grid.y;
@@ -5986,11 +6035,12 @@
                     this.image.scale9Grid = this._contentItem.scale9Grid;
                     this.image.scaleByTile = this._contentItem.scaleByTile;
                     this.image.tileGridIndice = this._contentItem.tileGridIndice;
-                    this.image.setPackItem(this._contentItem);
+                    this.image.setPackItem(this._contentItem).then(() => {
+                        reslove();
+                    });
                     // console.log("image pos", this);
                     // this.image.setPosition(this._contentItem.x, this._contentItem.y);
                     // this.setSize(this.sourceWidth, this.sourceHeight);
-                    reslove();
                 });
             });
         }
@@ -11853,7 +11903,7 @@
                 }
                 return;
             }
-            if (!child.displayObject)
+            if (!child.displayObject || child.name === "mask")
                 return;
             if (child.internalVisible) { // && child.displayObject !== this._displayObject.mask) {
                 // 没有父容器且没有上一级fairygui对象 直接添加在scene的根容器上
@@ -11862,6 +11912,8 @@
                     if (this._childrenRenderOrder == exports.ChildrenRenderOrder.Ascent) {
                         for (i = 0; i < cnt; i++) {
                             g = this._children[i];
+                            if (g.name === "mask")
+                                continue;
                             if (g == child)
                                 break;
                             if (g.displayObject && g.displayObject.parentContainer)
@@ -11878,6 +11930,8 @@
                     else if (this._childrenRenderOrder == exports.ChildrenRenderOrder.Descent) {
                         for (i = cnt - 1; i >= 0; i--) {
                             g = this._children[i];
+                            if (g.name === "mask")
+                                continue;
                             if (g == child)
                                 break;
                             if (g.displayObject && g.displayObject.parentContainer)
@@ -11920,8 +11974,12 @@
                     {
                         for (i = 0; i < cnt; i++) {
                             child = this._children[i];
-                            if (child.displayObject && child.internalVisible) {
+                            if (child.displayObject && child.internalVisible && child.name !== "mask") {
                                 this.realAddChildDisplayObject(child);
+                            }
+                            else {
+                                if (child.displayObject.parentContainer)
+                                    child.displayObject.parentContainer.remove(child.displayObject);
                             }
                             //this._container.add(child.displayObject);
                         }
@@ -11931,8 +11989,13 @@
                     {
                         for (i = cnt - 1; i >= 0; i--) {
                             child = this._children[i];
-                            if (child.displayObject && child.internalVisible)
+                            if (child.displayObject && child.internalVisible && child.name !== "mask") {
                                 this.realAddChildDisplayObject(child);
+                            }
+                            else {
+                                if (child.displayObject.parentContainer)
+                                    child.displayObject.parentContainer.remove(child.displayObject);
+                            }
                         }
                     }
                     break;
@@ -11941,13 +12004,23 @@
                         var apex = ToolSet.clamp(this._apexIndex, 0, cnt);
                         for (i = 0; i < apex; i++) {
                             child = this._children[i];
-                            if (child.displayObject && child.internalVisible)
+                            if (child.displayObject && child.internalVisible && child.name !== "mask") {
                                 this.realAddChildDisplayObject(child);
+                            }
+                            else {
+                                if (child.displayObject.parentContainer)
+                                    child.displayObject.parentContainer.remove(child.displayObject);
+                            }
                         }
                         for (i = cnt - 1; i >= apex; i--) {
                             child = this._children[i];
-                            if (child.displayObject && child.internalVisible)
+                            if (child.displayObject && child.internalVisible && child.name !== "mask") {
                                 this.realAddChildDisplayObject(child);
+                            }
+                            else {
+                                if (child.displayObject.parentContainer)
+                                    child.displayObject.parentContainer.remove(child.displayObject);
+                            }
                         }
                     }
                     break;
@@ -12659,41 +12732,86 @@
         }
         checkMask() {
             const mx = this._displayObject.getWorldTransformMatrix();
+            let isGraphic = false;
             if (!this._maskDisplay) {
                 this.hitArea = new ChildHitArea(this._mask["$owner"], this._maskReversed);
+                const fun = () => {
+                    if (this._maskDisplay instanceof Phaser.GameObjects.Image) {
+                        isGraphic = false;
+                    }
+                    else if (this._maskDisplay instanceof Phaser.GameObjects.Graphics) {
+                        isGraphic = true;
+                    }
+                    const tx = !isGraphic ? mx.tx + this._maskDisplay.width / 2 : mx.tx;
+                    const ty = !isGraphic ? mx.ty + this._maskDisplay.height / 2 : mx.ty;
+                    this._maskDisplay.setPosition(tx, ty);
+                    if (this._maskReversed) {
+                        if (isGraphic) {
+                            this._displayObject.setMask(this._maskDisplay.createGeometryMask().setInvertAlpha(true));
+                        }
+                        else {
+                            this._displayObject.setMask(this._maskDisplay.createBitmapMask().setInvertAlpha(true));
+                        }
+                    }
+                    else {
+                        if (isGraphic) {
+                            this._displayObject.setMask(this._maskDisplay.createGeometryMask());
+                        }
+                        else {
+                            this._displayObject.setMask(this._maskDisplay.createBitmapMask());
+                        }
+                    }
+                };
                 if (this._mask instanceof Phaser.GameObjects.Container) {
                     this._maskDisplay = this._mask.list[0];
+                    if (this._maskDisplay instanceof Phaser.GameObjects.Image) {
+                        const key = this._mask.valueName;
+                        this._maskDisplay = this.scene.make.image({ key, frame: "__BASE" });
+                        if (!this._maskDisplay) {
+                            this.scene.textures.once("addtexture", function () {
+                                if (!this._maskDisplay) {
+                                    throw new Error("image scale9grid:" + key + "no load");
+                                }
+                                if (this._maskDisplay.parentContainer)
+                                    this._displayObject.remove(this._maskDisplay.parentContainer);
+                                fun();
+                            }, this);
+                            return;
+                        }
+                        // const rt = this.scene.make.renderTexture({ x: 0, y: 0, width: this._mask.width, height: this._mask.height }, false);
+                        // const len = this._mask.length;
+                        // for (let i: number = 0; i < len; i++) {
+                        //     const img: any = this._mask.list[i];
+                        //     rt.draw(img, img.x, img.y);
+                        // }
+                        // rt.snapshot((img) => {
+                        //     const key = this._mask.valueName + "_mask";
+                        //     this.scene.textures.once("addtexture", function () {
+                        //         this._maskDisplay = this.scene.make.image({ key, frame: "__BASE" });
+                        //         if (this._maskDisplay.parentContainer) this._displayObject.remove(this._maskDisplay.parentContainer);
+                        //         fun();
+                        //     }, this);
+                        //     this.scene.textures.addBase64(key, (<any>img).src);
+                        //     rt.destroy();
+                        // });
+                        // return;
+                    }
                 }
                 else if (this._mask instanceof Graphics) {
                     this._maskDisplay = this._mask;
                 }
-                let isGraphic = false;
+                fun();
+            }
+            else {
                 if (this._maskDisplay instanceof Phaser.GameObjects.Image) {
                     isGraphic = false;
                 }
                 else if (this._maskDisplay instanceof Phaser.GameObjects.Graphics) {
                     isGraphic = true;
                 }
-                this._maskDisplay.setPosition(mx.tx, mx.ty);
-                if (this._maskReversed) {
-                    if (isGraphic) {
-                        this._displayObject.setMask(this._maskDisplay.createGeometryMask().setInvertAlpha(true));
-                    }
-                    else {
-                        this._displayObject.setMask(this._maskDisplay.createBitmapMask().setInvertAlpha(true));
-                    }
-                }
-                else {
-                    if (isGraphic) {
-                        this._displayObject.setMask(this._maskDisplay.createGeometryMask());
-                    }
-                    else {
-                        this._displayObject.setMask(this._maskDisplay.createBitmapMask());
-                    }
-                }
-            }
-            else {
-                this._maskDisplay.setPosition(mx.tx, mx.ty);
+                const tx = !isGraphic ? mx.tx + this._maskDisplay.width / 2 : mx.tx;
+                const ty = !isGraphic ? mx.ty + this._maskDisplay.height / 2 : mx.ty;
+                this._maskDisplay.setPosition(tx, ty);
             }
             if (this._maskDisplay.parentContainer)
                 this._displayObject.remove(this._maskDisplay.parentContainer);
@@ -16528,7 +16646,7 @@
                         this._content2.setScale(1, 1);
                     }
                     else {
-                        this._content.setSize(cw, ch);
+                        this._content.changeSize(cw, ch);
                         this._content.setPosition(0, 0);
                     }
                     return;

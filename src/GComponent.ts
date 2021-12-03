@@ -1,20 +1,20 @@
-import { HitArea } from './utils/HitArea';
-import { TranslationHelper } from './TranslationHelper';
-import { PackageItem } from './PackageItem';
-import { PixelHitTest } from './utils/PixelHitTest';
-import { ByteBuffer } from './utils/ByteBuffer';
-import { ChildHitArea } from './utils/ChildHitArea';
-import { ToolSet } from './utils/ToolSet';
-import { ChildrenRenderOrder, OverflowType, ObjectType } from './FieldTypes';
-import { GGroup } from './GGroup';
-import { ScrollPane } from './ScrollPane';
-import { Transition } from './Transition';
-import { Margin } from './Margin';
-import { Controller } from './Controller';
-import { Graphics } from './display/Graphics';
-import { GObject } from './GObject';
-import { Decls, UIPackage } from './UIPackage';
-import { GImage, GRoot, GButton, GGraph } from '.';
+import { HitArea } from "./utils/HitArea";
+import { TranslationHelper } from "./TranslationHelper";
+import { PackageItem } from "./PackageItem";
+import { PixelHitTest } from "./utils/PixelHitTest";
+import { ByteBuffer } from "./utils/ByteBuffer";
+import { ChildHitArea } from "./utils/ChildHitArea";
+import { ToolSet } from "./utils/ToolSet";
+import { ChildrenRenderOrder, OverflowType, ObjectType } from "./FieldTypes";
+import { GGroup } from "./GGroup";
+import { ScrollPane } from "./ScrollPane";
+import { Transition } from "./Transition";
+import { Margin } from "./Margin";
+import { Controller } from "./Controller";
+import { Graphics } from "./display/Graphics";
+import { GObject } from "./GObject";
+import { Decls, UIPackage } from "./UIPackage";
+import { GImage, GRoot, GButton, GGraph, Image } from ".";
 export class GComponent extends GObject {
     private _sortingChildCount: number = 0;
     protected _opaque: boolean;
@@ -490,7 +490,7 @@ export class GComponent extends GObject {
             return;
         }
 
-        if (!child.displayObject)
+        if (!child.displayObject || child.name === "mask")
             return;
 
         if (child.internalVisible) { // && child.displayObject !== this._displayObject.mask) {
@@ -516,6 +516,8 @@ export class GComponent extends GObject {
                 else if (this._childrenRenderOrder == ChildrenRenderOrder.Descent) {
                     for (i = cnt - 1; i >= 0; i--) {
                         g = this._children[i];
+                        if (g.name === "mask")
+                            continue;
                         if (g == child)
                             break;
 
@@ -559,8 +561,10 @@ export class GComponent extends GObject {
                 {
                     for (i = 0; i < cnt; i++) {
                         child = this._children[i];
-                        if (child.displayObject && child.internalVisible) {
+                        if (child.displayObject && child.internalVisible && child.name !== "mask") {
                             this.realAddChildDisplayObject(child);
+                        } else {
+                            if (child.displayObject.parentContainer) child.displayObject.parentContainer.remove(child.displayObject);
                         }
                         //this._container.add(child.displayObject);
                     }
@@ -570,8 +574,11 @@ export class GComponent extends GObject {
                 {
                     for (i = cnt - 1; i >= 0; i--) {
                         child = this._children[i];
-                        if (child.displayObject && child.internalVisible)
+                        if (child.displayObject && child.internalVisible && child.name !== "mask") {
                             this.realAddChildDisplayObject(child);
+                        } else {
+                            if (child.displayObject.parentContainer) child.displayObject.parentContainer.remove(child.displayObject);
+                        }
                     }
                 }
                 break;
@@ -581,13 +588,19 @@ export class GComponent extends GObject {
                     var apex: number = ToolSet.clamp(this._apexIndex, 0, cnt);
                     for (i = 0; i < apex; i++) {
                         child = this._children[i];
-                        if (child.displayObject && child.internalVisible)
+                        if (child.displayObject && child.internalVisible && child.name !== "mask") {
                             this.realAddChildDisplayObject(child);
+                        } else {
+                            if (child.displayObject.parentContainer) child.displayObject.parentContainer.remove(child.displayObject);
+                        }
                     }
                     for (i = cnt - 1; i >= apex; i--) {
                         child = this._children[i];
-                        if (child.displayObject && child.internalVisible)
+                        if (child.displayObject && child.internalVisible && child.name !== "mask") {
                             this.realAddChildDisplayObject(child);
+                        } else {
+                            if (child.displayObject.parentContainer) child.displayObject.parentContainer.remove(child.displayObject);
+                        }
                     }
                 }
                 break;
@@ -1418,40 +1431,86 @@ export class GComponent extends GObject {
 
     public checkMask() {
         const mx = this._displayObject.getWorldTransformMatrix();
+        let isGraphic: boolean = false;
         if (!this._maskDisplay) {
             this.hitArea = new ChildHitArea(this._mask["$owner"], this._maskReversed);
+            const fun = () => {
+                if (this._maskDisplay instanceof Phaser.GameObjects.Image) {
+                    isGraphic = false;
+                } else if (this._maskDisplay instanceof Phaser.GameObjects.Graphics) {
+                    isGraphic = true;
+                }
+                const tx = !isGraphic ? mx.tx + this._maskDisplay.width / 2 : mx.tx;
+                const ty = !isGraphic ? mx.ty + this._maskDisplay.height / 2 : mx.ty;
+                this._maskDisplay.setPosition(tx, ty);
+                if (this._maskReversed) {
+                    if (isGraphic) {
+                        this._displayObject.setMask(this._maskDisplay.createGeometryMask().setInvertAlpha(true));
+                    } else {
+                        this._displayObject.setMask(this._maskDisplay.createBitmapMask().setInvertAlpha(true));
+                    }
+                }
+                else {
+                    if (isGraphic) {
+                        this._displayObject.setMask(this._maskDisplay.createGeometryMask());
+                    } else {
+                        this._displayObject.setMask(this._maskDisplay.createBitmapMask());
+                    }
+                }
+            }
             if (this._mask instanceof Phaser.GameObjects.Container) {
                 this._maskDisplay = this._mask.list[0];
+                if (this._maskDisplay instanceof Phaser.GameObjects.Image) {
+                    const key = (<Image>this._mask).valueName
+                    this._maskDisplay = this.scene.make.image({ key, frame: "__BASE" });
+                    if (!this._maskDisplay) {
+                        this.scene.textures.once("addtexture", function () {
+                            if (!this._maskDisplay) {
+                                throw new Error("image scale9grid:" + key + "no load");
+                            }
+                            if (this._maskDisplay.parentContainer) this._displayObject.remove(this._maskDisplay.parentContainer);
+                            fun();
+                        }, this);
+                        return;
+                    }
+                    // const rt = this.scene.make.renderTexture({ x: 0, y: 0, width: this._mask.width, height: this._mask.height }, false);
+                    // const len = this._mask.length;
+                    // for (let i: number = 0; i < len; i++) {
+                    //     const img: any = this._mask.list[i];
+                    //     rt.draw(img, img.x, img.y);
+                    // }
+                    // rt.snapshot((img) => {
+                    //     const key = this._mask.valueName + "_mask";
+                    //     this.scene.textures.once("addtexture", function () {
+
+                    //         this._maskDisplay = this.scene.make.image({ key, frame: "__BASE" });
+                    //         if (this._maskDisplay.parentContainer) this._displayObject.remove(this._maskDisplay.parentContainer);
+                    //         fun();
+
+                    //     }, this);
+
+                    //     this.scene.textures.addBase64(key, (<any>img).src);
+                    //     rt.destroy();
+
+                    // });
+                    // return;
+                }
             } else if (this._mask instanceof Graphics) {
                 this._maskDisplay = this._mask;
             }
-            let isGraphic: boolean = false;
+            fun();
+        } else {
             if (this._maskDisplay instanceof Phaser.GameObjects.Image) {
                 isGraphic = false;
             } else if (this._maskDisplay instanceof Phaser.GameObjects.Graphics) {
                 isGraphic = true;
             }
-            this._maskDisplay.setPosition(mx.tx, mx.ty);
-            if (this._maskReversed) {
-                if (isGraphic) {
-                    this._displayObject.setMask(this._maskDisplay.createGeometryMask().setInvertAlpha(true));
-                } else {
-                    this._displayObject.setMask(this._maskDisplay.createBitmapMask().setInvertAlpha(true));
-                }
-            }
-            else {
-                if (isGraphic) {
-                    this._displayObject.setMask(this._maskDisplay.createGeometryMask());
-                } else {
-                    this._displayObject.setMask(this._maskDisplay.createBitmapMask());
-                }
-            }
-        } else {
-            this._maskDisplay.setPosition(mx.tx, mx.ty);
+            const tx = !isGraphic ? mx.tx + this._maskDisplay.width / 2 : mx.tx;
+            const ty = !isGraphic ? mx.ty + this._maskDisplay.height / 2 : mx.ty;
+            this._maskDisplay.setPosition(tx, ty);
         }
 
         if (this._maskDisplay.parentContainer) this._displayObject.remove(this._maskDisplay.parentContainer);
-
 
     }
 

@@ -405,7 +405,7 @@ export class GLoader extends GObject {
                     this._content2.setScale(1, 1);
                 }
                 else {
-                    this._content.setSize(cw, ch);
+                    this._content.changeSize(cw, ch);
                     this._content.setPosition(0, 0);
                 }
                 return;

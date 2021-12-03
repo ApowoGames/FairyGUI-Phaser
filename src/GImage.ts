@@ -104,12 +104,13 @@ export class GImage extends GObject {
                 this.image.scale9Grid = this._contentItem.scale9Grid;
                 this.image.scaleByTile = this._contentItem.scaleByTile;
                 this.image.tileGridIndice = this._contentItem.tileGridIndice;
-                this.image.setPackItem(this._contentItem);
+                this.image.setPackItem(this._contentItem).then(()=>{
+                    reslove();
+                });
                 // console.log("image pos", this);
                 // this.image.setPosition(this._contentItem.x, this._contentItem.y);
 
                 // this.setSize(this.sourceWidth, this.sourceHeight);
-                reslove();
             });
         });
 

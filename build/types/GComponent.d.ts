@@ -1,11 +1,11 @@
-import { ByteBuffer } from './utils/ByteBuffer';
-import { GGroup } from './GGroup';
-import { ScrollPane } from './ScrollPane';
-import { Transition } from './Transition';
-import { Margin } from './Margin';
-import { Controller } from './Controller';
-import { Graphics } from './display/Graphics';
-import { GObject } from './GObject';
+import { ByteBuffer } from "./utils/ByteBuffer";
+import { GGroup } from "./GGroup";
+import { ScrollPane } from "./ScrollPane";
+import { Transition } from "./Transition";
+import { Margin } from "./Margin";
+import { Controller } from "./Controller";
+import { Graphics } from "./display/Graphics";
+import { GObject } from "./GObject";
 export declare class GComponent extends GObject {
     private _sortingChildCount;
     protected _opaque: boolean;
