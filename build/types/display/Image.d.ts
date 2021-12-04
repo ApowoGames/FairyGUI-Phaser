@@ -45,7 +45,8 @@ export declare class Image extends Phaser.GameObjects.Container {
      */
     get valueName(): string;
     setTint(color: string): void;
-    changeSize(width: number, height: number, originFrame?: Phaser.Textures.Frame): Promise<Phaser.GameObjects.Container>;
+    setSize(width: number, height: number, originFrame?: Phaser.Textures.Frame): this;
+    changeSize(width: number, height: number, initBoo?: boolean, originFrame?: Phaser.Textures.Frame): Promise<Phaser.GameObjects.Container>;
     createPatches(): void;
     drawPatches(): void;
     createPatchFrame(patch: any, x: any, y: any, width: any, height: any): void;

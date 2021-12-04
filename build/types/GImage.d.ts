@@ -9,6 +9,8 @@ export declare class GImage extends GObject {
     get image(): Image;
     get color(): string;
     set color(value: string);
+    set width(value: number);
+    set height(value: number);
     get flip(): number;
     set flip(value: number);
     get fillMethod(): number;
@@ -20,8 +22,8 @@ export declare class GImage extends GObject {
     get fillAmount(): number;
     set fillAmount(value: number);
     createDisplayObject(): void;
-    setSize(wv: number, hv: number, ignorePivot?: boolean): void;
     constructFromResource(): Promise<void>;
+    protected handleSizeChanged(): void;
     protected handleXYChanged(): void;
     getProp(index: number): any;
     setProp(index: number, value: any): void;

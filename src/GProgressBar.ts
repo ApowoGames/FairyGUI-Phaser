@@ -77,7 +77,6 @@ export class GProgressBar extends GComponent {
 
         if (this._value != value) {
             GTween.kill(this, false, this.update);
-
             this._value = value;
             this.update(value);
         }
@@ -124,25 +123,43 @@ export class GProgressBar extends GComponent {
         var fullHeight: number = this.height - this._barMaxHeightDelta;
         if (!this._reverse) {
             if (this._barObjectH) {
+                const img = (<Image>this._barObjectH.displayObject).curImage;
                 if (!this.setFillAmount(this._barObjectH, percent)) {
                     if (this._barObjectH.displayObject instanceof Image) {
-                        if (!(<Image>this._barObjectH.displayObject).curImage && (<Image>this._barObjectH.displayObject).scale9Grid) {
+                        if ((<Image>this._barObjectH.displayObject).scale9Grid) {
                             this._barObjectH.width = Math.round(fullWidth * percent);
                         } else {
-                            (<Image>this._barObjectH.displayObject).curImage.setCrop(new Phaser.Geom.Rectangle(0, 0, Math.round(fullWidth * percent), this._barObjectH._rawHeight));
+                            // 如果要调整image的属性，满足条件 curImage的width必须大于等于进度条max尺寸(scale，width，height这些属性在编辑器中可调整的属性都可以用来调整实际进度条的尺寸)，否则步进显示不正常
+                            if (img.width < this._barObjectH.initWidth) {
+                                // 临时容错方式
+                                if (img.scaleX >= (this._barObjectH.initWidth / img.width)) img.scaleX = 1;
+                                img.displayWidth = Math.round(fullWidth * percent);
+                            } else {
+                                // 默认处理方式
+                                img.setCrop(new Phaser.Geom.Rectangle(0, 0, Math.round(fullWidth * percent), this._barObjectH.initHeight));
+                            }
                         }
                     } else {
-                        this._barObjectH.resizeMask(Math.round(fullWidth * percent), this._barObjectH._rawHeight);
+                        this._barObjectH.resizeMask(Math.round(fullWidth * percent), this._barObjectH.initHeight);
                     }
                 }
             }
             if (this._barObjectV) {
+                const img = (<Image>this._barObjectV.displayObject).curImage;
                 if (!this.setFillAmount(this._barObjectV, percent)) {
                     if (this._barObjectV.displayObject instanceof Image) {
-                        if (!(<Image>this._barObjectV.displayObject).curImage && (<Image>this._barObjectV.displayObject).scale9Grid) {
+                        if ((<Image>this._barObjectV.displayObject).scale9Grid) {
                             this._barObjectV.height = Math.round(fullHeight * percent);
                         } else {
-                            (<Image>this._barObjectV.displayObject).curImage.setCrop(new Phaser.Geom.Rectangle(0, 0, this._barObjectV._rawWidth, Math.round(fullHeight * percent)));
+                            // 如果要调整image的属性，满足条件 curImage的width必须大于等于进度条max尺寸(scale，width，height这些属性在编辑器中可调整的属性都可以用来调整实际进度条的尺寸)，否则步进显示不正常
+                            if (img.height < this._barObjectV.initHeight) {
+                                // 临时容错方式
+                                if (img.scaleY >= (this._barObjectV.initHeight / img.height)) img.scaleY = 1;
+                                img.displayHeight = Math.round(fullHeight * percent);
+                            } else {
+                                // 默认处理方式
+                                img.setCrop(new Phaser.Geom.Rectangle(0, 0, this._barObjectV.initWidth, Math.round(fullHeight * percent)));
+                            }
                         }
                     } else {
                         this._barObjectV.resizeMask(this._barObjectV._rawWidth, Math.round(fullHeight * percent));
@@ -152,12 +169,21 @@ export class GProgressBar extends GComponent {
         }
         else {
             if (this._barObjectH) {
+                const img = (<Image>this._barObjectH.displayObject).curImage;
                 if (!this.setFillAmount(this._barObjectH, 1 - percent)) {
                     if (this._barObjectH.displayObject instanceof Image) {
-                        if (!(<Image>this._barObjectH.displayObject).curImage && (<Image>this._barObjectH.displayObject).scale9Grid) {
+                        if ((<Image>this._barObjectH.displayObject).scale9Grid) {
                             this._barObjectH.width = Math.round(fullWidth * percent);
                         } else {
-                            (<Image>this._barObjectH.displayObject).curImage.setCrop(new Phaser.Geom.Rectangle(0, 0, Math.round(fullWidth * percent), this._barObjectH._rawHeight));
+                            // 如果要调整image的属性，满足条件 curImage的width必须大于等于进度条max尺寸(scale，width，height这些属性在编辑器中可调整的属性都可以用来调整实际进度条的尺寸)，否则步进显示不正常
+                            if (img.width < this._barObjectH.initWidth) {
+                                // 临时容错方式
+                                if (img.scaleX >= (this._barObjectH.initWidth / img.width)) img.scaleX = 1;
+                                img.displayWidth = Math.round(fullWidth * percent);
+                            } else {
+                                // 默认处理方式
+                                img.setCrop(new Phaser.Geom.Rectangle(0, 0, Math.round(fullWidth * percent), this._barObjectH.initHeight));
+                            }
                         }
                         this._barObjectH.x = this._barStartX + (fullWidth - this._barObjectH.width);
                     } else {
@@ -167,12 +193,21 @@ export class GProgressBar extends GComponent {
 
             }
             if (this._barObjectV) {
+                const img = (<Image>this._barObjectV.displayObject).curImage;
                 if (!this.setFillAmount(this._barObjectV, 1 - percent)) {
                     if (this._barObjectV.displayObject instanceof Image) {
-                        if (!(<Image>this._barObjectV.displayObject).curImage && (<Image>this._barObjectV.displayObject).scale9Grid) {
+                        if ((<Image>this._barObjectV.displayObject).scale9Grid) {
                             this._barObjectV.height = Math.round(fullHeight * percent);
                         } else {
-                            (<Image>this._barObjectV.displayObject).curImage.setCrop(new Phaser.Geom.Rectangle(0, 0, this._barObjectV._rawWidth, Math.round(fullHeight * percent)));
+                            // 如果要调整image的属性，满足条件 curImage的width必须大于等于进度条max尺寸(scale，width，height这些属性在编辑器中可调整的属性都可以用来调整实际进度条的尺寸)，否则步进显示不正常
+                            if (img.height < this._barObjectV.initHeight) {
+                                // 临时容错方式
+                                if (img.scaleY >= (this._barObjectV.initHeight / img.height)) img.scaleY = 1;
+                                img.displayHeight = Math.round(fullHeight * percent);
+                            } else {
+                                // 默认处理方式
+                                img.setCrop(new Phaser.Geom.Rectangle(0, 0, this._barObjectV.initWidth, Math.round(fullHeight * percent)));
+                            }
                         }
                         this._barObjectV.y = this._barStartY + (fullHeight - this._barObjectV.height);
                     } else {
@@ -207,12 +242,12 @@ export class GProgressBar extends GComponent {
             this._aniObject = this.getChild("ani");
 
             if (this._barObjectH) {
-                this._barMaxWidth = this._barObjectH.width;
+                this._barMaxWidth = this._barObjectH.initWidth;
                 this._barMaxWidthDelta = this.width - this._barMaxWidth;
                 this._barStartX = this._barObjectH.x;
             }
             if (this._barObjectV) {
-                this._barMaxHeight = this._barObjectV.height;
+                this._barMaxHeight = this._barObjectV.initHeight;
                 this._barMaxHeightDelta = this.height - this._barMaxHeight;
                 this._barStartY = this._barObjectV.y;
             }

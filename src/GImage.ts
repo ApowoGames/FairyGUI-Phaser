@@ -27,6 +27,17 @@ export class GImage extends GObject {
         }
     }
 
+    public set width(value: number) {
+        this.setSize(value, this._rawHeight);
+        this._displayObject.changeSize(this._width, this._height, true);
+    }
+
+    public set height(value: number) {
+        this.setSize(value, this._rawHeight);
+        this._displayObject.changeSize(this._width, this._height, true);
+
+    }
+
     public get flip(): number {
         return this._flip;
     }
@@ -83,15 +94,9 @@ export class GImage extends GObject {
         this._displayObject["$owner"] = this;
     }
 
-    public setSize(wv: number, hv: number, ignorePivot?: boolean): void {
-        super.setSize(wv, hv, ignorePivot);
-    }
-
     public constructFromResource(): Promise<void> {
         return new Promise((reslove, reject) => {
             this._contentItem = this.packageItem.getBranch();
-
-
             this.sourceWidth = this._contentItem.width;
             this.sourceHeight = this._contentItem.height;
             this.initWidth = this.sourceWidth;
@@ -104,7 +109,7 @@ export class GImage extends GObject {
                 this.image.scale9Grid = this._contentItem.scale9Grid;
                 this.image.scaleByTile = this._contentItem.scaleByTile;
                 this.image.tileGridIndice = this._contentItem.tileGridIndice;
-                this.image.setPackItem(this._contentItem).then(()=>{
+                this.image.setPackItem(this._contentItem).then(() => {
                     reslove();
                 });
                 // console.log("image pos", this);
@@ -113,7 +118,10 @@ export class GImage extends GObject {
                 // this.setSize(this.sourceWidth, this.sourceHeight);
             });
         });
+    }
 
+    protected handleSizeChanged(): void {
+        // this._displayObject.size(this._width, this._height, true);
     }
 
     protected handleXYChanged(): void {

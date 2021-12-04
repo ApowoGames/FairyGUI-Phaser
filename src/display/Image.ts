@@ -84,32 +84,79 @@ export class Image extends Phaser.GameObjects.Container {
 
     }
 
-    public changeSize(width: number, height: number, originFrame?: Phaser.Textures.Frame): Promise<Phaser.GameObjects.Container> {
-        return new Promise((resolve, reject) => {
-            this.width = width;
-            this.height = height;
-            const originWidth = this["$owner"].sourceWidth;
-            const originHeight = this["$owner"].sourceHeight;
-            if (this._scale9Grid) {
-                const _left = this._scale9Grid.left;
-                const _right = originWidth - this._scale9Grid.right;
-                const _top = this._scale9Grid.top;
-                const _bottom = originHeight - this._scale9Grid.bottom;
-                const centerWid = this._scale9Grid.width; // right - left
-                const centerHei = this._scale9Grid.height; // bottom - top
-                this.finalXs = [0, _left, width - _left - _right, width];
-                this.finalYs = [0, _top, height - _top - _bottom, height];
-            } else {
+    public setSize(width: number, height: number, originFrame?: Phaser.Textures.Frame): this {
+        this.width = width;
+        this.height = height;
+        const originWidth = this["$owner"].sourceWidth;
+        const originHeight = this["$owner"].sourceHeight;
+        if (this._scale9Grid) {
+            const _left = this._scale9Grid.left;
+            const _right = originWidth - this._scale9Grid.right;
+            const _top = this._scale9Grid.top;
+            const _bottom = originHeight - this._scale9Grid.bottom;
+
+            if (width < _left || width < _right || width < (_left + _right) || height < _top || height < _bottom || height < (_top + _right)) {
                 this.finalXs = [0, 0, 0, this.width];
                 this.finalYs = [0, 0, 0, this.height];
+            } else {
+                this.finalXs = [0, _left, width - _left - _right, width];
+                this.finalYs = [0, _top, height - _top - _bottom, height];
             }
-            // 有texture资源后再创建九宫图片
-            if (!this.originFrame) this.originFrame = originFrame;
-            if (this.originFrame) {
-                this.createPatches();
-                if (!this._renderTexture && this._scale9Grid) {
-                    this._renderTexture = this.scene.make.renderTexture({ x: 0, y: 0, width: this.width, height: this.height }, false);
+        } else {
+            this.finalXs = [0, 0, 0, this.width];
+            this.finalYs = [0, 0, 0, this.height];
+        }
+        // 有texture资源后再创建九宫图片
+        if (!this.originFrame) this.originFrame = originFrame;
+        if (this.originFrame) {
+            this.createPatches();
+            this.drawPatches();
+        }
+        this.markChanged(1);
+        return this;
+    }
+
+    public changeSize(width: number, height: number, initBoo?: boolean, originFrame?: Phaser.Textures.Frame): Promise<Phaser.GameObjects.Container> {
+        if (initBoo === undefined) initBoo = false;
+        return new Promise((resolve, reject) => {
+            if (initBoo) {
+                this.width = width;
+                this.height = height;
+                const originWidth = this["$owner"].sourceWidth;
+                const originHeight = this["$owner"].sourceHeight;
+                if (this._scale9Grid) {
+                    const _left = this._scale9Grid.left;
+                    const _right = originWidth - this._scale9Grid.right;
+                    const _top = this._scale9Grid.top;
+                    const _bottom = originHeight - this._scale9Grid.bottom;
+
+                    if (width < _left || width < _right || width < (_left + _right) || height < _top || height < _bottom || height < (_top + _right)) {
+                        this.finalXs = [0, 0, 0, this.width];
+                        this.finalYs = [0, 0, 0, this.height];
+                    } else {
+                        this.finalXs = [0, _left, width - _left - _right, width];
+                        this.finalYs = [0, _top, height - _top - _bottom, height];
+                    }
+                } else {
+                    this.finalXs = [0, 0, 0, this.width];
+                    this.finalYs = [0, 0, 0, this.height];
                 }
+                // 有texture资源后再创建九宫图片
+                if (!this.originFrame) this.originFrame = originFrame;
+            }
+
+
+            if (this.originFrame) {
+                if (initBoo) {
+                    this.createPatches();
+                    // 当_curImg存在时，说明9宫切图已经保存了一份基础合图，无须再用renderTexture绘制
+                    if (!this._renderTexture && this._scale9Grid && !this._curImg) {
+                        this._renderTexture = this.scene.make.renderTexture({ x: 0, y: 0, width: this.width, height: this.height }, false);
+                    } else if (this._curImg) {
+                        this._renderTexture = null;
+                    }
+                }
+
                 this.drawPatches();
                 if (this._renderTexture) {
                     const key = this.valueName;
@@ -188,7 +235,7 @@ export class Image extends Phaser.GameObjects.Container {
                 patchImg.displayWidth = this.finalXs[xi + 1] - this.finalXs[xi]; //+ (xi < 2 ? this.mCorrection : 0);
                 patchImg.displayHeight = this.finalYs[yi + 1] - this.finalYs[yi]; //+ (yi < 2 ? this.mCorrection : 0);
                 // console.log("drawImage ===>", patchImg, this.finalXs, this.finalYs);
-                this._renderTexture.draw(patchImg, patchImg.x, patchImg.y);
+                if (this._renderTexture && !this._renderTexture.dirty) this._renderTexture.draw(patchImg, patchImg.x, patchImg.y);
                 this.add(patchImg);
                 if (this.internalTint)
                     patchImg.setTint(this.internalTint);
@@ -227,9 +274,9 @@ export class Image extends Phaser.GameObjects.Container {
         if (this._sourceTexture != value) {
             this._sourceTexture = value;
             if (this._sourceTexture)
-                this.changeSize(this.width, this.height);
+                this.changeSize(this.width, this.height, true);
             else
-                this.changeSize(0, 0);
+                this.changeSize(0, 0, true);
             // todo 重绘
             // this.scene.add.image(0, 0, this._sourceTexture);
             // const frames = value.getFrameNames();
@@ -252,6 +299,7 @@ export class Image extends Phaser.GameObjects.Container {
             this._valueName = _texture.key + "_" + value.name;
             const name = this._valueName + "_" + this["$owner"].width + "_" + this["$owner"].height;
             this.patchKey = name;
+            // 非九宫正常图片
             if (!this._scale9Grid) {
                 if (this.width !== _texture.frames["__BASE"].cutWidth || this.height !== _texture.frames["__BASE"].cutHeight) {
                     // 手动将packitem数据组织成frame格式添加到大图集的frames中，内部会去重
@@ -262,30 +310,32 @@ export class Image extends Phaser.GameObjects.Container {
                         if (canvas && this._sourceTexture != canvas) {
                             this._sourceTexture = canvas;
                             this.originFrame = this._sourceTexture.frames["__BASE"];
-                            this.changeSize(value.width, value.height).then(() => {
-                                this.markChanged(1);
-                                resolve();
-                            });
+                            this.setSize(value.width, value.height);
+                            this.markChanged(1);
+                            resolve();
                         }
                     } else {
                         let texture = this.scene.textures.get(name);
                         if (texture && this._sourceTexture != texture) {
                             this._sourceTexture = texture;
                             this.originFrame = this._sourceTexture.frames["__BASE"];
-                            this.changeSize(value.width, value.height).then(() => {
-                                this.markChanged(1);
-                                resolve();
-                            });
+                            this.setSize(value.width, value.height);
+                            this.markChanged(1);
+                            resolve();
                         }
                     }
-                } else {
+                }
+                // 单张图片非图集
+                else {
                     const img = this.scene.make.image(undefined, false);
                     img.setTexture(_texture.key);
                     this.add(img);
                     this.markChanged(1);
                     resolve();
                 }
-            } else {
+            }
+            // 九宫图片 
+            else {
                 // 手动将packitem数据组织成frame格式添加到大图集的frames中，内部会去重
                 _texture.add(name, 0, value.x, value.y, value.width, value.height);
                 if (!this.scene.textures.exists(name)) {
@@ -294,7 +344,7 @@ export class Image extends Phaser.GameObjects.Container {
                     if (canvas && this._sourceTexture != canvas) {
                         this._sourceTexture = canvas;
                         this.originFrame = this._sourceTexture.frames["__BASE"];
-                        this.changeSize(value.width, value.height).then(() => {
+                        this.changeSize(value.width, value.height, true).then(() => {
                             this.markChanged(1);
                             resolve();
                         });
@@ -304,7 +354,7 @@ export class Image extends Phaser.GameObjects.Container {
                     if (texture && this._sourceTexture != texture) {
                         this._sourceTexture = texture;
                         this.originFrame = this._sourceTexture.frames["__BASE"];
-                        this.changeSize(value.width, value.height).then(() => {
+                        this.changeSize(value.width, value.height, true).then(() => {
                             this.markChanged(1);
                             resolve();
                         });

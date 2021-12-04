@@ -3307,6 +3307,10 @@
                 const child = childrens[i];
                 if (!child)
                     continue;
+                if (child instanceof Image && child.scale9Grid) {
+                    child.curImage.setCrop(new Phaser.Geom.Rectangle(0, 0, wid, hei));
+                    continue;
+                }
                 let childList = child.list;
                 if (!childList) {
                     continue;
@@ -5546,33 +5550,80 @@
                 }
             });
         }
-        changeSize(width, height, originFrame) {
-            return new Promise((resolve, reject) => {
-                this.width = width;
-                this.height = height;
-                const originWidth = this["$owner"].sourceWidth;
-                const originHeight = this["$owner"].sourceHeight;
-                if (this._scale9Grid) {
-                    const _left = this._scale9Grid.left;
-                    const _right = originWidth - this._scale9Grid.right;
-                    const _top = this._scale9Grid.top;
-                    const _bottom = originHeight - this._scale9Grid.bottom;
-                    this._scale9Grid.width; // right - left
-                    this._scale9Grid.height; // bottom - top
-                    this.finalXs = [0, _left, width - _left - _right, width];
-                    this.finalYs = [0, _top, height - _top - _bottom, height];
-                }
-                else {
+        setSize(width, height, originFrame) {
+            this.width = width;
+            this.height = height;
+            const originWidth = this["$owner"].sourceWidth;
+            const originHeight = this["$owner"].sourceHeight;
+            if (this._scale9Grid) {
+                const _left = this._scale9Grid.left;
+                const _right = originWidth - this._scale9Grid.right;
+                const _top = this._scale9Grid.top;
+                const _bottom = originHeight - this._scale9Grid.bottom;
+                if (width < _left || width < _right || width < (_left + _right) || height < _top || height < _bottom || height < (_top + _right)) {
                     this.finalXs = [0, 0, 0, this.width];
                     this.finalYs = [0, 0, 0, this.height];
                 }
-                // 有texture资源后再创建九宫图片
-                if (!this.originFrame)
-                    this.originFrame = originFrame;
+                else {
+                    this.finalXs = [0, _left, width - _left - _right, width];
+                    this.finalYs = [0, _top, height - _top - _bottom, height];
+                }
+            }
+            else {
+                this.finalXs = [0, 0, 0, this.width];
+                this.finalYs = [0, 0, 0, this.height];
+            }
+            // 有texture资源后再创建九宫图片
+            if (!this.originFrame)
+                this.originFrame = originFrame;
+            if (this.originFrame) {
+                this.createPatches();
+                this.drawPatches();
+            }
+            this.markChanged(1);
+            return this;
+        }
+        changeSize(width, height, initBoo, originFrame) {
+            if (initBoo === undefined)
+                initBoo = false;
+            return new Promise((resolve, reject) => {
+                if (initBoo) {
+                    this.width = width;
+                    this.height = height;
+                    const originWidth = this["$owner"].sourceWidth;
+                    const originHeight = this["$owner"].sourceHeight;
+                    if (this._scale9Grid) {
+                        const _left = this._scale9Grid.left;
+                        const _right = originWidth - this._scale9Grid.right;
+                        const _top = this._scale9Grid.top;
+                        const _bottom = originHeight - this._scale9Grid.bottom;
+                        if (width < _left || width < _right || width < (_left + _right) || height < _top || height < _bottom || height < (_top + _right)) {
+                            this.finalXs = [0, 0, 0, this.width];
+                            this.finalYs = [0, 0, 0, this.height];
+                        }
+                        else {
+                            this.finalXs = [0, _left, width - _left - _right, width];
+                            this.finalYs = [0, _top, height - _top - _bottom, height];
+                        }
+                    }
+                    else {
+                        this.finalXs = [0, 0, 0, this.width];
+                        this.finalYs = [0, 0, 0, this.height];
+                    }
+                    // 有texture资源后再创建九宫图片
+                    if (!this.originFrame)
+                        this.originFrame = originFrame;
+                }
                 if (this.originFrame) {
-                    this.createPatches();
-                    if (!this._renderTexture && this._scale9Grid) {
-                        this._renderTexture = this.scene.make.renderTexture({ x: 0, y: 0, width: this.width, height: this.height }, false);
+                    if (initBoo) {
+                        this.createPatches();
+                        // 当_curImg存在时，说明9宫切图已经保存了一份基础合图，无须再用renderTexture绘制
+                        if (!this._renderTexture && this._scale9Grid && !this._curImg) {
+                            this._renderTexture = this.scene.make.renderTexture({ x: 0, y: 0, width: this.width, height: this.height }, false);
+                        }
+                        else if (this._curImg) {
+                            this._renderTexture = null;
+                        }
                     }
                     this.drawPatches();
                     if (this._renderTexture) {
@@ -5652,7 +5703,8 @@
                     patchImg.displayWidth = this.finalXs[xi + 1] - this.finalXs[xi]; //+ (xi < 2 ? this.mCorrection : 0);
                     patchImg.displayHeight = this.finalYs[yi + 1] - this.finalYs[yi]; //+ (yi < 2 ? this.mCorrection : 0);
                     // console.log("drawImage ===>", patchImg, this.finalXs, this.finalYs);
-                    this._renderTexture.draw(patchImg, patchImg.x, patchImg.y);
+                    if (this._renderTexture && !this._renderTexture.dirty)
+                        this._renderTexture.draw(patchImg, patchImg.x, patchImg.y);
                     this.add(patchImg);
                     if (this.internalTint)
                         patchImg.setTint(this.internalTint);
@@ -5688,9 +5740,9 @@
             if (this._sourceTexture != value) {
                 this._sourceTexture = value;
                 if (this._sourceTexture)
-                    this.changeSize(this.width, this.height);
+                    this.changeSize(this.width, this.height, true);
                 else
-                    this.changeSize(0, 0);
+                    this.changeSize(0, 0, true);
                 // todo 重绘
                 // this.scene.add.image(0, 0, this._sourceTexture);
                 // const frames = value.getFrameNames();
@@ -5711,6 +5763,7 @@
                 this._valueName = _texture.key + "_" + value.name;
                 const name = this._valueName + "_" + this["$owner"].width + "_" + this["$owner"].height;
                 this.patchKey = name;
+                // 非九宫正常图片
                 if (!this._scale9Grid) {
                     if (this.width !== _texture.frames["__BASE"].cutWidth || this.height !== _texture.frames["__BASE"].cutHeight) {
                         // 手动将packitem数据组织成frame格式添加到大图集的frames中，内部会去重
@@ -5721,10 +5774,9 @@
                             if (canvas && this._sourceTexture != canvas) {
                                 this._sourceTexture = canvas;
                                 this.originFrame = this._sourceTexture.frames["__BASE"];
-                                this.changeSize(value.width, value.height).then(() => {
-                                    this.markChanged(1);
-                                    resolve();
-                                });
+                                this.setSize(value.width, value.height);
+                                this.markChanged(1);
+                                resolve();
                             }
                         }
                         else {
@@ -5732,13 +5784,13 @@
                             if (texture && this._sourceTexture != texture) {
                                 this._sourceTexture = texture;
                                 this.originFrame = this._sourceTexture.frames["__BASE"];
-                                this.changeSize(value.width, value.height).then(() => {
-                                    this.markChanged(1);
-                                    resolve();
-                                });
+                                this.setSize(value.width, value.height);
+                                this.markChanged(1);
+                                resolve();
                             }
                         }
                     }
+                    // 单张图片非图集
                     else {
                         const img = this.scene.make.image(undefined, false);
                         img.setTexture(_texture.key);
@@ -5747,6 +5799,7 @@
                         resolve();
                     }
                 }
+                // 九宫图片 
                 else {
                     // 手动将packitem数据组织成frame格式添加到大图集的frames中，内部会去重
                     _texture.add(name, 0, value.x, value.y, value.width, value.height);
@@ -5756,7 +5809,7 @@
                         if (canvas && this._sourceTexture != canvas) {
                             this._sourceTexture = canvas;
                             this.originFrame = this._sourceTexture.frames["__BASE"];
-                            this.changeSize(value.width, value.height).then(() => {
+                            this.changeSize(value.width, value.height, true).then(() => {
                                 this.markChanged(1);
                                 resolve();
                             });
@@ -5767,7 +5820,7 @@
                         if (texture && this._sourceTexture != texture) {
                             this._sourceTexture = texture;
                             this.originFrame = this._sourceTexture.frames["__BASE"];
-                            this.changeSize(value.width, value.height).then(() => {
+                            this.changeSize(value.width, value.height, true).then(() => {
                                 this.markChanged(1);
                                 resolve();
                             });
@@ -5974,6 +6027,14 @@
                 this.updateGear(4);
             }
         }
+        set width(value) {
+            this.setSize(value, this._rawHeight);
+            this._displayObject.changeSize(this._width, this._height, true);
+        }
+        set height(value) {
+            this.setSize(value, this._rawHeight);
+            this._displayObject.changeSize(this._width, this._height, true);
+        }
         get flip() {
             return this._flip;
         }
@@ -6018,9 +6079,6 @@
             // (<any>this._scene).stage.addChild(this._displayObject, 1);
             this._displayObject["$owner"] = this;
         }
-        setSize(wv, hv, ignorePivot) {
-            super.setSize(wv, hv, ignorePivot);
-        }
         constructFromResource() {
             return new Promise((reslove, reject) => {
                 this._contentItem = this.packageItem.getBranch();
@@ -6043,6 +6101,9 @@
                     // this.setSize(this.sourceWidth, this.sourceHeight);
                 });
             });
+        }
+        handleSizeChanged() {
+            // this._displayObject.size(this._width, this._height, true);
         }
         handleXYChanged() {
             super.handleXYChanged();
@@ -11912,8 +11973,6 @@
                     if (this._childrenRenderOrder == exports.ChildrenRenderOrder.Ascent) {
                         for (i = 0; i < cnt; i++) {
                             g = this._children[i];
-                            if (g.name === "mask")
-                                continue;
                             if (g == child)
                                 break;
                             if (g.displayObject && g.displayObject.parentContainer)
@@ -18223,28 +18282,50 @@
             var fullHeight = this.height - this._barMaxHeightDelta;
             if (!this._reverse) {
                 if (this._barObjectH) {
+                    const img = this._barObjectH.displayObject.curImage;
                     if (!this.setFillAmount(this._barObjectH, percent)) {
                         if (this._barObjectH.displayObject instanceof Image) {
-                            if (!this._barObjectH.displayObject.curImage && this._barObjectH.displayObject.scale9Grid) {
+                            if (this._barObjectH.displayObject.scale9Grid) {
                                 this._barObjectH.width = Math.round(fullWidth * percent);
                             }
                             else {
-                                this._barObjectH.displayObject.curImage.setCrop(new Phaser.Geom.Rectangle(0, 0, Math.round(fullWidth * percent), this._barObjectH._rawHeight));
+                                // 如果要调整image的属性，满足条件 curImage的width必须大于等于进度条max尺寸(scale，width，height这些属性在编辑器中可调整的属性都可以用来调整实际进度条的尺寸)，否则步进显示不正常
+                                if (img.width < this._barObjectH.initWidth) {
+                                    // 临时容错方式
+                                    if (img.scaleX >= (this._barObjectH.initWidth / img.width))
+                                        img.scaleX = 1;
+                                    img.displayWidth = Math.round(fullWidth * percent);
+                                }
+                                else {
+                                    // 默认处理方式
+                                    img.setCrop(new Phaser.Geom.Rectangle(0, 0, Math.round(fullWidth * percent), this._barObjectH.initHeight));
+                                }
                             }
                         }
                         else {
-                            this._barObjectH.resizeMask(Math.round(fullWidth * percent), this._barObjectH._rawHeight);
+                            this._barObjectH.resizeMask(Math.round(fullWidth * percent), this._barObjectH.initHeight);
                         }
                     }
                 }
                 if (this._barObjectV) {
+                    const img = this._barObjectV.displayObject.curImage;
                     if (!this.setFillAmount(this._barObjectV, percent)) {
                         if (this._barObjectV.displayObject instanceof Image) {
-                            if (!this._barObjectV.displayObject.curImage && this._barObjectV.displayObject.scale9Grid) {
+                            if (this._barObjectV.displayObject.scale9Grid) {
                                 this._barObjectV.height = Math.round(fullHeight * percent);
                             }
                             else {
-                                this._barObjectV.displayObject.curImage.setCrop(new Phaser.Geom.Rectangle(0, 0, this._barObjectV._rawWidth, Math.round(fullHeight * percent)));
+                                // 如果要调整image的属性，满足条件 curImage的width必须大于等于进度条max尺寸(scale，width，height这些属性在编辑器中可调整的属性都可以用来调整实际进度条的尺寸)，否则步进显示不正常
+                                if (img.height < this._barObjectV.initHeight) {
+                                    // 临时容错方式
+                                    if (img.scaleY >= (this._barObjectV.initHeight / img.height))
+                                        img.scaleY = 1;
+                                    img.displayHeight = Math.round(fullHeight * percent);
+                                }
+                                else {
+                                    // 默认处理方式
+                                    img.setCrop(new Phaser.Geom.Rectangle(0, 0, this._barObjectV.initWidth, Math.round(fullHeight * percent)));
+                                }
                             }
                         }
                         else {
@@ -18255,13 +18336,24 @@
             }
             else {
                 if (this._barObjectH) {
+                    const img = this._barObjectH.displayObject.curImage;
                     if (!this.setFillAmount(this._barObjectH, 1 - percent)) {
                         if (this._barObjectH.displayObject instanceof Image) {
-                            if (!this._barObjectH.displayObject.curImage && this._barObjectH.displayObject.scale9Grid) {
+                            if (this._barObjectH.displayObject.scale9Grid) {
                                 this._barObjectH.width = Math.round(fullWidth * percent);
                             }
                             else {
-                                this._barObjectH.displayObject.curImage.setCrop(new Phaser.Geom.Rectangle(0, 0, Math.round(fullWidth * percent), this._barObjectH._rawHeight));
+                                // 如果要调整image的属性，满足条件 curImage的width必须大于等于进度条max尺寸(scale，width，height这些属性在编辑器中可调整的属性都可以用来调整实际进度条的尺寸)，否则步进显示不正常
+                                if (img.width < this._barObjectH.initWidth) {
+                                    // 临时容错方式
+                                    if (img.scaleX >= (this._barObjectH.initWidth / img.width))
+                                        img.scaleX = 1;
+                                    img.displayWidth = Math.round(fullWidth * percent);
+                                }
+                                else {
+                                    // 默认处理方式
+                                    img.setCrop(new Phaser.Geom.Rectangle(0, 0, Math.round(fullWidth * percent), this._barObjectH.initHeight));
+                                }
                             }
                             this._barObjectH.x = this._barStartX + (fullWidth - this._barObjectH.width);
                         }
@@ -18271,13 +18363,24 @@
                     }
                 }
                 if (this._barObjectV) {
+                    const img = this._barObjectV.displayObject.curImage;
                     if (!this.setFillAmount(this._barObjectV, 1 - percent)) {
                         if (this._barObjectV.displayObject instanceof Image) {
-                            if (!this._barObjectV.displayObject.curImage && this._barObjectV.displayObject.scale9Grid) {
+                            if (this._barObjectV.displayObject.scale9Grid) {
                                 this._barObjectV.height = Math.round(fullHeight * percent);
                             }
                             else {
-                                this._barObjectV.displayObject.curImage.setCrop(new Phaser.Geom.Rectangle(0, 0, this._barObjectV._rawWidth, Math.round(fullHeight * percent)));
+                                // 如果要调整image的属性，满足条件 curImage的width必须大于等于进度条max尺寸(scale，width，height这些属性在编辑器中可调整的属性都可以用来调整实际进度条的尺寸)，否则步进显示不正常
+                                if (img.height < this._barObjectV.initHeight) {
+                                    // 临时容错方式
+                                    if (img.scaleY >= (this._barObjectV.initHeight / img.height))
+                                        img.scaleY = 1;
+                                    img.displayHeight = Math.round(fullHeight * percent);
+                                }
+                                else {
+                                    // 默认处理方式
+                                    img.setCrop(new Phaser.Geom.Rectangle(0, 0, this._barObjectV.initWidth, Math.round(fullHeight * percent)));
+                                }
                             }
                             this._barObjectV.y = this._barStartY + (fullHeight - this._barObjectV.height);
                         }
@@ -18308,12 +18411,12 @@
                 this._barObjectV = this.getChild("bar_v");
                 this._aniObject = this.getChild("ani");
                 if (this._barObjectH) {
-                    this._barMaxWidth = this._barObjectH.width;
+                    this._barMaxWidth = this._barObjectH.initWidth;
                     this._barMaxWidthDelta = this.width - this._barMaxWidth;
                     this._barStartX = this._barObjectH.x;
                 }
                 if (this._barObjectV) {
-                    this._barMaxHeight = this._barObjectV.height;
+                    this._barMaxHeight = this._barObjectV.initHeight;
                     this._barMaxHeightDelta = this.height - this._barMaxHeight;
                     this._barStartY = this._barObjectV.y;
                 }
