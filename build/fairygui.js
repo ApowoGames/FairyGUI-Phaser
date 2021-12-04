@@ -2565,9 +2565,9 @@
         }
         addRefTarget() {
             if (this._target != this._owner.parent)
-                this._target.on(DisplayObjectEvent.XY_CHANGED, this.__targetXYChanged, this);
-            this._target.on(DisplayObjectEvent.SIZE_CHANGED, this.__targetSizeChanged, this);
-            this._target.on(DisplayObjectEvent.SIZE_DELAY_CHANGE, this.__targetSizeWillChange, this);
+                this._target.onEvent(DisplayObjectEvent.XY_CHANGED, this.__targetXYChanged, this);
+            this._target.onEvent(DisplayObjectEvent.SIZE_CHANGED, this.__targetSizeChanged, this);
+            this._target.onEvent(DisplayObjectEvent.SIZE_DELAY_CHANGE, this.__targetSizeWillChange, this);
             this._targetX = this._target.x;
             this._targetY = this._target.y;
             this._targetWidth = this._target._width;
@@ -2579,9 +2579,9 @@
         releaseRefTarget() {
             if (this._target.displayObject == null)
                 return;
-            this._target.off(DisplayObjectEvent.XY_CHANGED, this.__targetXYChanged, this);
-            this._target.off(DisplayObjectEvent.SIZE_CHANGED, this.__targetSizeChanged, this);
-            this._target.off(DisplayObjectEvent.SIZE_DELAY_CHANGE, this.__targetSizeWillChange, this);
+            this._target.offEvent(DisplayObjectEvent.XY_CHANGED, this.__targetXYChanged, this);
+            this._target.offEvent(DisplayObjectEvent.SIZE_CHANGED, this.__targetSizeChanged, this);
+            this._target.offEvent(DisplayObjectEvent.SIZE_DELAY_CHANGE, this.__targetSizeWillChange, this);
         }
         __targetXYChanged() {
             if (this._owner.relations.handling || this._owner.group && this._owner.group._updating) {
@@ -3982,6 +3982,12 @@
         }
         hasClickListener() {
             return this._displayObject && this._touchable; // hasListener(InteractiveEvent.CLICK);
+        }
+        onEvent(type, listener, context = this) {
+            GRoot.inst.input.addToListener(type, this._displayObject, listener, context);
+        }
+        offEvent(type, listener, context = this) {
+            GRoot.inst.input.removeFromListener(type, this._displayObject, context);
         }
         on(type, listener, context = this) {
             if (this._touchable) {
@@ -6609,6 +6615,9 @@
                     if (!this._upHandlerMap.get(gameObject))
                         this._upHandlerMap.set(gameObject, { fun, context });
                     break;
+                default:
+                    gameObject.on(type, fun, context);
+                    break;
             }
         }
         removeFromListener(type, gameObject, context) {
@@ -6620,6 +6629,9 @@
                 case InteractiveEvent.GAMEOBJECT_UP:
                     if (this._upHandlerMap.get(gameObject))
                         this._upHandlerMap.delete(gameObject);
+                    break;
+                default:
+                    gameObject.off(type, context);
                     break;
             }
         }

@@ -954,6 +954,14 @@ export class GObject {
         return this._displayObject && this._touchable;// hasListener(InteractiveEvent.CLICK);
     }
 
+    public onEvent(type: string, listener: Function, context: any = this): void {
+        GRoot.inst.input.addToListener(type, this._displayObject, listener, context);
+    }
+
+    public offEvent(type: string, listener: Function, context: any = this): void {
+        GRoot.inst.input.removeFromListener(type, this._displayObject, context);
+    }
+
     public on(type: string, listener: Function, context: any = this): void {
         if (this._touchable) {
             GRoot.inst.input.addToListener(type, this._displayObject, listener, context);

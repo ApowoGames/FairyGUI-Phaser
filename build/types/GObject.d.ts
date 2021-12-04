@@ -228,6 +228,8 @@ export declare class GObject {
     onClick(listener: Function, context: any): void;
     offClick(listener: Function, context: any): void;
     hasClickListener(): boolean;
+    onEvent(type: string, listener: Function, context?: any): void;
+    offEvent(type: string, listener: Function, context?: any): void;
     on(type: string, listener: Function, context?: any): void;
     off(type: string, listener: Function, context?: any): void;
     get draggable(): boolean;

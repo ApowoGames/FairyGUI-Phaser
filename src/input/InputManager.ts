@@ -40,6 +40,9 @@ export class InputManager {
             case InteractiveEvent.GAMEOBJECT_UP:
                 if (!this._upHandlerMap.get(gameObject)) this._upHandlerMap.set(gameObject, { fun, context });
                 break;
+            default:
+                gameObject.on(type, fun, context);
+                break;
         }
     }
 
@@ -50,6 +53,9 @@ export class InputManager {
                 break;
             case InteractiveEvent.GAMEOBJECT_UP:
                 if (this._upHandlerMap.get(gameObject)) this._upHandlerMap.delete(gameObject);
+                break;
+            default:
+                gameObject.off(type, context);
                 break;
         }
     }
