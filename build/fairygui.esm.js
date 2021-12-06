@@ -3301,10 +3301,6 @@ class GObject {
             return;
         const childrens = this.displayObject.list;
         const cnt = childrens.length;
-        if (this.mask) {
-            this.setSize(wid, hei);
-            return;
-        }
         for (let i = 0; i < cnt; i++) {
             const child = childrens[i];
             if (!child)
@@ -12832,8 +12828,8 @@ class GComponent extends GObject {
                 else if (this._maskDisplay instanceof Phaser.GameObjects.Graphics) {
                     isGraphic = true;
                 }
-                const tx = !isGraphic ? mx.tx + this._maskDisplay.width / 2 : mx.tx + this._maskDisplay.width / 2;
-                const ty = !isGraphic ? mx.ty + this._maskDisplay.height / 2 : mx.ty + this._maskDisplay.height / 2;
+                const tx = !isGraphic ? mx.tx + this._maskDisplay.width / 2 : mx.tx;
+                const ty = !isGraphic ? mx.ty + this._maskDisplay.height / 2 : mx.ty;
                 this._maskDisplay.setPosition(tx, ty);
                 if (this._maskReversed) {
                     if (isGraphic) {
@@ -12868,23 +12864,6 @@ class GComponent extends GObject {
                         }, this);
                         return;
                     }
-                    // const rt = this.scene.make.renderTexture({ x: 0, y: 0, width: this._mask.width, height: this._mask.height }, false);
-                    // const len = this._mask.length;
-                    // for (let i: number = 0; i < len; i++) {
-                    //     const img: any = this._mask.list[i];
-                    //     rt.draw(img, img.x, img.y);
-                    // }
-                    // rt.snapshot((img) => {
-                    //     const key = this._mask.valueName + "_mask";
-                    //     this.scene.textures.once("addtexture", function () {
-                    //         this._maskDisplay = this.scene.make.image({ key, frame: "__BASE" });
-                    //         if (this._maskDisplay.parentContainer) this._displayObject.remove(this._maskDisplay.parentContainer);
-                    //         fun();
-                    //     }, this);
-                    //     this.scene.textures.addBase64(key, (<any>img).src);
-                    //     rt.destroy();
-                    // });
-                    // return;
                 }
             }
             else if (this._mask instanceof Graphics) {

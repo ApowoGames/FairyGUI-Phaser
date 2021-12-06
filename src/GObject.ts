@@ -130,7 +130,7 @@ export class GObject {
             const child = childrens[i];
             if (!child) continue;
             if (child instanceof Image && child.scale9Grid) {
-                (<Image>child).curImage.setCrop(new Phaser.Geom.Rectangle(0, 0, wid, hei));
+                if (child.curImage) (<Image>child).curImage.setCrop(new Phaser.Geom.Rectangle(0, 0, wid, hei));
                 continue;
             }
             let childList = (<any>child).list;
@@ -1308,6 +1308,9 @@ export class GObject {
         if (buffer.readBool()) {
             this.initWidth = buffer.readInt();
             this.initHeight = buffer.readInt();
+            // if (this.type === ObjectType.Image) {
+            //     (<Image>this.displayObject).changeSize(this.initWidth, this.initHeight);
+            // }
         }
 
         if (buffer.readBool()) {
