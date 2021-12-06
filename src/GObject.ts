@@ -130,7 +130,8 @@ export class GObject {
             const child = childrens[i];
             if (!child) continue;
             if (child instanceof Image && child.scale9Grid) {
-                if (child.curImage) (<Image>child).curImage.setCrop(new Phaser.Geom.Rectangle(0, 0, wid, hei));
+                child.setSize(wid, hei);
+                // if (child.curImage) (<Image>child).curImage.setCrop(new Phaser.Geom.Rectangle(0, 0, wid, hei));
                 continue;
             }
             let childList = (<any>child).list;
@@ -236,7 +237,7 @@ export class GObject {
             }
 
             if (GObject.draggingObject == this && !sUpdateInDragging)
-                this.localToGlobalRect(0, 0, this.width, this.height, sGlobalRect);
+                this.localToGlobalRect(0, 0, this._width, this._height, sGlobalRect);
         }
     }
 
@@ -280,7 +281,7 @@ export class GObject {
         else
             r = this.root;
 
-        this.setXY((r.width - this.width) / 2, (r.height - this.height) / 2);
+        this.setXY((r.width - this._width) / 2, (r.height - this._height) / 2);
         if (restraint) {
             this.addRelation(r, RelationType.Center_Center);
             this.addRelation(r, RelationType.Middle_Middle);
@@ -472,7 +473,8 @@ export class GObject {
                 sHelperPoint.x = this._pivotX * this.initWidth;
                 sHelperPoint.y = this._pivotY * this.initHeight;
                 const pt: Phaser.Geom.Point = new Phaser.Geom.Point();
-                (<Phaser.Geom.Point>transform.transformPoint(this._pivotX * this.initWidth, this._pivotY * this.initHeight, pt));
+                (<Phaser.Geom.Point>transform.transformPoint(this._pivotX * this.initWidth,
+                    this._pivotY * this.initHeight, pt));
                 this._pivotOffsetX = this.x - pt.x;
                 this._pivotOffsetY = this.y - pt.y;
             }
@@ -1213,6 +1215,7 @@ export class GObject {
     protected handleXYChanged(): void {
         var xv: number = this._x + this._xOffset;
         var yv: number = this._y + this._yOffset;
+
         if (this._pivotAsAnchor) {
             xv -= this._pivotX * this._width;
             yv -= this._pivotY * this._height;
@@ -1422,7 +1425,7 @@ export class GObject {
         sGlobalDragStart.x = this.scene.input.activePointer.x;// Laya.stage.mouseX;
         sGlobalDragStart.y = this.scene.input.activePointer.y;// Laya.stage.mouseY;
 
-        this.localToGlobalRect(0, 0, this.width, this.height, sGlobalRect);
+        this.localToGlobalRect(0, 0, this._width, this._height, sGlobalRect);
         this._dragTesting = true;
         GObject.draggingObject = this;
 

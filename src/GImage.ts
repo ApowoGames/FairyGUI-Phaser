@@ -129,9 +129,9 @@ export class GImage extends GObject {
 
         if (this._flip != FlipType.None) {
             if (this.scaleX == -1)
-                this.image.x += this.width;
+                this.image.x += this._width;
             if (this.scaleY == -1)
-                this.image.y += this.height;
+                this.image.y += this._height;
         }
     }
 

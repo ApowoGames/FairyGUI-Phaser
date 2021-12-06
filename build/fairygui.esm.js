@@ -3306,8 +3306,8 @@ class GObject {
             if (!child)
                 continue;
             if (child instanceof Image && child.scale9Grid) {
-                if (child.curImage)
-                    child.curImage.setCrop(new Phaser.Geom.Rectangle(0, 0, wid, hei));
+                child.setSize(wid, hei);
+                // if (child.curImage) (<Image>child).curImage.setCrop(new Phaser.Geom.Rectangle(0, 0, wid, hei));
                 continue;
             }
             let childList = child.list;
@@ -3396,7 +3396,7 @@ class GObject {
                 this.displayObject.emit(DisplayObjectEvent.XY_CHANGED);
             }
             if (GObject.draggingObject == this && !sUpdateInDragging)
-                this.localToGlobalRect(0, 0, this.width, this.height, sGlobalRect);
+                this.localToGlobalRect(0, 0, this._width, this._height, sGlobalRect);
         }
     }
     get xMin() {
@@ -3432,7 +3432,7 @@ class GObject {
             r = this.parent;
         else
             r = this.root;
-        this.setXY((r.width - this.width) / 2, (r.height - this.height) / 2);
+        this.setXY((r.width - this._width) / 2, (r.height - this._height) / 2);
         if (restraint) {
             this.addRelation(r, RelationType.Center_Center);
             this.addRelation(r, RelationType.Middle_Middle);
@@ -4388,7 +4388,7 @@ class GObject {
         }
         sGlobalDragStart.x = this.scene.input.activePointer.x; // Laya.stage.mouseX;
         sGlobalDragStart.y = this.scene.input.activePointer.y; // Laya.stage.mouseY;
-        this.localToGlobalRect(0, 0, this.width, this.height, sGlobalRect);
+        this.localToGlobalRect(0, 0, this._width, this._height, sGlobalRect);
         this._dragTesting = true;
         GObject.draggingObject = this;
         this._displayObject.on(InteractiveEvent.POINTER_MOVE, this.__moving);
@@ -6128,9 +6128,9 @@ class GImage extends GObject {
         super.handleXYChanged();
         if (this._flip != FlipType.None) {
             if (this.scaleX == -1)
-                this.image.x += this.width;
+                this.image.x += this._width;
             if (this.scaleY == -1)
-                this.image.y += this.height;
+                this.image.y += this._height;
         }
     }
     getProp(index) {
