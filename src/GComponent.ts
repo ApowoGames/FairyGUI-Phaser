@@ -14,7 +14,7 @@ import { Controller } from "./Controller";
 import { Graphics } from "./display/Graphics";
 import { GObject } from "./GObject";
 import { Decls, UIPackage } from "./UIPackage";
-import { GImage, GRoot, GButton, GGraph, Image } from ".";
+import { GRoot, Image, DisplayObjectEvent } from ".";
 export class GComponent extends GObject {
     private _sortingChildCount: number = 0;
     protected _opaque: boolean;
@@ -126,6 +126,7 @@ export class GComponent extends GObject {
         } else {
             this._container.addAt(display, index);
         }
+        this.displayObject.emit(DisplayObjectEvent.ADDTOSTAGE);
     }
 
     public addChild(child: GObject): GObject {
@@ -543,6 +544,7 @@ export class GComponent extends GObject {
                 if (this._childrenRenderOrder == ChildrenRenderOrder.Arch) {
                     if (!this._buildNativeTime) this._buildNativeTime = this.scene.time.addEvent(this._buildNativeEvent);
                 }
+                this.displayObject.emit(DisplayObjectEvent.REMOVEFROMSTAGE);
             }
         }
     }
@@ -1341,8 +1343,8 @@ export class GComponent extends GObject {
                     }
 
                     if (this._transitions.length > 0) {
-                        this.displayObject.on(Phaser.GameObjects.Events.ADDED_TO_SCENE, this.___added, this);
-                        this.displayObject.on(Phaser.GameObjects.Events.REMOVED_FROM_SCENE, this.___removed, this);
+                        this.displayObject.on(DisplayObjectEvent.ADDTOSTAGE, this.___added, this);
+                        this.displayObject.on(DisplayObjectEvent.REMOVEFROMSTAGE, this.___removed, this);
                     }
 
                     this.applyAllControllers();
@@ -1473,27 +1475,6 @@ export class GComponent extends GObject {
                         }, this);
                         return;
                     }
-                    // const rt = this.scene.make.renderTexture({ x: 0, y: 0, width: this._mask.width, height: this._mask.height }, false);
-                    // const len = this._mask.length;
-                    // for (let i: number = 0; i < len; i++) {
-                    //     const img: any = this._mask.list[i];
-                    //     rt.draw(img, img.x, img.y);
-                    // }
-                    // rt.snapshot((img) => {
-                    //     const key = this._mask.valueName + "_mask";
-                    //     this.scene.textures.once("addtexture", function () {
-
-                    //         this._maskDisplay = this.scene.make.image({ key, frame: "__BASE" });
-                    //         if (this._maskDisplay.parentContainer) this._displayObject.remove(this._maskDisplay.parentContainer);
-                    //         fun();
-
-                    //     }, this);
-
-                    //     this.scene.textures.addBase64(key, (<any>img).src);
-                    //     rt.destroy();
-
-                    // });
-                    // return;
                 }
             } else if (this._mask instanceof Graphics) {
                 this._maskDisplay = this._mask;

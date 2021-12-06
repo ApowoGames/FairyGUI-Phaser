@@ -119,6 +119,18 @@ export class Image extends Phaser.GameObjects.Container {
     public changeSize(width: number, height: number, initBoo?: boolean, originFrame?: Phaser.Textures.Frame): Promise<Phaser.GameObjects.Container> {
         if (initBoo === undefined) initBoo = false;
         return new Promise((resolve, reject) => {
+            const key = this.valueName;
+            // if (this._curImg) {
+            //     if (width <= this._curImg.width && height <= this._curImg.height) {
+            //         resolve(this);
+            //         return;
+            //     } else {
+            //         if (this.scene.textures.exists(key)) this.scene.textures.remove(key);
+            //         this._curImg = null;
+            //         this._renderTexture = null;
+            //         initBoo = true;
+            //     }
+            // }
             if (initBoo) {
                 this.width = width;
                 this.height = height;
@@ -159,7 +171,6 @@ export class Image extends Phaser.GameObjects.Container {
 
                 this.drawPatches();
                 if (this._renderTexture) {
-                    const key = this.valueName;
                     if (this.scene.textures.exists(key)) {
                         this._curImg = this.scene.make.image({ key }, false);
                         resolve(this);
@@ -297,7 +308,7 @@ export class Image extends Phaser.GameObjects.Container {
 
             const _texture = value.texture;
             this._valueName = _texture.key + "_" + value.name;
-            const name = this._valueName + "_" + this["$owner"].width + "_" + this["$owner"].height;
+            const name = this._valueName + "_" + this["$owner"].initWidth + "_" + this["$owner"].initHeight;
             this.patchKey = name;
             // 非九宫正常图片
             if (!this._scale9Grid) {

@@ -2022,6 +2022,8 @@
     DisplayObjectEvent.VISIBLE_CHANGED = "__visibleChanged";
     DisplayObjectEvent.SIZE_DELAY_CHANGE = "__sizeDelayChange";
     DisplayObjectEvent.MOUSE_WHEEL = "__mouseWheel";
+    DisplayObjectEvent.ADDTOSTAGE = "__addtostage";
+    DisplayObjectEvent.REMOVEFROMSTAGE = "__removefrmostage";
     DisplayObjectEvent.PULL_DOWN_RELEASE = "fui_pull_down_release";
     DisplayObjectEvent.PULL_UP_RELEASE = "fui_pull_up_release";
     class InteractiveEvent {
@@ -3303,12 +3305,17 @@
                 return;
             const childrens = this.displayObject.list;
             const cnt = childrens.length;
+            if (this.mask) {
+                this.setSize(wid, hei);
+                return;
+            }
             for (let i = 0; i < cnt; i++) {
                 const child = childrens[i];
                 if (!child)
                     continue;
                 if (child instanceof Image && child.scale9Grid) {
-                    child.curImage.setCrop(new Phaser.Geom.Rectangle(0, 0, wid, hei));
+                    if (child.curImage)
+                        child.curImage.setCrop(new Phaser.Geom.Rectangle(0, 0, wid, hei));
                     continue;
                 }
                 let childList = child.list;
@@ -4296,6 +4303,9 @@
             if (buffer.readBool()) {
                 this.initWidth = buffer.readInt();
                 this.initHeight = buffer.readInt();
+                // if (this.type === ObjectType.Image) {
+                //     (<Image>this.displayObject).changeSize(this.initWidth, this.initHeight);
+                // }
             }
             if (buffer.readBool()) {
                 this.minWidth = buffer.readInt();
@@ -5593,6 +5603,18 @@
             if (initBoo === undefined)
                 initBoo = false;
             return new Promise((resolve, reject) => {
+                const key = this.valueName;
+                // if (this._curImg) {
+                //     if (width <= this._curImg.width && height <= this._curImg.height) {
+                //         resolve(this);
+                //         return;
+                //     } else {
+                //         if (this.scene.textures.exists(key)) this.scene.textures.remove(key);
+                //         this._curImg = null;
+                //         this._renderTexture = null;
+                //         initBoo = true;
+                //     }
+                // }
                 if (initBoo) {
                     this.width = width;
                     this.height = height;
@@ -5633,7 +5655,6 @@
                     }
                     this.drawPatches();
                     if (this._renderTexture) {
-                        const key = this.valueName;
                         if (this.scene.textures.exists(key)) {
                             this._curImg = this.scene.make.image({ key }, false);
                             resolve(this);
@@ -5767,7 +5788,7 @@
                 }
                 const _texture = value.texture;
                 this._valueName = _texture.key + "_" + value.name;
-                const name = this._valueName + "_" + this["$owner"].width + "_" + this["$owner"].height;
+                const name = this._valueName + "_" + this["$owner"].initWidth + "_" + this["$owner"].initHeight;
                 this.patchKey = name;
                 // 非九宫正常图片
                 if (!this._scale9Grid) {
@@ -11675,6 +11696,7 @@
             else {
                 this._container.addAt(display, index);
             }
+            this.displayObject.emit(DisplayObjectEvent.ADDTOSTAGE);
         }
         addChild(child) {
             this.addChildAt(child, this._children.length);
@@ -12029,6 +12051,7 @@
                         if (!this._buildNativeTime)
                             this._buildNativeTime = this.scene.time.addEvent(this._buildNativeEvent);
                     }
+                    this.displayObject.emit(DisplayObjectEvent.REMOVEFROMSTAGE);
                 }
             }
         }
@@ -12724,8 +12747,8 @@
                                 buffer.position = nextPos;
                             }
                             if (this._transitions.length > 0) {
-                                this.displayObject.on(Phaser.GameObjects.Events.ADDED_TO_SCENE, this.___added, this);
-                                this.displayObject.on(Phaser.GameObjects.Events.REMOVED_FROM_SCENE, this.___removed, this);
+                                this.displayObject.on(DisplayObjectEvent.ADDTOSTAGE, this.___added, this);
+                                this.displayObject.on(DisplayObjectEvent.REMOVEFROMSTAGE, this.___removed, this);
                             }
                             this.applyAllControllers();
                             this._buildingDisplayList = false;
@@ -12813,8 +12836,8 @@
                     else if (this._maskDisplay instanceof Phaser.GameObjects.Graphics) {
                         isGraphic = true;
                     }
-                    const tx = !isGraphic ? mx.tx + this._maskDisplay.width / 2 : mx.tx;
-                    const ty = !isGraphic ? mx.ty + this._maskDisplay.height / 2 : mx.ty;
+                    const tx = !isGraphic ? mx.tx + this._maskDisplay.width / 2 : mx.tx + this._maskDisplay.width / 2;
+                    const ty = !isGraphic ? mx.ty + this._maskDisplay.height / 2 : mx.ty + this._maskDisplay.height / 2;
                     this._maskDisplay.setPosition(tx, ty);
                     if (this._maskReversed) {
                         if (isGraphic) {

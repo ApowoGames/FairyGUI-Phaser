@@ -6,6 +6,8 @@ export class DisplayObjectEvent {
     static VISIBLE_CHANGED = "__visibleChanged";
     static SIZE_DELAY_CHANGE = "__sizeDelayChange";
     static MOUSE_WHEEL = "__mouseWheel";
+    static ADDTOSTAGE = "__addtostage";
+    static REMOVEFROMSTAGE = "__removefrmostage";
     public static PULL_DOWN_RELEASE: string = "fui_pull_down_release";
     public static PULL_UP_RELEASE: string = "fui_pull_up_release";
 }
