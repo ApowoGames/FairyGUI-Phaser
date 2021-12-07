@@ -94,6 +94,7 @@ export declare class GObject {
     protected _objectType: number;
     constructor(scene: Phaser.Scene, type: number);
     resizeMask(wid: number, hei: number): void;
+    private _resizeMask;
     set type(val: number);
     get type(): number;
     get dpr(): number;

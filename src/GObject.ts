@@ -129,9 +129,8 @@ export class GObject {
         for (let i: number = 0; i < cnt; i++) {
             const child = childrens[i];
             if (!child) continue;
-            if (child instanceof Image && child.scale9Grid) {
-                child.setSize(wid, hei);
-                // if (child.curImage) (<Image>child).curImage.setCrop(new Phaser.Geom.Rectangle(0, 0, wid, hei));
+            if (child instanceof Image) {
+                this._resizeMask(child, wid, hei);
                 continue;
             }
             let childList = (<any>child).list;
@@ -145,12 +144,26 @@ export class GObject {
                 if (!children) continue;
                 if (children instanceof Image) {
                     if (!(<Image>children).curImage) continue;
-                    (<Image>children).curImage.setCrop(new Phaser.Geom.Rectangle(0, 0, wid, hei));
+                    this._resizeMask(children, wid, hei)
                     continue;
                 }
             }
             // }
         }
+    }
+
+    private _resizeMask(children: Phaser.GameObjects.GameObject, wid: number, hei: number): Phaser.GameObjects.GameObject {
+        if (children instanceof Image) {
+            if (!(<Image>children).curImage) return children;
+            // 建议不要用九宫做拉伸，性能存在问题
+            if (!children.scale9Grid) {
+                (<Image>children).curImage.setCrop(new Phaser.Geom.Rectangle(0, 0, wid, hei));
+            } else {
+                (<Image>children).setSize(wid, hei);
+            }
+            return children;
+        }
+        return children;
     }
 
     public set type(val) {

@@ -3305,9 +3305,14 @@ class GObject {
             const child = childrens[i];
             if (!child)
                 continue;
-            if (child instanceof Image && child.scale9Grid) {
-                child.setSize(wid, hei);
-                // if (child.curImage) (<Image>child).curImage.setCrop(new Phaser.Geom.Rectangle(0, 0, wid, hei));
+            if (child instanceof Image) {
+                this._resizeMask(child, wid, hei);
+                // 建议不要用九宫做拉伸，性能存在问题
+                // if (child.scale9Grid) {
+                //     child.setSize(wid, hei);
+                // } else {
+                //     if (child.curImage) (<Image>child).curImage.setCrop(new Phaser.Geom.Rectangle(0, 0, wid, hei));
+                // }
                 continue;
             }
             let childList = child.list;
@@ -3323,12 +3328,33 @@ class GObject {
                 if (children instanceof Image) {
                     if (!children.curImage)
                         continue;
-                    children.curImage.setCrop(new Phaser.Geom.Rectangle(0, 0, wid, hei));
+                    this._resizeMask(children, wid, hei);
                     continue;
+                    // if (!children.scale9Grid) {
+                    //     (<Image>children).curImage.setCrop(new Phaser.Geom.Rectangle(0, 0, wid, hei));
+                    // } else {
+                    //     (<Image>children).setSize(wid, hei);
+                    // }
+                    // continue;
                 }
             }
             // }
         }
+    }
+    _resizeMask(children, wid, hei) {
+        if (children instanceof Image) {
+            if (!children.curImage)
+                return children;
+            // 建议不要用九宫做拉伸，性能存在问题
+            if (!children.scale9Grid) {
+                children.curImage.setCrop(new Phaser.Geom.Rectangle(0, 0, wid, hei));
+            }
+            else {
+                children.setSize(wid, hei);
+            }
+            return children;
+        }
+        return children;
     }
     set type(val) {
         this._objectType = val;
