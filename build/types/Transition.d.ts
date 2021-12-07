@@ -22,6 +22,7 @@ export declare class Transition {
     private _startTime;
     private _endTime;
     constructor(owner: GComponent);
+    checkItemInTransition(id: string): boolean;
     play(onComplete?: () => void, times?: number, delay?: number, startTime?: number, endTime?: number): void;
     playReverse(onComplete?: () => void, times?: number, delay?: number, startTime?: number, endTime?: number): void;
     changePlayTimes(value: number): void;

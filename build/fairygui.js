@@ -3311,12 +3311,6 @@
                     continue;
                 if (child instanceof Image) {
                     this._resizeMask(child, wid, hei);
-                    // 建议不要用九宫做拉伸，性能存在问题
-                    // if (child.scale9Grid) {
-                    //     child.setSize(wid, hei);
-                    // } else {
-                    //     if (child.curImage) (<Image>child).curImage.setCrop(new Phaser.Geom.Rectangle(0, 0, wid, hei));
-                    // }
                     continue;
                 }
                 let childList = child.list;
@@ -3334,12 +3328,6 @@
                             continue;
                         this._resizeMask(children, wid, hei);
                         continue;
-                        // if (!children.scale9Grid) {
-                        //     (<Image>children).curImage.setCrop(new Phaser.Geom.Rectangle(0, 0, wid, hei));
-                        // } else {
-                        //     (<Image>children).setSize(wid, hei);
-                        // }
-                        // continue;
                     }
                 }
                 // }
@@ -10293,6 +10281,16 @@
             this._timeScale = 1;
             this._startTime = 0;
             this._endTime = 0;
+        }
+        checkItemInTransition(id) {
+            const len = this._items.length;
+            for (let i = 0; i < len; i++) {
+                const item = this._items[i];
+                if (item.targetId === id) {
+                    return true;
+                }
+            }
+            return false;
         }
         play(onComplete, times, delay, startTime, endTime) {
             this._play(onComplete, times, delay, startTime, endTime, false);

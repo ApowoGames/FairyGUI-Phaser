@@ -45,6 +45,17 @@ export class Transition {
         this._endTime = 0;
     }
 
+    public checkItemInTransition(id: string): boolean {
+        const len = this._items.length;
+        for (let i: number = 0; i < len; i++) {
+            const item = this._items[i];
+            if (item.targetId === id) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public play(onComplete?: () => void, times?: number, delay?: number, startTime?: number, endTime?: number): void {
         this._play(onComplete, times, delay, startTime, endTime, false);
     }
