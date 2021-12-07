@@ -33,7 +33,7 @@ export class GImage extends GObject {
     }
 
     public set height(value: number) {
-        this.setSize(value, this._rawHeight);
+        this.setSize(this._rawWidth, value);
         this._displayObject.changeSize(this._width, this._height, true);
 
     }

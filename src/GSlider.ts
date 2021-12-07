@@ -4,6 +4,7 @@ import { ToolSet } from './utils/ToolSet';
 import { ProgressTitleType } from './FieldTypes';
 import { GObject } from './GObject';
 import { GComponent } from "./GComponent";
+import { InteractiveEvent } from '.';
 
 export class GSlider extends GComponent {
     private _min: number = 0;
@@ -96,10 +97,9 @@ export class GSlider extends GComponent {
         this.updateWithPercent((this._value - this._min) / (this._max - this._min));
     }
 
-    private updateWithPercent(percent: number, evt?: any): void {
+    private updateWithPercent(percent: number, evt: boolean = false): void {
         percent = ToolSet.clamp01(percent);
         if (evt) {
-            throw new Error("TODO");
             var newValue: number = ToolSet.clamp(this._min + (this._max - this._min) * percent, this._min, this._max);
             if (this._wholeNumbers) {
                 newValue = Math.round(newValue);
@@ -108,7 +108,7 @@ export class GSlider extends GComponent {
 
             if (newValue != this._value) {
                 this._value = newValue;
-                Events.dispatch(Events.STATE_CHANGED, this.displayObject, evt);
+                Events.dispatch(Events.STATE_CHANGED, this.displayObject, { target: this.displayObject });
             }
         }
 
@@ -132,8 +132,8 @@ export class GSlider extends GComponent {
             }
         }
 
-        var fullWidth: number = this.width - this._barMaxWidthDelta;
-        var fullHeight: number = this.height - this._barMaxHeightDelta;
+        var fullWidth: number = this._width - this._barMaxWidthDelta;
+        var fullHeight: number = this._height - this._barMaxHeightDelta;
         if (!this._reverse) {
             if (this._barObjectH)
                 this._barObjectH.width = Math.round(fullWidth * percent);
@@ -143,11 +143,11 @@ export class GSlider extends GComponent {
         else {
             if (this._barObjectH) {
                 this._barObjectH.width = Math.round(fullWidth * percent);
-                this._barObjectH.x = this._barStartX + (fullWidth - this._barObjectH.width);
+                this._barObjectH.x = this._barStartX + (fullWidth - this._barObjectH._width);
             }
             if (this._barObjectV) {
                 this._barObjectV.height = Math.round(fullHeight * percent);
-                this._barObjectV.y = this._barStartY + (fullHeight - this._barObjectV.height);
+                this._barObjectV.y = this._barStartY + (fullHeight - this._barObjectV._height);
             }
         }
     }
@@ -170,19 +170,19 @@ export class GSlider extends GComponent {
 
             if (this._barObjectH) {
                 this._barMaxWidth = this._barObjectH.width;
-                this._barMaxWidthDelta = this.width - this._barMaxWidth;
+                this._barMaxWidthDelta = this._width - this._barMaxWidth;
                 this._barStartX = this._barObjectH.x;
             }
             if (this._barObjectV) {
-                this._barMaxHeight = this._barObjectV.height;
-                this._barMaxHeightDelta = this.height - this._barMaxHeight;
+                this._barMaxHeight = this._barObjectV._height;
+                this._barMaxHeightDelta = this._height - this._barMaxHeight;
                 this._barStartY = this._barObjectV.y;
             }
             if (this._gripObject) {
-                // this._gripObject.on(Laya.Event.MOUSE_DOWN, this, this.__gripMouseDown);
+                this._gripObject.on(InteractiveEvent.GAMEOBJECT_DOWN, this.__gripMouseDown, this);
             }
+            this.on(InteractiveEvent.GAMEOBJECT_DOWN, this.__barMouseDown, this);
             resolve();
-            // this.displayObject.on(Laya.Event.MOUSE_DOWN, this, this.__barMouseDown);
         });
     }
 
@@ -190,9 +190,9 @@ export class GSlider extends GComponent {
         super.handleSizeChanged();
 
         if (this._barObjectH)
-            this._barMaxWidth = this.width - this._barMaxWidthDelta;
+            this._barMaxWidth = this._width - this._barMaxWidthDelta;
         if (this._barObjectV)
-            this._barMaxHeight = this.height - this._barMaxHeightDelta;
+            this._barMaxHeight = this._height - this._barMaxHeightDelta;
         if (!this._underConstruct)
             this.update();
     }
@@ -218,62 +218,68 @@ export class GSlider extends GComponent {
         this.update();
     }
 
-    private __gripMouseDown(evt: any): void {
-        // this.canDrag = true;
+    private __gripMouseDown(pointer: Phaser.Input.Pointer): void {
+        this.canDrag = true;
         // evt.stopPropagation();
 
-        // this._clickPos = this.globalToLocal(Laya.stage.mouseX, Laya.stage.mouseY);
-        // this._clickPercent = ToolSet.clamp01((this._value - this._min) / (this._max - this._min));
+        this._clickPos.setTo(pointer.x, pointer.y);
+        this._clickPercent = ToolSet.clamp01((this._value - this._min) / (this._max - this._min));
+
+        this.scene.input.on(InteractiveEvent.GAMEOBJECT_MOVE, this.__gripMouseMove, this);
+        this.scene.input.on(InteractiveEvent.GAMEOBJECT_UP, this.__gripMouseUp, this);
 
         // Laya.stage.on(Laya.Event.MOUSE_MOVE, this, this.__gripMouseMove);
         // Laya.stage.on(Laya.Event.MOUSE_UP, this, this.__gripMouseUp);
     }
 
-    private __gripMouseMove(evt: any): void {
-        throw new Error("TODO");
-        // if (!this.canDrag) {
-        //     return;
-        // }
+    private __gripMouseMove(pointer: Phaser.Input.Pointer): void {
+        if (!this.canDrag) {
+            return;
+        }
 
-        // var pt: Laya.Point = this.globalToLocal(Laya.stage.mouseX, Laya.stage.mouseY, s_vec2);
-        // var deltaX: number = pt.x - this._clickPos.x;
-        // var deltaY: number = pt.y - this._clickPos.y;
-        // if (this._reverse) {
-        //     deltaX = -deltaX;
-        //     deltaY = -deltaY;
-        // }
-        // var percent: number;
-        // if (this._barObjectH)
-        //     percent = this._clickPercent + deltaX / this._barMaxWidth;
-        // else
-        //     percent = this._clickPercent + deltaY / this._barMaxHeight;
-        // this.updateWithPercent(percent, evt);
+        var pt: Phaser.Geom.Point = new Phaser.Geom.Point(pointer.x, pointer.y);
+        var deltaX: number = pt.x - this._clickPos.x;
+        var deltaY: number = pt.y - this._clickPos.y;
+        if (this._reverse) {
+            deltaX = -deltaX;
+            deltaY = -deltaY;
+        }
+        var percent: number;
+        if (this._barObjectH)
+            percent = this._clickPercent + deltaX / this._barMaxWidth;
+        else
+            percent = this._clickPercent + deltaY / this._barMaxHeight;
+        this.updateWithPercent(percent, true);
     }
 
-    private __gripMouseUp(evt: any): void {
-        throw new Error("TODO");
-        // Laya.stage.off(Laya.Event.MOUSE_MOVE, this, this.__gripMouseMove);
-        // Laya.stage.off(Laya.Event.MOUSE_UP, this, this.__gripMouseUp);
+    private __gripMouseUp(): void {
+        if (!this.onStage)
+            return;
+
+        this.scene.input.off(InteractiveEvent.GAMEOBJECT_MOVE, this.__gripMouseMove, this);
+        this.scene.input.off(InteractiveEvent.GAMEOBJECT_UP, this.__gripMouseUp, this);
+
+        this.canDrag = false;
     }
 
-    private __barMouseDown(evt: any): void {
-        throw new Error("TODO");
-        // if (!this.changeOnClick)
-        //     return;
+    private __barMouseDown(pt: Phaser.Input.Pointer): void {
+        if (!this.changeOnClick)
+            return;
 
-        // var pt: Laya.Point = this._gripObject.globalToLocal(evt.stageX, evt.stageY, s_vec2);
-        // var percent: number = ToolSet.clamp01((this._value - this._min) / (this._max - this._min));
-        // var delta: number;
-        // if (this._barObjectH)
-        //     delta = pt.x / this._barMaxWidth;
-        // if (this._barObjectV)
-        //     delta = pt.y / this._barMaxHeight;
-        // if (this._reverse)
-        //     percent -= delta;
-        // else
-        //     percent += delta;
-        // this.updateWithPercent(percent, evt);
+        //var pt: Phaser.Geom.Point =  new Phaser.Geom.Point(this);
+        //  this._gripObject.globalToLocal(evt.stageX, evt.stageY, s_vec2);
+        var percent: number = ToolSet.clamp01((this._value - this._min) / (this._max - this._min));
+        var delta: number;
+        if (this._barObjectH)
+            delta = pt.x / this._barMaxWidth;
+        if (this._barObjectV)
+            delta = pt.y / this._barMaxHeight;
+        if (this._reverse)
+            percent -= delta;
+        else
+            percent += delta;
+        this.updateWithPercent(percent, true);
     }
 }
 
-var s_vec2: Phaser.Geom.Point = new Phaser.Geom.Point();
+// var s_vec2: Phaser.Geom.Point = new Phaser.Geom.Point();
