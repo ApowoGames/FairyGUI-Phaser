@@ -1357,7 +1357,7 @@ export class GObject {
         f1 = buffer.readFloat();
         if (f1 != 1) {
             if (f1 > 1) f1 = 1;
-            this.alpha = f1 / 255;
+            this.alpha = f1;
         }
 
         f1 = buffer.readFloat();
