@@ -227,9 +227,6 @@ export class GSlider extends GComponent {
 
         this.scene.input.on(InteractiveEvent.GAMEOBJECT_MOVE, this.__gripMouseMove, this);
         this.scene.input.on(InteractiveEvent.GAMEOBJECT_UP, this.__gripMouseUp, this);
-
-        // Laya.stage.on(Laya.Event.MOUSE_MOVE, this, this.__gripMouseMove);
-        // Laya.stage.on(Laya.Event.MOUSE_UP, this, this.__gripMouseUp);
     }
 
     private __gripMouseMove(pointer: Phaser.Input.Pointer): void {

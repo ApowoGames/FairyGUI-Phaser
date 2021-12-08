@@ -14,7 +14,7 @@ import { Controller } from "./Controller";
 import { Graphics } from "./display/Graphics";
 import { GObject } from "./GObject";
 import { Decls, UIPackage } from "./UIPackage";
-import { GRoot, Image, DisplayObjectEvent } from ".";
+import { GRoot, Image, DisplayObjectEvent, ObjectName } from ".";
 export class GComponent extends GObject {
     private _sortingChildCount: number = 0;
     protected _opaque: boolean;
@@ -60,7 +60,6 @@ export class GComponent extends GObject {
 
     public createDisplayObject(): void {
         this._displayObject = this.scene.make.container(undefined, false);
-        // GRoot.inst.addToStage(this._displayObject);
         this._displayObject["$owner"] = this;
         this._container = this._displayObject;
         const _delay = 0.001;
@@ -1355,7 +1354,7 @@ export class GComponent extends GObject {
                     this.buildNativeDisplayList();
                     this.setBoundsChangedFlag();
 
-                    if (contentItem.objectType != ObjectType.Component) {
+                    if (contentItem.objectType != ObjectType.Component || contentItem.name === ObjectName.JoyStick) {
                         this.constructExtension(buffer).then(() => {
                             this.onConstruct();
                             reslove();

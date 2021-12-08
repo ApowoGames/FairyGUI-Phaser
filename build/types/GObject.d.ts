@@ -229,8 +229,20 @@ export declare class GObject {
     onClick(listener: Function, context: any): void;
     offClick(listener: Function, context: any): void;
     hasClickListener(): boolean;
+    /**
+     * 添加fairygui内部事件
+     * @param type
+     * @param listener
+     * @param context
+     */
     onEvent(type: string, listener: Function, context?: any): void;
     offEvent(type: string, listener: Function, context?: any): void;
+    /**
+     * 添加phaser交互事件
+     * @param type
+     * @param listener
+     * @param context
+     */
     on(type: string, listener: Function, context?: any): void;
     off(type: string, listener: Function, context?: any): void;
     get draggable(): boolean;

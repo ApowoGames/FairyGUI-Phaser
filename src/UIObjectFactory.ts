@@ -1,3 +1,4 @@
+import { GJoyStick } from './GJoyStick';
 import { GMovieClip } from './GMovieClip';
 import { GComponent } from "./GComponent";
 import { GList } from './GList';
@@ -18,7 +19,7 @@ import { GTree } from './GTree';
 import { GRoot } from "./GRoot";
 import { GBasicTextField } from "./GBasicTextField";
 import { GGraph } from "./GGraph";
-import { GRichTextField, GTextInput } from '.';
+import { GRichTextField, GTextInput, ObjectName } from '.';
 
 export class UIObjectFactory {
     public static extensions: { [index: string]: new () => GComponent } = {};
@@ -78,10 +79,8 @@ export class UIObjectFactory {
                     return new GTextInput(GRoot.inst.scene, type);
                 case ObjectType.Group:
                     return new GGroup(GRoot.inst.scene, type);
-
                 case ObjectType.List:
                     return new GList(GRoot.inst.scene, type);
-
                 case ObjectType.Graph:
                     return new GGraph(GRoot.inst.scene, type);
                 case ObjectType.Loader:
@@ -104,7 +103,8 @@ export class UIObjectFactory {
                     return new GComboBox(GRoot.inst.scene, type);
                 case ObjectType.Tree:
                     return new GTree(GRoot.inst.scene, type);
-
+                case ObjectType.JoyStick:
+                    return new GJoyStick(GRoot.inst.scene, type);
                 default:
                     return null;
             }
@@ -115,11 +115,20 @@ export class UIObjectFactory {
                     obj = new userClass();
                 else if (type.extensionType)
                     obj = new type.extensionType();
+                else if (type.name === ObjectName.JoyStick)
+                     // 不改编辑器情况下，新增joysitck
+                    obj = UIObjectFactory.newObject(ObjectType.JoyStick);
                 else
                     obj = UIObjectFactory.newObject(type.objectType);
             }
-            else
-                obj = UIObjectFactory.newObject(type.objectType);
+            else {
+                
+                if (type.name === ObjectName.JoyStick) {
+                    obj = UIObjectFactory.newObject(ObjectType.JoyStick);
+                } else {
+                    obj = UIObjectFactory.newObject(type.objectType);
+                }
+            }
 
             if (obj)
                 obj.packageItem = type;

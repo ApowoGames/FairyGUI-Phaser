@@ -76,7 +76,11 @@ export declare enum ObjectType {
     Slider = 15,
     ScrollBar = 16,
     Tree = 17,
-    Loader3D = 18
+    Loader3D = 18,
+    JoyStick = 19
+}
+export declare enum ObjectName {
+    JoyStick = "joystick"
 }
 export declare enum ProgressTitleType {
     Percent = 0,

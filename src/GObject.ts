@@ -969,6 +969,12 @@ export class GObject {
         return this._displayObject && this._touchable;// hasListener(InteractiveEvent.CLICK);
     }
 
+    /**
+     * 添加fairygui内部事件
+     * @param type 
+     * @param listener 
+     * @param context 
+     */
     public onEvent(type: string, listener: Function, context: any = this): void {
         GRoot.inst.input.addToListener(type, this._displayObject, listener, context);
     }
@@ -977,6 +983,12 @@ export class GObject {
         GRoot.inst.input.removeFromListener(type, this._displayObject, context);
     }
 
+    /**
+     * 添加phaser交互事件
+     * @param type 
+     * @param listener 
+     * @param context 
+     */
     public on(type: string, listener: Function, context: any = this): void {
         if (this._touchable) {
             GRoot.inst.input.addToListener(type, this._displayObject, listener, context);

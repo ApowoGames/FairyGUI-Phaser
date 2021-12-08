@@ -76,7 +76,12 @@ export enum ObjectType {
     Slider,
     ScrollBar,
     Tree,
-    Loader3D
+    Loader3D,
+    // 摇杆
+    JoyStick
+}
+export enum ObjectName {
+    JoyStick = "joystick",
 }
 export enum ProgressTitleType {
     Percent,

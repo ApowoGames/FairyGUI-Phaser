@@ -8,7 +8,7 @@ import { GComponent } from "./GComponent";
 import { DisplayObjectEvent } from './event/DisplayObjectEvent';
 import { UIConfig } from './UIConfig';
 import { UIPackage } from './UIPackage';
-import { PopupDirection, RelationType, Window } from '.';
+import { InteractiveEvent, PopupDirection, RelationType, Window } from '.';
 import { Utils } from './utils/Utils';
 export class GRootMouseStatus {
     public touchDown: boolean = false;
@@ -146,16 +146,16 @@ export class GRoot extends GComponent {
     public addListen() {
         this.removeListen();
         this._uiStage.on(DisplayObjectEvent.SIZE_CHANGED, this.$winResize, this);
-        this._uiStage.nativeStage.on("pointerdown", this.onStageDown, this);
-        this._uiStage.nativeStage.on("pointerup", this.onStageUp, this);
-        this._uiStage.nativeStage.on("pointermove", this.onStageMove, this);
+        this._uiStage.nativeStage.on(InteractiveEvent.POINTER_DOWN, this.onStageDown, this);
+        this._uiStage.nativeStage.on(InteractiveEvent.POINTER_UP, this.onStageUp, this);
+        this._uiStage.nativeStage.on(InteractiveEvent.POINTER_MOVE, this.onStageMove, this);
     }
 
     public removeListen() {
         this._uiStage.off(DisplayObjectEvent.SIZE_CHANGED, this.$winResize, this);
-        this._uiStage.nativeStage.off("pointerdown", this.onStageDown, this);
-        this._uiStage.nativeStage.off("pointerup", this.onStageUp, this);
-        this._uiStage.nativeStage.off("pointermove", this.onStageMove, this);
+        this._uiStage.nativeStage.off(InteractiveEvent.POINTER_DOWN, this.onStageDown, this);
+        this._uiStage.nativeStage.off(InteractiveEvent.POINTER_UP, this.onStageUp, this);
+        this._uiStage.nativeStage.off(InteractiveEvent.POINTER_MOVE, this.onStageMove, this);
     }
 
     public addTimeEvent(timeEvent: Phaser.Time.TimerEvent): Phaser.Time.TimerEvent {
