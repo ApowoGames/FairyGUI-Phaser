@@ -71,21 +71,23 @@ export class GJoyStick extends GComponent {
     private pointerMove(pointer) {
         if (!this._down) return;
         const worldMatrix = (<Phaser.GameObjects.Container>this._displayObject).getWorldTransformMatrix();
-        const dragX = pointer.worldX - worldMatrix.tx - this._btn._width / 2;
-        const dragY = pointer.worldY - worldMatrix.ty - this._btn._height / 2;
-        let d = Math.sqrt(dragX * dragX + dragY * dragY);
-        if (d > this.bgRadius) {
-            d = this.bgRadius;
+        const dragX = pointer.worldX - worldMatrix.tx - this._width / 2;
+        const dragY = pointer.worldY - worldMatrix.ty - this._height / 2;
+        const length = Math.sqrt(dragX * dragX + dragY * dragY);
+        const normalizeX = dragX / length;
+        const normalizeY = dragY / length;
+        let vecX = dragX;
+        let vecY = dragY;
+        if (length > this.bgRadius) {
+            vecX = normalizeX * this.bgRadius;
+            vecY = normalizeY * this.bgRadius;
         }
-        const r = Math.atan2(dragY, dragX);
-        this._btn.x = Math.cos(r) * d;
-        this._btn.y = Math.sin(r) * d;
-        // if (!(this.mWorld.inputManager as JoyStickManager).enable) {
-        //     return;
-        // }
-        // this.mJoyListeners.forEach((l: InputListener) => {
-        //     this.checkdragDown(l, r);
-        // });
+        const r = Math.atan2(vecY, vecX);
+        const angle = r * 180 / Math.PI;
+
+        this._btn.x = vecX + this._btn._width / 2;
+        this._btn.y = vecY + this._btn._height / 2;
+
     }
 
     private upHandler(pointer?: Phaser.Geom.Point) {

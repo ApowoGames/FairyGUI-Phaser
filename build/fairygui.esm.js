@@ -5628,17 +5628,6 @@ class Image extends Phaser.GameObjects.Container {
             initBoo = false;
         return new Promise((resolve, reject) => {
             const key = this.valueName;
-            // if (this._curImg) {
-            //     if (width <= this._curImg.width && height <= this._curImg.height) {
-            //         resolve(this);
-            //         return;
-            //     } else {
-            //         if (this.scene.textures.exists(key)) this.scene.textures.remove(key);
-            //         this._curImg = null;
-            //         this._renderTexture = null;
-            //         initBoo = true;
-            //     }
-            // }
             if (initBoo) {
                 this.width = width;
                 this.height = height;
@@ -22173,21 +22162,19 @@ class GJoyStick extends GComponent {
         if (!this._down)
             return;
         const worldMatrix = this._displayObject.getWorldTransformMatrix();
-        const dragX = pointer.worldX - worldMatrix.tx - this._btn._width / 2;
-        const dragY = pointer.worldY - worldMatrix.ty - this._btn._height / 2;
-        let d = Math.sqrt(dragX * dragX + dragY * dragY);
-        if (d > this.bgRadius) {
-            d = this.bgRadius;
+        const dragX = pointer.worldX - worldMatrix.tx - this._width / 2;
+        const dragY = pointer.worldY - worldMatrix.ty - this._height / 2;
+        const length = Math.sqrt(dragX * dragX + dragY * dragY);
+        const normalizeX = dragX / length;
+        const normalizeY = dragY / length;
+        let vecX = dragX;
+        let vecY = dragY;
+        if (length > this.bgRadius) {
+            vecX = normalizeX * this.bgRadius;
+            vecY = normalizeY * this.bgRadius;
         }
-        const r = Math.atan2(dragY, dragX);
-        this._btn.x = Math.cos(r) * d;
-        this._btn.y = Math.sin(r) * d;
-        // if (!(this.mWorld.inputManager as JoyStickManager).enable) {
-        //     return;
-        // }
-        // this.mJoyListeners.forEach((l: InputListener) => {
-        //     this.checkdragDown(l, r);
-        // });
+        this._btn.x = vecX + this._btn._width / 2;
+        this._btn.y = vecY + this._btn._height / 2;
     }
     upHandler(pointer) {
         console.log("up ===>");
@@ -22237,8 +22224,6 @@ class GJoyStick extends GComponent {
             this._btn = this.getChild("btn");
             this._handle = this.getChild("handle");
             this._gasKet = this.getChild("gasket");
-            this._bg.displayObject.setPosition(-this._bg._width / 2, this._bg._height / 2);
-            this._btn.displayObject.setPosition(-this._btn._width / 2, this._btn._height / 2);
             this.bgRadius = this._bg._width + GJoyStick.BIG_RANGE >> 1;
             resolve();
         });
