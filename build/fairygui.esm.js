@@ -18223,10 +18223,11 @@ class GSlider extends GComponent {
     }
     __gripMouseDown(pointer) {
         this.canDrag = true;
+        // evt.stopPropagation();
         this._clickPos.setTo(pointer.x, pointer.y);
         this._clickPercent = ToolSet.clamp01((this._value - this._min) / (this._max - this._min));
-        this.on(InteractiveEvent.GAMEOBJECT_MOVE, this.__gripMouseMove, this);
-        this.on(InteractiveEvent.GAMEOBJECT_UP, this.__gripMouseUp, this);
+        this.scene.input.on(InteractiveEvent.GAMEOBJECT_MOVE, this.__gripMouseMove, this);
+        this.scene.input.on(InteractiveEvent.GAMEOBJECT_UP, this.__gripMouseUp, this);
     }
     __gripMouseMove(pointer) {
         if (!this.canDrag) {
@@ -18249,8 +18250,8 @@ class GSlider extends GComponent {
     __gripMouseUp() {
         if (!this.onStage)
             return;
-        this.off(InteractiveEvent.GAMEOBJECT_MOVE, this.__gripMouseMove, this);
-        this.off(InteractiveEvent.GAMEOBJECT_UP, this.__gripMouseUp, this);
+        this.scene.input.off(InteractiveEvent.GAMEOBJECT_MOVE, this.__gripMouseMove, this);
+        this.scene.input.off(InteractiveEvent.GAMEOBJECT_UP, this.__gripMouseUp, this);
         this.canDrag = false;
     }
     __barMouseDown(pt) {
@@ -18599,8 +18600,8 @@ class GScrollBar extends GComponent {
     __gripMouseDown(pointer) {
         this._gripDragging = true;
         this._target.updateScrollBarVisible();
-        this.on(InteractiveEvent.GAMEOBJECT_MOVE, this.__gripMouseMove, this);
-        this.on(InteractiveEvent.GAMEOBJECT_UP, this.__gripMouseUp, this);
+        this.scene.input.on(InteractiveEvent.GAMEOBJECT_MOVE, this.__gripMouseMove, this);
+        this.scene.input.on(InteractiveEvent.GAMEOBJECT_UP, this.__gripMouseUp, this);
         // this.globalToLocal(pointer.x, pointer.y, this._dragOffset);
         this._dragOffset.x = pointer.worldX - this._grip.x;
         this._dragOffset.y = pointer.worldY - this._grip.y;
@@ -18621,8 +18622,8 @@ class GScrollBar extends GComponent {
     __gripMouseUp(pointer) {
         if (!this.onStage)
             return;
-        this.off(InteractiveEvent.GAMEOBJECT_MOVE, this.__gripMouseMove, this);
-        this.off(InteractiveEvent.GAMEOBJECT_UP, this.__gripMouseUp, this);
+        this.scene.input.off(InteractiveEvent.GAMEOBJECT_MOVE, this.__gripMouseMove, this);
+        this.scene.input.off(InteractiveEvent.GAMEOBJECT_UP, this.__gripMouseUp, this);
         this._gripDragging = false;
         this._target.updateScrollBarVisible();
     }
@@ -22236,6 +22237,8 @@ class GJoyStick extends GComponent {
             this._btn = this.getChild("btn");
             this._handle = this.getChild("handle");
             this._gasKet = this.getChild("gasket");
+            this._bg.displayObject.setPosition(-this._bg._width / 2, this._bg._height / 2);
+            this._btn.displayObject.setPosition(-this._btn._width / 2, this._btn._height / 2);
             this.bgRadius = this._bg._width + GJoyStick.BIG_RANGE >> 1;
             resolve();
         });

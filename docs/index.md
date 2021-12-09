@@ -69,4 +69,5 @@ Run the project, you can see that the ui has been displayed in the scene
 ##### [API address](https://www.fairygui.com/learn)
 ##### [Editor address](https://www.fairygui.com/download)
 
-You can use the [editor on GitHub](https://github.com/ApowoGames/FairyGUI-Phaser/edit/dev/docs/index.md) to maintain and preview the content for your website in Markdown files.
+##### [Demo addres](https://github.com/ApowoGames/FairyGUI-Phaser/publish/)
+

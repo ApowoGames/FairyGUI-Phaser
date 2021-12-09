@@ -120,17 +120,6 @@ export class Image extends Phaser.GameObjects.Container {
         if (initBoo === undefined) initBoo = false;
         return new Promise((resolve, reject) => {
             const key = this.valueName;
-            // if (this._curImg) {
-            //     if (width <= this._curImg.width && height <= this._curImg.height) {
-            //         resolve(this);
-            //         return;
-            //     } else {
-            //         if (this.scene.textures.exists(key)) this.scene.textures.remove(key);
-            //         this._curImg = null;
-            //         this._renderTexture = null;
-            //         initBoo = true;
-            //     }
-            // }
             if (initBoo) {
                 this.width = width;
                 this.height = height;
