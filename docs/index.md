@@ -69,5 +69,5 @@ Run the project, you can see that the ui has been displayed in the scene
 ##### [API address](https://www.fairygui.com/learn)
 ##### [Editor address](https://www.fairygui.com/download)
 
-##### [Demo addres](https://github.com/ApowoGames/FairyGUI-Phaser/publish/)
+##### [Demo address](https://ApowoGames.github.io/FairyGUI-Phaser/publish/)
 
