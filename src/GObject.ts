@@ -534,7 +534,7 @@ export class GObject {
 
         if (this._displayObject)
             if (this._touchable) {
-                this.removeInteractive();
+                // this.removeInteractive();
                 this._displayObject.setInteractive(new Phaser.Geom.Rectangle(this.initWidth / 2, this.initHeight / 2, this.initWidth / this.scaleX, this.initHeight / this.scaleY), Phaser.Geom.Rectangle.Contains);
             } else {
                 this.removeInteractive();
@@ -1227,8 +1227,6 @@ export class GObject {
 
     public createDisplayObject(): void {
         this._displayObject = this.scene.make.container(undefined, false);
-        // GRoot.inst.addToStage(this._displayObject);
-        // (<any>this._scene).stage.addChild(this._displayObject, 1);
         this._displayObject["$owner"] = this;
     }
 
