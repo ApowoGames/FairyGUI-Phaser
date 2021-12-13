@@ -4,6 +4,7 @@ import { GObject } from './../GObject';
 import { ColorShaderPipeline } from "./colorShader/ColorShaderPipeline";
 import { GLoader, GRoot, Image } from '..';
 import { GrayShaderPipeline } from './colorShader/GrayShaderPipeline';
+import { SingleShaderPipeline } from './colorShader/SingleShaderPipeline';
 export class ToolSet {
     //
     public static Color: string = "color";
@@ -159,9 +160,9 @@ export class ToolSet {
             const rgbStr = ToolSet.colorRgb(color);
             const rgbList = rgbStr.substring(4, rgbStr.lastIndexOf(")")).split(",");
             name = ToolSet.Color;
-            colorPipeLine = <ColorShaderPipeline>renderer.pipelines.get(name);
+            colorPipeLine = <ColorShaderPipeline>renderer.pipelines.get(rgbStr);
             if (!colorPipeLine) {
-                colorPipeLine = <ColorShaderPipeline>renderer.pipelines.add(name, new ColorShaderPipeline(GRoot.inst.scene.game));
+                colorPipeLine = <ColorShaderPipeline>renderer.pipelines.add(rgbStr, new ColorShaderPipeline(GRoot.inst.scene.game));
                 colorPipeLine.a = 1;
             }
             colorPipeLine.r = parseInt(rgbList[0]) / 255;

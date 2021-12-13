@@ -808,9 +808,9 @@ class ToolSet {
             const rgbStr = ToolSet.colorRgb(color);
             const rgbList = rgbStr.substring(4, rgbStr.lastIndexOf(")")).split(",");
             name = ToolSet.Color;
-            colorPipeLine = renderer.pipelines.get(name);
+            colorPipeLine = renderer.pipelines.get(rgbStr);
             if (!colorPipeLine) {
-                colorPipeLine = renderer.pipelines.add(name, new ColorShaderPipeline(GRoot.inst.scene.game));
+                colorPipeLine = renderer.pipelines.add(rgbStr, new ColorShaderPipeline(GRoot.inst.scene.game));
                 colorPipeLine.a = 1;
             }
             colorPipeLine.r = parseInt(rgbList[0]) / 255;
