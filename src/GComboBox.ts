@@ -8,7 +8,7 @@ import { PopupDirection, ObjectPropID } from './FieldTypes';
 import { GList } from './GList';
 import { GObject } from './GObject';
 import { GComponent } from "./GComponent";
-import { DisplayObjectEvent, GGroup, GRoot, RelationType, UIPackage } from '.';
+import { DisplayObjectEvent, GGroup, GRoot, InteractiveEvent, RelationType, UIPackage } from '.';
 import { Events } from './Events';
 
 export class GComboBox extends GComponent {
@@ -29,8 +29,8 @@ export class GComboBox extends GComponent {
     private _buttonController: Controller;
     private _selectionController?: Controller;
 
-    private _down: boolean;
-    private _over: boolean;
+    private _down: boolean = false;
+    private _over: boolean = false;
 
     constructor(scene: Phaser.Scene, type) {
         super(scene, type);
@@ -372,28 +372,24 @@ export class GComboBox extends GComponent {
 
                     // 销毁
                     this.dropdown.displayObject.on("destroy", this.__popupWinClosed, this);
-
-                    this.addListen();
                     resolve();
                 });
             } else {
-                this.addListen();
                 resolve();
             }
         });
     }
 
     private addListen() {
-        this.removeListen();
-        this.on("pointerover", this.__rollover, this);
-        this.on("pointerout", this.__rollout, this);
-        this.on("pointerdown", this.__mousedown, this);
+        this.on(InteractiveEvent.GAMEOBJECT_OVER, this.__rollover, this);
+        this.on(InteractiveEvent.GAMEOBJECT_OUT, this.__rollout, this);
+        this.on(InteractiveEvent.GAMEOBJECT_DOWN, this.__mousedown, this);
     }
 
     private removeListen() {
-        this.off("pointerover", this.__rollover, this);
-        this.off("pointerout", this.__rollout, this);
-        this.off("pointerdown", this.__mousedown, this);
+        this.off(InteractiveEvent.GAMEOBJECT_OVER, this.__rollover, this);
+        this.off(InteractiveEvent.GAMEOBJECT_OUT, this.__rollout, this);
+        this.off(InteractiveEvent.GAMEOBJECT_DOWN, this.__mousedown, this);
     }
 
     public setup_afterAdd(buffer: ByteBuffer, beginPos: number): void {
@@ -450,8 +446,8 @@ export class GComboBox extends GComponent {
         this._popupDirection = buffer.readByte();
 
         iv = buffer.readShort();
-        if (iv >= 0)
-            this._selectionController = this.parent.getControllerAt(iv);
+        if (iv >= 0) this._selectionController = this.parent.getControllerAt(iv);
+        this.addListen();
     }
 
     protected showDropdown(): Promise<void> {
@@ -489,13 +485,6 @@ export class GComboBox extends GComponent {
                     })
                 }
                 fun0(0);
-                // for (var i: number = 0; i < cnt; i++) {
-                //     const item: GObject = this._list.addItemFromPool();
-                //     item.name = i < this._values.length ? this._values[i] : "";
-                //     item.text = this._items[i];
-                //     item.icon = (this._icons && i < this._icons.length) ? this._icons[i] : null;
-                // }
-                // this._list.resizeToFit(this._visibleItemCount);
             } else {
                 this._list.selectedIndex = -1;
                 this.dropdown.width = this.width;
@@ -562,8 +551,8 @@ export class GComboBox extends GComponent {
 
         if (this.dropdown) {
             this.showDropdown().then(() => {
-                this.scene.input.off("pointerup", this.__mouseup, this);
-                this.scene.input.on("pointerup", this.__mouseup, this);
+                this.scene.input.off(InteractiveEvent.POINTER_UP, this.__mouseup, this);
+                this.scene.input.on(InteractiveEvent.POINTER_UP, this.__mouseup, this);
             });
         }
 
@@ -575,7 +564,7 @@ export class GComboBox extends GComponent {
                 // fairgui 没有处理未点击到combox时列表是否缩起的处理
                 if (!this.dropdown.parent) {
                     this._down = false;
-                    this.scene.input.off("pointerup", this.__mouseup, this);
+                    this.scene.input.off(InteractiveEvent.POINTER_UP, this.__mouseup, this);
                     if (this._over) {
                         this.setState(GButton.OVER);
                     }

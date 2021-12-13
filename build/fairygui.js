@@ -3656,7 +3656,7 @@
             //     return;
             if (this._displayObject)
                 if (this._touchable) {
-                    this.removeInteractive();
+                    // this.removeInteractive();
                     this._displayObject.setInteractive(new Phaser.Geom.Rectangle(this.initWidth / 2, this.initHeight / 2, this.initWidth / this.scaleX, this.initHeight / this.scaleY), Phaser.Geom.Rectangle.Contains);
                 }
                 else {
@@ -4239,8 +4239,6 @@
         }
         createDisplayObject() {
             this._displayObject = this.scene.make.container(undefined, false);
-            // GRoot.inst.addToStage(this._displayObject);
-            // (<any>this._scene).stage.addChild(this._displayObject, 1);
             this._displayObject["$owner"] = this;
         }
         setDisplayObject(val) {
@@ -6627,6 +6625,8 @@
             this._downHandlerMap = new Map();
             this._upHandlerMap = new Map();
             this._moveHandlerMap = new Map();
+            this._overHandlerMap = new Map();
+            this._outHandlerMap = new Map();
         }
         setScene(scene) {
             this.removeListener();
@@ -6637,11 +6637,17 @@
             // 切换ui，把上一个ui监听的函数全部清空
             this._downHandlerMap.clear();
             this._upHandlerMap.clear();
+            this._moveHandlerMap.clear();
+            this._overHandlerMap.clear();
+            this._outHandlerMap.clear();
         }
         destroy() {
             this.clear();
             this._downHandlerMap = null;
             this._upHandlerMap = null;
+            this._moveHandlerMap = null;
+            this._overHandlerMap = null;
+            this._outHandlerMap = null;
             this.removeListener();
         }
         addToListener(type, gameObject, fun, context) {
@@ -6657,6 +6663,14 @@
                 case InteractiveEvent.GAMEOBJECT_MOVE:
                     if (!this._moveHandlerMap.get(gameObject))
                         this._moveHandlerMap.set(gameObject, { fun, context });
+                    break;
+                case InteractiveEvent.GAMEOBJECT_OVER:
+                    if (!this._overHandlerMap.get(gameObject))
+                        this._overHandlerMap.set(gameObject, { fun, context });
+                    break;
+                case InteractiveEvent.GAMEOBJECT_OUT:
+                    if (!this._outHandlerMap.get(gameObject))
+                        this._outHandlerMap.set(gameObject, { fun, context });
                     break;
                 default:
                     gameObject.on(type, fun, context);
@@ -6677,6 +6691,14 @@
                     if (!this._moveHandlerMap.get(gameObject))
                         this._moveHandlerMap.delete(gameObject);
                     break;
+                case InteractiveEvent.GAMEOBJECT_OVER:
+                    if (!this._overHandlerMap.get(gameObject))
+                        this._overHandlerMap.delete(gameObject);
+                    break;
+                case InteractiveEvent.GAMEOBJECT_OUT:
+                    if (!this._outHandlerMap.get(gameObject))
+                        this._outHandlerMap.delete(gameObject);
+                    break;
                 default:
                     gameObject.off(type, context);
                     break;
@@ -6686,6 +6708,8 @@
             this._scene.input.on(InteractiveEvent.GAMEOBJECT_DOWN, this.gameDown, this);
             this._scene.input.on(InteractiveEvent.GAMEOBJECT_UP, this.gameUp, this);
             this._scene.input.on(InteractiveEvent.GAMEOBJECT_MOVE, this.gameMove, this);
+            this._scene.input.on(InteractiveEvent.GAMEOBJECT_OVER, this.gameOver, this);
+            this._scene.input.on(InteractiveEvent.GAMEOBJECT_OUT, this.gameOut, this);
         }
         removeListener() {
             if (!this._scene)
@@ -6693,6 +6717,20 @@
             this._scene.input.off(InteractiveEvent.GAMEOBJECT_DOWN, this.gameDown, this);
             this._scene.input.off(InteractiveEvent.GAMEOBJECT_UP, this.gameUp, this);
             this._scene.input.off(InteractiveEvent.GAMEOBJECT_MOVE, this.gameMove, this);
+            this._scene.input.off(InteractiveEvent.GAMEOBJECT_OVER, this.gameOver, this);
+            this._scene.input.off(InteractiveEvent.GAMEOBJECT_OUT, this.gameOut, this);
+        }
+        gameOver(pointer, gameObject) {
+            const obj = this._overHandlerMap.get(gameObject);
+            if (obj) {
+                obj.fun.call(obj.context || this, pointer, gameObject);
+            }
+        }
+        gameOut(pointer, gameObject) {
+            const obj = this._outHandlerMap.get(gameObject);
+            if (obj) {
+                obj.fun.call(obj.context || this, pointer, gameObject);
+            }
         }
         gameDown(pointer, gameObject) {
             const obj = this._downHandlerMap.get(gameObject);
@@ -17571,6 +17609,8 @@
     class GComboBox extends GComponent {
         constructor(scene, type) {
             super(scene, type);
+            this._down = false;
+            this._over = false;
             this._visibleItemCount = UIConfig.defaultComboBoxVisibleItemCount;
             this._itemsUpdated = true;
             this._selectedIndex = -1;
@@ -17860,26 +17900,23 @@
                         this.dropdown.removeRelation(this._list, exports.RelationType.Width);
                         // 销毁
                         this.dropdown.displayObject.on("destroy", this.__popupWinClosed, this);
-                        this.addListen();
                         resolve();
                     });
                 }
                 else {
-                    this.addListen();
                     resolve();
                 }
             });
         }
         addListen() {
-            this.removeListen();
-            this.on("pointerover", this.__rollover, this);
-            this.on("pointerout", this.__rollout, this);
-            this.on("pointerdown", this.__mousedown, this);
+            this.on(InteractiveEvent.GAMEOBJECT_OVER, this.__rollover, this);
+            this.on(InteractiveEvent.GAMEOBJECT_OUT, this.__rollout, this);
+            this.on(InteractiveEvent.GAMEOBJECT_DOWN, this.__mousedown, this);
         }
         removeListen() {
-            this.off("pointerover", this.__rollover, this);
-            this.off("pointerout", this.__rollout, this);
-            this.off("pointerdown", this.__mousedown, this);
+            this.off(InteractiveEvent.GAMEOBJECT_OVER, this.__rollover, this);
+            this.off(InteractiveEvent.GAMEOBJECT_OUT, this.__rollout, this);
+            this.off(InteractiveEvent.GAMEOBJECT_DOWN, this.__mousedown, this);
         }
         setup_afterAdd(buffer, beginPos) {
             super.setup_afterAdd(buffer, beginPos);
@@ -17928,6 +17965,7 @@
             iv = buffer.readShort();
             if (iv >= 0)
                 this._selectionController = this.parent.getControllerAt(iv);
+            this.addListen();
         }
         showDropdown() {
             return new Promise((resolve, reject) => {
@@ -17961,13 +17999,6 @@
                         });
                     };
                     fun0(0);
-                    // for (var i: number = 0; i < cnt; i++) {
-                    //     const item: GObject = this._list.addItemFromPool();
-                    //     item.name = i < this._values.length ? this._values[i] : "";
-                    //     item.text = this._items[i];
-                    //     item.icon = (this._icons && i < this._icons.length) ? this._icons[i] : null;
-                    // }
-                    // this._list.resizeToFit(this._visibleItemCount);
                 }
                 else {
                     this._list.selectedIndex = -1;
@@ -18021,8 +18052,8 @@
             GRoot.inst.checkPopups(this.displayObject);
             if (this.dropdown) {
                 this.showDropdown().then(() => {
-                    this.scene.input.off("pointerup", this.__mouseup, this);
-                    this.scene.input.on("pointerup", this.__mouseup, this);
+                    this.scene.input.off(InteractiveEvent.POINTER_UP, this.__mouseup, this);
+                    this.scene.input.on(InteractiveEvent.POINTER_UP, this.__mouseup, this);
                 });
             }
         }
@@ -18032,7 +18063,7 @@
                     // fairgui 没有处理未点击到combox时列表是否缩起的处理
                     if (!this.dropdown.parent) {
                         this._down = false;
-                        this.scene.input.off("pointerup", this.__mouseup, this);
+                        this.scene.input.off(InteractiveEvent.POINTER_UP, this.__mouseup, this);
                         if (this._over) {
                             this.setState(GButton.OVER);
                         }
