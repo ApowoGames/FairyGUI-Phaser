@@ -120,10 +120,6 @@ export class GImage extends GObject {
         });
     }
 
-    protected handleSizeChanged(): void {
-        // this._displayObject.size(this._width, this._height, true);
-    }
-
     protected handleXYChanged(): void {
         super.handleXYChanged();
 

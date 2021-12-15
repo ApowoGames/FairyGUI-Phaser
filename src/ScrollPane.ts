@@ -1480,8 +1480,8 @@ export class ScrollPane {
             //     }
             // this.maskScrollRect = rect;
             if (this._mask) {
-                const x = this._owner.parent ? this._owner.parent.x : this._owner.x;
-                const y = this._owner.parent ? this._owner.parent.y : this._owner.y;
+                // const parent = this.owner.parent?this.owner.parent:this.owner
+                // const world = (<Phaser.GameObjects.Container>parent.displayObject).getWorldTransformMatrix();
                 this._mask.setPosition(x, y);
             }
             // this._maskContainer.clearMask();

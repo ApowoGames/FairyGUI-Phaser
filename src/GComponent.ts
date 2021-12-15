@@ -1505,12 +1505,19 @@ export class GComponent extends GObject {
                 }
                 const list = component._children;
                 list.forEach((obj) => {
-                    if (obj && obj instanceof GComponent && obj._mask) {
-                        obj.checkMask();
+                    if (obj && obj instanceof GComponent) {
+                        if (obj._mask) {
+                            obj.checkMask();
+                        } else if (obj._scrollPane) {
+                            obj._scrollPane.maskPosChange(xv, obj.y / 2 + yv);
+                        }
                     }
                 });
             }
         });
+        if (this._scrollPane) {
+            this._scrollPane.maskPosChange(xv, yv);
+        }
         if (this._mask) {
             this.checkMask();
         }

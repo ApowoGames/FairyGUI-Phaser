@@ -826,6 +826,29 @@ class ToolSet {
             }
         }
     }
+    // Opacity %   255 Step        2 digit HEX prefix
+    // 0%          0.00            00
+    // 5%          12.75           0C
+    // 10%         25.50           19
+    // 15%         38.25           26
+    // 20%         51.00           33
+    // 25%         63.75           3F
+    // 30%         76.50           4C
+    // 35%         89.25           59
+    // 40%         102.00          66
+    // 45%         114.75          72
+    // 50%         127.50          7F
+    // 55%         140.25          8C
+    // 60%         153.00          99
+    // 65%         165.75          A5
+    // 70%         178.50          B2
+    // 75%         191.25          BF
+    // 80%         204.00          CC
+    // 85%         216.75          D8
+    // 90%         229.50          E5
+    // 95%         242.25          F2
+    // 100%        255.00          FF
+    // 十六进制前两位是透明度，后6位表示rgb值
     /**
      * rgb值转换成十六进制
      * @param rgbStr
@@ -6140,9 +6163,6 @@ class GImage extends GObject {
             });
         });
     }
-    handleSizeChanged() {
-        // this._displayObject.size(this._width, this._height, true);
-    }
     handleXYChanged() {
         super.handleXYChanged();
         if (this._flip != FlipType.None) {
@@ -9868,8 +9888,8 @@ class ScrollPane {
             //     }
             // this.maskScrollRect = rect;
             if (this._mask) {
-                const x = this._owner.parent ? this._owner.parent.x : this._owner.x;
-                const y = this._owner.parent ? this._owner.parent.y : this._owner.y;
+                // const parent = this.owner.parent?this.owner.parent:this.owner
+                // const world = (<Phaser.GameObjects.Container>parent.displayObject).getWorldTransformMatrix();
                 this._mask.setPosition(x, y);
             }
             // this._maskContainer.clearMask();
@@ -12980,12 +13000,20 @@ class GComponent extends GObject {
                 }
                 const list = component._children;
                 list.forEach((obj) => {
-                    if (obj && obj instanceof GComponent && obj._mask) {
-                        obj.checkMask();
+                    if (obj && obj instanceof GComponent) {
+                        if (obj._mask) {
+                            obj.checkMask();
+                        }
+                        else if (obj._scrollPane) {
+                            obj._scrollPane.maskPosChange(xv, obj.y / 2 + yv);
+                        }
                     }
                 });
             }
         });
+        if (this._scrollPane) {
+            this._scrollPane.maskPosChange(xv, yv);
+        }
         if (this._mask) {
             this.checkMask();
         }
