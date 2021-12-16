@@ -16516,6 +16516,7 @@ class GObjectPool {
 class GLoader extends GObject {
     constructor(scene, type) {
         super(scene, type);
+        this._isLoading = false;
         this._url = "";
         this._fill = LoaderFillType.None;
         this._align = "left";
@@ -16678,7 +16679,9 @@ class GLoader extends GObject {
                 this.sourceWidth = this._contentItem.width;
                 this.sourceHeight = this._contentItem.height;
                 this._contentItem = this._contentItem.getHighResolution();
+                this._isLoading = true;
                 this._contentItem.load().then(() => {
+                    this._isLoading = false;
                     if (this._autoSize) {
                         this.setSize(this.sourceWidth, this.sourceHeight);
                     }
@@ -16909,6 +16912,9 @@ class GLoader extends GObject {
         }
     }
     clearContent() {
+        // 异步导致清除contentItem时还未加载成功
+        if (this._isLoading)
+            return;
         this.clearErrorState();
         if (!this._contentItem && this._content.texture) {
             this.freeExternal(this._content.texture);

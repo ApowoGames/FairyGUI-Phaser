@@ -25,6 +25,8 @@ export class GLoader extends GObject {
 
     private _updatingLayout: boolean;
 
+    private _isLoading: boolean = false
+
     private static _errorSignPool: GObjectPool = new GObjectPool();
 
     constructor(scene: Phaser.Scene, type) {
@@ -232,7 +234,9 @@ export class GLoader extends GObject {
                 this.sourceWidth = this._contentItem.width;
                 this.sourceHeight = this._contentItem.height;
                 this._contentItem = this._contentItem.getHighResolution();
+                this._isLoading = true;
                 this._contentItem.load().then(() => {
+                    this._isLoading = false;
                     if (this._autoSize) {
                         this.setSize(this.sourceWidth, this.sourceHeight);
                     }
@@ -482,6 +486,8 @@ export class GLoader extends GObject {
     }
 
     private clearContent(): void {
+        // 异步导致清除contentItem时还未加载成功
+        if (this._isLoading) return;
         this.clearErrorState();
 
         if (!this._contentItem && this._content.texture) {

@@ -15,6 +15,7 @@ export declare class GLoader extends GObject {
     private _errorSign?;
     private _content2?;
     private _updatingLayout;
+    private _isLoading;
     private static _errorSignPool;
     constructor(scene: Phaser.Scene, type: any);
     createDisplayObject(): void;
