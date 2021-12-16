@@ -297,8 +297,7 @@ export class Window extends GComponent {
 
     // private __dragStart(evt: Laya.Event): void {
     private __dragStart(evt: any): void {
-        // TODO
-        throw new Error("TODO");
+
         GObject.cast(evt.currentTarget).stopDrag();
 
         this.startDrag();

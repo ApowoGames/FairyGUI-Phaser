@@ -3304,6 +3304,8 @@
             this._internalVisible = true;
             this._xOffset = 0;
             this._yOffset = 0;
+            this._worldTx = 0;
+            this._worldTy = 0;
             this.minWidth = 0;
             this.minHeight = 0;
             this.maxWidth = 0;
@@ -3418,6 +3420,14 @@
         }
         set scene(value) {
             this._scene = value;
+        }
+        get worldMatrix() {
+            if (!this._worldMatrix) {
+                this._worldMatrix = this.displayObject.getWorldTransformMatrix();
+                this._worldTx = this._worldMatrix.tx - this._x;
+                this._worldTy = this._worldMatrix.ty - this._y;
+            }
+            return this._worldMatrix;
         }
         get timeEvent() {
             return this._timeEvent;
@@ -3785,13 +3795,13 @@
         }
         set tooltips(value) {
             if (this._tooltips) {
-                this._displayObject.off(InteractiveEvent.POINTER_OVER, this.__rollOver);
-                this._displayObject.off(InteractiveEvent.POINTER_OUT, this.__rollOut);
+                this._displayObject.off(InteractiveEvent.POINTER_OVER, this.__rollOver, this);
+                this._displayObject.off(InteractiveEvent.POINTER_OUT, this.__rollOut, this);
             }
             this._tooltips = value;
             if (this._tooltips) {
-                this._displayObject.on(InteractiveEvent.POINTER_OVER, this.__rollOver);
-                this._displayObject.on(InteractiveEvent.POINTER_OUT, this.__rollOut);
+                this._displayObject.on(InteractiveEvent.POINTER_OVER, this.__rollOver, this);
+                this._displayObject.on(InteractiveEvent.POINTER_OUT, this.__rollOut, this);
             }
         }
         __rollOver(evt) {
@@ -4432,9 +4442,9 @@
         //-------------------------------------------------------------------
         initDrag() {
             if (this._draggable)
-                this._displayObject.on(InteractiveEvent.POINTER_DOWN, this.__begin);
+                this._displayObject.on(InteractiveEvent.POINTER_DOWN, this.__begin, this);
             else
-                this._displayObject.off(InteractiveEvent.POINTER_DOWN, this.__begin);
+                this._displayObject.off(InteractiveEvent.POINTER_DOWN, this.__begin, this);
         }
         dragBegin(touchID) {
             if (GObject.draggingObject) {
@@ -4443,13 +4453,13 @@
                 GObject.draggingObject = null;
                 Events.dispatch(Events.DRAG_END, tmp._displayObject, { touchId: touchID });
             }
-            sGlobalDragStart.x = this.scene.input.activePointer.x; // Laya.stage.mouseX;
-            sGlobalDragStart.y = this.scene.input.activePointer.y; // Laya.stage.mouseY;
+            sGlobalDragStart.x = this.scene.input.activePointer.worldX;
+            sGlobalDragStart.y = this.scene.input.activePointer.worldY;
             this.localToGlobalRect(0, 0, this._width, this._height, sGlobalRect);
             this._dragTesting = true;
             GObject.draggingObject = this;
-            this._displayObject.on(InteractiveEvent.POINTER_MOVE, this.__moving);
-            this._displayObject.on(InteractiveEvent.POINTER_UP, this.__end);
+            this._displayObject.on(InteractiveEvent.POINTER_MOVE, this.__moving, this);
+            this._displayObject.on(InteractiveEvent.POINTER_UP, this.__end, this);
         }
         dragEnd() {
             if (GObject.draggingObject == this) {
@@ -4460,19 +4470,19 @@
             sDraggingQuery = false;
         }
         reset() {
-            this._displayObject.off(InteractiveEvent.POINTER_MOVE, this.__moving);
-            this._displayObject.off(InteractiveEvent.POINTER_UP, this.__end);
+            this._displayObject.off(InteractiveEvent.POINTER_MOVE, this.__moving, this);
+            this._displayObject.off(InteractiveEvent.POINTER_UP, this.__end, this);
         }
         __begin() {
             if (!this._dragStartPos)
                 this._dragStartPos = new Phaser.Geom.Point();
-            this._dragStartPos.x = this.scene.input.activePointer.x;
-            this._dragStartPos.y = this.scene.input.activePointer.y;
+            this._dragStartPos.x = this.scene.input.activePointer.worldX;
+            this._dragStartPos.y = this.scene.input.activePointer.worldY;
             this._dragTesting = true;
-            this._displayObject.on(InteractiveEvent.POINTER_MOVE, this.__moving);
-            this._displayObject.on(InteractiveEvent.POINTER_UP, this.__end);
+            this._displayObject.on(InteractiveEvent.POINTER_MOVE, this.__moving, this);
+            this._displayObject.on(InteractiveEvent.POINTER_UP, this.__end, this);
         }
-        __moving(evt) {
+        __moving(pointer) {
             if (GObject.draggingObject != this && this._draggable && this._dragTesting) {
                 var sensitivity = UIConfig.touchDragSensitivity;
                 if (this._dragStartPos
@@ -4481,35 +4491,39 @@
                     return;
                 this._dragTesting = false;
                 sDraggingQuery = true;
-                Events.dispatch(Events.DRAG_START, this._displayObject, evt);
+                Events.dispatch(Events.DRAG_START, this._displayObject);
                 if (sDraggingQuery)
                     this.dragBegin();
             }
             if (GObject.draggingObject == this) {
-                var xx = this.scene.input.activePointer.x - sGlobalDragStart.x + sGlobalRect.x;
-                var yy = this.scene.input.activePointer.y - sGlobalDragStart.y + sGlobalRect.y;
+                // 若存在嵌套层级，实际位置会有偏差，所以引入世界坐标，做补正
+                this.worldMatrix;
+                const worldTx = this._worldTx;
+                const worldTy = this._worldTy;
+                var xx = this.scene.input.activePointer.x - sGlobalDragStart.x - worldTx + sGlobalRect.x;
+                var yy = this.scene.input.activePointer.y - sGlobalDragStart.y - worldTy + sGlobalRect.y;
                 if (this._dragBounds) {
-                    var rect;
-                    if (xx < rect.x)
+                    var rect = this._dragBounds;
+                    if (xx < rect.x - worldTx)
                         xx = rect.x;
-                    else if (xx + sGlobalRect.width > rect.right) {
-                        xx = rect.right - sGlobalRect.width;
-                        if (xx < rect.x)
-                            xx = rect.x;
+                    else if (xx + sGlobalRect.width + this._width > rect.right - worldTx) {
+                        xx = rect.right - sGlobalRect.width - this._width - worldTx;
+                        if (xx < rect.x - worldTx)
+                            xx = rect.x - worldTx;
                     }
-                    if (yy < rect.y)
-                        yy = rect.y;
-                    else if (yy + sGlobalRect.height > rect.bottom) {
-                        yy = rect.bottom - sGlobalRect.height;
-                        if (yy < rect.y)
-                            yy = rect.y;
+                    if (yy < rect.y - worldTy)
+                        yy = rect.y - worldTy;
+                    else if (yy + sGlobalRect.height + this._height > rect.bottom - worldTy) {
+                        yy = rect.bottom - sGlobalRect.height - this._height - worldTy;
+                        if (yy < rect.y - worldTy)
+                            yy = rect.y - worldTy;
                     }
                 }
                 sUpdateInDragging = true;
                 var pt = this.parent.globalToLocal(xx, yy, sHelperPoint);
                 this.setXY(Math.round(pt.x), Math.round(pt.y));
                 sUpdateInDragging = false;
-                Events.dispatch(Events.DRAG_MOVE, this._displayObject, evt);
+                Events.dispatch(Events.DRAG_MOVE, this._displayObject);
             }
         }
         __end(evt) {
@@ -22021,8 +22035,8 @@
         }
         // private __dragStart(evt: Laya.Event): void {
         __dragStart(evt) {
-            // TODO
-            throw new Error("TODO");
+            GObject.cast(evt.currentTarget).stopDrag();
+            this.startDrag();
         }
     }
 
@@ -22400,16 +22414,15 @@
 
     class DragDropManager {
         constructor() {
-            throw new Error("TODO");
-            // this._agent = new GLoader();
-            // this._agent.draggable = true;
-            // this._agent.touchable = false;////important
-            // this._agent.setSize(100, 100);
-            // this._agent.setPivot(0.5, 0.5, true);
-            // this._agent.align = "center";
-            // this._agent.verticalAlign = "middle";
-            // this._agent.sortingOrder = 1000000;
-            // this._agent.on(Events.DRAG_END, this, this.__dragEnd);
+            this._agent = new GLoader(GRoot.inst.scene, exports.ObjectType.Loader);
+            this._agent.draggable = true;
+            this._agent.touchable = false; ////important
+            this._agent.setSize(100, 100);
+            this._agent.setPivot(0.5, 0.5, true);
+            this._agent.align = "center";
+            this._agent.verticalAlign = "middle";
+            this._agent.sortingOrder = 1000000;
+            this._agent.displayObject.on("dragend", this.__dragEnd, this);
         }
         static get inst() {
             if (!DragDropManager._inst)
@@ -22425,38 +22438,35 @@
         startDrag(source, icon, sourceData, touchID) {
             if (this._agent.parent)
                 return;
-            throw new Error("TODO");
-            // this._sourceData = sourceData;
-            // this._agent.url = icon;
-            // GRoot.inst.addChild(this._agent);
-            // var pt: Laya.Point = GRoot.inst.globalToLocal(Laya.stage.mouseX, Laya.stage.mouseY);
-            // this._agent.setXY(pt.x, pt.y);
-            // this._agent.startDrag(touchID);
+            this._sourceData = sourceData;
+            this._agent.url = icon;
+            GRoot.inst.addChild(this._agent);
+            var pt = new Phaser.Geom.Point(GRoot.inst.scene.input.activePointer.worldX, GRoot.inst.scene.input.activePointer.worldY);
+            this._agent.setXY(pt.x, pt.y);
+            this._agent.startDrag(touchID);
         }
         cancel() {
-            throw new Error("TODO");
-            // if (this._agent.parent) {
-            //     this._agent.stopDrag();
-            //     GRoot.inst.removeChild(this._agent);
-            //     this._sourceData = null;
-            // }
+            if (this._agent.parent) {
+                this._agent.stopDrag();
+                GRoot.inst.removeChild(this._agent);
+                this._sourceData = null;
+            }
         }
         __dragEnd(evt) {
-            throw new Error("TODO");
-            // if (!this._agent.parent) //cancelled
-            //     return;
-            // GRoot.inst.removeChild(this._agent);
-            // var sourceData: any = this._sourceData;
-            // this._sourceData = null;
-            // var obj: GObject = GObject.cast(evt.target);
-            // while (obj) {
-            //     if (obj.displayObject.hasListener(Events.DROP)) {
-            //         obj.requestFocus();
-            //         obj.displayObject.event(Events.DROP, [sourceData, Events.createEvent(Events.DROP, obj.displayObject, evt)]);
-            //         return;
-            //     }
-            //     obj = obj.parent;
-            // }
+            if (!this._agent.parent) //cancelled
+                return;
+            GRoot.inst.removeChild(this._agent);
+            var sourceData = this._sourceData;
+            this._sourceData = null;
+            var obj = GObject.cast(evt.target);
+            while (obj) {
+                if (obj.displayObject.input.dropZone) {
+                    obj.requestFocus();
+                    obj.displayObject.emit(Events.DROP, [sourceData, Events.createEvent(Events.DROP, obj.displayObject, evt)]);
+                    return;
+                }
+                obj = obj.parent;
+            }
         }
     }
 

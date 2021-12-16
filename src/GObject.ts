@@ -85,6 +85,9 @@ export class GObject {
     protected _xOffset: number = 0;
     protected _yOffset: number = 0;
     protected _scene: Phaser.Scene;
+    protected _worldMatrix: Phaser.GameObjects.Components.TransformMatrix;
+    protected _worldTx: number = 0;
+    protected _worldTy: number = 0;
 
     public minWidth: number = 0;
     public minHeight: number = 0;
@@ -219,6 +222,15 @@ export class GObject {
     }
     public set scene(value: Phaser.Scene) {
         this._scene = value;
+    }
+
+    public get worldMatrix(): Phaser.GameObjects.Components.TransformMatrix {
+        if (!this._worldMatrix) {
+            this._worldMatrix = (<Phaser.GameObjects.Container>this.displayObject).getWorldTransformMatrix();
+            this._worldTx = this._worldMatrix.tx - this._x;
+            this._worldTy = this._worldMatrix.ty - this._y;
+        }
+        return this._worldMatrix;
     }
 
     public get timeEvent(): Phaser.Time.TimerEvent {
@@ -660,14 +672,14 @@ export class GObject {
 
     public set tooltips(value: string) {
         if (this._tooltips) {
-            this._displayObject.off(InteractiveEvent.POINTER_OVER, this.__rollOver);
-            this._displayObject.off(InteractiveEvent.POINTER_OUT, this.__rollOut);
+            this._displayObject.off(InteractiveEvent.POINTER_OVER, this.__rollOver, this);
+            this._displayObject.off(InteractiveEvent.POINTER_OUT, this.__rollOut, this);
         }
 
         this._tooltips = value;
         if (this._tooltips) {
-            this._displayObject.on(InteractiveEvent.POINTER_OVER, this.__rollOver);
-            this._displayObject.on(InteractiveEvent.POINTER_OUT, this.__rollOut);
+            this._displayObject.on(InteractiveEvent.POINTER_OVER, this.__rollOver, this);
+            this._displayObject.on(InteractiveEvent.POINTER_OUT, this.__rollOut, this);
         }
     }
 
@@ -1424,6 +1436,7 @@ export class GObject {
         }
         this.setSize(this.initWidth, this.initHeight, true);
         this.setTouchable(this._touchable);
+
     }
 
     //drag support
@@ -1431,9 +1444,9 @@ export class GObject {
 
     private initDrag(): void {
         if (this._draggable)
-            this._displayObject.on(InteractiveEvent.POINTER_DOWN, this.__begin);
+            this._displayObject.on(InteractiveEvent.POINTER_DOWN, this.__begin, this);
         else
-            this._displayObject.off(InteractiveEvent.POINTER_DOWN, this.__begin);
+            this._displayObject.off(InteractiveEvent.POINTER_DOWN, this.__begin, this);
     }
 
     private dragBegin(touchID?: number): void {
@@ -1445,15 +1458,15 @@ export class GObject {
             Events.dispatch(Events.DRAG_END, tmp._displayObject, { touchId: touchID });
         }
 
-        sGlobalDragStart.x = this.scene.input.activePointer.x;// Laya.stage.mouseX;
-        sGlobalDragStart.y = this.scene.input.activePointer.y;// Laya.stage.mouseY;
+        sGlobalDragStart.x = this.scene.input.activePointer.worldX;
+        sGlobalDragStart.y = this.scene.input.activePointer.worldY;
 
         this.localToGlobalRect(0, 0, this._width, this._height, sGlobalRect);
         this._dragTesting = true;
         GObject.draggingObject = this;
 
-        this._displayObject.on(InteractiveEvent.POINTER_MOVE, this.__moving);
-        this._displayObject.on(InteractiveEvent.POINTER_UP, this.__end);
+        this._displayObject.on(InteractiveEvent.POINTER_MOVE, this.__moving, this);
+        this._displayObject.on(InteractiveEvent.POINTER_UP, this.__end, this);
     }
 
     private dragEnd(): void {
@@ -1466,22 +1479,22 @@ export class GObject {
     }
 
     private reset(): void {
-        this._displayObject.off(InteractiveEvent.POINTER_MOVE, this.__moving);
-        this._displayObject.off(InteractiveEvent.POINTER_UP, this.__end);
+        this._displayObject.off(InteractiveEvent.POINTER_MOVE, this.__moving, this);
+        this._displayObject.off(InteractiveEvent.POINTER_UP, this.__end, this);
     }
 
     private __begin(): void {
         if (!this._dragStartPos)
             this._dragStartPos = new Phaser.Geom.Point();
-        this._dragStartPos.x = this.scene.input.activePointer.x;
-        this._dragStartPos.y = this.scene.input.activePointer.y;
+        this._dragStartPos.x = this.scene.input.activePointer.worldX;
+        this._dragStartPos.y = this.scene.input.activePointer.worldY;
         this._dragTesting = true;
 
-        this._displayObject.on(InteractiveEvent.POINTER_MOVE, this.__moving);
-        this._displayObject.on(InteractiveEvent.POINTER_UP, this.__end);
+        this._displayObject.on(InteractiveEvent.POINTER_MOVE, this.__moving, this);
+        this._displayObject.on(InteractiveEvent.POINTER_UP, this.__end, this);
     }
 
-    private __moving(evt: InteractiveEvent): void {
+    private __moving(pointer: Phaser.Input.Pointer): void {
         if (GObject.draggingObject != this && this._draggable && this._dragTesting) {
             var sensitivity: number = UIConfig.touchDragSensitivity;
             if (this._dragStartPos
@@ -1492,31 +1505,35 @@ export class GObject {
             this._dragTesting = false;
 
             sDraggingQuery = true;
-            Events.dispatch(Events.DRAG_START, this._displayObject, evt);
+            Events.dispatch(Events.DRAG_START, this._displayObject);
             if (sDraggingQuery)
                 this.dragBegin();
         }
 
         if (GObject.draggingObject == this) {
-            var xx: number = this.scene.input.activePointer.x - sGlobalDragStart.x + sGlobalRect.x;
-            var yy: number = this.scene.input.activePointer.y - sGlobalDragStart.y + sGlobalRect.y;
+            // 若存在嵌套层级，实际位置会有偏差，所以引入世界坐标，做补正
+            this.worldMatrix;
+            const worldTx = this._worldTx;
+            const worldTy = this._worldTy;
+            var xx: number = this.scene.input.activePointer.x - sGlobalDragStart.x - worldTx + sGlobalRect.x;
+            var yy: number = this.scene.input.activePointer.y - sGlobalDragStart.y - worldTy + sGlobalRect.y;
 
             if (this._dragBounds) {
-                var rect: Phaser.Geom.Rectangle;
-                if (xx < rect.x)
+                var rect: Phaser.Geom.Rectangle = this._dragBounds;
+                if (xx < rect.x - worldTx)
                     xx = rect.x;
-                else if (xx + sGlobalRect.width > rect.right) {
-                    xx = rect.right - sGlobalRect.width;
-                    if (xx < rect.x)
-                        xx = rect.x;
+                else if (xx + sGlobalRect.width + this._width > rect.right - worldTx) {
+                    xx = rect.right - sGlobalRect.width - this._width - worldTx;
+                    if (xx < rect.x - worldTx)
+                        xx = rect.x - worldTx;
                 }
 
-                if (yy < rect.y)
-                    yy = rect.y;
-                else if (yy + sGlobalRect.height > rect.bottom) {
-                    yy = rect.bottom - sGlobalRect.height;
-                    if (yy < rect.y)
-                        yy = rect.y;
+                if (yy < rect.y - worldTy)
+                    yy = rect.y - worldTy;
+                else if (yy + sGlobalRect.height + this._height > rect.bottom - worldTy) {
+                    yy = rect.bottom - sGlobalRect.height - this._height - worldTy;
+                    if (yy < rect.y - worldTy)
+                        yy = rect.y - worldTy;
                 }
             }
 
@@ -1525,7 +1542,7 @@ export class GObject {
             this.setXY(Math.round(pt.x), Math.round(pt.y));
             sUpdateInDragging = false;
 
-            Events.dispatch(Events.DRAG_MOVE, this._displayObject, evt);
+            Events.dispatch(Events.DRAG_MOVE, this._displayObject);
         }
     }
 

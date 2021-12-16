@@ -72,6 +72,9 @@ export declare class GObject {
     protected _xOffset: number;
     protected _yOffset: number;
     protected _scene: Phaser.Scene;
+    protected _worldMatrix: Phaser.GameObjects.Components.TransformMatrix;
+    protected _worldTx: number;
+    protected _worldTy: number;
     minWidth: number;
     minHeight: number;
     maxWidth: number;
@@ -109,6 +112,7 @@ export declare class GObject {
     set y(value: number);
     get scene(): Phaser.Scene;
     set scene(value: Phaser.Scene);
+    get worldMatrix(): Phaser.GameObjects.Components.TransformMatrix;
     get timeEvent(): Phaser.Time.TimerEvent;
     set timeEvent(value: Phaser.Time.TimerEvent);
     setXY(xv: number, yv: number, force?: boolean): void;
