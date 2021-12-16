@@ -13009,7 +13009,7 @@
                                 obj.checkMask();
                             }
                             else if (obj._scrollPane) {
-                                obj._scrollPane.maskPosChange(xv, obj.y / 2 + yv);
+                                obj._scrollPane.maskPosChange(xv, yv);
                             }
                         }
                     });
