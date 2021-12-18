@@ -1,3 +1,5 @@
+import { Events } from 'phaser3';
+import { GRoot } from '..';
 import { PackageItem } from '../PackageItem';
 import { Utils } from '../utils/Utils';
 import { ToolSet } from './../utils/ToolSet';
@@ -170,7 +172,10 @@ export class Image extends Phaser.GameObjects.Container {
                                 this.markChanged(1);
                                 resolve(this);
                             }, this);
-                            this.scene.textures.addBase64(key, (<any>img).src);
+                            if (!GRoot.inst.textureManager.get(key)) {
+                                GRoot.inst.textureManager.add(key);
+                                this.scene.textures.addBase64(key, (<any>img).src);
+                            }
                             this._renderTexture.destroy();
                         });
                     }

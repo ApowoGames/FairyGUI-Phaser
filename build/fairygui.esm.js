@@ -5714,7 +5714,10 @@ class Image extends Phaser.GameObjects.Container {
                                 this.markChanged(1);
                                 resolve(this);
                             }, this);
-                            this.scene.textures.addBase64(key, img.src);
+                            if (!GRoot.inst.textureManager.get(key)) {
+                                GRoot.inst.textureManager.add(key);
+                                this.scene.textures.addBase64(key, img.src);
+                            }
                             this._renderTexture.destroy();
                         });
                     }
@@ -13046,6 +13049,24 @@ class GComponent extends GObject {
     }
 }
 
+/**
+ * 用于管理faiygui贴图加载的管理器
+ * 持续更新
+ */
+class TextureManager {
+    constructor() {
+        this._addTextureMap = new Map();
+    }
+    add(key) {
+        if (!this._addTextureMap.get(key)) {
+            this._addTextureMap.set(key, true);
+        }
+    }
+    get(key) {
+        return this._addTextureMap.get(key);
+    }
+}
+
 class GRootMouseStatus {
     constructor() {
         this.touchDown = false;
@@ -13070,6 +13091,7 @@ class GRoot extends GComponent {
         this._popupStack = [];
         this._justClosedPopups = [];
         this._inputManager = new InputManager();
+        this._textureManager = new TextureManager();
     }
     get emitter() {
         return this._uiStage;
@@ -13081,6 +13103,9 @@ class GRoot extends GComponent {
     }
     get input() {
         return this._inputManager;
+    }
+    get textureManager() {
+        return this._textureManager;
     }
     /**
     * the current mouse/pointer data

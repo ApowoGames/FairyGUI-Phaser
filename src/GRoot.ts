@@ -10,6 +10,7 @@ import { UIConfig } from './UIConfig';
 import { UIPackage } from './UIPackage';
 import { InteractiveEvent, PopupDirection, RelationType, Window } from '.';
 import { Utils } from './utils/Utils';
+import { TextureManager } from './texture/TextureManager';
 export class GRootMouseStatus {
     public touchDown: boolean = false;
     public mouseX: number = 0;
@@ -41,11 +42,13 @@ export class GRoot extends GComponent {
     private _defaultTooltipWin: GObject;
     private _checkPopups: boolean;
     private _inputManager: InputManager;
+    private _textureManager: TextureManager;
     constructor() {
         super();
         this._popupStack = [];
         this._justClosedPopups = [];
         this._inputManager = new InputManager();
+        this._textureManager = new TextureManager();
     }
 
     public get emitter(): Phaser.Events.EventEmitter {
@@ -60,6 +63,10 @@ export class GRoot extends GComponent {
 
     public get input(): InputManager {
         return this._inputManager;
+    }
+
+    public get textureManager(): TextureManager {
+        return this._textureManager;
     }
 
     /**
