@@ -7,6 +7,7 @@ export declare class ByteBuffer {
     protected _pos: number;
     protected _length: number;
     constructor(buffer: ArrayBuffer, offset?: number, length?: number);
+    canRead(): boolean;
     get data(): Uint8Array;
     get position(): number;
     set position(value: number);

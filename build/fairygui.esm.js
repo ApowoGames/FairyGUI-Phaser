@@ -7609,6 +7609,9 @@ class ByteBuffer {
         this._pos = 0;
         this._length = length;
     }
+    canRead() {
+        return this._pos < this._length;
+    }
     get data() {
         return this._bytes;
     }
@@ -9219,8 +9222,8 @@ class ScrollPane {
             ScrollPane.draggingPane = null;
         _gestureFlag = 0;
         this._dragged = false;
-        this._maskContainer.disableInteractive();
-        this._maskContainer.removeInteractive();
+        // this._maskContainer.disableInteractive();
+        // this._maskContainer.removeInteractive();
     }
     lockHeader(size) {
         if (this._headerLockedSize == size)
@@ -9709,6 +9712,7 @@ class ScrollPane {
             }
             else
                 this._container.y = newPosY;
+            console.log("containerY:====>", this._container.y);
         }
         if (sh) {
             if (newPosX > 0) {
@@ -9729,6 +9733,7 @@ class ScrollPane {
             }
             else
                 this._container.x = newPosX;
+            console.log("containerX:====>", this._container.x);
         }
         //更新速度
         var frameRate = Utils.FPSTarget;
@@ -9780,8 +9785,8 @@ class ScrollPane {
         ScrollPane.draggingPane = this;
         this._isHoldAreaDone = true;
         this._dragged = true;
-        this._maskContainer.disableInteractive();
-        this._maskContainer.removeInteractive();
+        // this._maskContainer.disableInteractive();
+        // this._maskContainer.removeInteractive();
         this.updateScrollBarPos();
         this.updateScrollBarVisible();
         if (this._pageMode)
@@ -12754,7 +12759,7 @@ class GComponent extends GObject {
                                     child = Decls.UIObjectFactory.newObject(pi);
                                     child.constructFromResource().then(() => {
                                         child._underConstruct = true;
-                                        if (child.type == ObjectType.Tree) {
+                                        if (child.type == ObjectType.Tree || child.type === ObjectType.List) {
                                             // @ts-ignore
                                             child.setup_beforeAdd(buffer, curPos).then(() => {
                                                 hasAsync = false;
@@ -12780,7 +12785,7 @@ class GComponent extends GObject {
                                 }
                             }
                             child._underConstruct = true;
-                            if (child.type == ObjectType.Tree) {
+                            if (child.type === ObjectType.Tree || child.type === ObjectType.List) {
                                 delayNum = i;
                                 hasAsync = true;
                                 // @ts-ignore
@@ -12798,10 +12803,6 @@ class GComponent extends GObject {
                                 this._children.push(child);
                                 buffer.position = curPos + dataLen;
                             }
-                            // child.setup_beforeAdd(buffer, curPos);
-                            // child.parent = this;
-                            // this._children.push(child);
-                            // buffer.position = curPos + dataLen;
                         }
                         if (hasAsync) {
                             return;
@@ -20907,52 +20908,62 @@ class GList extends GComponent {
         this.setBounds(0, 0, cw, ch);
     }
     setup_beforeAdd(buffer, beginPos) {
-        super.setup_beforeAdd(buffer, beginPos);
-        buffer.seek(beginPos, 5);
-        var i1;
-        this._layout = buffer.readByte();
-        this._selectionMode = buffer.readByte();
-        i1 = buffer.readByte();
-        this._align = i1 == 0 ? "left" : (i1 == 1 ? "center" : "right");
-        i1 = buffer.readByte();
-        this._verticalAlign = i1 == 0 ? "top" : (i1 == 1 ? "middle" : "bottom");
-        this._lineGap = buffer.readShort();
-        this._columnGap = buffer.readShort();
-        this._lineCount = buffer.readShort();
-        this._columnCount = buffer.readShort();
-        this._autoResizeItem = buffer.readBool();
-        this._childrenRenderOrder = buffer.readByte();
-        this._apexIndex = buffer.readShort();
-        if (buffer.readBool()) {
-            this._margin.top = buffer.readInt();
-            this._margin.bottom = buffer.readInt();
-            this._margin.left = buffer.readInt();
-            this._margin.right = buffer.readInt();
-        }
-        const fun0 = () => {
-            if (buffer.readBool()) //clipSoftness
-                buffer.skip(8);
-            if (buffer.version >= 2) {
-                this.scrollItemToViewOnClick = buffer.readBool();
-                this.foldInvisibleItems = buffer.readBool();
+        return new Promise((resolve, reject) => {
+            super.setup_beforeAdd(buffer, beginPos);
+            buffer.seek(beginPos, 5);
+            var i1;
+            this._layout = buffer.readByte();
+            this._selectionMode = buffer.readByte();
+            i1 = buffer.readByte();
+            this._align = i1 == 0 ? "left" : (i1 == 1 ? "center" : "right");
+            i1 = buffer.readByte();
+            this._verticalAlign = i1 == 0 ? "top" : (i1 == 1 ? "middle" : "bottom");
+            this._lineGap = buffer.readShort();
+            this._columnGap = buffer.readShort();
+            this._lineCount = buffer.readShort();
+            this._columnCount = buffer.readShort();
+            this._autoResizeItem = buffer.readBool();
+            this._childrenRenderOrder = buffer.readByte();
+            this._apexIndex = buffer.readShort();
+            if (buffer.readBool()) {
+                this._margin.top = buffer.readInt();
+                this._margin.bottom = buffer.readInt();
+                this._margin.left = buffer.readInt();
+                this._margin.right = buffer.readInt();
             }
-            buffer.seek(beginPos, 8);
-            this._defaultItem = buffer.readS();
-            this.readItems(buffer);
-        };
-        var overflow = buffer.readByte();
-        if (overflow == OverflowType.Scroll) {
-            var savedPos = buffer.position;
-            buffer.seek(beginPos, 7);
-            this.setupScroll(buffer).then(() => {
-                buffer.position = savedPos;
-                fun0();
-            });
-        }
-        else {
-            this.setupOverflow(overflow);
-            fun0();
-        }
+            const fun0 = () => {
+                return new Promise((resolve, reject) => {
+                    if (buffer.readBool()) //clipSoftness
+                        buffer.skip(8);
+                    if (buffer.version >= 2) {
+                        this.scrollItemToViewOnClick = buffer.readBool();
+                        this.foldInvisibleItems = buffer.readBool();
+                    }
+                    buffer.seek(beginPos, 8);
+                    this._defaultItem = buffer.readS();
+                    this.readItems(buffer).then(() => {
+                        resolve();
+                    });
+                });
+            };
+            var overflow = buffer.readByte();
+            if (overflow == OverflowType.Scroll) {
+                var savedPos = buffer.position;
+                buffer.seek(beginPos, 7);
+                this.setupScroll(buffer).then(() => {
+                    buffer.position = savedPos;
+                    fun0().then(() => {
+                        resolve();
+                    });
+                });
+            }
+            else {
+                this.setupOverflow(overflow);
+                fun0().then(() => {
+                    resolve();
+                });
+            }
+        });
     }
     readItems(buffer) {
         return new Promise((resolve, reject) => {
@@ -20979,33 +20990,15 @@ class GList extends GComponent {
                 this.getFromPool(str).then((obj) => {
                     if (obj) {
                         this.addChild(obj);
-                        this.setupItem(buffer, obj);
+                        if (buffer.canRead()) {
+                            this.setupItem(buffer, obj);
+                        }
                     }
                     buffer.position = nextPos;
                     fun0(++i);
                 });
             };
             fun0(0);
-            // for (i = 0; i < cnt; i++) {
-            //     nextPos = buffer.readShort();
-            //     nextPos += buffer.position;
-            //     str = buffer.readS();
-            //     if (str == null) {
-            //         str = this._defaultItem;
-            //         if (!str) {
-            //             buffer.position = nextPos;
-            //             continue;
-            //         }
-            //     }
-            //     this.getFromPool(str).then((obj) => {
-            //         if (obj) {
-            //             this.addChild(obj);
-            //             this.setupItem(buffer, obj);
-            //         }
-            //         buffer.position = nextPos;
-            //     });
-            // }
-            // resolve();
         });
     }
     setupItem(buffer, obj) {

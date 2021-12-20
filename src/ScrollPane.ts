@@ -1263,6 +1263,7 @@ export class ScrollPane {
             }
             else
                 this._container.y = newPosY;
+            // console.log("containerY:====>", this._container.y);
         }
 
         if (sh) {
@@ -1284,6 +1285,7 @@ export class ScrollPane {
             }
             else
                 this._container.x = newPosX;
+            // console.log("containerX:====>", this._container.x);
         }
 
 

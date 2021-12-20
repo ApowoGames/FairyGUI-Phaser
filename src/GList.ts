@@ -2443,63 +2443,75 @@ export class GList extends GComponent {
         this.setBounds(0, 0, cw, ch);
     }
 
-    public setup_beforeAdd(buffer: ByteBuffer, beginPos: number): void {
-        super.setup_beforeAdd(buffer, beginPos);
+    public setup_beforeAdd(buffer: ByteBuffer, beginPos: number): Promise<void> {
+        return new Promise((resolve, reject) => {
+            super.setup_beforeAdd(buffer, beginPos);
 
-        buffer.seek(beginPos, 5);
+            buffer.seek(beginPos, 5);
 
-        var i1: number;
+            var i1: number;
 
-        this._layout = buffer.readByte();
-        this._selectionMode = buffer.readByte();
-        i1 = buffer.readByte();
-        this._align = i1 == 0 ? "left" : (i1 == 1 ? "center" : "right");
-        i1 = buffer.readByte();
-        this._verticalAlign = i1 == 0 ? "top" : (i1 == 1 ? "middle" : "bottom");
-        this._lineGap = buffer.readShort();
-        this._columnGap = buffer.readShort();
-        this._lineCount = buffer.readShort();
-        this._columnCount = buffer.readShort();
-        this._autoResizeItem = buffer.readBool();
-        this._childrenRenderOrder = buffer.readByte();
-        this._apexIndex = buffer.readShort();
+            this._layout = buffer.readByte();
+            this._selectionMode = buffer.readByte();
+            i1 = buffer.readByte();
+            this._align = i1 == 0 ? "left" : (i1 == 1 ? "center" : "right");
+            i1 = buffer.readByte();
+            this._verticalAlign = i1 == 0 ? "top" : (i1 == 1 ? "middle" : "bottom");
+            this._lineGap = buffer.readShort();
+            this._columnGap = buffer.readShort();
+            this._lineCount = buffer.readShort();
+            this._columnCount = buffer.readShort();
+            this._autoResizeItem = buffer.readBool();
+            this._childrenRenderOrder = buffer.readByte();
+            this._apexIndex = buffer.readShort();
 
-        if (buffer.readBool()) {
-            this._margin.top = buffer.readInt();
-            this._margin.bottom = buffer.readInt();
-            this._margin.left = buffer.readInt();
-            this._margin.right = buffer.readInt();
-        }
-
-        const fun0 = () => {
-            if (buffer.readBool()) //clipSoftness
-                buffer.skip(8);
-
-            if (buffer.version >= 2) {
-                this.scrollItemToViewOnClick = buffer.readBool();
-                this.foldInvisibleItems = buffer.readBool();
+            if (buffer.readBool()) {
+                this._margin.top = buffer.readInt();
+                this._margin.bottom = buffer.readInt();
+                this._margin.left = buffer.readInt();
+                this._margin.right = buffer.readInt();
             }
 
-            buffer.seek(beginPos, 8);
+            const fun0 = (): Promise<void> => {
+                return new Promise((resolve, reject) => {
+                    if (buffer.readBool()) //clipSoftness
+                        buffer.skip(8);
 
-            this._defaultItem = buffer.readS();
-            this.readItems(buffer);
-        }
+                    if (buffer.version >= 2) {
+                        this.scrollItemToViewOnClick = buffer.readBool();
+                        this.foldInvisibleItems = buffer.readBool();
+                    }
+
+                    buffer.seek(beginPos, 8);
+
+                    this._defaultItem = buffer.readS();
+
+                    this.readItems(buffer).then(() => {
+                        resolve();
+                    });
+                });
+            }
 
 
-        var overflow: number = buffer.readByte();
-        if (overflow == OverflowType.Scroll) {
-            var savedPos: number = buffer.position;
-            buffer.seek(beginPos, 7);
-            this.setupScroll(buffer).then(() => {
-                buffer.position = savedPos;
-                fun0();
-            });
-        }
-        else {
-            this.setupOverflow(overflow);
-            fun0();
-        }
+            var overflow: number = buffer.readByte();
+            if (overflow == OverflowType.Scroll) {
+                var savedPos: number = buffer.position;
+                buffer.seek(beginPos, 7);
+                this.setupScroll(buffer).then(() => {
+                    buffer.position = savedPos;
+                    fun0().then(() => {
+                        resolve();
+                    });
+                });
+            }
+            else {
+                this.setupOverflow(overflow);
+                fun0().then(() => {
+                    resolve();
+                });
+            }
+        });
+
     }
 
     protected readItems(buffer: ByteBuffer): Promise<void> {
@@ -2532,38 +2544,15 @@ export class GList extends GComponent {
                 this.getFromPool(str).then((obj) => {
                     if (obj) {
                         this.addChild(obj);
-                        this.setupItem(buffer, obj);
+                        if (buffer.canRead()) {
+                            this.setupItem(buffer, obj);
+                        }
                     }
                     buffer.position = nextPos;
                     fun0(++i);
                 });
             }
             fun0(0);
-
-
-
-            // for (i = 0; i < cnt; i++) {
-            //     nextPos = buffer.readShort();
-            //     nextPos += buffer.position;
-
-            //     str = buffer.readS();
-            //     if (str == null) {
-            //         str = this._defaultItem;
-            //         if (!str) {
-            //             buffer.position = nextPos;
-            //             continue;
-            //         }
-            //     }
-
-            //     this.getFromPool(str).then((obj) => {
-            //         if (obj) {
-            //             this.addChild(obj);
-            //             this.setupItem(buffer, obj);
-            //         }
-            //         buffer.position = nextPos;
-            //     });
-            // }
-            // resolve();
         });
     }
 

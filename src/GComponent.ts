@@ -1216,7 +1216,7 @@ export class GComponent extends GObject {
                                 child = Decls.UIObjectFactory.newObject(pi);
                                 child.constructFromResource().then(() => {
                                     child._underConstruct = true;
-                                    if (child.type == ObjectType.Tree) {
+                                    if (child.type == ObjectType.Tree || child.type === ObjectType.List) {
                                         // @ts-ignore
                                         child.setup_beforeAdd(buffer, curPos).then(() => {
                                             hasAsync = false;
@@ -1241,7 +1241,7 @@ export class GComponent extends GObject {
                             }
                         }
                         child._underConstruct = true;
-                        if (child.type == ObjectType.Tree) {
+                        if (child.type === ObjectType.Tree || child.type === ObjectType.List) {
                             delayNum = i;
                             hasAsync = true;
                             // @ts-ignore
@@ -1258,10 +1258,6 @@ export class GComponent extends GObject {
                             this._children.push(child);
                             buffer.position = curPos + dataLen;
                         }
-                        // child.setup_beforeAdd(buffer, curPos);
-                        // child.parent = this;
-                        // this._children.push(child);
-                        // buffer.position = curPos + dataLen;
                     }
                     if (hasAsync) {
                         return;

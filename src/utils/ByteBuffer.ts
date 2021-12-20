@@ -18,6 +18,10 @@ export class ByteBuffer {
         this._length = length;
     }
 
+    public canRead(): boolean {
+        return this._pos < this._length;
+    }
+
     public get data(): Uint8Array {
         return this._bytes;
     }
@@ -42,7 +46,7 @@ export class ByteBuffer {
     public readByte(): number {
         this.validate(1);
         return this._view.getInt8(this._pos++);
-        
+
     }
 
     public readUbyte(): number {
