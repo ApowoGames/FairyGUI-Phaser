@@ -145,21 +145,24 @@ export class GImage extends GObject {
             super.setProp(index, value);
     }
 
-    public setup_beforeAdd(buffer: ByteBuffer, beginPos: number): void {
-        super.setup_beforeAdd(buffer, beginPos);
+    public setup_beforeAdd(buffer: ByteBuffer, beginPos: number): Promise<void> {
+        return new Promise((resolve, reject) => {
+            super.setup_beforeAdd(buffer, beginPos);
 
-        buffer.seek(beginPos, 5);
+            buffer.seek(beginPos, 5);
 
-        if (buffer.readBool())
-            this.color = buffer.readColorS();
-        this.flip = buffer.readByte();
-        this.image.fillMethod = buffer.readByte();
-        if (this.image.fillMethod != 0) {
-            this.image.fillOrigin = buffer.readByte();
-            this.image.fillClockwise = buffer.readBool();
-            this.image.fillAmount = buffer.readFloat();
-        }
-        this._touchable = false;
+            if (buffer.readBool())
+                this.color = buffer.readColorS();
+            this.flip = buffer.readByte();
+            this.image.fillMethod = buffer.readByte();
+            if (this.image.fillMethod != 0) {
+                this.image.fillOrigin = buffer.readByte();
+                this.image.fillClockwise = buffer.readBool();
+                this.image.fillAmount = buffer.readFloat();
+            }
+            this._touchable = false;
+            resolve();
+        });
     }
 
     public setup_afterAdd(buffer: ByteBuffer, beginPos: number) {

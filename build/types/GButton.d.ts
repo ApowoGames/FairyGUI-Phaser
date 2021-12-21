@@ -73,7 +73,7 @@ export declare class GButton extends GComponent {
     protected constructExtension(buffer: ByteBuffer): Promise<void>;
     addListener(): void;
     removeListener(): void;
-    setup_beforeAdd(buffer: ByteBuffer, beginPos: number): void;
+    setup_beforeAdd(buffer: ByteBuffer, beginPos: number): Promise<void>;
     setup_afterAdd(buffer: ByteBuffer, beginPos: number): void;
     constructFromResource2(objectPool: GObject[], poolIndex: number): Promise<void>;
     private __rollover;

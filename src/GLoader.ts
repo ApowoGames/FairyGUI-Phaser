@@ -66,7 +66,9 @@ export class GLoader extends GObject {
             return;
 
         this._url = value;
-        this.loadContent();
+        this.loadContent().then(() => {
+
+        });
         this.updateGear(7);
     }
 
@@ -214,16 +216,23 @@ export class GLoader extends GObject {
         return this._content2;
     }
 
-    protected loadContent(): void {
-        this.clearContent();
+    protected loadContent(): Promise<void> {
+        return new Promise((resolve, reject) => {
+            this.clearContent();
 
-        if (!this._url)
-            return;
+            if (!this._url)
+                return;
 
-        if (ToolSet.startsWith(this._url, "ui://"))
-            this.loadFromPackage(this._url);
-        else
-            this.loadExternal();
+            if (ToolSet.startsWith(this._url, "ui://"))
+                this.loadFromPackage(this._url).then(() => {
+                    resolve();
+                });
+            else
+                this.loadExternal().then(() => {
+                    resolve();
+                });
+        });
+
     }
 
     protected loadFromPackage(itemURL: string): Promise<void> {
@@ -303,10 +312,13 @@ export class GLoader extends GObject {
         });
     }
 
-    protected loadExternal(): void {
-        AssetProxy.inst.load(this.id, this._url, this._url, LoaderType.IMAGE, this.__getResCompleted);
-        AssetProxy.inst.addListen(LoaderType.IMAGE, this._url);
-        AssetProxy.inst.startLoad();
+    protected loadExternal(): Promise<void> {
+        return new Promise((resolve, reject) => {
+            AssetProxy.inst.load(this.id, this._url, this._url, LoaderType.IMAGE, this.__getResCompleted);
+            AssetProxy.inst.addListen(LoaderType.IMAGE, this._url);
+            AssetProxy.inst.startLoad();
+            resolve();
+        });
         // AssetProxy.inst.load(this._url, Laya.Handler.create(this, this.__getResCompleted), null, Laya.Loader.IMAGE);
     }
 
@@ -549,36 +561,45 @@ export class GLoader extends GObject {
         }
     }
 
-    public setup_beforeAdd(buffer: ByteBuffer, beginPos: number): void {
-        super.setup_beforeAdd(buffer, beginPos);
+    public setup_beforeAdd(buffer: ByteBuffer, beginPos: number): Promise<void> {
+        return new Promise((resolve, reject) => {
+            super.setup_beforeAdd(buffer, beginPos);
 
-        buffer.seek(beginPos, 5);
+            buffer.seek(beginPos, 5);
 
-        var iv: number;
+            var iv: number;
 
-        this._url = buffer.readS();
-        iv = buffer.readByte();
-        this._align = iv == 0 ? "left" : (iv == 1 ? "center" : "right");
-        iv = buffer.readByte();
-        this._valign = iv == 0 ? "top" : (iv == 1 ? "middle" : "bottom");
-        this._fill = buffer.readByte();
-        this._shrinkOnly = buffer.readBool();
-        this._autoSize = buffer.readBool();
-        this._showErrorSign = buffer.readBool();
-        this._content.playing = buffer.readBool();
-        this._content.frame = buffer.readInt();
+            this._url = buffer.readS();
+            iv = buffer.readByte();
+            this._align = iv == 0 ? "left" : (iv == 1 ? "center" : "right");
+            iv = buffer.readByte();
+            this._valign = iv == 0 ? "top" : (iv == 1 ? "middle" : "bottom");
+            this._fill = buffer.readByte();
+            this._shrinkOnly = buffer.readBool();
+            this._autoSize = buffer.readBool();
+            this._showErrorSign = buffer.readBool();
+            this._content.playing = buffer.readBool();
+            this._content.frame = buffer.readInt();
 
-        if (buffer.readBool())
-            this.color = buffer.readColorS();
+            if (buffer.readBool())
+                this.color = buffer.readColorS();
 
-        this._content.fillMethod = buffer.readByte();
-        if (this._content.fillMethod != 0) {
-            this._content.fillOrigin = buffer.readByte();
-            this._content.fillClockwise = buffer.readBool();
-            this._content.fillAmount = buffer.readFloat();
-        }
+            this._content.fillMethod = buffer.readByte();
+            if (this._content.fillMethod != 0) {
+                this._content.fillOrigin = buffer.readByte();
+                this._content.fillClockwise = buffer.readBool();
+                this._content.fillAmount = buffer.readFloat();
+            }
 
-        if (this._url)
-            this.loadContent();
+            if (this._url) {
+                this.loadContent().then(() => {
+                    resolve();
+                });
+            } else {
+                resolve();
+            }
+
+        });
+
     }
 }

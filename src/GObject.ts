@@ -544,13 +544,15 @@ export class GObject {
         //     //Touch is not supported by GImage/GMovieClip/GTextField
         //     return;
 
-        if (this._displayObject)
+        if (this._displayObject) {
             if (this._touchable) {
                 // this.removeInteractive();
-                this._displayObject.setInteractive(new Phaser.Geom.Rectangle(this.initWidth / 2, this.initHeight / 2, this.initWidth / this.scaleX, this.initHeight / this.scaleY), Phaser.Geom.Rectangle.Contains);
+                this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this.initWidth / this.scaleX, this.initHeight / this.scaleY), Phaser.Geom.Rectangle.Contains);
             } else {
                 this.removeInteractive();
             }
+        }
+        this.updatePivotOffset();
     }
 
     protected removeInteractive() {
@@ -1251,10 +1253,10 @@ export class GObject {
         var xv: number = this._x + this._xOffset;
         var yv: number = this._y + this._yOffset;
 
-        if (this._pivotAsAnchor) {
-            xv -= this._pivotX * this._width;
-            yv -= this._pivotY * this._height;
-        }
+        // if (this._pivotAsAnchor) {
+        //     xv += this._pivotX * this._width;
+        //     yv += this._pivotY * this._height;
+        // }
         if (this._pixelSnapping) {
             xv = Math.round(xv);
             yv = Math.round(yv);

@@ -62,7 +62,6 @@ export class GButton extends GComponent {
         // GRoot.inst.addToStage(this._displayObject);
         this._displayObject["$owner"] = this;
         this._container = this._displayObject;
-        this.addListener();
     }
 
     public get icon(): string {
@@ -432,17 +431,16 @@ export class GButton extends GComponent {
         this._displayObject.off(InteractiveEvent.POINTER_UP, this.__click, this);
     }
 
-    public setup_beforeAdd(buffer: ByteBuffer, beginPos: number) {
-        super.setup_beforeAdd(buffer, beginPos);
+    public setup_beforeAdd(buffer: ByteBuffer, beginPos: number): Promise<void> {
+        return new Promise((resolve, reject) => {
+            super.setup_beforeAdd(buffer, beginPos);
+            resolve();
+        });
+
     }
 
     public setup_afterAdd(buffer: ByteBuffer, beginPos: number): void {
         super.setup_afterAdd(buffer, beginPos);
-        // const g = this.scene.make.graphics(undefined, false);
-        // g.clear();
-        // g.fillStyle(0xFFCC00);
-        // g.fillRoundedRect(0, 0, this.initWidth, this.initHeight);
-        // this._displayObject.addAt(g, 0);
         if (!buffer.seek(beginPos, 6))
             return;
 

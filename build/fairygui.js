@@ -3687,14 +3687,16 @@
             //     || (this instanceof GTextField) && !(this instanceof GTextInput) && !(this instanceof GRichTextField))
             //     //Touch is not supported by GImage/GMovieClip/GTextField
             //     return;
-            if (this._displayObject)
+            if (this._displayObject) {
                 if (this._touchable) {
                     // this.removeInteractive();
-                    this._displayObject.setInteractive(new Phaser.Geom.Rectangle(this.initWidth / 2, this.initHeight / 2, this.initWidth / this.scaleX, this.initHeight / this.scaleY), Phaser.Geom.Rectangle.Contains);
+                    this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this.initWidth / this.scaleX, this.initHeight / this.scaleY), Phaser.Geom.Rectangle.Contains);
                 }
                 else {
                     this.removeInteractive();
                 }
+            }
+            this.updatePivotOffset();
         }
         removeInteractive() {
             this._displayObject.disableInteractive();
@@ -4281,10 +4283,10 @@
         handleXYChanged() {
             var xv = this._x + this._xOffset;
             var yv = this._y + this._yOffset;
-            if (this._pivotAsAnchor) {
-                xv -= this._pivotX * this._width;
-                yv -= this._pivotY * this._height;
-            }
+            // if (this._pivotAsAnchor) {
+            //     xv += this._pivotX * this._width;
+            //     yv += this._pivotY * this._height;
+            // }
             if (this._pixelSnapping) {
                 xv = Math.round(xv);
                 yv = Math.round(yv);
@@ -6206,18 +6208,21 @@
                 super.setProp(index, value);
         }
         setup_beforeAdd(buffer, beginPos) {
-            super.setup_beforeAdd(buffer, beginPos);
-            buffer.seek(beginPos, 5);
-            if (buffer.readBool())
-                this.color = buffer.readColorS();
-            this.flip = buffer.readByte();
-            this.image.fillMethod = buffer.readByte();
-            if (this.image.fillMethod != 0) {
-                this.image.fillOrigin = buffer.readByte();
-                this.image.fillClockwise = buffer.readBool();
-                this.image.fillAmount = buffer.readFloat();
-            }
-            this._touchable = false;
+            return new Promise((resolve, reject) => {
+                super.setup_beforeAdd(buffer, beginPos);
+                buffer.seek(beginPos, 5);
+                if (buffer.readBool())
+                    this.color = buffer.readColorS();
+                this.flip = buffer.readByte();
+                this.image.fillMethod = buffer.readByte();
+                if (this.image.fillMethod != 0) {
+                    this.image.fillOrigin = buffer.readByte();
+                    this.image.fillClockwise = buffer.readBool();
+                    this.image.fillAmount = buffer.readFloat();
+                }
+                this._touchable = false;
+                resolve();
+            });
         }
         setup_afterAdd(buffer, beginPos) {
             super.setup_afterAdd(buffer, beginPos);
@@ -12709,7 +12714,10 @@
                     if (buffer.readBool()) {
                         f1 = buffer.readFloat();
                         f2 = buffer.readFloat();
-                        this.internalSetPivot(f1, f2, buffer.readBool());
+                        let boo = buffer.readBool();
+                        if (f1 !== 0 || f2 !== 0)
+                            boo = true;
+                        this.internalSetPivot(f1, f2, boo);
                     }
                     if (buffer.readBool()) {
                         this._margin.top = buffer.readInt();
@@ -12768,7 +12776,7 @@
                                         child = Decls.UIObjectFactory.newObject(pi);
                                         child.constructFromResource().then(() => {
                                             child._underConstruct = true;
-                                            if (child.type == exports.ObjectType.Tree || child.type === exports.ObjectType.List) {
+                                            if (child.type === exports.ObjectType.Tree || child.type === exports.ObjectType.List || child.type === exports.ObjectType.Loader || child.type === exports.ObjectType.Image || child.type === exports.ObjectType.Loader) {
                                                 // @ts-ignore
                                                 child.setup_beforeAdd(buffer, curPos).then(() => {
                                                     hasAsync = false;
@@ -12794,7 +12802,7 @@
                                     }
                                 }
                                 child._underConstruct = true;
-                                if (child.type === exports.ObjectType.Tree || child.type === exports.ObjectType.List) {
+                                if (child.type === exports.ObjectType.Tree || child.type === exports.ObjectType.List || child.type === exports.ObjectType.Button || child.type === exports.ObjectType.Image || child.type === exports.ObjectType.Loader) {
                                     delayNum = i;
                                     hasAsync = true;
                                     // @ts-ignore
@@ -13691,6 +13699,8 @@
             var str = buffer.readS();
             if (str != null)
                 this.text = str;
+            // 普通文本默认没有交互
+            this.touchable = false;
         }
     }
 
@@ -16580,7 +16590,8 @@
             if (this._url == value)
                 return;
             this._url = value;
-            this.loadContent();
+            this.loadContent().then(() => {
+            });
             this.updateGear(7);
         }
         get icon() {
@@ -16698,13 +16709,19 @@
             return this._content2;
         }
         loadContent() {
-            this.clearContent();
-            if (!this._url)
-                return;
-            if (ToolSet.startsWith(this._url, "ui://"))
-                this.loadFromPackage(this._url);
-            else
-                this.loadExternal();
+            return new Promise((resolve, reject) => {
+                this.clearContent();
+                if (!this._url)
+                    return;
+                if (ToolSet.startsWith(this._url, "ui://"))
+                    this.loadFromPackage(this._url).then(() => {
+                        resolve();
+                    });
+                else
+                    this.loadExternal().then(() => {
+                        resolve();
+                    });
+            });
         }
         loadFromPackage(itemURL) {
             return new Promise((reslove, reject) => {
@@ -16782,9 +16799,12 @@
             });
         }
         loadExternal() {
-            AssetProxy.inst.load(this.id, this._url, this._url, LoaderType.IMAGE, this.__getResCompleted);
-            AssetProxy.inst.addListen(LoaderType.IMAGE, this._url);
-            AssetProxy.inst.startLoad();
+            return new Promise((resolve, reject) => {
+                AssetProxy.inst.load(this.id, this._url, this._url, LoaderType.IMAGE, this.__getResCompleted);
+                AssetProxy.inst.addListen(LoaderType.IMAGE, this._url);
+                AssetProxy.inst.startLoad();
+                resolve();
+            });
             // AssetProxy.inst.load(this._url, Laya.Handler.create(this, this.__getResCompleted), null, Laya.Loader.IMAGE);
         }
         freeExternal(texture) {
@@ -17004,30 +17024,38 @@
             }
         }
         setup_beforeAdd(buffer, beginPos) {
-            super.setup_beforeAdd(buffer, beginPos);
-            buffer.seek(beginPos, 5);
-            var iv;
-            this._url = buffer.readS();
-            iv = buffer.readByte();
-            this._align = iv == 0 ? "left" : (iv == 1 ? "center" : "right");
-            iv = buffer.readByte();
-            this._valign = iv == 0 ? "top" : (iv == 1 ? "middle" : "bottom");
-            this._fill = buffer.readByte();
-            this._shrinkOnly = buffer.readBool();
-            this._autoSize = buffer.readBool();
-            this._showErrorSign = buffer.readBool();
-            this._content.playing = buffer.readBool();
-            this._content.frame = buffer.readInt();
-            if (buffer.readBool())
-                this.color = buffer.readColorS();
-            this._content.fillMethod = buffer.readByte();
-            if (this._content.fillMethod != 0) {
-                this._content.fillOrigin = buffer.readByte();
-                this._content.fillClockwise = buffer.readBool();
-                this._content.fillAmount = buffer.readFloat();
-            }
-            if (this._url)
-                this.loadContent();
+            return new Promise((resolve, reject) => {
+                super.setup_beforeAdd(buffer, beginPos);
+                buffer.seek(beginPos, 5);
+                var iv;
+                this._url = buffer.readS();
+                iv = buffer.readByte();
+                this._align = iv == 0 ? "left" : (iv == 1 ? "center" : "right");
+                iv = buffer.readByte();
+                this._valign = iv == 0 ? "top" : (iv == 1 ? "middle" : "bottom");
+                this._fill = buffer.readByte();
+                this._shrinkOnly = buffer.readBool();
+                this._autoSize = buffer.readBool();
+                this._showErrorSign = buffer.readBool();
+                this._content.playing = buffer.readBool();
+                this._content.frame = buffer.readInt();
+                if (buffer.readBool())
+                    this.color = buffer.readColorS();
+                this._content.fillMethod = buffer.readByte();
+                if (this._content.fillMethod != 0) {
+                    this._content.fillOrigin = buffer.readByte();
+                    this._content.fillClockwise = buffer.readBool();
+                    this._content.fillAmount = buffer.readFloat();
+                }
+                if (this._url) {
+                    this.loadContent().then(() => {
+                        resolve();
+                    });
+                }
+                else {
+                    resolve();
+                }
+            });
         }
     }
     GLoader._errorSignPool = new GObjectPool();
@@ -17051,7 +17079,6 @@
             // GRoot.inst.addToStage(this._displayObject);
             this._displayObject["$owner"] = this;
             this._container = this._displayObject;
-            this.addListener();
         }
         get icon() {
             return this._icon;
@@ -17373,15 +17400,13 @@
             this._displayObject.off(InteractiveEvent.POINTER_UP, this.__click, this);
         }
         setup_beforeAdd(buffer, beginPos) {
-            super.setup_beforeAdd(buffer, beginPos);
+            return new Promise((resolve, reject) => {
+                super.setup_beforeAdd(buffer, beginPos);
+                resolve();
+            });
         }
         setup_afterAdd(buffer, beginPos) {
             super.setup_afterAdd(buffer, beginPos);
-            // const g = this.scene.make.graphics(undefined, false);
-            // g.clear();
-            // g.fillStyle(0xFFCC00);
-            // g.fillRoundedRect(0, 0, this.initWidth, this.initHeight);
-            // this._displayObject.addAt(g, 0);
             if (!buffer.seek(beginPos, 6))
                 return;
             const type = buffer.readByte();

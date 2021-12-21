@@ -52,9 +52,9 @@ export declare class GLoader extends GObject {
     set showErrorSign(value: boolean);
     get content(): MovieClip;
     get component(): GComponent;
-    protected loadContent(): void;
+    protected loadContent(): Promise<void>;
     protected loadFromPackage(itemURL: string): Promise<void>;
-    protected loadExternal(): void;
+    protected loadExternal(): Promise<void>;
     protected freeExternal(texture: Phaser.Textures.Texture): void;
     protected onExternalLoadSuccess(texture: Phaser.Textures.Texture): void;
     protected onExternalLoadFailed(): void;
@@ -66,5 +66,5 @@ export declare class GLoader extends GObject {
     protected handleSizeChanged(): void;
     getProp(index: number): any;
     setProp(index: number, value: any): void;
-    setup_beforeAdd(buffer: ByteBuffer, beginPos: number): void;
+    setup_beforeAdd(buffer: ByteBuffer, beginPos: number): Promise<void>;
 }

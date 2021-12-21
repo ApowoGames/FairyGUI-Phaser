@@ -1144,7 +1144,9 @@ export class GComponent extends GObject {
             if (buffer.readBool()) {
                 f1 = buffer.readFloat();
                 f2 = buffer.readFloat();
-                this.internalSetPivot(f1, f2, buffer.readBool());
+                let boo = buffer.readBool();
+                if (f1 !== 0 || f2 !== 0) boo = true;
+                this.internalSetPivot(f1, f2, boo);
             }
 
             if (buffer.readBool()) {
@@ -1216,7 +1218,7 @@ export class GComponent extends GObject {
                                 child = Decls.UIObjectFactory.newObject(pi);
                                 child.constructFromResource().then(() => {
                                     child._underConstruct = true;
-                                    if (child.type == ObjectType.Tree || child.type === ObjectType.List) {
+                                    if (child.type === ObjectType.Tree || child.type === ObjectType.List || child.type === ObjectType.Loader || child.type === ObjectType.Image || child.type === ObjectType.Loader) {
                                         // @ts-ignore
                                         child.setup_beforeAdd(buffer, curPos).then(() => {
                                             hasAsync = false;
@@ -1241,7 +1243,7 @@ export class GComponent extends GObject {
                             }
                         }
                         child._underConstruct = true;
-                        if (child.type === ObjectType.Tree || child.type === ObjectType.List) {
+                        if (child.type === ObjectType.Tree || child.type === ObjectType.List || child.type === ObjectType.Button || child.type === ObjectType.Image || child.type === ObjectType.Loader) {
                             delayNum = i;
                             hasAsync = true;
                             // @ts-ignore
