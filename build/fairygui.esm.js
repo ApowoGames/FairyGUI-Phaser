@@ -8905,9 +8905,9 @@ class ScrollPane {
         });
     }
     dispose() {
-        if (ScrollPane.draggingPane == this) {
-            ScrollPane.draggingPane = null;
-        }
+        // if (ScrollPane.draggingPane == this) {
+        //     ScrollPane.draggingPane = null;
+        // }
         if (this._tweening != 0) {
             if (this._tweenUpdateTime) {
                 this._tweenUpdateTime.remove(false);
@@ -9218,12 +9218,12 @@ class ScrollPane {
         this._owner.scene.input.off("pointermove", this.__mouseMove, this);
         this._owner.scene.input.off("pointerup", this.__mouseUp, this);
         // this._owner.scene.input.off("pointerout", this.__mouseUp, this);
-        if (ScrollPane.draggingPane == this)
-            ScrollPane.draggingPane = null;
+        // if (ScrollPane.draggingPane == this)
+        //     ScrollPane.draggingPane = null;
         _gestureFlag = 0;
         this._dragged = false;
-        // this._maskContainer.disableInteractive();
-        // this._maskContainer.removeInteractive();
+        this._maskContainer.disableInteractive();
+        this._maskContainer.removeInteractive();
     }
     lockHeader(size) {
         if (this._headerLockedSize == size)
@@ -9453,9 +9453,8 @@ class ScrollPane {
                 this._mask.fillStyle(0x00ff00, .4);
                 this._mask.fillRect(this._owner.x, this._owner.y, this.maskScrollRect.width, this.maskScrollRect.height);
                 this._maskContainer.setInteractive(this.maskScrollRect, Phaser.Geom.Rectangle.Contains);
-                // this._maskContainer.add(this._mask);
-                // const g = this._mask.createGeometryMask();
-                // console.log("g====>", g);
+                // 查看mask实际位置
+                // this._owner.scene.sys.displayList.add(this._mask);
                 this._maskContainer.setMask(this._mask.createGeometryMask());
             }
         }
@@ -9638,7 +9637,9 @@ class ScrollPane {
     __mouseMove(pointer) {
         if (!this._touchEffect || this.owner.isDisposed)
             return;
-        if (ScrollPane.draggingPane && ScrollPane.draggingPane != this || GObject.draggingObject) //已经有其他拖动
+        // if (ScrollPane.draggingPane && ScrollPane.draggingPane != this || GObject.draggingObject) //已经有其他拖动
+        //     return;
+        if (GObject.draggingObject) //已经有其他拖动
             return;
         if (!this.checkInBounds(pointer, this.owner.displayObject)) {
             // 防止出框后回弹
@@ -9646,7 +9647,7 @@ class ScrollPane {
             return;
         }
         var sensitivity = UIConfig.touchScrollSensitivity;
-        var pt = new Phaser.Geom.Point(pointer.x, pointer.y); // this._owner.globalToLocal(pointer.worldX, pointer.worldY, s_vec2);
+        var pt = new Phaser.Geom.Point(pointer.worldX, pointer.worldY); // this._owner.globalToLocal(pointer.worldX, pointer.worldY, s_vec2);
         var diff, diff2;
         var sv, sh;
         if (this._scrollType == ScrollType.Vertical) {
@@ -9712,7 +9713,7 @@ class ScrollPane {
             }
             else
                 this._container.y = newPosY;
-            console.log("containerY:====>", this._container.y);
+            // console.log("containerY:====>", this._container.y);
         }
         if (sh) {
             if (newPosX > 0) {
@@ -9733,7 +9734,7 @@ class ScrollPane {
             }
             else
                 this._container.x = newPosX;
-            console.log("containerX:====>", this._container.x);
+            // console.log("containerX:====>", this._container.x);
         }
         //更新速度
         var frameRate = Utils.FPSTarget;
@@ -9755,6 +9756,7 @@ class ScrollPane {
             }
             this._velocity.x = ToolSet.lerp(this._velocity.x, deltaPositionX * 60 / frameRate / deltaTime, deltaTime * 10);
             this._velocity.y = ToolSet.lerp(this._velocity.y, deltaPositionY * 60 / frameRate / deltaTime, deltaTime * 10);
+            // console.log("velocity ===>", this._velocity);
         }
         /*速度计算使用的是本地位移，但在后续的惯性滚动判断中需要用到屏幕位移，所以这里要记录一个位移的比例。
         */
@@ -9773,6 +9775,7 @@ class ScrollPane {
             this._xPos = ToolSet.clamp(-this._container.x, 0, this._overlapSize.x);
         if (this._overlapSize.y > 0)
             this._yPos = ToolSet.clamp(-this._container.y, 0, this._overlapSize.y);
+        // console.log("xyPos ===>", this._xPos, this._yPos);
         //循环滚动特别检查
         if (this._loop != 0) {
             newPosX = this._container.x;
@@ -9782,11 +9785,13 @@ class ScrollPane {
                 this._containerPos.y += this._container.y - newPosY;
             }
         }
-        ScrollPane.draggingPane = this;
+        // if (ScrollPane.draggingPane !== this) {
+        //     ScrollPane.draggingPane = this;
+        // }
         this._isHoldAreaDone = true;
         this._dragged = true;
-        // this._maskContainer.disableInteractive();
-        // this._maskContainer.removeInteractive();
+        this._maskContainer.disableInteractive();
+        this._maskContainer.removeInteractive();
         this.updateScrollBarPos();
         this.updateScrollBarVisible();
         if (this._pageMode)
@@ -9799,8 +9804,8 @@ class ScrollPane {
         this._owner.scene.input.off("pointermove", this.__mouseMove, this);
         this._owner.scene.input.off("pointerup", this.__mouseUp, this);
         // this._owner.scene.input.off("pointerout", this.__mouseUp, this);
-        if (ScrollPane.draggingPane == this)
-            ScrollPane.draggingPane = null;
+        // if (ScrollPane.draggingPane == this)
+        //     ScrollPane.draggingPane = null;
         _gestureFlag = 0;
         if (!this._dragged || !this._touchEffect) {
             this._dragged = false;

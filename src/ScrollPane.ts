@@ -86,7 +86,10 @@ export class ScrollPane {
     private _refreshTimeEvent: any;//Phaser.Time.TimerEvent;
     private _refreshTime: Phaser.Time.TimerEvent;
     private _timeDelta: number = 0.08;
-    public static draggingPane: ScrollPane;
+    /**
+     * 用来判断当前是否有拖拽元素
+     */
+    // public static draggingPane: ScrollPane;
     // === 用于检查点击是否在区域的矩形
     private mRectangle: Phaser.Geom.Rectangle;
 
@@ -97,6 +100,7 @@ export class ScrollPane {
         this._tweenUpdateTimeEvent = { delay: _tweenUp, callback: this.tweenUpdate, callbackScope: this, loop: true };
         this._mask = this._owner.scene.make.graphics(undefined, false);
         this._maskContainer = this._owner.scene.make.container(undefined);
+
         // this._maskContainer.setPosition(this._owner.x, this._owner.y);
         (<Phaser.GameObjects.Container>this._owner.displayObject).add(this._maskContainer);
         // (<Phaser.GameObjects.Container>this._maskContainer).setMask(this._mask.createGeometryMask());
@@ -299,9 +303,9 @@ export class ScrollPane {
     }
 
     public dispose(): void {
-        if (ScrollPane.draggingPane == this) {
-            ScrollPane.draggingPane = null;
-        }
+        // if (ScrollPane.draggingPane == this) {
+        //     ScrollPane.draggingPane = null;
+        // }
 
         if (this._tweening != 0) {
             if (this._tweenUpdateTime) {
@@ -691,8 +695,8 @@ export class ScrollPane {
         this._owner.scene.input.off("pointermove", this.__mouseMove, this);
         this._owner.scene.input.off("pointerup", this.__mouseUp, this);
         // this._owner.scene.input.off("pointerout", this.__mouseUp, this);
-        if (ScrollPane.draggingPane == this)
-            ScrollPane.draggingPane = null;
+        // if (ScrollPane.draggingPane == this)
+        //     ScrollPane.draggingPane = null;
 
         _gestureFlag = 0;
         this._dragged = false;
@@ -959,9 +963,8 @@ export class ScrollPane {
                 this._mask.fillStyle(0x00ff00, .4);
                 this._mask.fillRect(this._owner.x, this._owner.y, this.maskScrollRect.width, this.maskScrollRect.height);
                 this._maskContainer.setInteractive(this.maskScrollRect, Phaser.Geom.Rectangle.Contains);
-                // this._maskContainer.add(this._mask);
-                // const g = this._mask.createGeometryMask();
-                // console.log("g====>", g);
+                // 查看mask实际位置
+                // this._owner.scene.sys.displayList.add(this._mask);
                 this._maskContainer.setMask(this._mask.createGeometryMask());
             }
         }
@@ -1177,7 +1180,9 @@ export class ScrollPane {
         if (!this._touchEffect || this.owner.isDisposed)
             return;
 
-        if (ScrollPane.draggingPane && ScrollPane.draggingPane != this || GObject.draggingObject) //已经有其他拖动
+        // if (ScrollPane.draggingPane && ScrollPane.draggingPane != this || GObject.draggingObject) //已经有其他拖动
+        //     return;
+        if (GObject.draggingObject) //已经有其他拖动
             return;
 
         if (!this.checkInBounds(pointer, <Phaser.GameObjects.Container>this.owner.displayObject)) {
@@ -1187,7 +1192,7 @@ export class ScrollPane {
         }
         var sensitivity: number = UIConfig.touchScrollSensitivity;
 
-        var pt: Phaser.Geom.Point = new Phaser.Geom.Point(pointer.x, pointer.y);// this._owner.globalToLocal(pointer.worldX, pointer.worldY, s_vec2);
+        var pt: Phaser.Geom.Point = new Phaser.Geom.Point(pointer.worldX, pointer.worldY);// this._owner.globalToLocal(pointer.worldX, pointer.worldY, s_vec2);
         var diff: number, diff2: number;
         var sv: boolean, sh: boolean, st: boolean;
 
@@ -1309,6 +1314,7 @@ export class ScrollPane {
             }
             this._velocity.x = ToolSet.lerp(this._velocity.x, deltaPositionX * 60 / frameRate / deltaTime, deltaTime * 10);
             this._velocity.y = ToolSet.lerp(this._velocity.y, deltaPositionY * 60 / frameRate / deltaTime, deltaTime * 10);
+            // console.log("velocity ===>", this._velocity);
         }
 
         /*速度计算使用的是本地位移，但在后续的惯性滚动判断中需要用到屏幕位移，所以这里要记录一个位移的比例。
@@ -1330,6 +1336,7 @@ export class ScrollPane {
         if (this._overlapSize.y > 0)
             this._yPos = ToolSet.clamp(-this._container.y, 0, this._overlapSize.y);
 
+        // console.log("xyPos ===>", this._xPos, this._yPos);
         //循环滚动特别检查
         if (this._loop != 0) {
             newPosX = this._container.x;
@@ -1340,7 +1347,9 @@ export class ScrollPane {
             }
         }
 
-        ScrollPane.draggingPane = this;
+        // if (ScrollPane.draggingPane !== this) {
+        //     ScrollPane.draggingPane = this;
+        // }
         this._isHoldAreaDone = true;
         this._dragged = true;
         this._maskContainer.disableInteractive();
@@ -1361,8 +1370,8 @@ export class ScrollPane {
         this._owner.scene.input.off("pointerup", this.__mouseUp, this);
         // this._owner.scene.input.off("pointerout", this.__mouseUp, this);
 
-        if (ScrollPane.draggingPane == this)
-            ScrollPane.draggingPane = null;
+        // if (ScrollPane.draggingPane == this)
+        //     ScrollPane.draggingPane = null;
 
         _gestureFlag = 0;
 
