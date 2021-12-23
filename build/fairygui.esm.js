@@ -3688,8 +3688,8 @@ class GObject {
                 // 注册点不在中心需要重新调整交互区域
                 if (this._pivotX !== 0 || this._pivotY !== 0) {
                     this.removeInteractive();
-                    this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this.initWidth / this.scaleX, this.initHeight / this.scaleY), Phaser.Geom.Rectangle.Contains);
                 }
+                this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this.initWidth / this.scaleX, this.initHeight / this.scaleY), Phaser.Geom.Rectangle.Contains);
             }
             else {
                 this.removeInteractive();
