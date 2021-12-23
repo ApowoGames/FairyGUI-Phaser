@@ -2597,8 +2597,8 @@ class RelationItem {
         this._target.onEvent(DisplayObjectEvent.SIZE_DELAY_CHANGE, this.__targetSizeWillChange, this);
         this._targetX = this._target.x;
         this._targetY = this._target.y;
-        this._targetWidth = this._target._width;
-        this._targetHeight = this._target._height;
+        this._targetWidth = this._target.initWidth;
+        this._targetHeight = this._target.initHeight;
     }
     __targetSizeWillChange() {
         this._owner.relations.sizeDirty = true;
@@ -4165,10 +4165,10 @@ class GObject {
         return point;
     }
     /**
- * 将本地坐标系坐标转转换到父容器坐标系。
- * @param point 本地坐标点。
- * @return  转换后的点。
- */
+     * 将本地坐标系坐标转转换到父容器坐标系。
+     * @param point 本地坐标点。
+     * @return  转换后的点。
+     */
     toParentPoint(point) {
         if (!point)
             return point;
@@ -5605,6 +5605,10 @@ class Image extends Phaser.GameObjects.Container {
         this.finalXs = [];
         this.finalYs = [];
         this.tintFill = false;
+        /**
+         * 是否对九宫图片只做缩放，eg：当left，middle为0，则对原始图片进行缩放
+         */
+        this._scale9GridBool = false;
         // this._renderTexture = this.scene.make.renderTexture(undefined, false);
         // this._renderTexture.setPosition(0, 0);
         // this.add(this._renderTexture);
@@ -5640,13 +5644,15 @@ class Image extends Phaser.GameObjects.Container {
             const _right = originWidth - this._scale9Grid.right;
             const _top = this._scale9Grid.top;
             const _bottom = originHeight - this._scale9Grid.bottom;
-            if (width < _left || width < _right || width < (_left + _right) || height < _top || height < _bottom || height < (_top + _right)) {
+            if (width < _left || width < _right || width < (_left + _right) || height < _top || height < _bottom || height < (_top + _bottom)) {
                 this.finalXs = [0, 0, 0, this.width];
                 this.finalYs = [0, 0, 0, this.height];
+                this._scale9GridBool = true;
             }
             else {
                 this.finalXs = [0, _left, width - _left - _right, width];
                 this.finalYs = [0, _top, height - _top - _bottom, height];
+                this._scale9GridBool = false;
             }
         }
         else {
@@ -5678,13 +5684,15 @@ class Image extends Phaser.GameObjects.Container {
                     const _right = originWidth - this._scale9Grid.right;
                     const _top = this._scale9Grid.top;
                     const _bottom = originHeight - this._scale9Grid.bottom;
-                    if (width < _left || width < _right || width < (_left + _right) || height < _top || height < _bottom || height < (_top + _right)) {
+                    if (width < _left || width < _right || width < (_left + _right) || height < _top || height < _bottom || height < (_top + _bottom)) {
                         this.finalXs = [0, 0, 0, this.width];
                         this.finalYs = [0, 0, 0, this.height];
+                        this._scale9GridBool = true;
                     }
                     else {
                         this.finalXs = [0, _left, width - _left - _right, width];
                         this.finalYs = [0, _top, height - _top - _bottom, height];
+                        this._scale9GridBool = false;
                     }
                 }
                 else {
@@ -5754,17 +5762,18 @@ class Image extends Phaser.GameObjects.Container {
         const tintFill = this.tintFill;
         this.removeAll(true);
         // 非九宫直接画texture
-        if (!this._scale9Grid) {
+        if (!this._scale9Grid || this._scale9GridBool) {
             const patch = this._sourceTexture.frames[this.getPatchNameByIndex(8)];
             if (this._curImg) {
                 this._curImg.destroy();
                 this._curImg = null;
             }
-            this._curImg = new Phaser.GameObjects.Image(this.scene, 0, 0, patch.texture.key, patch.name);
+            const name = !this._scale9Grid ? patch.name : "__BASE";
+            this._curImg = new Phaser.GameObjects.Image(this.scene, 0, 0, patch.texture.key, name);
             this._curImg.setOrigin(0);
-            this._curImg.setPosition(this.finalXs[2], this.finalYs[2]);
             this._curImg.displayWidth = this.finalXs[3]; //+ (xi < 2 ? this.mCorrection : 0);
             this._curImg.displayHeight = this.finalYs[3]; //+ (yi < 2 ? this.mCorrection : 0);
+            this._curImg.setPosition(this.finalXs[2], this.finalYs[2]);
             // console.log("drawImage ===>", this._curImg, this.finalXs, this.finalYs);
             this.add(this._curImg);
             if (this.internalTint)
@@ -5773,6 +5782,8 @@ class Image extends Phaser.GameObjects.Container {
             return;
         }
         let patchIndex = 0;
+        this["$owner"].sourceHeight;
+        const _left = this._scale9Grid.left;
         for (let yi = 0; yi < 3; yi++) {
             for (let xi = 0; xi < 3; xi++) {
                 // 九宫逻辑中如果宽高为0，则不做后续处理
@@ -5782,9 +5793,16 @@ class Image extends Phaser.GameObjects.Container {
                 const patch = this._sourceTexture.frames[this.getPatchNameByIndex(patchIndex)];
                 const patchImg = new Phaser.GameObjects.Image(this.scene, 0, 0, patch.texture.key, patch.name);
                 patchImg.setOrigin(0);
-                patchImg.setPosition(this.finalXs[xi], this.finalYs[yi]);
-                patchImg.displayWidth = this.finalXs[xi + 1] - this.finalXs[xi]; //+ (xi < 2 ? this.mCorrection : 0);
-                patchImg.displayHeight = this.finalYs[yi + 1] - this.finalYs[yi]; //+ (yi < 2 ? this.mCorrection : 0);
+                let posx = this.finalXs[xi];
+                let posy = this.finalYs[yi];
+                if (xi === 2) {
+                    if (this.finalXs[2] < _left) {
+                        posx = _left;
+                    }
+                }
+                patchImg.setPosition(posx, posy);
+                patchImg.displayWidth = this.finalXs[xi + 1] - this.finalXs[xi] < 0 ? 0 : this.finalXs[xi + 1] - this.finalXs[xi]; //+ (xi < 2 ? this.mCorrection : 0);
+                patchImg.displayHeight = this.finalYs[yi + 1] - this.finalYs[yi] < 0 ? 0 : this.finalYs[yi + 1] - this.finalYs[yi]; //+ (yi < 2 ? this.mCorrection : 0);    
                 // console.log("drawImage ===>", patchImg, this.finalXs, this.finalYs);
                 if (this._renderTexture && !this._renderTexture.dirty)
                     this._renderTexture.draw(patchImg, patchImg.x, patchImg.y);
@@ -18307,7 +18325,7 @@ class GSlider extends GComponent {
             this._barObjectV = this.getChild("bar_v");
             this._gripObject = this.getChild("grip");
             if (this._barObjectH) {
-                this._barMaxWidth = this._barObjectH.width;
+                this._barMaxWidth = this._barObjectH._width;
                 this._barMaxWidthDelta = this._width - this._barMaxWidth;
                 this._barStartX = this._barObjectH.x;
             }

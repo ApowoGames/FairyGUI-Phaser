@@ -511,8 +511,8 @@ export class RelationItem {
 
         this._targetX = this._target.x;
         this._targetY = this._target.y;
-        this._targetWidth = this._target._width;
-        this._targetHeight = this._target._height;
+        this._targetWidth = this._target.initWidth;
+        this._targetHeight = this._target.initHeight;
     }
 
     private __targetSizeWillChange(): void {

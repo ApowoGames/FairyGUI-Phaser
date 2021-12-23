@@ -1130,10 +1130,10 @@ export class GObject {
     }
 
     /**
- * 将本地坐标系坐标转转换到父容器坐标系。
- * @param point 本地坐标点。
- * @return  转换后的点。
- */
+     * 将本地坐标系坐标转转换到父容器坐标系。
+     * @param point 本地坐标点。
+     * @return  转换后的点。
+     */
     toParentPoint(point: Phaser.Geom.Point): Phaser.Geom.Point {
         if (!point) return point;
         point.x -= this.pivotX;

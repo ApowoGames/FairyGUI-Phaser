@@ -261,10 +261,10 @@ export declare class GObject {
     globalToLocal(ax?: number, ay?: number, result?: Phaser.Geom.Point): Phaser.Geom.Point;
     _globalToLocal(point: Phaser.Geom.Point, createNewPoint?: boolean): Phaser.Geom.Point;
     /**
- * 将本地坐标系坐标转转换到父容器坐标系。
- * @param point 本地坐标点。
- * @return  转换后的点。
- */
+     * 将本地坐标系坐标转转换到父容器坐标系。
+     * @param point 本地坐标点。
+     * @return  转换后的点。
+     */
     toParentPoint(point: Phaser.Geom.Point): Phaser.Geom.Point;
     /**
      * 将父容器坐标系坐标转换到本地坐标系。

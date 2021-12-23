@@ -38,6 +38,10 @@ export declare class Image extends Phaser.GameObjects.Container {
      * phaser 存到内存中的图片资源需要一个key，相同originkey的图片会覆盖原先九宫过的资源
      */
     private patchKey;
+    /**
+     * 是否对九宫图片只做缩放，eg：当left，middle为0，则对原始图片进行缩放
+     */
+    private _scale9GridBool;
     constructor(scene: Phaser.Scene);
     get curImage(): Phaser.GameObjects.Image;
     /**

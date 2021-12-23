@@ -169,7 +169,7 @@ export class GSlider extends GComponent {
             this._gripObject = this.getChild("grip");
 
             if (this._barObjectH) {
-                this._barMaxWidth = this._barObjectH.width;
+                this._barMaxWidth = this._barObjectH._width;
                 this._barMaxWidthDelta = this._width - this._barMaxWidth;
                 this._barStartX = this._barObjectH.x;
             }
