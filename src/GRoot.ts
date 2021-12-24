@@ -244,7 +244,7 @@ export class GRoot extends GComponent {
         else if (win.y + win.height < 0)
             win.y = 0;
 
-        //  this.adjustModalLayer();
+        this.adjustModalLayer();
     }
 
     public hideWindow(win: Window): void {
@@ -443,7 +443,7 @@ export class GRoot extends GComponent {
             }
         }
 
-        // if (this._modalLayer.parent)
-        //     this.removeChild(this._modalLayer);
+        if (this._modalLayer.parent)
+            this.removeChild(this._modalLayer);
     }
 }

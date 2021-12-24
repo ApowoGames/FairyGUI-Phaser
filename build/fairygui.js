@@ -13051,11 +13051,17 @@
         }
         setXY(xv, yv, force = false) {
             super.setXY(xv, yv, force);
+            let worldMatrix;
+            if (this.parent) {
+                worldMatrix = this.parent.displayObject.getWorldTransformMatrix();
+            }
             this._children.forEach((obj) => {
                 if (obj && obj instanceof GComponent) {
                     const component = obj;
+                    const posX = worldMatrix ? worldMatrix.tx + xv : xv;
+                    const posY = worldMatrix ? worldMatrix.ty + yv : yv;
                     if (component._scrollPane) {
-                        component._scrollPane.maskPosChange(xv, yv);
+                        component._scrollPane.maskPosChange(posX, posY);
                     }
                     const list = component._children;
                     list.forEach((obj) => {
@@ -13064,7 +13070,7 @@
                                 obj.checkMask();
                             }
                             else if (obj._scrollPane) {
-                                obj._scrollPane.maskPosChange(xv, yv);
+                                obj._scrollPane.maskPosChange(posX, posY);
                             }
                         }
                     });
@@ -13297,7 +13303,7 @@
                 win.y = this.height - win.height;
             else if (win.y + win.height < 0)
                 win.y = 0;
-            //  this.adjustModalLayer();
+            this.adjustModalLayer();
         }
         hideWindow(win) {
             win.hide();
@@ -13471,8 +13477,8 @@
                     return;
                 }
             }
-            // if (this._modalLayer.parent)
-            //     this.removeChild(this._modalLayer);
+            if (this._modalLayer.parent)
+                this.removeChild(this._modalLayer);
         }
     }
     GRoot.contentScaleLevel = 0;

@@ -1495,11 +1495,17 @@ export class GComponent extends GObject {
 
     public setXY(xv: number, yv: number, force: boolean = false): void {
         super.setXY(xv, yv, force);
+        let worldMatrix;
+        if (this.parent) {
+            worldMatrix = (<Phaser.GameObjects.Container>this.parent.displayObject).getWorldTransformMatrix();
+        }
         this._children.forEach((obj) => {
             if (obj && obj instanceof GComponent) {
                 const component = (<GComponent>obj);
+                const posX = worldMatrix ? worldMatrix.tx + xv : xv;
+                const posY = worldMatrix ? worldMatrix.ty + yv : yv;
                 if (component._scrollPane) {
-                    component._scrollPane.maskPosChange(xv, yv);
+                    component._scrollPane.maskPosChange(posX, posY);
                 }
                 const list = component._children;
                 list.forEach((obj) => {
@@ -1507,7 +1513,7 @@ export class GComponent extends GObject {
                         if (obj._mask) {
                             obj.checkMask();
                         } else if (obj._scrollPane) {
-                            obj._scrollPane.maskPosChange(xv, yv);
+                            obj._scrollPane.maskPosChange(posX, posY);
                         }
                     }
                 });
