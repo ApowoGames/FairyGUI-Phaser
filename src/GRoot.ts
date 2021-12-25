@@ -105,8 +105,8 @@ export class GRoot extends GComponent {
      */
     public attachTo(scene: Phaser.Scene, stageOptions?: any): Promise<void> {
         return new Promise((resolve, reject) => {
+            this._scene = scene;
             const fun = () => {
-                this._scene = scene;
                 this._inputManager.setScene(scene);
                 Utils.FPSTarget = this._scene.game.config.fps.target || Utils.FPSTarget;
                 //this.createDisplayObject();
@@ -133,8 +133,8 @@ export class GRoot extends GComponent {
                 this.addListen();
             }
             if (stageOptions.webfont) {
-                this._scene.load.on(Phaser.Loader.Events.COMPLETE, () => {
-                    //this._scene.load.on(Phaser.Loader.Events.FILE_KEY_COMPLETE + 'script-webfont', () => {
+                // this._scene.load.on(Phaser.Loader.Events.COMPLETE, () => {
+                this._scene.load.on(Phaser.Loader.Events.FILE_KEY_COMPLETE + 'script-webfont', () => {
                     fun();
                     resolve();
                 }, this);
