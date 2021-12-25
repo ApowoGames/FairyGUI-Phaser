@@ -32,7 +32,12 @@ export declare class GRoot extends GComponent {
     private _checkPopups;
     private _inputManager;
     private _textureManager;
+    /**
+     * scene场景customFont列表
+     */
+    private _customFontFamils;
     constructor();
+    get customFontFamils(): string[];
     get emitter(): Phaser.Events.EventEmitter;
     static get inst(): GRoot;
     get input(): InputManager;
@@ -50,7 +55,7 @@ export declare class GRoot extends GComponent {
      * @param scene
      * @param stageOptions
      */
-    attachTo(scene: Phaser.Scene, stageOptions?: any): void;
+    attachTo(scene: Phaser.Scene, stageOptions?: any): Promise<void>;
     addToStage(child: Phaser.GameObjects.GameObject, type?: UISceneDisplay, index?: number): void;
     removeFromStage(child: Phaser.GameObjects.GameObject, type: UISceneDisplay): void;
     getResUrl(key: string): string;

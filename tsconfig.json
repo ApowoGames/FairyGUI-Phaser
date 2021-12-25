@@ -1,14 +1,15 @@
 {
   "compilerOptions": {
-      "declaration": true,
-      "target": "es6",
-      "module": "es6",
-      "moduleResolution":"Node",
-      "sourceMap":true
+    "declaration": true,
+    "target": "es6",
+    "module": "es6",
+    "moduleResolution": "Node",
+    "sourceMap": true,
   },
-  
   "include": [
-      "./src/**/*"
+    "./src/**/*",
+    "./typings/*",
+    "./plugin/webfont.js"
   ],
   "exclude": [
     "node_modules"

@@ -1,4 +1,3 @@
-import { GRoot } from "..";
 import { DisplayObjectEvent } from "../event/DisplayObjectEvent";
 import { UISceneDisplay } from "../GRoot";
 import { DOMEventManager } from "../utils/DOMEventManager";
@@ -32,6 +31,7 @@ export interface UIStageOptions {
     res: string;
     resUI: string;
     dpr: number;
+    webfont?: string;
     scaleMode?: StageScaleMode;
     orientation?: StageOrientation;
     resolution?: number;

@@ -1,3 +1,4 @@
+import { GRoot } from '../..';
 import { DisplayObject } from '../displayobject/DisplayObject';
 import { Parser } from './bbcode/Parser';
 import { CanvasText } from './canvastext/CanvasText';
@@ -8,6 +9,7 @@ import { TextStyle } from './style/TextStyle';
 import { FillStyleType, HAlignModeString, VAlignModeString } from './Types';
 import { WrapMode } from './WrapText';
 
+export const DEFULT_FONT = "'微软雅黑','SimSun','Source Han Sans', Helvetica, 'Noto Sans', 'Helvetica Neue', 'Nimbus Sans L', Arial, 'Liberation Sans', 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Source Han Sans SC', 'Source Han Sans CN', 'Microsoft YaHei'";
 export class TextField extends DisplayObject {
     public canvas: HTMLCanvasElement;
     public context: CanvasRenderingContext2D | null;
@@ -43,7 +45,7 @@ export class TextField extends DisplayObject {
         this.frame = this.texture.get();
 
         this.frame.source.resolution = this._style.resolution;
-        
+
         const webglRenderer = (<Phaser.Renderer.WebGL.WebGLRenderer>this.renderer);
         if (webglRenderer && webglRenderer.gl) {
             webglRenderer.deleteTexture(this.frame.source.glTexture);
@@ -74,7 +76,7 @@ export class TextField extends DisplayObject {
         if (!value) {
             value = "";
         }
-        if (Array.isArray(value)) { 
+        if (Array.isArray(value)) {
             value = value.join("\n");
         }
         if (value !== this._text) {
@@ -85,16 +87,6 @@ export class TextField extends DisplayObject {
         return this;
 
     }
-
-    // public setStyle(style) {
-    //     this._style.setStyle(style);
-    //     return this;
-    // }
-
-    // public setFont(font) {
-    //     this._style.setFont(font);
-    //     return this;
-    // }
 
     public addImage(key: string, config: string) {
         this.imageManager.add(key, config);
@@ -176,9 +168,9 @@ export class TextField extends DisplayObject {
             textWidth,
             textHeight
         );
-        
+
         context.restore();
-        
+
         const webglRenderer = <Phaser.Renderer.WebGL.WebGLRenderer>this.renderer;
         if (webglRenderer.gl) {
             this.frame.source.glTexture = webglRenderer.canvasToTexture(canvas, this.frame.source.glTexture, true);
@@ -204,7 +196,7 @@ export class TextField extends DisplayObject {
     setSingleLine(val: boolean) {
         this._style.wrapMode = val ? WrapMode.none : WrapMode.char;
     }
-    
+
     setInteractive(hitArea?: Phaser.Types.Input.InputConfiguration | any, callback?: Phaser.Types.Input.HitAreaCallback, dropZone?: boolean) {
         super.setInteractive(hitArea, callback, dropZone);
         this.canvasText.setInteractive();
@@ -271,6 +263,21 @@ export class TextField extends DisplayObject {
     }
 
     setFont(font: string) {
+        // try WebFont 是否定义
+        if (!DEFULT_FONT.includes(font)) {
+            try {
+                const families = GRoot.inst.customFontFamils;
+                if (families.indexOf(font) === -1) families.push(font);
+                WebFont.load({
+                    custom: {
+                        families
+                    },
+                });
+            } catch (error) {
+                // error webFont not define
+                console.warn("webFont not define");
+            }
+        }
         this._style.setFontFamily(font);
 
         return this;
@@ -328,3 +335,5 @@ export class TextField extends DisplayObject {
         this.setText(val);
     }
 }
+
+

@@ -26,6 +26,7 @@ export interface UIStageOptions {
     res: string;
     resUI: string;
     dpr: number;
+    webfont?: string;
     scaleMode?: StageScaleMode;
     orientation?: StageOrientation;
     resolution?: number;

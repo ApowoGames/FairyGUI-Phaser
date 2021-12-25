@@ -8579,12 +8579,10 @@
                         }
                         break;
                     case exports.PackageItemType.Font:
-                        console.error("no do font");
-                        // if (!item.decoded) {
-                        //     item.decoded = true;
-                        // this.loadFont(item);
-                        // }
-                        // return item.bitmapFont;
+                        if (!item.decoded) {
+                            item.decoded = true;
+                            this.loadFont(item);
+                        }
                         break;
                     case exports.PackageItemType.MovieClip:
                         if (!item.decoded) {
@@ -13138,8 +13136,12 @@
             super();
             this._popupStack = [];
             this._justClosedPopups = [];
+            this._customFontFamils = [];
             this._inputManager = new InputManager();
             this._textureManager = new TextureManager();
+        }
+        get customFontFamils() {
+            return this._customFontFamils;
         }
         get emitter() {
             return this._uiStage;
@@ -13175,31 +13177,49 @@
          * @param stageOptions
          */
         attachTo(scene, stageOptions) {
-            this._scene = scene;
-            this._inputManager.setScene(scene);
-            Utils.FPSTarget = this._scene.game.config.fps.target || Utils.FPSTarget;
-            //this.createDisplayObject();
-            // todo deal stageoptions
-            if (this._uiStage) {
-                this.removeListen();
-                // this._uiStage.removeChild(this._container, UISceneDisplay.LAYER_ROOT);
-                this._uiStage.destroy();
-            }
-            this._stageOptions = stageOptions;
-            let con = this._stageOptions.container;
-            if (!con) {
-                con = this.scene.add.container(this._stageOptions.x, this._stageOptions.y);
-                con.setSize(this._stageOptions.width, this._stageOptions.height);
-                // con.setInteractive(new Phaser.Geom.Rectangle(con.x, con.y, this._width, this._height), Phaser.Geom.Rectangle.Contains);
-            }
-            this._uiStage = new UIStage(scene, con);
-            this._scene.stage = this._uiStage;
-            this._width = stageOptions.width;
-            this._height = stageOptions.height;
-            // 初始化场景
-            this.createDisplayObject();
-            // this._uiStage.addChild(this._container, UISceneDisplay.LAYER_ROOT);
-            this.addListen();
+            return new Promise((resolve, reject) => {
+                const fun = () => {
+                    this._scene = scene;
+                    this._inputManager.setScene(scene);
+                    Utils.FPSTarget = this._scene.game.config.fps.target || Utils.FPSTarget;
+                    //this.createDisplayObject();
+                    // todo deal stageoptions
+                    if (this._uiStage) {
+                        this.removeListen();
+                        // this._uiStage.removeChild(this._container, UISceneDisplay.LAYER_ROOT);
+                        this._uiStage.destroy();
+                    }
+                    this._stageOptions = stageOptions;
+                    let con = this._stageOptions.container;
+                    if (!con) {
+                        con = this.scene.add.container(this._stageOptions.x, this._stageOptions.y);
+                        con.setSize(this._stageOptions.width, this._stageOptions.height);
+                        // con.setInteractive(new Phaser.Geom.Rectangle(con.x, con.y, this._width, this._height), Phaser.Geom.Rectangle.Contains);
+                    }
+                    this._uiStage = new UIStage(scene, con);
+                    this._scene.stage = this._uiStage;
+                    this._width = stageOptions.width;
+                    this._height = stageOptions.height;
+                    // 初始化场景
+                    this.createDisplayObject();
+                    // this._uiStage.addChild(this._container, UISceneDisplay.LAYER_ROOT);
+                    this.addListen();
+                };
+                if (stageOptions.webfont) {
+                    this._scene.load.on(Phaser.Loader.Events.COMPLETE, () => {
+                        //this._scene.load.on(Phaser.Loader.Events.FILE_KEY_COMPLETE + 'script-webfont', () => {
+                        fun();
+                        resolve();
+                    }, this);
+                    // 加载chrome字体 webfont
+                    this._scene.load.script("webfont", stageOptions.webfont);
+                    this._scene.load.start();
+                }
+                else {
+                    fun();
+                    resolve();
+                }
+            });
         }
         addToStage(child, type = UISceneDisplay.LAYER_ROOT, index = -1) {
             if (!this._uiStage)
@@ -15471,6 +15491,7 @@
         }
     }
 
+    const DEFULT_FONT = "'微软雅黑','SimSun','Source Han Sans', Helvetica, 'Noto Sans', 'Helvetica Neue', 'Nimbus Sans L', Arial, 'Liberation Sans', 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Source Han Sans SC', 'Source Han Sans CN', 'Microsoft YaHei'";
     class TextField extends DisplayObject {
         constructor(scene) {
             super(scene, "TextField");
@@ -15518,14 +15539,6 @@
             }
             return this;
         }
-        // public setStyle(style) {
-        //     this._style.setStyle(style);
-        //     return this;
-        // }
-        // public setFont(font) {
-        //     this._style.setFont(font);
-        //     return this;
-        // }
         addImage(key, config) {
             this.imageManager.add(key, config);
             return this;
@@ -15659,6 +15672,23 @@
             return this;
         }
         setFont(font) {
+            // try WebFont 是否定义
+            if (!DEFULT_FONT.includes(font)) {
+                try {
+                    const families = GRoot.inst.customFontFamils;
+                    if (families.indexOf(font) === -1)
+                        families.push(font);
+                    WebFont.load({
+                        custom: {
+                            families
+                        },
+                    });
+                }
+                catch (error) {
+                    // error webFont not define
+                    console.warn("webFont not define");
+                }
+            }
             this._style.setFontFamily(font);
             return this;
         }
@@ -15762,10 +15792,15 @@
             else {
                 this._textField.setFont(UIConfig.defaultFont);
             }
-            // if (ToolSet.startsWith(this._font, "ui://"))
-            //     this._bitmapFont = <BitmapFont>UIPackage.getItemAssetByURL(this._font);
-            // else
+            // todo loadFont logic code
+            // if (ToolSet.startsWith(this._font, "ui://")) {
+            //     UIPackage.getItemAssetByURL(this._font).then(() => {
+            //         this._bitmapFont = <BitmapFont>UIPackage.getItemAssetByURL(this._font);
+            //     });
+            // }
+            // else {
             //     delete this._bitmapFont;
+            // }
             // if (this._bitmapFont) {
             //     this._textField["setChanged"]();
             // }
@@ -15773,7 +15808,7 @@
             //     if (this._font)
             //         this._textField.font = this._font;
             //     else
-            //         this._textField.font = fgui.UIConfig.defaultFont;
+            //         this._textField.font = UIConfig.defaultFont;
             // }
         }
         get fontSize() {

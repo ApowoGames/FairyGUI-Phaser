@@ -18,6 +18,8 @@ export default {
         }],
     plugins: [
         nodeResolve({ extensions, }),
-        typescript()],
+        typescript(),
+        ["@babel/plugin-transform-runtime"]
+    ],
     external: ["phaser3"]
 }

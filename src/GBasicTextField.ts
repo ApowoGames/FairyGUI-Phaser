@@ -2,7 +2,7 @@ import { AutoSizeType } from './FieldTypes';
 import { BitmapFont } from './display/BitmapFont';
 import { GTextField } from './GTextField';
 import { TextField } from './display/text/TextField';
-import { UIConfig } from '.';
+import { ToolSet, UIConfig, UIPackage } from '.';
 import { HAlignModeString, VAlignModeString } from './display/text/Types';
 export class GBasicTextField extends GTextField {
     protected _textField: TextField;
@@ -44,11 +44,11 @@ export class GBasicTextField extends GTextField {
                 this._textField.width = 10000;
             var text2: string = this._text;
             // if (this._templateVars)
-                // text2 = this.parseTemplate(text2);
+            // text2 = this.parseTemplate(text2);
             // if (this._ubbEnabled) //laya还不支持同一个文本不同样式
             //     this._textField.text = UBBParser.inst.parse(text2, true);
             // else
-                this._textField.text = text2;
+            this._textField.text = text2;
         }
         else {
             this._textField.text = "";
@@ -77,11 +77,17 @@ export class GBasicTextField extends GTextField {
         } else {
             this._textField.setFont(UIConfig.defaultFont)
         }
-        
-        // if (ToolSet.startsWith(this._font, "ui://"))
-        //     this._bitmapFont = <BitmapFont>UIPackage.getItemAssetByURL(this._font);
-        // else
+        // todo loadFont logic code
+        // if (ToolSet.startsWith(this._font, "ui://")) {
+        //     UIPackage.getItemAssetByURL(this._font).then(() => {
+        //         this._bitmapFont = <BitmapFont>UIPackage.getItemAssetByURL(this._font);
+        //     });
+
+        // }
+        // else {
         //     delete this._bitmapFont;
+
+        // }
 
         // if (this._bitmapFont) {
         //     this._textField["setChanged"]();
@@ -90,7 +96,7 @@ export class GBasicTextField extends GTextField {
         //     if (this._font)
         //         this._textField.font = this._font;
         //     else
-        //         this._textField.font = fgui.UIConfig.defaultFont;
+        //         this._textField.font = UIConfig.defaultFont;
         // }
     }
 
@@ -254,7 +260,7 @@ export class GBasicTextField extends GTextField {
 
     public ensureSizeCorrect(): void {
         // if (!this._underConstruct && this._textField["_isChanged"])
-            // this._textField.typeset();
+        // this._textField.typeset();
     }
 
     public typeset(): void {
@@ -547,27 +553,27 @@ export class GBasicTextField extends GTextField {
     }
 
     // protected handleSizeChanged(): void {
-        // if (this._updatingSize)
-        //     return;
+    // if (this._updatingSize)
+    //     return;
 
-        // if (this._underConstruct)
-        //     this._textField.setSize(this._width, this._height);
-        // else {
-        //     if (this._bitmapFont) {
-        //         if (!this._widthAutoSize)
-        //             this._textField["setChanged"]();
-        //         else
-        //             this.doAlign();
-        //     }
-        //     else {
-        //         if (!this._widthAutoSize) {
-        //             if (!this._heightAutoSize)
-        //                 this.setSize(this._width, this._height);
-        //             else
-        //                 this._textField.width = this._width;
-        //         }
-        //     }
-        // }
+    // if (this._underConstruct)
+    //     this._textField.setSize(this._width, this._height);
+    // else {
+    //     if (this._bitmapFont) {
+    //         if (!this._widthAutoSize)
+    //             this._textField["setChanged"]();
+    //         else
+    //             this.doAlign();
+    //     }
+    //     else {
+    //         if (!this._widthAutoSize) {
+    //             if (!this._heightAutoSize)
+    //                 this.setSize(this._width, this._height);
+    //             else
+    //                 this._textField.width = this._width;
+    //         }
+    //     }
+    // }
     // }
 
     protected handleGrayedChanged(): void {

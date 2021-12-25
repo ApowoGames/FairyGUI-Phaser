@@ -687,12 +687,10 @@ export class UIPackage {
                     }
                     break;
                 case PackageItemType.Font:
-                    console.error("no do font");
-                    // if (!item.decoded) {
-                    //     item.decoded = true;
-                    // this.loadFont(item);
-                    // }
-                    // return item.bitmapFont;
+                    if (!item.decoded) {
+                        item.decoded = true;
+                        this.loadFont(item);
+                    }
                     break;
                 case PackageItemType.MovieClip:
                     if (!item.decoded) {
