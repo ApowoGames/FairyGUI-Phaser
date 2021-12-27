@@ -1,17 +1,27 @@
 import { TextField } from "../TextField";
 import { FillStyleType, HAlignModeString, VAlignModeString } from "../Types";
 import { WrapMode } from "../WrapText";
-export declare class ITextStyle {
-    backgroundColor?: string;
+export interface ITextStyle {
     fontFamily?: string;
-    fontSize?: string | number;
+    fontSize?: string;
     fontStyle?: string;
+    font?: string;
+    backgroundColor?: string;
+    color?: string;
+    stroke?: string;
+    strokeThickness?: number;
+    shadow?: Phaser.Types.GameObjects.Text.TextShadow;
+    padding?: Phaser.Types.GameObjects.Text.TextPadding;
+    align?: string;
+    maxLines?: number;
+    testString?: string;
+    baselineX?: number;
+    baselineY?: number;
+    wordWrap?: Phaser.Types.GameObjects.Text.TextWordWrap;
     italic?: boolean;
     bold?: boolean;
-    font?: string;
     fillStyle?: FillStyleType;
     strokeStyle?: FillStyleType;
-    strokeThickness?: number;
     shadowOffsetX?: number;
     shadowOffsetY?: number;
     shadowColor?: string;
@@ -36,10 +46,21 @@ export declare class ITextStyle {
     antialias?: boolean;
 }
 export declare class TextStyle implements ITextStyle {
-    backgroundColor?: string;
     fontFamily?: string;
     fontSize?: string;
     fontStyle?: string;
+    font?: string;
+    backgroundColor?: string;
+    color?: string;
+    stroke?: string;
+    shadow?: Phaser.Types.GameObjects.Text.TextShadow;
+    padding?: Phaser.Types.GameObjects.Text.TextPadding;
+    align?: string;
+    maxLines?: number;
+    testString?: string;
+    baselineX?: number;
+    baselineY?: number;
+    wordWrap?: Phaser.Types.GameObjects.Text.TextWordWrap;
     bold: boolean;
     italic: boolean;
     fillStyle?: FillStyleType;
@@ -66,12 +87,14 @@ export declare class TextStyle implements ITextStyle {
     wrapWidth?: number;
     antialias?: boolean;
     protected _font: string;
-    private parent;
+    parent: TextField;
     private _metrics;
     constructor(text: TextField, style: ITextStyle);
-    setStyle(style: ITextStyle, updateText?: boolean): void;
+    syncFont(canvas: any, context: any): void;
+    setStyle(style: ITextStyle, updateText?: boolean, setDefaults?: boolean): TextField;
     update(recalculateMetrics: boolean): TextField;
     buildFont(): this;
+    setFont(font: any, updateText: any): TextField;
     setFontFamily(family: string): TextField;
     setFontStyle(style: string): TextField;
     setFontSize(size: string | number): TextField;

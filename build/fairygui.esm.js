@@ -2003,8 +2003,8 @@ class UIConfig {
     constructor() {
     }
 }
-//Default font name
-UIConfig.defaultFont = "SimSun";
+//Default phaser font name
+UIConfig.defaultFont = "Courier";
 //When a modal window is in front, the background becomes dark.
 UIConfig.modalLayerColor = "rgba(240,255,255,0.8)";
 UIConfig.buttonSoundVolumeScale = 1;
@@ -13132,12 +13132,8 @@ class GRoot extends GComponent {
         super();
         this._popupStack = [];
         this._justClosedPopups = [];
-        this._customFontFamils = [];
         this._inputManager = new InputManager();
         this._textureManager = new TextureManager();
-    }
-    get customFontFamils() {
-        return this._customFontFamils;
     }
     get emitter() {
         return this._uiStage;
@@ -13173,49 +13169,30 @@ class GRoot extends GComponent {
      * @param stageOptions
      */
     attachTo(scene, stageOptions) {
-        return new Promise((resolve, reject) => {
-            this._scene = scene;
-            const fun = () => {
-                this._inputManager.setScene(scene);
-                Utils.FPSTarget = this._scene.game.config.fps.target || Utils.FPSTarget;
-                //this.createDisplayObject();
-                // todo deal stageoptions
-                if (this._uiStage) {
-                    this.removeListen();
-                    // this._uiStage.removeChild(this._container, UISceneDisplay.LAYER_ROOT);
-                    this._uiStage.destroy();
-                }
-                this._stageOptions = stageOptions;
-                let con = this._stageOptions.container;
-                if (!con) {
-                    con = this.scene.add.container(this._stageOptions.x, this._stageOptions.y);
-                    con.setSize(this._stageOptions.width, this._stageOptions.height);
-                    // con.setInteractive(new Phaser.Geom.Rectangle(con.x, con.y, this._width, this._height), Phaser.Geom.Rectangle.Contains);
-                }
-                this._uiStage = new UIStage(scene, con);
-                this._scene.stage = this._uiStage;
-                this._width = stageOptions.width;
-                this._height = stageOptions.height;
-                // 初始化场景
-                this.createDisplayObject();
-                // this._uiStage.addChild(this._container, UISceneDisplay.LAYER_ROOT);
-                this.addListen();
-            };
-            if (stageOptions.webfont) {
-                // this._scene.load.on(Phaser.Loader.Events.COMPLETE, () => {
-                this._scene.load.on(Phaser.Loader.Events.FILE_KEY_COMPLETE + 'script-webfont', () => {
-                    fun();
-                    resolve();
-                }, this);
-                // 加载chrome字体 webfont
-                this._scene.load.script("webfont", stageOptions.webfont);
-                this._scene.load.start();
-            }
-            else {
-                fun();
-                resolve();
-            }
-        });
+        this._scene = scene;
+        this._inputManager.setScene(scene);
+        Utils.FPSTarget = this._scene.game.config.fps.target || Utils.FPSTarget;
+        //this.createDisplayObject();
+        // todo deal stageoptions
+        if (this._uiStage) {
+            this.removeListen();
+            // this._uiStage.removeChild(this._container, UISceneDisplay.LAYER_ROOT);
+            this._uiStage.destroy();
+        }
+        this._stageOptions = stageOptions;
+        let con = this._stageOptions.container;
+        if (!con) {
+            con = this.scene.add.container(this._stageOptions.x, this._stageOptions.y);
+            con.setSize(this._stageOptions.width, this._stageOptions.height);
+            // con.setInteractive(new Phaser.Geom.Rectangle(con.x, con.y, this._width, this._height), Phaser.Geom.Rectangle.Contains);
+        }
+        this._uiStage = new UIStage(scene, con);
+        this._scene.stage = this._uiStage;
+        this._width = stageOptions.width;
+        this._height = stageOptions.height;
+        // 初始化场景
+        this.createDisplayObject();
+        this.addListen();
     }
     addToStage(child, type = UISceneDisplay.LAYER_ROOT, index = -1) {
         if (!this._uiStage)
@@ -15335,11 +15312,138 @@ const CONST = {
     SPLITREGEXP: /(?:\r\n|\r|\n)/
 };
 
+const CanvasPool = Phaser.Display.Canvas.CanvasPool;
+function MeasureText(textStyle) {
+    const canvas = CanvasPool.create(this);
+    const context = canvas.getContext('2d');
+    textStyle.syncFont(canvas, context);
+    const metrics = context.measureText(textStyle.testString);
+    if ('actualBoundingBoxAscent' in metrics) {
+        const ascent = metrics.actualBoundingBoxAscent;
+        const descent = metrics.actualBoundingBoxDescent;
+        CanvasPool.remove(canvas);
+        return {
+            ascent: ascent,
+            descent: descent,
+            fontSize: ascent + descent
+        };
+    }
+    // 此处将metrics定义为any的原因是，metrics可能为空，所以编译器认为获取width不应该被操作
+    const width = Math.ceil(metrics.width * textStyle.baselineX);
+    let baseline = width;
+    const height = 2 * baseline;
+    baseline = baseline * textStyle.baselineY | 0;
+    canvas.width = width;
+    canvas.height = height;
+    context.fillStyle = '#f00';
+    context.fillRect(0, 0, width, height);
+    context.font = textStyle._font;
+    context.textBaseline = 'alphabetic';
+    context.fillStyle = '#000';
+    context.fillText(textStyle.testString, 0, baseline);
+    const output = {
+        ascent: 0,
+        descent: 0,
+        fontSize: 0
+    };
+    const imagedata = context.getImageData(0, 0, width, height);
+    if (!imagedata) {
+        output.ascent = baseline;
+        output.descent = baseline + 6;
+        output.fontSize = output.ascent + output.descent;
+        CanvasPool.remove(canvas);
+        return output;
+    }
+    const pixels = imagedata.data;
+    const numPixels = pixels.length;
+    const line = width * 4;
+    let i;
+    let j;
+    let stop = false;
+    let idx = 0;
+    // ascent. scan from top to bottom until we find a non red pixel
+    for (i = 0; i < baseline; i++) {
+        for (j = 0; j < line; j += 4) {
+            if (pixels[idx + j] !== 255) {
+                stop = true;
+                break;
+            }
+        }
+        if (!stop) {
+            idx += line;
+        }
+        else {
+            break;
+        }
+    }
+    output.ascent = baseline - i;
+    idx = numPixels - line;
+    stop = false;
+    // descent. scan from bottom to top until we find a non red pixel
+    for (i = height; i > baseline; i--) {
+        for (j = 0; j < line; j += 4) {
+            if (pixels[idx + j] !== 255) {
+                stop = true;
+                break;
+            }
+        }
+        if (!stop) {
+            idx -= line;
+        }
+        else {
+            break;
+        }
+    }
+    output.descent = (i - baseline);
+    output.fontSize = output.ascent + output.descent;
+    CanvasPool.remove(canvas);
+    return output;
+}
+
+//  Key: [ Object Key, Default Value ]
+var propertyMap = {
+    fontFamily: ['fontFamily', 'Courier'],
+    fontSize: ['fontSize', '16px'],
+    fontStyle: ['fontStyle', ''],
+    backgroundColor: ['backgroundColor', null],
+    color: ['color', '#fff'],
+    stroke: ['stroke', '#fff'],
+    strokeThickness: ['strokeThickness', 0],
+    shadowOffsetX: ['shadow.offsetX', 0],
+    shadowOffsetY: ['shadow.offsetY', 0],
+    shadowColor: ['shadow.color', '#000'],
+    shadowBlur: ['shadow.blur', 0],
+    shadowStroke: ['shadow.stroke', false],
+    shadowFill: ['shadow.fill', false],
+    align: ['align', 'left'],
+    maxLines: ['maxLines', 0],
+    fixedWidth: ['fixedWidth', 0],
+    fixedHeight: ['fixedHeight', 0],
+    resolution: ['resolution', 0],
+    rtl: ['rtl', false],
+    testString: ['testString', '|MÃ‰qgy'],
+    baselineX: ['baselineX', 1.2],
+    baselineY: ['baselineY', 1.4],
+    wordWrapWidth: ['wordWrap.width', null],
+    wordWrapCallback: ['wordWrap.callback', null],
+    wordWrapCallbackScope: ['wordWrap.callbackScope', null],
+    wordWrapUseAdvanced: ['wordWrap.useAdvancedWrap', false]
+};
+const GetValue = Phaser.Utils.Objects.GetValue;
+const GetAdvancedValue = Phaser.Utils.Objects.GetAdvancedValue;
+// @ts-ignore
 class TextStyle {
     constructor(text, style) {
         this.fontFamily = UIConfig.defaultFont;
         this.fontSize = "16px";
         this.fontStyle = "";
+        this.color = "#fff";
+        this.stroke = "#fff";
+        this.align = "left";
+        this.maxLines = 0;
+        this.testString = '|MÃ‰qgy';
+        this.baselineX = 1.2;
+        this.baselineY = 1.4;
         this.bold = false;
         this.italic = false;
         this.fillStyle = "#000";
@@ -15367,7 +15471,7 @@ class TextStyle {
         this.antialias = true;
         this.parent = text;
         this.setStyle(style);
-        const metrics = style.metrics;
+        let metrics = style.metrics;
         if (metrics) {
             this._metrics = {
                 ascent: metrics.ascent || 0,
@@ -15375,18 +15479,56 @@ class TextStyle {
                 fontSize: metrics.fontSize || 0
             };
         }
+        else {
+            metrics = MeasureText(this);
+        }
     }
-    setStyle(style, updateText = true) {
-        if (style && style.hasOwnProperty("wrap")) ;
-        if (style && style.fontSize && typeof style.fontSize === "number") {
-            style.fontSize = style.fontSize.toString() + "px";
+    syncFont(canvas, context) {
+        context.font = this._font;
+    }
+    setStyle(style, updateText = true, setDefaults = false) {
+        if (updateText === undefined) {
+            updateText = true;
+        }
+        if (setDefaults === undefined) {
+            setDefaults = false;
+        }
+        if (style && style.hasOwnProperty('fontSize') && typeof style.fontSize === 'number') {
+            // @ts-ignore
+            style.fontSize = style.fontSize.toString() + 'px';
+        }
+        for (var key in propertyMap) {
+            var value = (setDefaults) ? propertyMap[key][1] : this[key];
+            if (key === 'wordWrapCallback' || key === 'wordWrapCallbackScope') {
+                // 回调和范围应该在不处理值的情况下设置
+                this[key] = GetValue(style, propertyMap[key][0], value);
+            }
+            else {
+                this[key] = GetAdvancedValue(style, propertyMap[key][0], value);
+            }
+        }
+        var font = GetValue(style, 'font', null);
+        if (font !== null) {
+            this.setFont(font, false);
+        }
+        this._font = [this.fontStyle, this.fontSize, this.fontFamily].join(' ').trim();
+        // 允许使用填充代替颜色
+        var fill = GetValue(style, 'fill', null);
+        if (fill !== null) {
+            this.color = fill;
+        }
+        if (updateText) {
+            return this.update(true);
+        }
+        else {
+            return this.parent;
         }
     }
     update(recalculateMetrics) {
         if (recalculateMetrics) {
             this._font = `${this.fontStyle} ${this.fontSize} ${this.fontFamily}`;
-            // TODO
-            // this.metrics = Phaser.GameObjects.MeasureText(this);
+            // @ts-ignore
+            this._metrics = Phaser.GameObjects.MeasureText(this);
         }
         return this.parent.updateText(recalculateMetrics);
     }
@@ -15396,6 +15538,35 @@ class TextStyle {
             this._font = newFont;
         }
         return this;
+    }
+    setFont(font, updateText) {
+        if (updateText === undefined) {
+            updateText = true;
+        }
+        var fontFamily = font;
+        var fontSize = '';
+        var fontStyle = '';
+        if (typeof font !== 'string') {
+            fontFamily = GetValue(font, 'fontFamily', 'Courier');
+            fontSize = GetValue(font, 'fontSize', '16px');
+            fontStyle = GetValue(font, 'fontStyle', '');
+        }
+        else {
+            var fontSplit = font.split(' ');
+            var i = 0;
+            fontStyle = (fontSplit.length > 2) ? fontSplit[i++] : '';
+            fontSize = fontSplit[i++] || '16px';
+            fontFamily = fontSplit[i++] || 'Courier';
+        }
+        if (fontFamily !== this.fontFamily || fontSize !== this.fontSize || fontStyle !== this.fontStyle) {
+            this.fontFamily = fontFamily;
+            this.fontSize = fontSize;
+            this.fontStyle = fontStyle;
+            if (updateText) {
+                this.update(true);
+            }
+        }
+        return this.parent;
     }
     setFontFamily(family) {
         this.fontFamily = family;
@@ -15487,7 +15658,6 @@ class TextStyle {
     }
 }
 
-const DEFULT_FONT = "'微软雅黑','SimSun','Source Han Sans', Helvetica, 'Noto Sans', 'Helvetica Neue', 'Nimbus Sans L', Arial, 'Liberation Sans', 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Source Han Sans SC', 'Source Han Sans CN', 'Microsoft YaHei'";
 class TextField extends DisplayObject {
     constructor(scene) {
         super(scene, "TextField");
@@ -15668,23 +15838,6 @@ class TextField extends DisplayObject {
         return this;
     }
     setFont(font) {
-        // try WebFont 是否定义
-        if (!DEFULT_FONT.includes(font)) {
-            try {
-                const families = GRoot.inst.customFontFamils;
-                if (families.indexOf(font) === -1)
-                    families.push(font);
-                WebFont.load({
-                    custom: {
-                        families
-                    },
-                });
-            }
-            catch (error) {
-                // error webFont not define
-                console.warn("webFont not define");
-            }
-        }
         this._style.setFontFamily(font);
         return this;
     }

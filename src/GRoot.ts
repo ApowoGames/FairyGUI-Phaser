@@ -1,5 +1,4 @@
 import { InputManager } from './input/InputManager';
-import { ObjectType } from './FieldTypes';
 import { ToolSet } from './utils/ToolSet';
 import { GObject } from './GObject';
 import { GGraph } from './GGraph';
@@ -8,7 +7,7 @@ import { GComponent } from "./GComponent";
 import { DisplayObjectEvent } from './event/DisplayObjectEvent';
 import { UIConfig } from './UIConfig';
 import { UIPackage } from './UIPackage';
-import { InteractiveEvent, PopupDirection, RelationType, Window } from '.';
+import { InteractiveEvent, PopupDirection, Window } from '.';
 import { Utils } from './utils/Utils';
 import { TextureManager } from './texture/TextureManager';
 export class GRootMouseStatus {
@@ -43,21 +42,12 @@ export class GRoot extends GComponent {
     private _checkPopups: boolean;
     private _inputManager: InputManager;
     private _textureManager: TextureManager;
-    /**
-     * scene场景customFont列表
-     */
-    private _customFontFamils: string[];
     constructor() {
         super();
         this._popupStack = [];
         this._justClosedPopups = [];
-        this._customFontFamils = [];
         this._inputManager = new InputManager();
         this._textureManager = new TextureManager();
-    }
-
-    public get customFontFamils(): string[] {
-        return this._customFontFamils;
     }
 
     public get emitter(): Phaser.Events.EventEmitter {
@@ -103,49 +93,31 @@ export class GRoot extends GComponent {
      * @param scene 
      * @param stageOptions 
      */
-    public attachTo(scene: Phaser.Scene, stageOptions?: any): Promise<void> {
-        return new Promise((resolve, reject) => {
-            this._scene = scene;
-            const fun = () => {
-                this._inputManager.setScene(scene);
-                Utils.FPSTarget = this._scene.game.config.fps.target || Utils.FPSTarget;
-                //this.createDisplayObject();
-                // todo deal stageoptions
-                if (this._uiStage) {
-                    this.removeListen();
-                    // this._uiStage.removeChild(this._container, UISceneDisplay.LAYER_ROOT);
-                    this._uiStage.destroy();
-                }
-                this._stageOptions = stageOptions;
-                let con = this._stageOptions.container;
-                if (!con) {
-                    con = this.scene.add.container(this._stageOptions.x, this._stageOptions.y);
-                    con.setSize(this._stageOptions.width, this._stageOptions.height);
-                    // con.setInteractive(new Phaser.Geom.Rectangle(con.x, con.y, this._width, this._height), Phaser.Geom.Rectangle.Contains);
-                }
-                this._uiStage = new UIStage(scene, con);
-                (<any>this._scene).stage = this._uiStage;
-                this._width = stageOptions.width;
-                this._height = stageOptions.height;
-                // 初始化场景
-                this.createDisplayObject();
-                // this._uiStage.addChild(this._container, UISceneDisplay.LAYER_ROOT);
-                this.addListen();
-            }
-            if (stageOptions.webfont) {
-                // this._scene.load.on(Phaser.Loader.Events.COMPLETE, () => {
-                this._scene.load.on(Phaser.Loader.Events.FILE_KEY_COMPLETE + 'script-webfont', () => {
-                    fun();
-                    resolve();
-                }, this);
-                // 加载chrome字体 webfont
-                this._scene.load.script("webfont", stageOptions.webfont);
-                this._scene.load.start();
-            } else {
-                fun();
-                resolve();
-            }
-        });
+    public attachTo(scene: Phaser.Scene, stageOptions?: any): void {
+        this._scene = scene;
+        this._inputManager.setScene(scene);
+        Utils.FPSTarget = this._scene.game.config.fps.target || Utils.FPSTarget;
+        //this.createDisplayObject();
+        // todo deal stageoptions
+        if (this._uiStage) {
+            this.removeListen();
+            // this._uiStage.removeChild(this._container, UISceneDisplay.LAYER_ROOT);
+            this._uiStage.destroy();
+        }
+        this._stageOptions = stageOptions;
+        let con = this._stageOptions.container;
+        if (!con) {
+            con = this.scene.add.container(this._stageOptions.x, this._stageOptions.y);
+            con.setSize(this._stageOptions.width, this._stageOptions.height);
+            // con.setInteractive(new Phaser.Geom.Rectangle(con.x, con.y, this._width, this._height), Phaser.Geom.Rectangle.Contains);
+        }
+        this._uiStage = new UIStage(scene, con);
+        (<any>this._scene).stage = this._uiStage;
+        this._width = stageOptions.width;
+        this._height = stageOptions.height;
+        // 初始化场景
+        this.createDisplayObject();
+        this.addListen();
     }
 
     public addToStage(child: Phaser.GameObjects.GameObject, type: UISceneDisplay = UISceneDisplay.LAYER_ROOT, index: number = -1) {

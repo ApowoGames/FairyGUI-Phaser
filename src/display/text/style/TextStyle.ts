@@ -3,19 +3,67 @@ import { CONST } from "../const";
 import { FillStyleType, HAlignModeString, VAlignModeString } from "../Types";
 import { UIConfig } from "../../..";
 import { WrapMode } from "../WrapText";
+import { MeasureText } from "../measureText";
 
-export class ITextStyle {
-    backgroundColor?: string;
+
+//  Key: [ Object Key, Default Value ]
+
+var propertyMap = {
+    fontFamily: ['fontFamily', 'Courier'],
+    fontSize: ['fontSize', '16px'],
+    fontStyle: ['fontStyle', ''],
+    backgroundColor: ['backgroundColor', null],
+    color: ['color', '#fff'],
+    stroke: ['stroke', '#fff'],
+    strokeThickness: ['strokeThickness', 0],
+    shadowOffsetX: ['shadow.offsetX', 0],
+    shadowOffsetY: ['shadow.offsetY', 0],
+    shadowColor: ['shadow.color', '#000'],
+    shadowBlur: ['shadow.blur', 0],
+    shadowStroke: ['shadow.stroke', false],
+    shadowFill: ['shadow.fill', false],
+    align: ['align', 'left'],
+    maxLines: ['maxLines', 0],
+    fixedWidth: ['fixedWidth', 0],
+    fixedHeight: ['fixedHeight', 0],
+    resolution: ['resolution', 0],
+    rtl: ['rtl', false],
+    testString: ['testString', '|MÃ‰qgy'],
+    baselineX: ['baselineX', 1.2],
+    baselineY: ['baselineY', 1.4],
+    wordWrapWidth: ['wordWrap.width', null],
+    wordWrapCallback: ['wordWrap.callback', null],
+    wordWrapCallbackScope: ['wordWrap.callbackScope', null],
+    wordWrapUseAdvanced: ['wordWrap.useAdvancedWrap', false]
+};
+
+const GetValue = Phaser.Utils.Objects.GetValue;
+const GetAdvancedValue = Phaser.Utils.Objects.GetAdvancedValue;
+export interface ITextStyle {
 
     fontFamily?: string;
-    fontSize?: string | number;
+    fontSize?: string;
     fontStyle?: string;
+    font?: string;
+    backgroundColor?: string;
+    color?: string;
+    stroke?: string;
+    strokeThickness?: number;
+    shadow?: Phaser.Types.GameObjects.Text.TextShadow;
+    padding?: Phaser.Types.GameObjects.Text.TextPadding;
+    align?: string;
+    maxLines?: number;
+
+    testString?: string;
+    baselineX?: number;
+    baselineY?: number;
+    wordWrap?: Phaser.Types.GameObjects.Text.TextWordWrap;
+
     italic?: boolean;
     bold?: boolean;
-    font?: string;
+
     fillStyle?: FillStyleType;
     strokeStyle?: FillStyleType;
-    strokeThickness?: number;
 
     // shadow
     shadowOffsetX?: number;
@@ -56,12 +104,24 @@ export class ITextStyle {
     antialias?: boolean;
 }
 
+// @ts-ignore
 export class TextStyle implements ITextStyle {
-    backgroundColor?: string;
-
     fontFamily?: string = UIConfig.defaultFont;
-    fontSize?: string = "16px"
+    fontSize?: string = "16px";
     fontStyle?: string = "";
+    font?: string;
+    backgroundColor?: string;
+    color?: string = "#fff";
+    stroke?: string = "#fff";
+    shadow?: Phaser.Types.GameObjects.Text.TextShadow;
+    padding?: Phaser.Types.GameObjects.Text.TextPadding;
+    align?: string = "left";
+    maxLines?: number = 0;
+    testString?: string = '|MÃ‰qgy';
+    baselineX?: number = 1.2;
+    baselineY?: number = 1.4;
+    wordWrap?: Phaser.Types.GameObjects.Text.TextWordWrap;
+
     bold: boolean = false;
     italic: boolean = false;
     fillStyle?: FillStyleType = "#000";
@@ -101,14 +161,14 @@ export class TextStyle implements ITextStyle {
     antialias?: boolean = true;
     protected _font: string;
 
-    private parent: TextField;
+    parent: TextField;
 
     private _metrics;
     constructor(text: TextField, style: ITextStyle) {
         this.parent = text;
 
         this.setStyle(style);
-        const metrics = style.metrics;
+        let metrics = style.metrics;
         if (metrics) {
             this._metrics = {
                 ascent: metrics.ascent || 0,
@@ -116,27 +176,63 @@ export class TextStyle implements ITextStyle {
                 fontSize: metrics.fontSize || 0
             }
         } else {
-            // TODO
-            // this.metrics = Phaser.GameObjects.MeasureText(this)
+            metrics = MeasureText(this)
         }
     }
 
-    setStyle(style: ITextStyle, updateText: boolean = true) {
-        if (style && style.hasOwnProperty("wrap")) {
-            // TODO
-            // const wrap = style.wrap;
+    syncFont(canvas, context) {
+        context.font = this._font;
+    }
+
+    setStyle(style: ITextStyle, updateText: boolean = true, setDefaults: boolean = false) {
+        if (updateText === undefined) { updateText = true; }
+        if (setDefaults === undefined) { setDefaults = false; }
+
+        if (style && style.hasOwnProperty('fontSize') && typeof style.fontSize === 'number') {
+            // @ts-ignore
+            style.fontSize = style.fontSize.toString() + 'px';
         }
 
-        if (style && style.fontSize && typeof style.fontSize === "number") {
-            style.fontSize = style.fontSize.toString() + "px";
+        for (var key in propertyMap) {
+            var value = (setDefaults) ? propertyMap[key][1] : this[key];
+
+            if (key === 'wordWrapCallback' || key === 'wordWrapCallbackScope') {
+                // 回调和范围应该在不处理值的情况下设置
+                this[key] = GetValue(style, propertyMap[key][0], value);
+            }
+            else {
+                this[key] = GetAdvancedValue(style, propertyMap[key][0], value);
+            }
+        }
+
+        var font = GetValue(style, 'font', null);
+
+        if (font !== null) {
+            this.setFont(font, false);
+        }
+
+        this._font = [this.fontStyle, this.fontSize, this.fontFamily].join(' ').trim();
+
+        // 允许使用填充代替颜色
+        var fill = GetValue(style, 'fill', null);
+
+        if (fill !== null) {
+            this.color = fill;
+        }
+
+        if (updateText) {
+            return this.update(true);
+        }
+        else {
+            return this.parent;
         }
     }
 
     update(recalculateMetrics: boolean) {
         if (recalculateMetrics) {
             this._font = `${this.fontStyle} ${this.fontSize} ${this.fontFamily}`;
-            // TODO
-            // this.metrics = Phaser.GameObjects.MeasureText(this);
+            // @ts-ignore
+            this._metrics = Phaser.GameObjects.MeasureText(this);
         }
         return this.parent.updateText(recalculateMetrics);
     }
@@ -149,16 +245,49 @@ export class TextStyle implements ITextStyle {
         return this;
     }
 
+    setFont(font, updateText) {
+        if (updateText === undefined) { updateText = true; }
+
+        var fontFamily = font;
+        var fontSize = '';
+        var fontStyle = '';
+
+        if (typeof font !== 'string') {
+            fontFamily = GetValue(font, 'fontFamily', 'Courier');
+            fontSize = GetValue(font, 'fontSize', '16px');
+            fontStyle = GetValue(font, 'fontStyle', '');
+        }
+        else {
+            var fontSplit = font.split(' ');
+
+            var i = 0;
+
+            fontStyle = (fontSplit.length > 2) ? fontSplit[i++] : '';
+            fontSize = fontSplit[i++] || '16px';
+            fontFamily = fontSplit[i++] || 'Courier';
+        }
+
+        if (fontFamily !== this.fontFamily || fontSize !== this.fontSize || fontStyle !== this.fontStyle) {
+            this.fontFamily = fontFamily;
+            this.fontSize = fontSize;
+            this.fontStyle = fontStyle;
+
+            if (updateText) {
+                this.update(true);
+            }
+        }
+
+        return this.parent;
+    }
+
     setFontFamily(family: string) {
         this.fontFamily = family;
-
         return this.update(true);
     }
 
     setFontStyle(style: string) {
         if (this.fontStyle !== style) {
             this.fontStyle = style;
-            
             return this.update(true);
         }
     }
@@ -171,7 +300,6 @@ export class TextStyle implements ITextStyle {
             this.fontSize = size;
             return this.update(true);
         }
-    
     }
 
     setFixedSize(width: number, height: number) {
@@ -224,7 +352,7 @@ export class TextStyle implements ITextStyle {
             return this.update(true);
         }
     }
-    
+
     setShadowOffset(x: number, y: number) {
         if (this.shadowOffsetX !== x || this.shadowOffsetY !== y) {
             this.shadowFill = (x !== 0 || y !== 0);
@@ -235,7 +363,7 @@ export class TextStyle implements ITextStyle {
     }
 
     setSingleLine(value: boolean) {
-        
+
     }
 
     get canvas() {

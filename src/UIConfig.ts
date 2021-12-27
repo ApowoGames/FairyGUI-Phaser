@@ -3,8 +3,8 @@ export class UIConfig {
   constructor() {
   }
 
-  //Default font name
-  public static defaultFont: string = "SimSun";
+  //Default phaser font name
+  public static defaultFont: string = "Courier";
 
   //Resource using in Window.ShowModalWait for locking the window.
   public static windowModalWaiting: string;

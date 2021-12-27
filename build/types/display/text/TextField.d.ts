@@ -3,7 +3,7 @@ import { CanvasText } from './canvastext/CanvasText';
 import { ImageManager } from './imagemanager/ImageManager';
 import { TextStyle } from './style/TextStyle';
 import { FillStyleType, HAlignModeString, VAlignModeString } from './Types';
-export declare const DEFULT_FONT = "'\u5FAE\u8F6F\u96C5\u9ED1','SimSun','Source Han Sans', Helvetica, 'Noto Sans', 'Helvetica Neue', 'Nimbus Sans L', Arial, 'Liberation Sans', 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Source Han Sans SC', 'Source Han Sans CN', 'Microsoft YaHei'";
+export declare const DEFULT_FONT = "'\u5FAE\u8F6F\u96C5\u9ED1','SimSun'";
 export declare class TextField extends DisplayObject {
     canvas: HTMLCanvasElement;
     context: CanvasRenderingContext2D | null;

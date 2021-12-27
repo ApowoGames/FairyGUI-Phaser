@@ -9,7 +9,7 @@ import { TextStyle } from './style/TextStyle';
 import { FillStyleType, HAlignModeString, VAlignModeString } from './Types';
 import { WrapMode } from './WrapText';
 
-export const DEFULT_FONT = "'微软雅黑','SimSun','Source Han Sans', Helvetica, 'Noto Sans', 'Helvetica Neue', 'Nimbus Sans L', Arial, 'Liberation Sans', 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Source Han Sans SC', 'Source Han Sans CN', 'Microsoft YaHei'";
+export const DEFULT_FONT = "'微软雅黑','SimSun'";
 export class TextField extends DisplayObject {
     public canvas: HTMLCanvasElement;
     public context: CanvasRenderingContext2D | null;
@@ -263,23 +263,7 @@ export class TextField extends DisplayObject {
     }
 
     setFont(font: string) {
-        // try WebFont 是否定义
-        if (!DEFULT_FONT.includes(font)) {
-            try {
-                const families = GRoot.inst.customFontFamils;
-                if (families.indexOf(font) === -1) families.push(font);
-                WebFont.load({
-                    custom: {
-                        families
-                    },
-                });
-            } catch (error) {
-                // error webFont not define
-                console.warn("webFont not define");
-            }
-        }
         this._style.setFontFamily(font);
-
         return this;
     }
 
