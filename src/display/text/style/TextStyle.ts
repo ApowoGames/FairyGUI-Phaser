@@ -109,7 +109,6 @@ export class TextStyle implements ITextStyle {
     fontFamily?: string = UIConfig.defaultFont;
     fontSize?: string = "16px";
     fontStyle?: string = "";
-    font?: string;
     backgroundColor?: string;
     color?: string = "#fff";
     stroke?: string = "#fff";
@@ -178,6 +177,10 @@ export class TextStyle implements ITextStyle {
         } else {
             metrics = MeasureText(this)
         }
+    }
+
+    get font(): string {
+        return this._font;
     }
 
     syncFont(canvas, context) {

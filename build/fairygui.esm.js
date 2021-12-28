@@ -15483,6 +15483,9 @@ class TextStyle {
             metrics = MeasureText(this);
         }
     }
+    get font() {
+        return this._font;
+    }
     syncFont(canvas, context) {
         context.font = this._font;
     }
@@ -15756,6 +15759,7 @@ class TextField extends DisplayObject {
         h = Math.max(Math.ceil(h), 1);
         const canvas = this.canvas;
         const context = this.context;
+        //if (this._style.font && this._style.font !== this._style.font) this.context.font = this._style.font;
         if (canvas.width !== w || canvas.height !== h) {
             canvas.width = w;
             canvas.height = h;

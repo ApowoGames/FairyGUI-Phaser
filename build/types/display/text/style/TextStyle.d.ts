@@ -49,7 +49,6 @@ export declare class TextStyle implements ITextStyle {
     fontFamily?: string;
     fontSize?: string;
     fontStyle?: string;
-    font?: string;
     backgroundColor?: string;
     color?: string;
     stroke?: string;
@@ -90,6 +89,7 @@ export declare class TextStyle implements ITextStyle {
     parent: TextField;
     private _metrics;
     constructor(text: TextField, style: ITextStyle);
+    get font(): string;
     syncFont(canvas: any, context: any): void;
     setStyle(style: ITextStyle, updateText?: boolean, setDefaults?: boolean): TextField;
     update(recalculateMetrics: boolean): TextField;
