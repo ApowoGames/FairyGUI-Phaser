@@ -11800,11 +11800,11 @@
             this._buildNativeEvent = { delay: _delay, callback: this.buildNativeDisplayList, callbackScope: this };
         }
         dispose() {
-            if (!this._renderTime) {
+            if (this._renderTime) {
                 this._renderTime.remove(false);
                 this._renderTime = null;
             }
-            if (!this._buildNativeTime) {
+            if (this._buildNativeTime) {
                 this._buildNativeTime.remove(false);
                 this._buildNativeTime = null;
             }
@@ -11927,7 +11927,6 @@
                             if (!this._buildNativeTime)
                                 this._buildNativeTime = this.scene.time.addEvent(this._buildNativeEvent);
                         }
-                        //Laya.timer.callLater(this, this.buildNativeDisplayList);
                     }
                     if (dispose)
                         child.dispose();
@@ -13726,8 +13725,8 @@
             var str = buffer.readS();
             if (str != null)
                 this.text = str;
-            // // 普通文本默认没有交互
-            // this.touchable = false;
+            // 普通文本默认没有交互
+            this.touchable = false;
         }
     }
 
@@ -15086,9 +15085,6 @@
                 return;
             }
             UIPackage.getItemAssetByURL(imgKey).then((obj) => {
-                // const imgInfo = imageManager.get(imgKey);
-                // x += imgInfo.left;
-                // y += imgInfo.y - imgInfo.height;
                 const texture = obj.texture;
                 const key = obj.texture.key + "_" + obj.name + "_" + obj.width + "_" + obj.height;
                 const context = canvasText.context;
@@ -15722,7 +15718,6 @@
                 context: this.context,
                 parse: new Parser(),
             });
-            this.initRTL();
             this.scene.sys.game.events.on(Phaser.Core.Events.CONTEXT_RESTORED, this.onContextRestored, this);
             this.on("areadown", (pointer, localX, localY, event) => {
                 console.log("areadown: ", pointer, localX, localY);
@@ -15804,9 +15799,9 @@
             context.scale(resolution, resolution);
             // draw
             canvasText.draw(padding.left, padding.top, textWidth, textHeight).then((value) => {
+                context.restore();
                 // 画完需要添加到场景上
                 AddToDOM(this.canvas, this.scene.sys.canvas);
-                context.restore();
                 const webglRenderer = this.renderer;
                 if (webglRenderer.gl) {
                     this.frame.source.glTexture = webglRenderer.canvasToTexture(canvas, this.frame.source.glTexture, true);
@@ -15820,19 +15815,6 @@
                 }
             });
             return this;
-        }
-        initRTL() {
-            // if (!this.style.rtl) {
-            //     return;
-            // }
-            // // 由于浏览器实现问题，您无法将Text BiDi 文本填充到画布
-            // // 这不是 DOM 的一部分。、它只是完全忽略了方向属性。
-            // this.canvas.dir = 'rtl';
-            // this.context.direction = 'rtl';
-            // //  将它添加到 DOM，但隐藏在父画布中。
-            // this.canvas.style.display = 'none';
-            AddToDOM(this.canvas, this.scene.sys.canvas);
-            // this.originX = 1;
         }
         setWordWrapWidth(width, useAdvancedWrap) {
             this._style.wrapMode = WrapMode.char;
@@ -15953,8 +15935,8 @@
         }
         setup_afterAdd(buffer, beginPos) {
             super.setup_afterAdd(buffer, beginPos);
-            // // 输入文本能交互
-            // this.touchable = true;
+            // 输入文本能交互
+            this.touchable = true;
         }
         get nativeText() {
             return this._textField;
@@ -15998,24 +15980,6 @@
             else {
                 this._textField.setFont(UIConfig.defaultFont);
             }
-            // todo loadFont logic code
-            // if (ToolSet.startsWith(this._font, "ui://")) {
-            //     UIPackage.getItemAssetByURL(this._font).then(() => {
-            //         this._bitmapFont = <BitmapFont>UIPackage.getItemAssetByURL(this._font);
-            //     });
-            // }
-            // else {
-            //     delete this._bitmapFont;
-            // }
-            // if (this._bitmapFont) {
-            //     this._textField["setChanged"]();
-            // }
-            // else {
-            //     if (this._font)
-            //         this._textField.font = this._font;
-            //     else
-            //         this._textField.font = UIConfig.defaultFont;
-            // }
         }
         get fontSize() {
             const fontSize = this._textField.style.fontSize;
@@ -16031,7 +15995,6 @@
             return this._color;
         }
         set color(value) {
-            //todo
             if (this._color != value) {
                 this._color = value;
                 this.updateGear(4);
@@ -16075,8 +16038,6 @@
             return this._textField.style.bold;
         }
         set bold(value) {
-            // todo bold
-            // this._textField.bold = value;
             this._textField.setBold(value);
         }
         get italic() {
@@ -16484,19 +16445,27 @@
             this._text2 = "";
             this.editable = true;
             this.setOrigin(0);
+            this.scene.input.on("pointerup", this.onFocusHandler, this);
         }
-        onFocusHandler() {
+        destroy() {
+            this.editable = false;
+            this._editing = false;
+            this.scene.input.off("pointerup", this.onFocusHandler, this);
+            this.scene.input.off("pointerdown", this.onPointerSceneHandler, this);
+            if (this._element) {
+                this._element.destroy();
+                this._element = null;
+            }
+        }
+        onFocusHandler(pointer) {
             if (!this.editable || this._editing)
                 return;
-            // if (!this._font)
-            //     this.applyFormat();
             if (!this._element)
                 this.createElement();
             this._element.setVisible(true);
             const inputElement = this._element.node;
             inputElement.value = this._text2;
             inputElement.style.fontSize = this.style.fontSize;
-            // inputElement.style.textAlign = this.style.align;
             if (this.maxLength !== undefined)
                 inputElement.maxLength = this.maxLength;
             this.scene.input.on("pointerdown", this.onPointerSceneHandler, this);
@@ -16512,8 +16481,10 @@
             this.setInteractive();
             this._text2 = this._inputNode.value;
             this._inputNode = null;
-            this._element.destroy();
-            this._element = null;
+            if (this._element) {
+                this._element.destroy();
+                this._element = null;
+            }
             this._editing = false;
             this.updateTextField();
             this.setVisible(true);
@@ -16553,8 +16524,8 @@
             else {
                 super.setText(this._text2);
             }
-            this.off("pointerup", this.onFocusHandler, this);
-            this.on("pointerup", this.onFocusHandler, this);
+            this.scene.input.off("pointerup", this.onFocusHandler, this);
+            this.scene.input.on("pointerup", this.onFocusHandler, this);
         }
         /**
          * Don"t propagate touch/mouse events to parent(game canvas)
@@ -16589,7 +16560,7 @@
             this._text2 = value;
             this.updateTextField();
             if (value) {
-                this.on("pointerup", this.onFocusHandler, this);
+                this.scene.input.on("pointerup", this.onFocusHandler, this);
             }
             return this;
         }
@@ -16695,8 +16666,8 @@
         }
         createDisplayObject() {
             this._displayObject = this._textField = new InputTextField(this).setOrigin(0, 0);
-            //     this._displayObject["$owner"] = this;
-            //     this._displayObject.createInput();
+            this._displayObject["$owner"] = this;
+            // this._displayObject.createInput();
         }
         get nativeInput() {
             return this._textField;
@@ -16750,6 +16721,10 @@
         requestFocus() {
             this.inputTextField.setFocus();
             super.requestFocus();
+        }
+        init() {
+            if (this._displayObject)
+                this._displayObject.init();
         }
         setup_beforeAdd(buffer, beginPos) {
             super.setup_beforeAdd(buffer, beginPos);

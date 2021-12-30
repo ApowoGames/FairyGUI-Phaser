@@ -13,7 +13,9 @@ export declare class InputTextField extends TextField {
     private _inputNode;
     private _width;
     private _height;
+    private mRectangle;
     constructor(owner: GBasicTextField);
+    destroy(): void;
     private onFocusHandler;
     private onBlurHandler;
     private createElement;

@@ -26,20 +26,30 @@ export class InputTextField extends TextField {
     private _inputNode: InputElement;
     private _width: number;
     private _height: number;
+    private mRectangle: Phaser.Geom.Rectangle;
     constructor(owner: GBasicTextField) {
         super(owner.scene);
 
         this._text2 = "";
         this.editable = true;
         this.setOrigin(0);
+        this.scene.input.on("pointerup", this.onFocusHandler, this);
     }
 
-    private onFocusHandler() {
+    destroy(): void {
+        this.editable = false;
+        this._editing = false;
+        this.scene.input.off("pointerup", this.onFocusHandler, this);
+        this.scene.input.off("pointerdown", this.onPointerSceneHandler, this);
+        if (this._element) {
+            this._element.destroy();
+            this._element = null;
+        }
+    }
+
+    private onFocusHandler(pointer: Phaser.Input.Pointer) {
         if (!this.editable || this._editing)
             return;
-
-        // if (!this._font)
-        //     this.applyFormat();
 
         if (!this._element)
             this.createElement();
@@ -48,7 +58,6 @@ export class InputTextField extends TextField {
         const inputElement = (<InputElement>this._element.node);
         inputElement.value = this._text2;
         inputElement.style.fontSize = this.style.fontSize;
-        // inputElement.style.textAlign = this.style.align;
         if (this.maxLength !== undefined) inputElement.maxLength = this.maxLength;
 
         this.scene.input.on("pointerdown", this.onPointerSceneHandler, this);
@@ -65,8 +74,10 @@ export class InputTextField extends TextField {
         this.setInteractive();
         this._text2 = this._inputNode.value;
         this._inputNode = null;
-        this._element.destroy();
-        this._element = null;
+        if (this._element) {
+            this._element.destroy();
+            this._element = null;
+        }
 
         this._editing = false;
         this.updateTextField();
@@ -84,6 +95,7 @@ export class InputTextField extends TextField {
             e.style.resize = "none";
             e.style.overflow = "scroll";
         }
+
         this._inputNode = e;
         e.style.outline = "none";
         e.style.borderWidth = "0px";
@@ -112,8 +124,8 @@ export class InputTextField extends TextField {
             super.setText(this._text2);
         }
 
-        this.off("pointerup", this.onFocusHandler, this);
-        this.on("pointerup", this.onFocusHandler, this);
+        this.scene.input.off("pointerup", this.onFocusHandler, this);
+        this.scene.input.on("pointerup", this.onFocusHandler, this);
     }
 
     /**
@@ -152,7 +164,7 @@ export class InputTextField extends TextField {
         this._text2 = value;
         this.updateTextField();
         if (value) {
-            this.on("pointerup", this.onFocusHandler, this);
+            this.scene.input.on("pointerup", this.onFocusHandler, this);
         }
         return this;
     }

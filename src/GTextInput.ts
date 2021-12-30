@@ -1,6 +1,5 @@
 import { ByteBuffer } from './utils/ByteBuffer';
 import { InputTextField } from './display/InputTextField';
-import { UBBParser } from '.';
 import { GBasicTextField } from './GBasicTextField';
 
 export class InputType {
@@ -48,10 +47,9 @@ export class GTextInput extends GBasicTextField {
 
     public createDisplayObject(): void {
         this._displayObject = this._textField = new InputTextField(this).setOrigin(0, 0);
-    //     this._displayObject["$owner"] = this;
-    //     this._displayObject.createInput();
+        this._displayObject["$owner"] = this;
+        // this._displayObject.createInput();
     }
-    
 
     public get nativeInput(): any {
         return this._textField;
@@ -102,7 +100,7 @@ export class GTextInput extends GBasicTextField {
         // var str: string = UBBParser.inst.parse(value, true);
         this.inputTextField.placeholder = value;
         // if (UBBParser.inst.lastColor)
-            // this._input.promptColor = UBBParser.inst.lastColor;
+        // this._input.promptColor = UBBParser.inst.lastColor;
     }
 
     public get placeholder(): string {
@@ -121,6 +119,10 @@ export class GTextInput extends GBasicTextField {
         this.inputTextField.setFocus();
 
         super.requestFocus();
+    }
+
+    public init(){
+        if(this._displayObject)this._displayObject.init();
     }
 
     public setup_beforeAdd(buffer: ByteBuffer, beginPos: number): void {
@@ -149,7 +151,7 @@ export class GTextInput extends GBasicTextField {
         if (buffer.readBool())
             this.password = true;
     }
-    
+
 
     private get inputTextField() {
         return <InputTextField>this._textField;

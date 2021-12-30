@@ -33,8 +33,8 @@ export class GBasicTextField extends GTextField {
     public setup_afterAdd(buffer: ByteBuffer, beginPos: number): void {
         super.setup_afterAdd(buffer, beginPos);
 
-        // // 输入文本能交互
-        // this.touchable = true;
+        // 输入文本能交互
+        this.touchable = true;
     }
 
     public get nativeText(): TextField {
@@ -84,27 +84,6 @@ export class GBasicTextField extends GTextField {
         } else {
             this._textField.setFont(UIConfig.defaultFont)
         }
-        // todo loadFont logic code
-        // if (ToolSet.startsWith(this._font, "ui://")) {
-        //     UIPackage.getItemAssetByURL(this._font).then(() => {
-        //         this._bitmapFont = <BitmapFont>UIPackage.getItemAssetByURL(this._font);
-        //     });
-
-        // }
-        // else {
-        //     delete this._bitmapFont;
-
-        // }
-
-        // if (this._bitmapFont) {
-        //     this._textField["setChanged"]();
-        // }
-        // else {
-        //     if (this._font)
-        //         this._textField.font = this._font;
-        //     else
-        //         this._textField.font = UIConfig.defaultFont;
-        // }
     }
 
     public get fontSize(): number {
@@ -124,8 +103,6 @@ export class GBasicTextField extends GTextField {
     }
 
     public set color(value: string) {
-        //todo
-
         if (this._color != value) {
             this._color = value;
             this.updateGear(4);
@@ -180,9 +157,6 @@ export class GBasicTextField extends GTextField {
     }
 
     public set bold(value: boolean) {
-
-        // todo bold
-        // this._textField.bold = value;
         this._textField.setBold(value);
     }
 

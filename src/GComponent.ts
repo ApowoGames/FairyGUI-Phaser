@@ -68,11 +68,11 @@ export class GComponent extends GObject {
     }
 
     public dispose(): void {
-        if (!this._renderTime) {
+        if (this._renderTime) {
             this._renderTime.remove(false);
             this._renderTime = null;
         }
-        if (!this._buildNativeTime) {
+        if (this._buildNativeTime) {
             this._buildNativeTime.remove(false);
             this._buildNativeTime = null;
         }
@@ -214,7 +214,6 @@ export class GComponent extends GObject {
                     if (this._childrenRenderOrder == ChildrenRenderOrder.Arch) {
                         if (!this._buildNativeTime) this._buildNativeTime = this.scene.time.addEvent(this._buildNativeEvent);
                     }
-                    //Laya.timer.callLater(this, this.buildNativeDisplayList);
                 }
 
                 if (dispose)

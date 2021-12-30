@@ -54,6 +54,7 @@ export declare class GTextInput extends GBasicTextField {
     set restrict(value: string);
     get restrict(): string;
     requestFocus(): void;
+    init(): void;
     setup_beforeAdd(buffer: ByteBuffer, beginPos: number): void;
     private get inputTextField();
 }

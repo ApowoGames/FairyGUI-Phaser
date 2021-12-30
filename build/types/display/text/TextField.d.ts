@@ -20,7 +20,6 @@ export declare class TextField extends DisplayObject {
     addImage(key: string, config: string): this;
     drawAreaBounds(graphics: any, color: any): this;
     updateText(runWrap?: boolean): this;
-    initRTL(): void;
     setWordWrapWidth(width: number, useAdvancedWrap: boolean): void;
     setSingleLine(val: boolean): void;
     setInteractive(hitArea?: Phaser.Types.Input.InputConfiguration | any, callback?: Phaser.Types.Input.HitAreaCallback, dropZone?: boolean): this;
