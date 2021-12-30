@@ -169,9 +169,10 @@ export class TextField extends DisplayObject {
             textWidth,
             textHeight
         ).then((value: CanvasText) => {
+
+            context.restore();
             // 画完需要添加到场景上
             AddToDOM(this.canvas, this.scene.sys.canvas);
-            context.restore();
 
             const webglRenderer = <Phaser.Renderer.WebGL.WebGLRenderer>this.renderer;
             if (webglRenderer.gl) {
