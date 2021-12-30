@@ -1,5 +1,6 @@
 import { GTextField } from './GTextField';
 import { TextField } from './display/text/TextField';
+import { ByteBuffer } from '.';
 import { HAlignModeString, VAlignModeString } from './display/text/Types';
 export declare class GBasicTextField extends GTextField {
     protected _textField: TextField;
@@ -11,6 +12,7 @@ export declare class GBasicTextField extends GTextField {
     private _lines?;
     constructor(scene: Phaser.Scene, type: number);
     createDisplayObject(): void;
+    setup_afterAdd(buffer: ByteBuffer, beginPos: number): void;
     get nativeText(): TextField;
     set text(value: string);
     get text(): string;

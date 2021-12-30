@@ -1,3 +1,5 @@
+import { PackageItem } from './../../../PackageItem';
+import { ObjectType } from './../../../FieldTypes';
 import { UIPackage } from "../../..";
 import { HitAreaManager } from "../hitareamanager/HitAreaManager";
 import { Pen } from "../penmanager/Pen";
@@ -16,134 +18,154 @@ export function Draw(
     textScrollX: number = 0,
     textScrollY: number = 0,
     penManager: PenManager = canvasText.penManager
-) {
-    if (canvasText.hitAreaManager) {
-        canvasText.hitAreaManager.clear();
-    }
-
-    let totalLineHeight = penManager.totalLineHeight;
-    if (totalLineHeight === 0) {
-        return;
-    }
-
-    const clipMode = (drawBoundWidth < canvasText.textWidth) || drawBoundHeight < canvasText.textHeight;
-
-    const context = canvasText.context;
-    context.save();
-
-    const parent = canvasText.parent;
-
-    const style = parent.style;
-    Clear(canvasText, style);
-
-    if (clipMode) {
-        context.beginPath();
-        context.rect(drawBoundX, drawBoundY, drawBoundWidth, drawBoundHeight);
-        context.clip();
-    }
-
-    const hAlign: HAlignModeString = style.halign;
-    const vAlign: VAlignModeString = style.valign;
-
-    // Shift offsetY
-    let offsetY = drawBoundY - textScrollY;
-    switch (vAlign) {
-        case "center":
-            offsetY += (drawBoundHeight - totalLineHeight) / 2;
-            break;
-
-        case "bottom":
-            offsetY += drawBoundHeight - totalLineHeight - 2;
-            break;
-    }
-
-    let lineTop = offsetY;
-    const lines = penManager.lines;
-    const drawBoundBottom = drawBoundX + drawBoundHeight;
-    for (const line of lines) {
-        if (lineTop > drawBoundBottom) {
-            // Remainder lines are below draw bound
-            break;
+): Promise<void> {
+    return new Promise((resolve, reject) => {
+        if (canvasText.hitAreaManager) {
+            canvasText.hitAreaManager.clear();
         }
 
-        const lineBottom = lineTop + line.height;
-        if (lineBottom < drawBoundY) {
-            // Lines above draw bound
-            lineTop = lineBottom;
-            continue;
+        let totalLineHeight = penManager.totalLineHeight;
+        if (totalLineHeight === 0) {
+            resolve();
+            return;
         }
 
-        let lineWidth = line.width;
-        if (lineWidth === 0) {
-            // Line has no valid text pen
-            lineTop = lineBottom;
-            continue;
+        const clipMode = (drawBoundWidth < canvasText.textWidth) || drawBoundHeight < canvasText.textHeight;
+
+        const context = canvasText.context;
+        context.save();
+
+        const parent = canvasText.parent;
+
+        const style = parent.style;
+        Clear(canvasText, style);
+
+        if (clipMode) {
+            context.beginPath();
+            context.rect(drawBoundX, drawBoundY, drawBoundWidth, drawBoundHeight);
+            context.clip();
         }
 
-        // Shift offsetX
-        let offsetX = drawBoundX - textScrollX;
-        switch (hAlign) {
+        const hAlign: HAlignModeString = style.halign;
+        const vAlign: VAlignModeString = style.valign;
+
+        // Shift offsetY
+        let offsetY = drawBoundY - textScrollY;
+        switch (vAlign) {
             case "center":
-                offsetX += (drawBoundWidth - lineWidth) / 2;
+                offsetY += (drawBoundHeight - totalLineHeight) / 2;
                 break;
 
-            case "right":
-                offsetX += drawBoundWidth - lineWidth;
+            case "bottom":
+                offsetY += drawBoundHeight - totalLineHeight - 2;
                 break;
         }
 
-        // Draw each pen in this line
-        let pens = line.pens;
-        for (const pen of pens) {
-            DrawPen(canvasText, pen, offsetX, offsetY);
-        }
-        
-        lineTop = lineBottom;
-    }
+        let lineTop = offsetY;
+        const lines = penManager.lines;
+        const drawBoundBottom = drawBoundX + drawBoundHeight;
+        const promises = [];
+        for (const line of lines) {
+            if (lineTop > drawBoundBottom) {
+                // Remainder lines are below draw bound
+                break;
+            }
 
-    context.restore();
+            const lineBottom = lineTop + line.height;
+            if (lineBottom < drawBoundY) {
+                // Lines above draw bound
+                lineTop = lineBottom;
+                continue;
+            }
+
+            let lineWidth = line.width;
+            if (lineWidth === 0) {
+                // Line has no valid text pen
+                lineTop = lineBottom;
+                continue;
+            }
+
+            // Shift offsetX
+            let offsetX = drawBoundX - textScrollX;
+            switch (hAlign) {
+                case "center":
+                    offsetX += (drawBoundWidth - lineWidth) / 2;
+                    break;
+
+                case "right":
+                    offsetX += drawBoundWidth - lineWidth;
+                    break;
+            }
+
+            // Draw each pen in this line
+            let pens = line.pens;
+
+            for (const pen of pens) {
+                promises.push(DrawPen(canvasText, pen, offsetX, offsetY));
+            }
+
+            lineTop = lineBottom;
+
+        }
+
+        Promise.all(promises).then(() => {
+            context.restore();
+            resolve();
+        });
+    });
 }
 
-export async function DrawPen(canvasText: CanvasText, pen: Pen, offsetX: number, offsetY: number) {
-    offsetX += pen.x;
-    offsetY += pen.y + (pen.prop.y || 0);
+export function DrawPen(canvasText: CanvasText, pen: Pen, offsetX: number, offsetY: number): Promise<void> {
+    return new Promise((resolve, reject) => {
+        offsetX += pen.x;
+        offsetY += pen.y + (pen.prop.y || 0);
 
-    const context = canvasText.context;
-    const defaultStyle = canvasText.parent.style;
+        const context = canvasText.context;
+        const defaultStyle = canvasText.parent.style;
 
-    context.save();
-    const curStyle = canvasText.parser.propToContextStyle(defaultStyle, pen.prop);
-    SyncFont(context, curStyle);
-    SyncStyle(context, curStyle);
+        context.save();
+        const curStyle = canvasText.parser.propToContextStyle(defaultStyle, pen.prop);
+        SyncFont(context, curStyle);
+        SyncStyle(context, curStyle);
 
-    // Underline
-    if ((curStyle.underlineThickness > 0) && (pen.width > 0)) {
-        DrawUnderline(canvasText, offsetX, offsetY, pen.width, curStyle);
-    }
-
-    // Text
-    if (pen.isTextPen) {
-        DrawText(canvasText, offsetX, offsetY, pen.text, curStyle);
-    }
-
-    // Image
-    if (pen.isImagePen) {
-        await DrawImage(canvasText,
-            offsetX,
-            offsetY,
-            pen.prop.img,
-            curStyle
-        );
-    }
-
-    context.restore();
-
-    if (pen.hasAreaMarker && pen.width > 0) {
-        if (!canvasText.hitAreaManager) {
-            canvasText.hitAreaManager = new HitAreaManager();
+        // Underline
+        if ((curStyle.underlineThickness > 0) && (pen.width > 0)) {
+            DrawUnderline(canvasText, offsetX, offsetY, pen.width, curStyle);
         }
-        canvasText.hitAreaManager.add(pen.prop.url, offsetX, offsetY, pen.width, pen.height);
-    }
+
+        // Text
+        if (pen.isTextPen) {
+            DrawText(canvasText, offsetX, offsetY, pen.text, curStyle);
+        }
+
+        const fun = () => {
+            context.restore();
+
+            if (pen.hasAreaMarker && pen.width > 0) {
+                if (!canvasText.hitAreaManager) {
+                    canvasText.hitAreaManager = new HitAreaManager();
+                }
+                canvasText.hitAreaManager.add(pen.prop.url, offsetX, offsetY, pen.width, pen.height);
+            }
+            resolve();
+        }
+
+        // Image
+        if (pen.isImagePen) {
+            DrawImage(canvasText,
+                offsetX,
+                offsetY,
+                pen.prop.img,
+                curStyle
+            ).then(() => {
+                fun();
+            }).catch((error) => {
+                console.error(error);
+            });
+        } else {
+            fun();
+        }
+    });
 }
 
 function Clear(
@@ -186,19 +208,28 @@ function DrawUnderline(canvasText: CanvasText, x: number, y: number, width: numb
     context.lineCap = savedLineCap;
 }
 
-function DrawImage(canvasText: CanvasText, x: number, y: number, imgKey: string, style: ITextStyle) {
-    const imageManager = canvasText.imageManager;
-    if (!imageManager) {
-        return;
-    }
-    // TODO
+function DrawImage(canvasText: CanvasText, x: number, y: number, imgKey: string, style: ITextStyle): Promise<void> {
+    return new Promise((resolve, reject) => {
+        const imageManager = canvasText.imageManager;
+        if (!imageManager) {
+            reject();
+            return;
+        }
 
-    // const imgInfo = imageManager.get(imgKey);
-    const item = UIPackage.getItemAssetByURL(imgKey);
+        UIPackage.getItemAssetByURL(imgKey).then((obj: PackageItem) => {
+            const texture = obj.texture;
+            const key = obj.texture.key + "_" + obj.name + "_" + obj.width + "_" + obj.height;
+            const context = canvasText.context;
+            const frame = texture.get(key);
 
-    // x += imgInfo.left;
-    // y += imgInfo.y - imgInfo.height;
+            context.drawImage(
+                frame.source.image,
+                frame.cutX, frame.cutY, frame.cutWidth, frame.cutHeight,
+                x, y - frame.cutHeight, frame.cutWidth, frame.cutHeight
+            );
 
-    // const context = canvasText.context;
-    // context.drawImage();
+            resolve();
+        });
+    });
+
 }

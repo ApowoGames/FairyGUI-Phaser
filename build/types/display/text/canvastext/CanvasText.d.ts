@@ -18,7 +18,7 @@ export declare class CanvasText {
     private getTextWidth;
     constructor(config: any);
     updatePenManager(text: string, wrapMode: WrapMode, wrapWidth: number, penManager?: PenManager): PenManager;
-    draw(x: number, y: number, width: number, height: number, textScrollX?: number, textScrollY?: number): this;
+    draw(x: number, y: number, width: number, height: number, textScrollX?: number, textScrollY?: number): Promise<CanvasText>;
     destroy(): void;
     getPlainText(text: string, start: number, end: number): string;
     getPenManager(text: any, retPenManager: any): any;

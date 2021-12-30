@@ -13726,8 +13726,8 @@
             var str = buffer.readS();
             if (str != null)
                 this.text = str;
-            // 普通文本默认没有交互
-            this.touchable = false;
+            // // 普通文本默认没有交互
+            // this.touchable = false;
         }
     }
 
@@ -14932,77 +14932,84 @@
     }
 
     function Draw(canvasText, drawBoundX, drawBoundY, drawBoundWidth, drawBoundHeight, textScrollX = 0, textScrollY = 0, penManager = canvasText.penManager) {
-        if (canvasText.hitAreaManager) {
-            canvasText.hitAreaManager.clear();
-        }
-        let totalLineHeight = penManager.totalLineHeight;
-        if (totalLineHeight === 0) {
-            return;
-        }
-        const clipMode = (drawBoundWidth < canvasText.textWidth) || drawBoundHeight < canvasText.textHeight;
-        const context = canvasText.context;
-        context.save();
-        const parent = canvasText.parent;
-        const style = parent.style;
-        Clear(canvasText);
-        if (clipMode) {
-            context.beginPath();
-            context.rect(drawBoundX, drawBoundY, drawBoundWidth, drawBoundHeight);
-            context.clip();
-        }
-        const hAlign = style.halign;
-        const vAlign = style.valign;
-        // Shift offsetY
-        let offsetY = drawBoundY - textScrollY;
-        switch (vAlign) {
-            case "center":
-                offsetY += (drawBoundHeight - totalLineHeight) / 2;
-                break;
-            case "bottom":
-                offsetY += drawBoundHeight - totalLineHeight - 2;
-                break;
-        }
-        let lineTop = offsetY;
-        const lines = penManager.lines;
-        const drawBoundBottom = drawBoundX + drawBoundHeight;
-        for (const line of lines) {
-            if (lineTop > drawBoundBottom) {
-                // Remainder lines are below draw bound
-                break;
+        return new Promise((resolve, reject) => {
+            if (canvasText.hitAreaManager) {
+                canvasText.hitAreaManager.clear();
             }
-            const lineBottom = lineTop + line.height;
-            if (lineBottom < drawBoundY) {
-                // Lines above draw bound
-                lineTop = lineBottom;
-                continue;
+            let totalLineHeight = penManager.totalLineHeight;
+            if (totalLineHeight === 0) {
+                resolve();
+                return;
             }
-            let lineWidth = line.width;
-            if (lineWidth === 0) {
-                // Line has no valid text pen
-                lineTop = lineBottom;
-                continue;
+            const clipMode = (drawBoundWidth < canvasText.textWidth) || drawBoundHeight < canvasText.textHeight;
+            const context = canvasText.context;
+            context.save();
+            const parent = canvasText.parent;
+            const style = parent.style;
+            Clear(canvasText);
+            if (clipMode) {
+                context.beginPath();
+                context.rect(drawBoundX, drawBoundY, drawBoundWidth, drawBoundHeight);
+                context.clip();
             }
-            // Shift offsetX
-            let offsetX = drawBoundX - textScrollX;
-            switch (hAlign) {
+            const hAlign = style.halign;
+            const vAlign = style.valign;
+            // Shift offsetY
+            let offsetY = drawBoundY - textScrollY;
+            switch (vAlign) {
                 case "center":
-                    offsetX += (drawBoundWidth - lineWidth) / 2;
+                    offsetY += (drawBoundHeight - totalLineHeight) / 2;
                     break;
-                case "right":
-                    offsetX += drawBoundWidth - lineWidth;
+                case "bottom":
+                    offsetY += drawBoundHeight - totalLineHeight - 2;
                     break;
             }
-            // Draw each pen in this line
-            let pens = line.pens;
-            for (const pen of pens) {
-                DrawPen(canvasText, pen, offsetX, offsetY);
+            let lineTop = offsetY;
+            const lines = penManager.lines;
+            const drawBoundBottom = drawBoundX + drawBoundHeight;
+            const promises = [];
+            for (const line of lines) {
+                if (lineTop > drawBoundBottom) {
+                    // Remainder lines are below draw bound
+                    break;
+                }
+                const lineBottom = lineTop + line.height;
+                if (lineBottom < drawBoundY) {
+                    // Lines above draw bound
+                    lineTop = lineBottom;
+                    continue;
+                }
+                let lineWidth = line.width;
+                if (lineWidth === 0) {
+                    // Line has no valid text pen
+                    lineTop = lineBottom;
+                    continue;
+                }
+                // Shift offsetX
+                let offsetX = drawBoundX - textScrollX;
+                switch (hAlign) {
+                    case "center":
+                        offsetX += (drawBoundWidth - lineWidth) / 2;
+                        break;
+                    case "right":
+                        offsetX += drawBoundWidth - lineWidth;
+                        break;
+                }
+                // Draw each pen in this line
+                let pens = line.pens;
+                for (const pen of pens) {
+                    promises.push(DrawPen(canvasText, pen, offsetX, offsetY));
+                }
+                lineTop = lineBottom;
             }
-            lineTop = lineBottom;
-        }
-        context.restore();
+            Promise.all(promises).then(() => {
+                context.restore();
+                resolve();
+            });
+        });
     }
     function DrawPen(canvasText, pen, offsetX, offsetY) {
-        return __awaiter(this, void 0, void 0, function* () {
+        return new Promise((resolve, reject) => {
             offsetX += pen.x;
             offsetY += pen.y + (pen.prop.y || 0);
             const context = canvasText.context;
@@ -15019,16 +15026,26 @@
             if (pen.isTextPen) {
                 DrawText(canvasText, offsetX, offsetY, pen.text, curStyle);
             }
+            const fun = () => {
+                context.restore();
+                if (pen.hasAreaMarker && pen.width > 0) {
+                    if (!canvasText.hitAreaManager) {
+                        canvasText.hitAreaManager = new HitAreaManager();
+                    }
+                    canvasText.hitAreaManager.add(pen.prop.url, offsetX, offsetY, pen.width, pen.height);
+                }
+                resolve();
+            };
             // Image
             if (pen.isImagePen) {
-                yield DrawImage(canvasText, offsetX, offsetY, pen.prop.img);
+                DrawImage(canvasText, offsetX, offsetY, pen.prop.img).then(() => {
+                    fun();
+                }).catch((error) => {
+                    console.error(error);
+                });
             }
-            context.restore();
-            if (pen.hasAreaMarker && pen.width > 0) {
-                if (!canvasText.hitAreaManager) {
-                    canvasText.hitAreaManager = new HitAreaManager();
-                }
-                canvasText.hitAreaManager.add(pen.prop.url, offsetX, offsetY, pen.width, pen.height);
+            else {
+                fun();
             }
         });
     }
@@ -15062,17 +15079,24 @@
         context.lineCap = savedLineCap;
     }
     function DrawImage(canvasText, x, y, imgKey, style) {
-        const imageManager = canvasText.imageManager;
-        if (!imageManager) {
-            return;
-        }
-        // TODO
-        // const imgInfo = imageManager.get(imgKey);
-        UIPackage.getItemAssetByURL(imgKey);
-        // x += imgInfo.left;
-        // y += imgInfo.y - imgInfo.height;
-        // const context = canvasText.context;
-        // context.drawImage();
+        return new Promise((resolve, reject) => {
+            const imageManager = canvasText.imageManager;
+            if (!imageManager) {
+                reject();
+                return;
+            }
+            UIPackage.getItemAssetByURL(imgKey).then((obj) => {
+                // const imgInfo = imageManager.get(imgKey);
+                // x += imgInfo.left;
+                // y += imgInfo.y - imgInfo.height;
+                const texture = obj.texture;
+                const key = obj.texture.key + "_" + obj.name + "_" + obj.width + "_" + obj.height;
+                const context = canvasText.context;
+                const frame = texture.get(key);
+                context.drawImage(frame.source.image, frame.cutX, frame.cutY, frame.cutWidth, frame.cutHeight, x, y - frame.cutHeight, frame.cutWidth, frame.cutHeight);
+                resolve();
+            });
+        });
     }
 
     class CanvasText {
@@ -15095,8 +15119,11 @@
             return UpdatePenManager(this._penManager, text, this, wrapMode, wrapWidth);
         }
         draw(x, y, width, height, textScrollX = 0, textScrollY = 0) {
-            Draw(this, x, y, width, height, textScrollX, textScrollY);
-            return this;
+            return new Promise((resolve, reject) => {
+                Draw(this, x, y, width, height, textScrollX, textScrollY).then(() => {
+                    resolve(this);
+                });
+            });
         }
         destroy() {
             this._context = undefined;
@@ -15665,6 +15692,7 @@
         }
     }
 
+    const AddToDOM = Phaser.DOM.AddToDOM;
     class TextField extends DisplayObject {
         constructor(scene) {
             super(scene, "TextField");
@@ -15694,6 +15722,7 @@
                 context: this.context,
                 parse: new Parser(),
             });
+            this.initRTL();
             this.scene.sys.game.events.on(Phaser.Core.Events.CONTEXT_RESTORED, this.onContextRestored, this);
             this.on("areadown", (pointer, localX, localY, event) => {
                 console.log("areadown: ", pointer, localX, localY);
@@ -15763,7 +15792,6 @@
             h = Math.max(Math.ceil(h), 1);
             const canvas = this.canvas;
             const context = this.context;
-            //if (this._style.font && this._style.font !== this._style.font) this.context.font = this._style.font;
             if (canvas.width !== w || canvas.height !== h) {
                 canvas.width = w;
                 canvas.height = h;
@@ -15775,20 +15803,36 @@
             context.save();
             context.scale(resolution, resolution);
             // draw
-            canvasText.draw(padding.left, padding.top, textWidth, textHeight);
-            context.restore();
-            const webglRenderer = this.renderer;
-            if (webglRenderer.gl) {
-                this.frame.source.glTexture = webglRenderer.canvasToTexture(canvas, this.frame.source.glTexture, true);
-                this.frame.glTexture = this.frame.source.glTexture;
-            }
-            this.dirty = true;
-            const input = this.input;
-            if (input && !input.customHitArea) {
-                input.hitArea.width = this.width;
-                input.hitArea.height = this.height;
-            }
+            canvasText.draw(padding.left, padding.top, textWidth, textHeight).then((value) => {
+                // 画完需要添加到场景上
+                AddToDOM(this.canvas, this.scene.sys.canvas);
+                context.restore();
+                const webglRenderer = this.renderer;
+                if (webglRenderer.gl) {
+                    this.frame.source.glTexture = webglRenderer.canvasToTexture(canvas, this.frame.source.glTexture, true);
+                    this.frame.glTexture = this.frame.source.glTexture;
+                }
+                this.dirty = true;
+                const input = this.input;
+                if (input && !input.customHitArea) {
+                    input.hitArea.width = this.width;
+                    input.hitArea.height = this.height;
+                }
+            });
             return this;
+        }
+        initRTL() {
+            // if (!this.style.rtl) {
+            //     return;
+            // }
+            // // 由于浏览器实现问题，您无法将Text BiDi 文本填充到画布
+            // // 这不是 DOM 的一部分。、它只是完全忽略了方向属性。
+            // this.canvas.dir = 'rtl';
+            // this.context.direction = 'rtl';
+            // //  将它添加到 DOM，但隐藏在父画布中。
+            // this.canvas.style.display = 'none';
+            AddToDOM(this.canvas, this.scene.sys.canvas);
+            // this.originX = 1;
         }
         setWordWrapWidth(width, useAdvancedWrap) {
             this._style.wrapMode = WrapMode.char;
@@ -15906,6 +15950,11 @@
         createDisplayObject() {
             this._displayObject = this._textField = new TextField(this.scene);
             this._displayObject.mouseEnabled = false;
+        }
+        setup_afterAdd(buffer, beginPos) {
+            super.setup_afterAdd(buffer, beginPos);
+            // // 输入文本能交互
+            // this.touchable = true;
         }
         get nativeText() {
             return this._textField;

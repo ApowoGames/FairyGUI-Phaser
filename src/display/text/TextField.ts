@@ -9,6 +9,7 @@ import { TextStyle } from './style/TextStyle';
 import { FillStyleType, HAlignModeString, VAlignModeString } from './Types';
 import { WrapMode } from './WrapText';
 
+const AddToDOM = Phaser.DOM.AddToDOM;
 export const DEFULT_FONT = "'微软雅黑','SimSun'";
 export class TextField extends DisplayObject {
     public canvas: HTMLCanvasElement;
@@ -167,24 +168,25 @@ export class TextField extends DisplayObject {
             padding.top,
             textWidth,
             textHeight
-        );
+        ).then((value: CanvasText) => {
+            // 画完需要添加到场景上
+            AddToDOM(this.canvas, this.scene.sys.canvas);
+            context.restore();
 
-        context.restore();
+            const webglRenderer = <Phaser.Renderer.WebGL.WebGLRenderer>this.renderer;
+            if (webglRenderer.gl) {
+                this.frame.source.glTexture = webglRenderer.canvasToTexture(canvas, this.frame.source.glTexture, true);
+                this.frame.glTexture = this.frame.source.glTexture;
+            }
 
-        const webglRenderer = <Phaser.Renderer.WebGL.WebGLRenderer>this.renderer;
-        if (webglRenderer.gl) {
-            this.frame.source.glTexture = webglRenderer.canvasToTexture(canvas, this.frame.source.glTexture, true);
-            this.frame.glTexture = this.frame.source.glTexture;
-        }
+            this.dirty = true;
 
-        this.dirty = true;
-
-        const input = this.input;
-        if (input && !input.customHitArea) {
-            input.hitArea.width = this.width;
-            input.hitArea.height = this.height;
-        }
-
+            const input = this.input;
+            if (input && !input.customHitArea) {
+                input.hitArea.width = this.width;
+                input.hitArea.height = this.height;
+            }
+        });
         return this;
     }
 

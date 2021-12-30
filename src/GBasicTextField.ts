@@ -2,7 +2,7 @@ import { AutoSizeType } from './FieldTypes';
 import { BitmapFont } from './display/BitmapFont';
 import { GTextField } from './GTextField';
 import { TextField } from './display/text/TextField';
-import { ToolSet, UIConfig, UIPackage } from '.';
+import { ByteBuffer, ToolSet, UIConfig, UIPackage } from '.';
 import { HAlignModeString, VAlignModeString } from './display/text/Types';
 export class GBasicTextField extends GTextField {
     protected _textField: TextField;
@@ -28,6 +28,13 @@ export class GBasicTextField extends GTextField {
     public createDisplayObject(): void {
         this._displayObject = this._textField = new TextField(this.scene);
         this._displayObject.mouseEnabled = false;
+    }
+
+    public setup_afterAdd(buffer: ByteBuffer, beginPos: number): void {
+        super.setup_afterAdd(buffer, beginPos);
+
+        // // 输入文本能交互
+        // this.touchable = true;
     }
 
     public get nativeText(): TextField {

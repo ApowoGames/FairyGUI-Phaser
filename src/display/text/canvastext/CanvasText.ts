@@ -48,10 +48,12 @@ export class CanvasText {
         return UpdatePenManager(this._penManager, text, this, wrapMode, wrapWidth);
     }
 
-    public draw(x: number, y: number, width: number, height: number, textScrollX: number = 0, textScrollY: number = 0) {
-        Draw(this, x, y, width, height, textScrollX, textScrollY);
-
-        return this;
+    public draw(x: number, y: number, width: number, height: number, textScrollX: number = 0, textScrollY: number = 0): Promise<CanvasText> {
+        return new Promise((resolve, reject) => {
+            Draw(this, x, y, width, height, textScrollX, textScrollY).then(() => {
+                resolve(this);
+            });
+        });
     }
 
     destroy() {
@@ -102,7 +104,7 @@ export class CanvasText {
             return this.clonePenManager(retPenManager, this._penManager);
         }
         if (!retPenManager) {
-            retPenManager = new PenManager({penPool: this.penPool});
+            retPenManager = new PenManager({ penPool: this.penPool });
         }
         const defaultStyle = this.defaultStyle;
         this.updatePenManager(text,
@@ -135,7 +137,7 @@ export class CanvasText {
         if (penManager === undefined) {
             penManager = this._penManager;
         }
-        return penManager.lastPen;``
+        return penManager.lastPen; ``
     }
 
     setInteractive() {
