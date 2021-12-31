@@ -427,6 +427,7 @@ export class GRoot extends GComponent {
         if (this._modalWaitPane != null && this._modalWaitPane.parent != null)
             this.setChildIndex(this._modalWaitPane, cnt - 1);
 
+        if (!this._modalLayer) return;
         for (var i: number = cnt - 1; i >= 0; i--) {
             var g: GObject = this.getChildAt(i);
             if ((g instanceof Window) && g.modal) {

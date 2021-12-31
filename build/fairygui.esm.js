@@ -3551,7 +3551,7 @@ class GObject {
     ensureSizeCorrect() {
     }
     makeFullScreen() {
-        // this.setSize(GRoot.inst.width, GRoot.inst.height);
+        this.setSize(GRoot.inst.width, GRoot.inst.height);
     }
     get actualWidth() {
         return this.width * Math.abs(this._scaleX);
@@ -4403,12 +4403,15 @@ class GObject {
         if (!buffer.readBool())
             this.visible = false;
         // console.log("visible object ===>", this);
-        if (!buffer.readBool()) {
-            this.touchable = false;
+        const touchable = buffer.readBool();
+        if (this.type !== ObjectType.Text) {
+            this.touchable = touchable;
         }
-        else {
-            this.touchable = true;
-        }
+        // if (!buffer.readBool()) {
+        //     this.touchable = false;
+        // } else {
+        //     this.touchable = true;
+        // }
         if (buffer.readBool())
             this.grayed = true;
         var bm = buffer.readByte();
@@ -8935,6 +8938,9 @@ class ScrollPane {
         // if (ScrollPane.draggingPane == this) {
         //     ScrollPane.draggingPane = null;
         // }
+        this._owner.scene.input.off("pointerdown", this.__mouseDown, this);
+        this._owner.scene.input.off("pointermove", this.__mouseMove, this);
+        this._owner.scene.input.off("pointerup", this.__mouseUp, this);
         if (this._tweening != 0) {
             if (this._tweenUpdateTime) {
                 this._tweenUpdateTime.remove(false);
@@ -13459,6 +13465,8 @@ class GRoot extends GComponent {
         var cnt = this.numChildren;
         if (this._modalWaitPane != null && this._modalWaitPane.parent != null)
             this.setChildIndex(this._modalWaitPane, cnt - 1);
+        if (!this._modalLayer)
+            return;
         for (var i = cnt - 1; i >= 0; i--) {
             var g = this.getChildAt(i);
             if ((g instanceof Window) && g.modal) {
@@ -13487,6 +13495,14 @@ class GTextField extends GObject {
         super(scene, type);
         this._align = "left";
         this._valign = "top";
+        /**
+         * 行距
+         */
+        this._lead = 0;
+        /**
+         * 字距
+         */
+        this._letterSpace = 0;
     }
     get font() {
         return this._font;
@@ -13521,14 +13537,16 @@ class GTextField extends GObject {
         this.doAlign();
     }
     get leading() {
-        return 0;
+        return this._lead;
     }
     set leading(value) {
+        this._lead = value;
     }
     get letterSpacing() {
-        return 0;
+        return this._letterSpace;
     }
     set letterSpacing(value) {
+        this._letterSpace = value;
     }
     get bold() {
         return false;
@@ -13721,8 +13739,8 @@ class GTextField extends GObject {
         var str = buffer.readS();
         if (str != null)
             this.text = str;
-        // 普通文本默认没有交互
-        this.touchable = false;
+        // // 普通文本默认没有交互
+        // this.touchable = false;
     }
 }
 
@@ -15027,7 +15045,10 @@ function DrawPen(canvasText, pen, offsetX, offsetY) {
                 if (!canvasText.hitAreaManager) {
                     canvasText.hitAreaManager = new HitAreaManager();
                 }
-                canvasText.hitAreaManager.add(pen.prop.url, offsetX, offsetY, pen.width, pen.height);
+                // 原版只有下划线才能产生交互，现在把 文本高度+线高度  文本y位置+线条y位置 加入计算，可以将交互区域变成整个交互超链接文本
+                const tmpY = offsetY - pen.height;
+                const hei = Math.abs(tmpY) + pen.height;
+                canvasText.hitAreaManager.add(pen.prop.url, offsetX, tmpY, pen.width, hei);
             }
             resolve();
         };
@@ -15195,6 +15216,14 @@ class CanvasText {
         parent.off(Phaser.Input.Events.POINTER_UP, this.pointerDownHandler, this);
         parent.on(Phaser.Input.Events.POINTER_DOWN, this.pointerDownHandler, this);
         parent.on(Phaser.Input.Events.POINTER_UP, this.pointerUpHandler, this);
+    }
+    disableInteractive() {
+        const parent = this.parent;
+        if (!parent) {
+            return;
+        }
+        parent.off(Phaser.Input.Events.POINTER_DOWN, this.pointerDownHandler, this);
+        parent.off(Phaser.Input.Events.POINTER_UP, this.pointerDownHandler, this);
     }
     clear() {
         const canvas = this._canvas;
@@ -15820,8 +15849,17 @@ class TextField extends DisplayObject {
         this._style.wrapMode = val ? WrapMode.none : WrapMode.char;
     }
     setInteractive(hitArea, callback, dropZone) {
-        super.setInteractive(hitArea, callback, dropZone);
+        const target = {};
+        const source = hitArea ? hitArea : {};
+        source["cursor"] = 'hand';
+        Object.assign(target, source);
+        super.setInteractive(target, callback, dropZone);
         this.canvasText.setInteractive();
+        return this;
+    }
+    disableInteractive() {
+        super.disableInteractive();
+        this.canvasText.disableInteractive();
         return this;
     }
     renderCanvas(renderer, src, camera, parentMatrix) {
@@ -15916,7 +15954,6 @@ class TextField extends DisplayObject {
 class GBasicTextField extends GTextField {
     constructor(scene, type) {
         super(scene, type);
-        this._letterSpacing = 0;
         this._textWidth = 0;
         this._textHeight = 0;
         // this._textField.align = "left";
@@ -15931,8 +15968,8 @@ class GBasicTextField extends GTextField {
     }
     setup_afterAdd(buffer, beginPos) {
         super.setup_afterAdd(buffer, beginPos);
-        // 输入文本能交互
-        this.touchable = true;
+        // // 输入文本能交互
+        // this.touchable = true;
     }
     get nativeText() {
         return this._textField;
@@ -16024,10 +16061,10 @@ class GBasicTextField extends GTextField {
         // this._textField.leading = value;
     }
     get letterSpacing() {
-        return this._letterSpacing;
+        return this._letterSpace;
     }
     set letterSpacing(value) {
-        this._letterSpacing = value;
+        this._letterSpace = value;
         this._textField.setLetterSpacing(value);
     }
     get bold() {

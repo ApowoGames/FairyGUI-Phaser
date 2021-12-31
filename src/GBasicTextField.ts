@@ -8,7 +8,6 @@ export class GBasicTextField extends GTextField {
     protected _textField: TextField;
 
     private _singleLine: boolean;
-    private _letterSpacing: number = 0;
     private _textWidth: number = 0;
     private _textHeight: number = 0;
 
@@ -33,8 +32,8 @@ export class GBasicTextField extends GTextField {
     public setup_afterAdd(buffer: ByteBuffer, beginPos: number): void {
         super.setup_afterAdd(buffer, beginPos);
 
-        // 输入文本能交互
-        this.touchable = true;
+        // // 输入文本能交互
+        // this.touchable = true;
     }
 
     public get nativeText(): TextField {
@@ -144,11 +143,11 @@ export class GBasicTextField extends GTextField {
     }
 
     public get letterSpacing(): number {
-        return this._letterSpacing;
+        return this._letterSpace;
     }
 
     public set letterSpacing(value: number) {
-        this._letterSpacing = value;
+        this._letterSpace = value;
         this._textField.setLetterSpacing(value);
     }
 

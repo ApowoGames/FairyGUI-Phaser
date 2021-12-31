@@ -23,6 +23,14 @@ export declare class GTextField extends GObject {
     protected _color: string;
     protected _stroke: number;
     protected _strokeColor: string;
+    /**
+     * 行距
+     */
+    protected _lead: number;
+    /**
+     * 字距
+     */
+    protected _letterSpace: number;
     constructor(scene: Phaser.Scene, type: number);
     get font(): string;
     set font(value: string);

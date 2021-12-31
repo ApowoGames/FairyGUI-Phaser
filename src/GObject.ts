@@ -5,7 +5,7 @@ import { Controller } from './Controller';
 import { UIConfig } from './UIConfig';
 import { ByteBuffer } from './utils/ByteBuffer';
 import { ToolSet } from './utils/ToolSet';
-import { RelationType, ObjectPropID } from './FieldTypes';
+import { RelationType, ObjectPropID, ObjectType } from './FieldTypes';
 import { Events } from './Events';
 import { GTreeNode } from './GTreeNode';
 import { GGroup } from './GGroup';
@@ -384,7 +384,7 @@ export class GObject {
     }
 
     public makeFullScreen(): void {
-        // this.setSize(GRoot.inst.width, GRoot.inst.height);
+        this.setSize(GRoot.inst.width, GRoot.inst.height);
     }
 
     public get actualWidth(): number {
@@ -1397,11 +1397,15 @@ export class GObject {
         if (!buffer.readBool())
             this.visible = false;
         // console.log("visible object ===>", this);
-        if (!buffer.readBool()) {
-            this.touchable = false;
-        } else {
-            this.touchable = true;
+        const touchable = buffer.readBool();
+        if(this.type !== ObjectType.Text){
+            this.touchable = touchable;
         }
+        // if (!buffer.readBool()) {
+        //     this.touchable = false;
+        // } else {
+        //     this.touchable = true;
+        // }
         if (buffer.readBool())
             this.grayed = true;
         var bm: number = buffer.readByte();

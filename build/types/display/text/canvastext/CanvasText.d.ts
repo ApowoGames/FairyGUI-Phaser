@@ -26,6 +26,7 @@ export declare class CanvasText {
     clonePenManager(ret: PenManager, src: PenManager): PenManager;
     getLastPen(penManager?: PenManager): Pen;
     setInteractive(): void;
+    disableInteractive(): void;
     clear(): void;
     protected pointerDownHandler(pointer: Phaser.Input.Pointer, localX: number, localY: number, event: any): void;
     protected pointerUpHandler(pointer: Phaser.Input.Pointer, localX: number, localY: number, event: any): void;

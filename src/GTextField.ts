@@ -23,6 +23,14 @@ export class GTextField extends GObject {
     protected _color: string;
     protected _stroke: number;
     protected _strokeColor: string;
+    /**
+     * 行距
+     */
+    protected _lead: number = 0;
+    /**
+     * 字距
+     */
+    protected _letterSpace: number = 0;
 
     constructor(scene: Phaser.Scene, type: number) {
         super(scene, type);
@@ -71,17 +79,19 @@ export class GTextField extends GObject {
     }
 
     public get leading(): number {
-        return 0;
+        return this._lead;
     }
 
     public set leading(value: number) {
+        this._lead = value;
     }
 
     public get letterSpacing(): number {
-        return 0;
+        return this._letterSpace;
     }
 
     public set letterSpacing(value: number) {
+        this._letterSpace = value;
     }
 
     public get bold(): boolean {
@@ -322,7 +332,7 @@ export class GTextField extends GObject {
         var str: string = buffer.readS();
         if (str != null)
             this.text = str;
-        // 普通文本默认没有交互
-        this.touchable = false;
+        // // 普通文本默认没有交互
+        // this.touchable = false;
     }
 }

@@ -1,4 +1,3 @@
-import { GRoot } from '../..';
 import { DisplayObject } from '../displayobject/DisplayObject';
 import { Parser } from './bbcode/Parser';
 import { CanvasText } from './canvastext/CanvasText';
@@ -10,7 +9,6 @@ import { FillStyleType, HAlignModeString, VAlignModeString } from './Types';
 import { WrapMode } from './WrapText';
 
 const AddToDOM = Phaser.DOM.AddToDOM;
-export const DEFULT_FONT = "'微软雅黑','SimSun'";
 export class TextField extends DisplayObject {
     public canvas: HTMLCanvasElement;
     public context: CanvasRenderingContext2D | null;
@@ -201,10 +199,22 @@ export class TextField extends DisplayObject {
     }
 
     setInteractive(hitArea?: Phaser.Types.Input.InputConfiguration | any, callback?: Phaser.Types.Input.HitAreaCallback, dropZone?: boolean) {
-        super.setInteractive(hitArea, callback, dropZone);
+        const target = {};
+        const source = hitArea ? hitArea : {};
+        source["cursor"] = 'hand';
+        Object.assign(target, source);
+        super.setInteractive(target, callback, dropZone);
         this.canvasText.setInteractive();
         return this;
     }
+
+    disableInteractive(): this {
+        super.disableInteractive();
+        this.canvasText.disableInteractive();
+        return this;
+    }
+
+
 
     renderCanvas(renderer: Phaser.Renderer.Canvas.CanvasRenderer, src: TextField, camera: Phaser.Cameras.Scene2D.Camera, parentMatrix: Phaser.GameObjects.Components.TransformMatrix) {
         TextCanvasRenderer(renderer, src, camera, parentMatrix);

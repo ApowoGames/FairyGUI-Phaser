@@ -145,7 +145,10 @@ export function DrawPen(canvasText: CanvasText, pen: Pen, offsetX: number, offse
                 if (!canvasText.hitAreaManager) {
                     canvasText.hitAreaManager = new HitAreaManager();
                 }
-                canvasText.hitAreaManager.add(pen.prop.url, offsetX, offsetY, pen.width, pen.height);
+                // 原版只有下划线才能产生交互，现在把 文本高度+线高度  文本y位置+线条y位置 加入计算，可以将交互区域变成整个交互超链接文本
+                const tmpY = offsetY - pen.height;
+                const hei = Math.abs(tmpY) + pen.height;
+                canvasText.hitAreaManager.add(pen.prop.url, offsetX, tmpY, pen.width, hei);
             }
             resolve();
         }

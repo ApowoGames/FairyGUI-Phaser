@@ -12,7 +12,7 @@ export function UpdatePenManager(penManager: PenManager, text: string, canvasTex
     }
 
     const { context, parent } = canvasText;
-    
+
     const matchs = canvasText.parser.splitText(text);
     let curProp: any;
     let wrapLines: LineInfo[];
@@ -114,6 +114,6 @@ export function UpdatePenManager(penManager: PenManager, text: string, canvasTex
     }
     penManager.maxLineWidth = maxLineWidth;
     penManager.totalLineHeight = totalLineHeight - lineSpacing;
-    
+
     return penManager;
 }

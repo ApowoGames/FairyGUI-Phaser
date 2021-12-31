@@ -3,7 +3,6 @@ import { CanvasText } from './canvastext/CanvasText';
 import { ImageManager } from './imagemanager/ImageManager';
 import { TextStyle } from './style/TextStyle';
 import { FillStyleType, HAlignModeString, VAlignModeString } from './Types';
-export declare const DEFULT_FONT = "'\u5FAE\u8F6F\u96C5\u9ED1','SimSun'";
 export declare class TextField extends DisplayObject {
     canvas: HTMLCanvasElement;
     context: CanvasRenderingContext2D | null;
@@ -23,6 +22,7 @@ export declare class TextField extends DisplayObject {
     setWordWrapWidth(width: number, useAdvancedWrap: boolean): void;
     setSingleLine(val: boolean): void;
     setInteractive(hitArea?: Phaser.Types.Input.InputConfiguration | any, callback?: Phaser.Types.Input.HitAreaCallback, dropZone?: boolean): this;
+    disableInteractive(): this;
     renderCanvas(renderer: Phaser.Renderer.Canvas.CanvasRenderer, src: TextField, camera: Phaser.Cameras.Scene2D.Camera, parentMatrix: Phaser.GameObjects.Components.TransformMatrix): void;
     renderWebGL(renderer: Phaser.Renderer.WebGL.WebGLRenderer, src: TextField, camera: Phaser.Cameras.Scene2D.Camera, parentMatrix: Phaser.GameObjects.Components.TransformMatrix): void;
     setColor(val: string): void;

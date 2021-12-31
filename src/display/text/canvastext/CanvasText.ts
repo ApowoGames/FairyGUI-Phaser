@@ -151,6 +151,14 @@ export class CanvasText {
         parent.on(Phaser.Input.Events.POINTER_DOWN, this.pointerDownHandler, this);
         parent.on(Phaser.Input.Events.POINTER_UP, this.pointerUpHandler, this);
     }
+    disableInteractive() {
+        const parent = this.parent;
+        if (!parent) {
+            return;
+        }
+        parent.off(Phaser.Input.Events.POINTER_DOWN, this.pointerDownHandler, this);
+        parent.off(Phaser.Input.Events.POINTER_UP, this.pointerDownHandler, this);
+    }
 
     clear() {
         const canvas = this._canvas;

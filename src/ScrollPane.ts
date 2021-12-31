@@ -138,6 +138,8 @@ export class ScrollPane {
         // this._owner.on("wheel", this.__mouseWheel, this);
     }
 
+
+
     public setup(buffer: ByteBuffer): Promise<void> {
         return new Promise((resolve, reject) => {
             this._scrollType = buffer.readByte();
@@ -306,6 +308,10 @@ export class ScrollPane {
         // if (ScrollPane.draggingPane == this) {
         //     ScrollPane.draggingPane = null;
         // }
+    
+        this._owner.scene.input.off("pointerdown", this.__mouseDown, this);
+        this._owner.scene.input.off("pointermove", this.__mouseMove, this);
+        this._owner.scene.input.off("pointerup", this.__mouseUp, this);
 
         if (this._tweening != 0) {
             if (this._tweenUpdateTime) {
