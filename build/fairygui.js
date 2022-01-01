@@ -13499,6 +13499,7 @@
             super(scene, type);
             this._align = "left";
             this._valign = "top";
+            this._singleLine = false;
             /**
              * 行距
              */
@@ -13568,9 +13569,10 @@
         set underline(value) {
         }
         get singleLine() {
-            return false;
+            return this._singleLine;
         }
         set singleLine(value) {
+            this._singleLine = value;
         }
         get stroke() {
             return 0;
@@ -15855,7 +15857,7 @@
         setInteractive(hitArea, callback, dropZone) {
             const target = {};
             const source = hitArea ? hitArea : {};
-            source["cursor"] = 'hand';
+            // source["cursor"] = 'pointer'; // 移动端无需鼠标手型
             Object.assign(target, source);
             super.setInteractive(target, callback, dropZone);
             this.canvasText.setInteractive();
@@ -16494,7 +16496,9 @@
                 this._element = null;
             }
         }
-        onFocusHandler(pointer) {
+        onFocusHandler(point) {
+            if (!this.checkInBounds(point))
+                return;
             if (!this.editable || this._editing)
                 return;
             if (!this._element)
@@ -16529,7 +16533,6 @@
         createElement() {
             this._element = new Phaser.GameObjects.DOMElement(this.scene);
             let e;
-            // if (this["$owner"].singleLine) {
             {
                 e = document.createElement("input");
             }
@@ -16655,10 +16658,30 @@
             // this.updateSize();
             return this;
         }
-        onPointerSceneHandler() {
+        onPointerSceneHandler(point) {
+            if (this.checkInBounds(point))
+                return;
             console.log("onPointerSceneHandler", this._editing);
             if (this._editing)
                 this.onBlurHandler();
+        }
+        checkInBounds(point) {
+            const px = point.worldX;
+            const py = point.worldY;
+            let tmpX = 0;
+            let tmpY = 0;
+            if (this.parentContainer) {
+                const worldMatrix = this.parentContainer.getWorldTransformMatrix();
+                tmpX += worldMatrix.tx;
+                tmpY += worldMatrix.ty;
+            }
+            const left = this.x + tmpX;
+            const right = this.x + this._width + tmpX;
+            const top = this.y + tmpY;
+            const bottom = this.y + this._height + tmpY;
+            if (px < left || px > right || py < top || py > bottom)
+                return false;
+            return true;
         }
     }
 

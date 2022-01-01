@@ -23,6 +23,7 @@ export class GTextField extends GObject {
     protected _color: string;
     protected _stroke: number;
     protected _strokeColor: string;
+    protected _singleLine: boolean = false;
     /**
      * 行距
      */
@@ -116,10 +117,11 @@ export class GTextField extends GObject {
     }
 
     public get singleLine(): boolean {
-        return false;
+        return this._singleLine
     }
 
     public set singleLine(value: boolean) {
+        this._singleLine = value;
     }
 
     public get stroke(): number {

@@ -201,7 +201,7 @@ export class TextField extends DisplayObject {
     setInteractive(hitArea?: Phaser.Types.Input.InputConfiguration | any, callback?: Phaser.Types.Input.HitAreaCallback, dropZone?: boolean) {
         const target = {};
         const source = hitArea ? hitArea : {};
-        source["cursor"] = 'hand';
+        // source["cursor"] = 'pointer'; // 移动端无需鼠标手型
         Object.assign(target, source);
         super.setInteractive(target, callback, dropZone);
         this.canvasText.setInteractive();

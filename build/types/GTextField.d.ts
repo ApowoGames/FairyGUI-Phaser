@@ -23,6 +23,7 @@ export declare class GTextField extends GObject {
     protected _color: string;
     protected _stroke: number;
     protected _strokeColor: string;
+    protected _singleLine: boolean;
     /**
      * 行距
      */

@@ -4,7 +4,6 @@ import { ByteBuffer } from '.';
 import { HAlignModeString, VAlignModeString } from './display/text/Types';
 export declare class GBasicTextField extends GTextField {
     protected _textField: TextField;
-    private _singleLine;
     private _textWidth;
     private _textHeight;
     private _bitmapFont?;

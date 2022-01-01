@@ -9,6 +9,9 @@ export declare class InputTextField extends TextField {
     private _editing;
     private _text2;
     private _promptText;
+    /**
+     * 输入文本dom元素
+     */
     private _element;
     private _inputNode;
     private _width;
@@ -37,4 +40,5 @@ export declare class InputTextField extends TextField {
     setFocus(): this;
     setSize(width: number, height: number): this;
     private onPointerSceneHandler;
+    private checkInBounds;
 }

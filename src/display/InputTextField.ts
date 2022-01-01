@@ -22,6 +22,9 @@ export class InputTextField extends TextField {
     private _text2: string;
     private _promptText: string;
 
+    /**
+     * 输入文本dom元素
+     */
     private _element: Phaser.GameObjects.DOMElement;
     private _inputNode: InputElement;
     private _width: number;
@@ -47,7 +50,8 @@ export class InputTextField extends TextField {
         }
     }
 
-    private onFocusHandler(pointer: Phaser.Input.Pointer) {
+    private onFocusHandler(point: Phaser.Input.Pointer) {
+        if (!this.checkInBounds(point)) return;
         if (!this.editable || this._editing)
             return;
 
@@ -87,7 +91,6 @@ export class InputTextField extends TextField {
     private createElement() {
         this._element = new Phaser.GameObjects.DOMElement(this.scene);
         let e: InputElement;
-        // if (this["$owner"].singleLine) {
         if (true) {
             e = document.createElement("input");
         } else {
@@ -233,8 +236,27 @@ export class InputTextField extends TextField {
         return this;
     }
 
-    private onPointerSceneHandler() {
+    private onPointerSceneHandler(point: Phaser.Input.Pointer) {
+        if (this.checkInBounds(point)) return;
         console.log("onPointerSceneHandler", this._editing);
         if (this._editing) this.onBlurHandler();
+    }
+
+    private checkInBounds(point): boolean {
+        const px = point.worldX;
+        const py = point.worldY;
+        let tmpX = 0;
+        let tmpY = 0;
+        if (this.parentContainer) {
+            const worldMatrix = this.parentContainer.getWorldTransformMatrix();
+            tmpX += worldMatrix.tx;
+            tmpY += worldMatrix.ty;
+        }
+        const left = this.x + tmpX;
+        const right = this.x + this._width + tmpX;
+        const top = this.y + tmpY;
+        const bottom = this.y + this._height + tmpY;
+        if (px < left || px > right || py < top || py > bottom) return false;
+        return true;
     }
 }

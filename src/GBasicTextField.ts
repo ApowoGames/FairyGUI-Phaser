@@ -7,7 +7,6 @@ import { HAlignModeString, VAlignModeString } from './display/text/Types';
 export class GBasicTextField extends GTextField {
     protected _textField: TextField;
 
-    private _singleLine: boolean;
     private _textWidth: number = 0;
     private _textHeight: number = 0;
 
