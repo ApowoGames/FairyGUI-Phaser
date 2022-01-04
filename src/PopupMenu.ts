@@ -5,63 +5,73 @@ import { GObject } from './GObject';
 import { UIConfig } from './UIConfig';
 import { GList } from './GList';
 import { GComponent } from "./GComponent";
+import { GRoot, Handler, RelationType, UIPackage } from '.';
+import { Events } from './Events';
 
 export class PopupMenu {
 
     protected _contentPane: GComponent;
     protected _list: GList;
-
-    constructor(resourceURL?: string) {
+    constructor(protected _scene: Phaser.Scene, resourceURL?: string) {
         if (!resourceURL) {
             resourceURL = UIConfig.popupMenu;
             if (!resourceURL)
                 throw "UIConfig.popupMenu not defined";
         }
-        throw "TODO";
-        // this._contentPane = UIPackage.createObjectFromURL(resourceURL).asCom;
-        // this._contentPane.on(Laya.Event.DISPLAY, this, this.__addedToStage);
-        // this._list = <GList>(this._contentPane.getChild("list"));
-        // this._list.removeChildrenToPool();
-        // this._list.addRelation(this._contentPane, RelationType.Width);
-        // this._list.removeRelation(this._contentPane, RelationType.Height);
-        // this._contentPane.addRelation(this._list, RelationType.Height);
-        // this._list.on(Events.CLICK_ITEM, this, this.__clickItem);
+        UIPackage.createObjectFromURL(resourceURL).then((obj) => {
+            this._contentPane = obj.asCom;
+            // this._contentPane.on(Laya.Event.DISPLAY, this.__addedToStage, this);
+            this._list = <GList>(this._contentPane.getChild("list"));
+            this._list.removeChildrenToPool();
+            this._list.addRelation(this._contentPane, RelationType.Width);
+            this._list.removeRelation(this._contentPane, RelationType.Height);
+            this._contentPane.addRelation(this._list, RelationType.Height);
+            this._list.on(Events.CLICK_ITEM, this.__clickItem, this);
+        })
+
     }
 
     public dispose(): void {
         this._contentPane.dispose();
     }
 
-    public addItem(caption: string, handler?: (item?: GObject, evt?: Event) => void): GButton {
-        throw new Error("TODO");
-        // var item: GButton = this._list.addItemFromPool().asButton;
-        // item.title = caption;
-        // item.data = handler;
-        // item.grayed = false;
-        // var c: Controller = item.getController("checked");
-        // if (c)
-        //     c.selectedIndex = 0;
-        // return item;
+    public addItem(caption: string, handler?: (item?: GObject, evt?: Event) => void): Promise<GButton> {
+        return new Promise((resolve, reject) => {
+            this._list.addItemFromPool().then((obj) => {
+                var item: GButton = obj.asButton;
+                item.title = caption;
+                item.data = handler;
+                item.grayed = false;
+                var c: Controller = item.getController("checked");
+                if (c)
+                    c.selectedIndex = 0;
+                resolve(item);
+            });
+
+        });
+
     }
 
-    public addItemAt(caption: string, index: number, handler?: (item?: GObject, evt?: Event) => void): GButton {
-        throw new Error("TODO");
-        // var item: GButton = this._list.getFromPool().asButton;
-        // this._list.addChildAt(item, index);
-        // item.title = caption;
-        // item.data = handler;
-        // item.grayed = false;
-        // var c: Controller = item.getController("checked");
-        // if (c)
-        //     c.selectedIndex = 0;
-        // return item;
+    public addItemAt(caption: string, index: number, handler?: (item?: GObject, evt?: Event) => void): Promise<GButton> {
+        return new Promise((resolve, reject) => {
+            this._list.getFromPool().then((obj) => {
+                var item: GButton = obj.asButton;
+                this._list.addChildAt(item, index);
+                item.title = caption;
+                item.data = handler;
+                item.grayed = false;
+                var c: Controller = item.getController("checked");
+                if (c)
+                    c.selectedIndex = 0;
+                resolve(item);
+            });
+        });
     }
 
     public addSeperator(): void {
-        throw new Error("TODO");
-        // if (UIConfig.popupMenu_seperator == null)
-        //     throw "UIConfig.popupMenu_seperator not defined";
-        // this.list.addItemFromPool(UIConfig.popupMenu_seperator);
+        if (UIConfig.popupMenu_seperator == null)
+            throw "UIConfig.popupMenu_seperator not defined";
+        this.list.addItemFromPool(UIConfig.popupMenu_seperator);
     }
 
     public getItemName(index: number): string {
@@ -117,20 +127,18 @@ export class PopupMenu {
     }
 
     public removeItem(name: string): boolean {
-        throw new Error("TODO");
-        // var item: GObject = this._list.getChild(name);
-        // if (item) {
-        //     var index: number = this._list.getChildIndex(item);
-        //     this._list.removeChildToPoolAt(index);
-        //     return true;
-        // }
-        // else
-        //     return false;
+        var item: GObject = this._list.getChild(name);
+        if (item) {
+            var index: number = this._list.getChildIndex(item);
+            this._list.removeChildToPoolAt(index);
+            return true;
+        }
+        else
+            return false;
     }
 
     public clearItems(): void {
-        throw new Error("TODO");
-        // this._list.removeChildrenToPool();
+        this._list.removeChildrenToPool();
     }
 
     public get itemCount(): number {
@@ -146,42 +154,33 @@ export class PopupMenu {
     }
 
     public show(target: GObject = null, dir?: PopupDirection | boolean) {
-        throw "TODO";
-        // var r: GRoot = target != null ? target.root : GRoot.inst;
-        // r.showPopup(this.contentPane, (target instanceof GRoot) ? null : target, dir);
+        var r: GRoot = target != null ? target.root : GRoot.inst;
+        r.showPopup(this.contentPane, (target instanceof GRoot) ? null : target, dir);
     }
 
     private __clickItem(itemObject: GObject): void {
-        throw "TODO";
-        // Laya.timer.once(100, this, this.__clickItem2, [itemObject]);
+        this._scene.time.delayedCall(100, this.__clickItem2, [itemObject], this);
     }
 
     private __clickItem2(itemObject: GObject): void {
-        throw "TODO";
-        // if (!(itemObject instanceof GButton))
-        //     return;
-        // if (itemObject.grayed) {
-        //     this._list.selectedIndex = -1;
-        //     return;
-        // }
-        // var c: Controller = itemObject.asCom.getController("checked");
-        // if (c && c.selectedIndex != 0) {
-        //     if (c.selectedIndex == 1)
-        //         c.selectedIndex = 2;
-        //     else
-        //         c.selectedIndex = 1;
-        // }
-        // var r: GRoot = <GRoot>(this._contentPane.parent);
-        // r.hidePopup(this.contentPane);
-        // if (itemObject.data != null) {
-        //     itemObject.data();
-        // }
-    }
-
-    private __addedToStage(): void {
-        throw new Error("TODO");
-        // this._list.selectedIndex = -1;
-        // this._list.resizeToFit(100000, 10);
+        if (!(itemObject instanceof GButton))
+            return;
+        if (itemObject.grayed) {
+            this._list.selectedIndex = -1;
+            return;
+        }
+        var c: Controller = itemObject.asCom.getController("checked");
+        if (c && c.selectedIndex != 0) {
+            if (c.selectedIndex == 1)
+                c.selectedIndex = 2;
+            else
+                c.selectedIndex = 1;
+        }
+        var r: GRoot = <GRoot>(this._contentPane.parent);
+        r.hidePopup(this.contentPane);
+        if (itemObject.data != null) {
+            (<Handler>itemObject.data).run();
+        }
     }
 
 }

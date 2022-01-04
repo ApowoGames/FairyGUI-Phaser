@@ -4,12 +4,13 @@ import { GObject } from './GObject';
 import { GList } from './GList';
 import { GComponent } from "./GComponent";
 export declare class PopupMenu {
+    protected _scene: Phaser.Scene;
     protected _contentPane: GComponent;
     protected _list: GList;
-    constructor(resourceURL?: string);
+    constructor(_scene: Phaser.Scene, resourceURL?: string);
     dispose(): void;
-    addItem(caption: string, handler?: (item?: GObject, evt?: Event) => void): GButton;
-    addItemAt(caption: string, index: number, handler?: (item?: GObject, evt?: Event) => void): GButton;
+    addItem(caption: string, handler?: (item?: GObject, evt?: Event) => void): Promise<GButton>;
+    addItemAt(caption: string, index: number, handler?: (item?: GObject, evt?: Event) => void): Promise<GButton>;
     addSeperator(): void;
     getItemName(index: number): string;
     setItemText(name: string, caption: string): void;
@@ -26,5 +27,4 @@ export declare class PopupMenu {
     show(target?: GObject, dir?: PopupDirection | boolean): void;
     private __clickItem;
     private __clickItem2;
-    private __addedToStage;
 }

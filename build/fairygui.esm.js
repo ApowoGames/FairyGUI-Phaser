@@ -22397,53 +22397,60 @@ class Window extends GComponent {
 }
 
 class PopupMenu {
-    constructor(resourceURL) {
+    constructor(_scene, resourceURL) {
+        this._scene = _scene;
         if (!resourceURL) {
             resourceURL = UIConfig.popupMenu;
             if (!resourceURL)
                 throw "UIConfig.popupMenu not defined";
         }
-        throw "TODO";
-        // this._contentPane = UIPackage.createObjectFromURL(resourceURL).asCom;
-        // this._contentPane.on(Laya.Event.DISPLAY, this, this.__addedToStage);
-        // this._list = <GList>(this._contentPane.getChild("list"));
-        // this._list.removeChildrenToPool();
-        // this._list.addRelation(this._contentPane, RelationType.Width);
-        // this._list.removeRelation(this._contentPane, RelationType.Height);
-        // this._contentPane.addRelation(this._list, RelationType.Height);
-        // this._list.on(Events.CLICK_ITEM, this, this.__clickItem);
+        UIPackage.createObjectFromURL(resourceURL).then((obj) => {
+            this._contentPane = obj.asCom;
+            // this._contentPane.on(Laya.Event.DISPLAY, this.__addedToStage, this);
+            this._list = (this._contentPane.getChild("list"));
+            this._list.removeChildrenToPool();
+            this._list.addRelation(this._contentPane, RelationType.Width);
+            this._list.removeRelation(this._contentPane, RelationType.Height);
+            this._contentPane.addRelation(this._list, RelationType.Height);
+            this._list.on(Events.CLICK_ITEM, this.__clickItem, this);
+        });
     }
     dispose() {
         this._contentPane.dispose();
     }
     addItem(caption, handler) {
-        throw new Error("TODO");
-        // var item: GButton = this._list.addItemFromPool().asButton;
-        // item.title = caption;
-        // item.data = handler;
-        // item.grayed = false;
-        // var c: Controller = item.getController("checked");
-        // if (c)
-        //     c.selectedIndex = 0;
-        // return item;
+        return new Promise((resolve, reject) => {
+            this._list.addItemFromPool().then((obj) => {
+                var item = obj.asButton;
+                item.title = caption;
+                item.data = handler;
+                item.grayed = false;
+                var c = item.getController("checked");
+                if (c)
+                    c.selectedIndex = 0;
+                resolve(item);
+            });
+        });
     }
     addItemAt(caption, index, handler) {
-        throw new Error("TODO");
-        // var item: GButton = this._list.getFromPool().asButton;
-        // this._list.addChildAt(item, index);
-        // item.title = caption;
-        // item.data = handler;
-        // item.grayed = false;
-        // var c: Controller = item.getController("checked");
-        // if (c)
-        //     c.selectedIndex = 0;
-        // return item;
+        return new Promise((resolve, reject) => {
+            this._list.getFromPool().then((obj) => {
+                var item = obj.asButton;
+                this._list.addChildAt(item, index);
+                item.title = caption;
+                item.data = handler;
+                item.grayed = false;
+                var c = item.getController("checked");
+                if (c)
+                    c.selectedIndex = 0;
+                resolve(item);
+            });
+        });
     }
     addSeperator() {
-        throw new Error("TODO");
-        // if (UIConfig.popupMenu_seperator == null)
-        //     throw "UIConfig.popupMenu_seperator not defined";
-        // this.list.addItemFromPool(UIConfig.popupMenu_seperator);
+        if (UIConfig.popupMenu_seperator == null)
+            throw "UIConfig.popupMenu_seperator not defined";
+        this.list.addItemFromPool(UIConfig.popupMenu_seperator);
     }
     getItemName(index) {
         var item = this._list.getChildAt(index);
@@ -22491,19 +22498,17 @@ class PopupMenu {
             return false;
     }
     removeItem(name) {
-        throw new Error("TODO");
-        // var item: GObject = this._list.getChild(name);
-        // if (item) {
-        //     var index: number = this._list.getChildIndex(item);
-        //     this._list.removeChildToPoolAt(index);
-        //     return true;
-        // }
-        // else
-        //     return false;
+        var item = this._list.getChild(name);
+        if (item) {
+            var index = this._list.getChildIndex(item);
+            this._list.removeChildToPoolAt(index);
+            return true;
+        }
+        else
+            return false;
     }
     clearItems() {
-        throw new Error("TODO");
-        // this._list.removeChildrenToPool();
+        this._list.removeChildrenToPool();
     }
     get itemCount() {
         return this._list.numChildren;
@@ -22515,39 +22520,31 @@ class PopupMenu {
         return this._list;
     }
     show(target = null, dir) {
-        throw "TODO";
-        // var r: GRoot = target != null ? target.root : GRoot.inst;
-        // r.showPopup(this.contentPane, (target instanceof GRoot) ? null : target, dir);
+        var r = target != null ? target.root : GRoot.inst;
+        r.showPopup(this.contentPane, (target instanceof GRoot) ? null : target, dir);
     }
     __clickItem(itemObject) {
-        throw "TODO";
-        // Laya.timer.once(100, this, this.__clickItem2, [itemObject]);
+        this._scene.time.delayedCall(100, this.__clickItem2, [itemObject], this);
     }
     __clickItem2(itemObject) {
-        throw "TODO";
-        // if (!(itemObject instanceof GButton))
-        //     return;
-        // if (itemObject.grayed) {
-        //     this._list.selectedIndex = -1;
-        //     return;
-        // }
-        // var c: Controller = itemObject.asCom.getController("checked");
-        // if (c && c.selectedIndex != 0) {
-        //     if (c.selectedIndex == 1)
-        //         c.selectedIndex = 2;
-        //     else
-        //         c.selectedIndex = 1;
-        // }
-        // var r: GRoot = <GRoot>(this._contentPane.parent);
-        // r.hidePopup(this.contentPane);
-        // if (itemObject.data != null) {
-        //     itemObject.data();
-        // }
-    }
-    __addedToStage() {
-        throw new Error("TODO");
-        // this._list.selectedIndex = -1;
-        // this._list.resizeToFit(100000, 10);
+        if (!(itemObject instanceof GButton))
+            return;
+        if (itemObject.grayed) {
+            this._list.selectedIndex = -1;
+            return;
+        }
+        var c = itemObject.asCom.getController("checked");
+        if (c && c.selectedIndex != 0) {
+            if (c.selectedIndex == 1)
+                c.selectedIndex = 2;
+            else
+                c.selectedIndex = 1;
+        }
+        var r = (this._contentPane.parent);
+        r.hidePopup(this.contentPane);
+        if (itemObject.data != null) {
+            itemObject.data.run();
+        }
     }
 }
 
