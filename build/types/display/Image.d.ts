@@ -18,6 +18,14 @@ export declare class Image extends Phaser.GameObjects.Container {
      * 无论九宫还是非九宫的，基础贴图
      */
     protected _curImg: Phaser.GameObjects.Image;
+    /**
+     * 平铺用的tilesprite
+     */
+    protected _tileSprite: Phaser.GameObjects.TileSprite;
+    /**
+     * 是否已经fairy包装item中获取完数据
+     */
+    private _hasSetPackItem;
     private _tileGridIndice;
     private _sizeGrid;
     private _needRebuild;
@@ -55,6 +63,7 @@ export declare class Image extends Phaser.GameObjects.Container {
     drawPatches(): void;
     createPatchFrame(patch: any, x: any, y: any, width: any, height: any): void;
     getPatchNameByIndex(index: any): string;
+    get display(): any;
     get texture(): Phaser.Textures.Texture;
     set texture(value: Phaser.Textures.Texture);
     setPackItem(value: PackageItem): Promise<void>;

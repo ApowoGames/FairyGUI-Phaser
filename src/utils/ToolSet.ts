@@ -85,16 +85,13 @@ export class ToolSet {
             return parseInt(str, 16);
     }
 
-    public static displayObjectToGObject(obj: any): GObject {
-        // public static displayObjectToGObject(obj: Laya.Node): GObject {
-        // while (obj && !(obj instanceof Laya.Stage)) {
-        //     if (obj["$owner"])
-        //         return obj["$owner"];
 
-        //     obj = obj.parent;
-        // }
-        // TODO
-        throw new Error("TODO");
+    public static displayObjectToGObject(obj): GObject {
+        while (obj && !(obj instanceof GRoot)) {
+            if (obj["$owner"])
+                return obj["$owner"];
+            obj = obj.parent;
+        }
         return null;
     }
 
@@ -170,7 +167,7 @@ export class ToolSet {
         }
         if (obj.list && obj.list.length > 0) {
             if (obj instanceof Image) {
-                (<Phaser.GameObjects.Image>obj.list[0]).setPipeline(colorPipeLine);
+                (<Phaser.GameObjects.Image>obj.display).setPipeline(colorPipeLine);
             } else if (obj["$owner"] instanceof GLoader) {
                 (<MovieClip>obj.list[0]).setFilter(colorPipeLine);
             }

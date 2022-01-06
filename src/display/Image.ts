@@ -29,10 +29,20 @@ export class Image extends Phaser.GameObjects.Container {
      */
     protected _curImg: Phaser.GameObjects.Image;
 
+    /**
+     * 平铺用的tilesprite
+     */
+    protected _tileSprite: Phaser.GameObjects.TileSprite;
+
+    /**
+     * 是否已经fairy包装item中获取完数据
+     */
+    private _hasSetPackItem: boolean = false;
+
     private _tileGridIndice: number = 0;
     private _sizeGrid: number[];
     private _needRebuild: number = 0;
-    private _fillMethod: number = 0;
+    private _fillMethod: number;
     private _fillOrigin: number = 0;
     private _fillAmount: number = 0;
     private _fillClockwise?: boolean;
@@ -215,7 +225,8 @@ export class Image extends Phaser.GameObjects.Container {
 
     drawPatches() {
         const tintFill = this.tintFill;
-        this.removeAll(true);
+        //如果是平铺，可以不移除tilesprite，只有9宫和正常贴图才需要
+        if (!this._scaleByTile) this.removeAll(true);
         // 非九宫直接画texture
         if (!this._scale9Grid || this._scale9GridBool) {
             const patch = this._sourceTexture.frames[this.getPatchNameByIndex(8)];
@@ -294,6 +305,10 @@ export class Image extends Phaser.GameObjects.Container {
         return this.originFrame.name + patches[index] + this.patchKey;
     }
 
+    public get display(): any {
+        return this._tileSprite || this._curImg;
+    }
+
     public get texture(): Phaser.Textures.Texture {
         return this._sourceTexture;
     }
@@ -327,6 +342,7 @@ export class Image extends Phaser.GameObjects.Container {
             this._valueName = _texture.key + "_" + value.name;
             const name = this._valueName + "_" + this["$owner"].initWidth + "_" + this["$owner"].initHeight;
             this.patchKey = name;
+            this._hasSetPackItem = true;
             // 非九宫正常图片
             if (!this._scale9Grid) {
                 if (this.width !== _texture.frames["__BASE"].cutWidth || this.height !== _texture.frames["__BASE"].cutHeight) {
@@ -497,13 +513,16 @@ export class Image extends Phaser.GameObjects.Container {
     }
 
     protected markChanged(flag: number): void {
+        if (!this._hasSetPackItem) {
+            return;
+        }
         if (!this._needRebuild) {
             this._needRebuild = flag;
-
+            this.rebuild();
             // Laya.timer.callLater(this, this.rebuild);
         }
         else
-            this._needRebuild |= flag;
+            this._needRebuild = this._needRebuild | flag; //  位运算（按位或） this._needRebuild |= flag; 
     }
 
     protected rebuild(): void {
@@ -517,68 +536,29 @@ export class Image extends Phaser.GameObjects.Container {
     private doDraw(): void {
         var w: number = this.width;
         var h: number = this.height;
-        // var g: Graphics = new Graphics(this.scene);
+
         var tex: Phaser.Textures.Texture = this._sourceTexture;
-
-        // g.clear();
-
         if (tex == null || w == 0 || h == 0) {
             return;
         }
-        if (this._curImg) {
-            this._curImg.visible = false;
-        }
 
-        let img: Phaser.GameObjects.Image;
-        let curFrame: Phaser.Textures.Frame;
+
         if (this._scaleByTile) {
-            // todo draw texture
-            curFrame = this._frames["__BASE"];
-            img = this._frameImgs.get(curFrame.name);
-            if (!img) {
-                img = new Phaser.GameObjects.Image(this.scene, 0, 0, tex.key);
-                img.setOrigin(0);
-                img.setPosition(curFrame.x, curFrame.y);
-                this.add(img);
+            if (this._curImg) {
+                this._curImg.visible = false;
+            }
+            if (!this._tileSprite) {
+                this._tileSprite = this.scene.make.tileSprite(undefined, false);
+                this._tileSprite.setOrigin(0);
+                this._tileSprite.setSize(w, h);
+                this._tileSprite.setTexture(tex.key, "__BASE");
+                this.add(this._tileSprite);
             } else {
-                img.visible = true;
+                if (this._tileSprite.width != w || this._tileSprite.height != h) {
+                    this._tileSprite.setSize(w, h);
+                }
             }
 
-            //  g.fillTexture(tex, 0, 0, w, h);
-        }
-        else if (this._scale9Grid) {
-            this.texture = tex;
-            // if (!this._sizeGrid) {
-            //     var tw: number = tex.source[0].width;
-            //     var th: number = tex.source[0].height;
-            //     this.changeSize(tw, th);
-            //     var left: number = this._scale9Grid.x;
-            //     var right: number = Math.max(tw - this._scale9Grid.right, 0);
-            //     var top: number = this._scale9Grid.y;
-            //     var bottom: number = Math.max(th - this._scale9Grid.bottom, 0);
-            //     this._sizeGrid = [top, right, bottom, left, this._tileGridIndice];
-            // }
-
-            // todo draw9Grid
-            //g.draw9Grid(tex, 0, 0, w, h, this._sizeGrid);
-        }
-        else {
-            // todo drawImage
-            if (this._frames) {
-                const curFrame = this._frames[this._frame];
-                const curFrameName = curFrame.name;
-                // if (!GRoot.inst.scene.textures.exists(curFrameName)) {
-                //     const canvas = GRoot.inst.scene.textures.createCanvas(curFrameName, w, h);
-                //     canvas.drawFrame(tex.key, curFrameName, 0, 0);
-                // }
-
-                img = new Phaser.GameObjects.Image(this.scene, 0, 0, tex.key, curFrameName);
-                img.setOrigin(0);
-                img.setPosition(this.width - img.width >> 1, this.height - img.height >> 1);
-                img.setSize(w, h)
-                this.add(img);
-            }
-            //g.drawImage(tex, 0, 0, w, h);
         }
     }
 
