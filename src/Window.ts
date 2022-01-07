@@ -9,31 +9,32 @@ import { GObject } from './GObject';
 import "phaser3";
 import { GComponent } from "./GComponent";
 export class Window extends GComponent {
-    private _contentPane: GComponent;
-    private _modalWaitPane: GObject;
-    private _closeButton: GObject;
-    private _dragArea: GObject;
-    private _contentArea: GObject;
-    private _frame: GComponent;
-    private _modal: boolean;
+    protected _contentPane: GComponent;
+    protected _modalWaitPane: GObject;
+    protected _closeButton: GObject;
+    protected _dragArea: GObject;
+    protected _contentArea: GObject;
+    protected _frame: GComponent;
+    protected _modal: boolean;
 
-    private _uiSources?: IUISource[];
-    private _inited?: boolean;
-    private _loading?: boolean;
+    protected _uiSources?: IUISource[];
+    protected _inited?: boolean;
+    protected _loading?: boolean;
 
     protected _requestingCmd: number = 0;
 
     public bringToFontOnClick: boolean;
 
-    constructor() {
-        super();
+    constructor(scene: Phaser.Scene) {
+        super(scene);
 
         this._uiSources = [];
         this.bringToFontOnClick = UIConfig.bringWindowToFrontOnClick;
+        this._init();
+    }
 
-        // this.displayObject.on(Phaser.GameObjects.Events.ADDED_TO_SCENE, this, this.__onShown);
-        // this.displayObject.on(Phaser.GameObjects.Events.REMOVED_FROM_SCENE, this, this.__onHidden);
-        // this.displayObject.on(Laya.Event.MOUSE_DOWN, this, this.__mouseDown);
+    public createDisplayObject(): void {
+        super.createDisplayObject();
     }
 
     public addUISource(source: IUISource): void {
@@ -46,7 +47,7 @@ export class Window extends GComponent {
                 this.removeChild(this._contentPane);
             this._contentPane = val;
             if (this._contentPane) {
-                // this.addChild(this._contentPane);
+                this.addChild(this._contentPane);
                 this.setSize(this._contentPane.width, this._contentPane.height);
                 this._contentPane.addRelation(this, RelationType.Size);
                 this._frame = <GComponent>(this._contentPane.getChild("frame"));
@@ -55,6 +56,9 @@ export class Window extends GComponent {
                     this.dragArea = this._frame.getChild("dragArea");
                     this.contentArea = this._frame.getChild("contentArea");
                 }
+                // this.displayObject.on(Phaser.GameObjects.Events.ADDED_TO_SCENE, this, this.__onShown);
+                // this.displayObject.on(Phaser.GameObjects.Events.REMOVED_FROM_SCENE, this, this.__onHidden);
+                this.displayObject.on("gameobjectdown", this.__mouseDown, this);
             }
         }
     }
@@ -92,8 +96,8 @@ export class Window extends GComponent {
 
             this._dragArea = value;
             if (this._dragArea) {
-                if (this._dragArea instanceof GGraph)
-                    this._dragArea.drawRect(0, null, null);
+                // if (this._dragArea instanceof GGraph)
+                //     this._dragArea.drawRect(0, null, null);
                 this._dragArea.draggable = true;
                 // this._dragArea.on(Events.DRAG_START, this, this.__dragStart);
             }
@@ -125,7 +129,7 @@ export class Window extends GComponent {
         var r: GRoot = (this.parent instanceof GRoot) ? this.parent : null;
         if (!r)
             r = GRoot.inst;
-        // r.hideWindowImmediately(this);
+        r.hideWindowImmediately(this);
     }
 
     public centerOn(r: GRoot, restraint?: boolean): void {
@@ -278,19 +282,19 @@ export class Window extends GComponent {
         this.hide();
     }
 
-    private __onShown(): void {
+    public __onShown(): void {
         if (!this._inited)
             this.init();
         else
             this.doShowAnimation();
     }
 
-    private __onHidden(): void {
+    protected __onHidden(): void {
         this.closeModalWait();
         this.onHide();
     }
 
-    private __mouseDown(): void {
+    protected __mouseDown(): void {
         if (this.isShowing && this.bringToFontOnClick)
             this.bringToFront();
     }

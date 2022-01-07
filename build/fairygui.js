@@ -13279,7 +13279,7 @@
                 win.y = this.height - win.height;
             else if (win.y + win.height < 0)
                 win.y = 0;
-            this.adjustModalLayer();
+            // this.adjustModalLayer();
         }
         hideWindow(win) {
             win.hide();
@@ -13402,6 +13402,11 @@
                     target.hide();
                 else
                     this.removeChild(target);
+            }
+        }
+        hideWindowImmediately(target) {
+            if (target.parent) {
+                this.removeChild(target);
             }
         }
         checkPopups(clickTarget) {
@@ -22151,14 +22156,15 @@
     var s_list = new Array();
 
     class Window extends GComponent {
-        constructor() {
-            super();
+        constructor(scene) {
+            super(scene);
             this._requestingCmd = 0;
             this._uiSources = [];
             this.bringToFontOnClick = UIConfig.bringWindowToFrontOnClick;
-            // this.displayObject.on(Phaser.GameObjects.Events.ADDED_TO_SCENE, this, this.__onShown);
-            // this.displayObject.on(Phaser.GameObjects.Events.REMOVED_FROM_SCENE, this, this.__onHidden);
-            // this.displayObject.on(Laya.Event.MOUSE_DOWN, this, this.__mouseDown);
+            this._init();
+        }
+        createDisplayObject() {
+            super.createDisplayObject();
         }
         addUISource(source) {
             this._uiSources.push(source);
@@ -22169,7 +22175,7 @@
                     this.removeChild(this._contentPane);
                 this._contentPane = val;
                 if (this._contentPane) {
-                    // this.addChild(this._contentPane);
+                    this.addChild(this._contentPane);
                     this.setSize(this._contentPane.width, this._contentPane.height);
                     this._contentPane.addRelation(this, exports.RelationType.Size);
                     this._frame = (this._contentPane.getChild("frame"));
@@ -22178,6 +22184,9 @@
                         this.dragArea = this._frame.getChild("dragArea");
                         this.contentArea = this._frame.getChild("contentArea");
                     }
+                    // this.displayObject.on(Phaser.GameObjects.Events.ADDED_TO_SCENE, this, this.__onShown);
+                    // this.displayObject.on(Phaser.GameObjects.Events.REMOVED_FROM_SCENE, this, this.__onHidden);
+                    this.displayObject.on("gameobjectdown", this.__mouseDown, this);
                 }
             }
         }
@@ -22208,8 +22217,8 @@
                 }
                 this._dragArea = value;
                 if (this._dragArea) {
-                    if (this._dragArea instanceof GGraph)
-                        this._dragArea.drawRect(0, null, null);
+                    // if (this._dragArea instanceof GGraph)
+                    //     this._dragArea.drawRect(0, null, null);
                     this._dragArea.draggable = true;
                     // this._dragArea.on(Events.DRAG_START, this, this.__dragStart);
                 }
@@ -22232,8 +22241,10 @@
                 this.doHideAnimation();
         }
         hideImmediately() {
-            (this.parent instanceof GRoot) ? this.parent : null;
-            // r.hideWindowImmediately(this);
+            var r = (this.parent instanceof GRoot) ? this.parent : null;
+            if (!r)
+                r = GRoot.inst;
+            r.hideWindowImmediately(this);
         }
         centerOn(r, restraint) {
             this.setXY(Math.round((r.width - this.width) / 2), Math.round((r.height - this.height) / 2));

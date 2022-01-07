@@ -7,7 +7,7 @@ import { GComponent } from "./GComponent";
 import { DisplayObjectEvent } from './event/DisplayObjectEvent';
 import { UIConfig } from './UIConfig';
 import { UIPackage } from './UIPackage';
-import { InteractiveEvent, PopupDirection, Window } from '.';
+import { InteractiveEvent, ObjectType, PopupDirection, RelationType, Window } from '.';
 import { Utils } from './utils/Utils';
 import { TextureManager } from './texture/TextureManager';
 export class GRootMouseStatus {
@@ -239,7 +239,7 @@ export class GRoot extends GComponent {
         else if (win.y + win.height < 0)
             win.y = 0;
 
-        this.adjustModalLayer();
+        // this.adjustModalLayer();
     }
 
     public hideWindow(win: Window): void {
@@ -372,12 +372,18 @@ export class GRoot extends GComponent {
         }
     }
 
-    private closePopup(target: GObject): void {
+    public closePopup(target: GObject): void {
         if (target.parent) {
             if (target instanceof Window)
                 target.hide();
             else
                 this.removeChild(target);
+        }
+    }
+
+    public hideWindowImmediately(target: GObject) {
+        if (target.parent) {
+            this.removeChild(target);
         }
     }
 
