@@ -45,6 +45,10 @@ export declare class GList extends GComponent {
     protected _refreshListTime: Phaser.Time.TimerEvent;
     protected shiftKey: boolean;
     protected ctrlKey: boolean;
+    /**
+     * 异步存储item列表，防止多个相同item同时创建，添加到舞台上的先后顺序错乱
+     */
+    protected _tempItemList: any[];
     constructor(scene: Phaser.Scene, type: any);
     private __keyDown;
     private __keyUp;
@@ -78,6 +82,12 @@ export declare class GList extends GComponent {
     returnToPool(obj: GObject): void;
     addChildAt(child: GObject, index: number): GObject;
     addItem(url?: string): Promise<GObject>;
+    /**
+     * 一次添加多个listitem
+     * @param datas
+     */
+    addItems(count: number, url?: string): Promise<any>;
+    protected _addItems(url: any): Promise<GObject>;
     addItemFromPool(url?: string): Promise<GObject>;
     removeChildAt(index: number, dispose?: boolean): Promise<GObject>;
     removeChildToPoolAt(index: number): void;

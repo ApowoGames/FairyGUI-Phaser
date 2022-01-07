@@ -189,10 +189,11 @@ export class UIPackage {
             var pi: PackageItem = UIPackage.getItemByURL(url);
             if (pi) {
                 pi.owner.internalCreateObject(pi, userClass).then((g) => {
-                    return reslove(g);
+                    reslove(g);
+                    return;
                 });
             } else {
-                return reslove(null);
+                reslove(null);
             }
         });
     }

@@ -12,29 +12,41 @@ export class PopupMenu {
 
     protected _contentPane: GComponent;
     protected _list: GList;
-    constructor(protected _scene: Phaser.Scene, resourceURL?: string) {
-        if (!resourceURL) {
-            resourceURL = UIConfig.popupMenu;
-            if (!resourceURL)
+    constructor(protected _scene: Phaser.Scene, private resourceURL?: string) {
+        if (!this.resourceURL) {
+            this.resourceURL = UIConfig.popupMenu;
+            if (!this.resourceURL)
                 throw "UIConfig.popupMenu not defined";
         }
-        UIPackage.createObjectFromURL(resourceURL).then((obj) => {
-            this._contentPane = obj.asCom;
-            // this._contentPane.on(Laya.Event.DISPLAY, this.__addedToStage, this);
-            this._list = <GList>(this._contentPane.getChild("list"));
-            this._list.removeChildrenToPool();
-            this._list.addRelation(this._contentPane, RelationType.Width);
-            this._list.removeRelation(this._contentPane, RelationType.Height);
-            this._contentPane.addRelation(this._list, RelationType.Height);
-            this._list.on(Events.CLICK_ITEM, this.__clickItem, this);
-        })
 
+    }
+
+    public init(): Promise<void> {
+        return new Promise((resolve, reject) => {
+            UIPackage.createObjectFromURL(this.resourceURL).then((obj) => {
+                this._contentPane = obj.asCom;
+                // this._contentPane.on(Laya.Event.DISPLAY, this.__addedToStage, this);
+                this._list = <GList>(this._contentPane.getChild("list"));
+                this._list.removeChildrenToPool();
+                this._list.addRelation(this._contentPane, RelationType.Width);
+                this._list.removeRelation(this._contentPane, RelationType.Height);
+                this._contentPane.addRelation(this._list, RelationType.Height);
+                this._list.on(Events.CLICK_ITEM, this.__clickItem, this);
+                resolve();
+            })
+        });
     }
 
     public dispose(): void {
         this._contentPane.dispose();
     }
 
+    /**
+     * 一次创建一个item
+     * @param caption 
+     * @param handler 
+     * @returns 
+     */
     public addItem(caption: string, handler?: (item?: GObject, evt?: Event) => void): Promise<GButton> {
         return new Promise((resolve, reject) => {
             this._list.addItemFromPool().then((obj) => {
@@ -49,7 +61,31 @@ export class PopupMenu {
             });
 
         });
+    }
 
+    /**
+     * 一次创建多个items，由于异步问题，会导致promise返回后显示对象的添加的先后顺序错乱(index 5先被添加到0，0位置)
+     * @param captions 
+     * @param handler 
+     * @returns 
+     */
+    public addItems(captions: string[], handler?: (item?: GObject, evt?: Event) => void): Promise<void> {
+        return new Promise((resolve, reject) => {
+            const count = captions.length;
+            this._list.addItems(count).then((objlist) => {
+                for (let i: number = 0; i < count; i++) {
+                    const obj = objlist[i];
+                    var item: GButton = obj.asButton;
+                    item.title = captions[i];
+                    item.data = handler;
+                    item.grayed = false;
+                    var c: Controller = item.getController("checked");
+                    if (c)
+                        c.selectedIndex = 0;
+                }
+                resolve();
+            })
+        });
     }
 
     public addItemAt(caption: string, index: number, handler?: (item?: GObject, evt?: Event) => void): Promise<GButton> {
@@ -71,7 +107,7 @@ export class PopupMenu {
     public addSeperator(): void {
         if (UIConfig.popupMenu_seperator == null)
             throw "UIConfig.popupMenu_seperator not defined";
-        this.list.addItemFromPool(UIConfig.popupMenu_seperator);
+        this._list.addItemFromPool(UIConfig.popupMenu_seperator);
     }
 
     public getItemName(index: number): string {
@@ -177,7 +213,7 @@ export class PopupMenu {
                 c.selectedIndex = 1;
         }
         var r: GRoot = <GRoot>(this._contentPane.parent);
-        r.hidePopup(this.contentPane);
+        if (r) r.hidePopup(this.contentPane);
         if (itemObject.data != null) {
             (<Handler>itemObject.data).run();
         }

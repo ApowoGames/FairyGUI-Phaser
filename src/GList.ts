@@ -56,6 +56,10 @@ export class GList extends GComponent {
     protected _refreshListTime: Phaser.Time.TimerEvent;
     protected shiftKey: boolean = false;
     protected ctrlKey: boolean = false;
+    /**
+     * 异步存储item列表，防止多个相同item同时创建，添加到舞台上的先后顺序错乱
+     */
+    protected _tempItemList: any[];
     constructor(scene: Phaser.Scene, type) {
         super(scene, type);
         this._refreshListEvent = { delay: this._timeDelta / Utils.FPSTarget, callback: this._refreshVirtualList, callbackScope: this };
@@ -69,6 +73,7 @@ export class GList extends GComponent {
         this.scrollItemToViewOnClick = true;
         this._align = "left";
         this._verticalAlign = "top";
+        this._tempItemList = [];
 
         this._container = scene.make.container(undefined, false);
         this._displayObject.add(this._container);
@@ -312,6 +317,35 @@ export class GList extends GComponent {
             UIPackage.createObjectFromURL(url).then((obj) => {
                 this.addChild(obj);
                 reslove(obj);
+            });
+        });
+    }
+
+    /**
+     * 一次添加多个listitem
+     * @param datas 
+     */
+    public addItems(count: number, url?: string): Promise<any> {
+        return new Promise((resolve1, reject) => {
+            if (!url)
+                url = this._defaultItem;
+            const promiseList = [];
+            for (let i: number = 0; i < count; i++) {
+                promiseList.push(this._addItems(url));
+            }
+            // 同时创建多个相同item会由于异步问题导致显示对象添加顺序错乱
+            Promise.all(promiseList).then(() => {
+                resolve1(this._tempItemList);
+            });
+        });
+    }
+
+    protected _addItems(url): Promise<GObject> {
+        return new Promise((resolve, reject) => {
+            UIPackage.createObjectFromURL(url).then((obj) => {
+                this._tempItemList.push(obj);
+                this.addChild(obj);
+                resolve(obj);
             });
         });
     }

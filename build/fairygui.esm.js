@@ -8120,11 +8120,12 @@ class UIPackage {
             var pi = UIPackage.getItemByURL(url);
             if (pi) {
                 pi.owner.internalCreateObject(pi, userClass).then((g) => {
-                    return reslove(g);
+                    reslove(g);
+                    return;
                 });
             }
             else {
-                return reslove(null);
+                reslove(null);
             }
         });
     }
@@ -19093,6 +19094,7 @@ class GList extends GComponent {
         this.scrollItemToViewOnClick = true;
         this._align = "left";
         this._verticalAlign = "top";
+        this._tempItemList = [];
         this._container = scene.make.container(undefined, false);
         this._displayObject.add(this._container);
         // todo click 优先添加监听，防止scrollpane的pointerup将参数修改，影响glist _clickItem逻辑
@@ -19295,6 +19297,33 @@ class GList extends GComponent {
             UIPackage.createObjectFromURL(url).then((obj) => {
                 this.addChild(obj);
                 reslove(obj);
+            });
+        });
+    }
+    /**
+     * 一次添加多个listitem
+     * @param datas
+     */
+    addItems(count, url) {
+        return new Promise((resolve1, reject) => {
+            if (!url)
+                url = this._defaultItem;
+            const promiseList = [];
+            for (let i = 0; i < count; i++) {
+                promiseList.push(this._addItems(url));
+            }
+            // 同时创建多个相同item会由于异步问题导致显示对象添加顺序错乱
+            Promise.all(promiseList).then(() => {
+                resolve1(this._tempItemList);
+            });
+        });
+    }
+    _addItems(url) {
+        return new Promise((resolve, reject) => {
+            UIPackage.createObjectFromURL(url).then((obj) => {
+                this._tempItemList.push(obj);
+                this.addChild(obj);
+                resolve(obj);
             });
         });
     }
@@ -22384,25 +22413,37 @@ class Window extends GComponent {
 class PopupMenu {
     constructor(_scene, resourceURL) {
         this._scene = _scene;
-        if (!resourceURL) {
-            resourceURL = UIConfig.popupMenu;
-            if (!resourceURL)
+        this.resourceURL = resourceURL;
+        if (!this.resourceURL) {
+            this.resourceURL = UIConfig.popupMenu;
+            if (!this.resourceURL)
                 throw "UIConfig.popupMenu not defined";
         }
-        UIPackage.createObjectFromURL(resourceURL).then((obj) => {
-            this._contentPane = obj.asCom;
-            // this._contentPane.on(Laya.Event.DISPLAY, this.__addedToStage, this);
-            this._list = (this._contentPane.getChild("list"));
-            this._list.removeChildrenToPool();
-            this._list.addRelation(this._contentPane, RelationType.Width);
-            this._list.removeRelation(this._contentPane, RelationType.Height);
-            this._contentPane.addRelation(this._list, RelationType.Height);
-            this._list.on(Events.CLICK_ITEM, this.__clickItem, this);
+    }
+    init() {
+        return new Promise((resolve, reject) => {
+            UIPackage.createObjectFromURL(this.resourceURL).then((obj) => {
+                this._contentPane = obj.asCom;
+                // this._contentPane.on(Laya.Event.DISPLAY, this.__addedToStage, this);
+                this._list = (this._contentPane.getChild("list"));
+                this._list.removeChildrenToPool();
+                this._list.addRelation(this._contentPane, RelationType.Width);
+                this._list.removeRelation(this._contentPane, RelationType.Height);
+                this._contentPane.addRelation(this._list, RelationType.Height);
+                this._list.on(Events.CLICK_ITEM, this.__clickItem, this);
+                resolve();
+            });
         });
     }
     dispose() {
         this._contentPane.dispose();
     }
+    /**
+     * 一次创建一个item
+     * @param caption
+     * @param handler
+     * @returns
+     */
     addItem(caption, handler) {
         return new Promise((resolve, reject) => {
             this._list.addItemFromPool().then((obj) => {
@@ -22414,6 +22455,30 @@ class PopupMenu {
                 if (c)
                     c.selectedIndex = 0;
                 resolve(item);
+            });
+        });
+    }
+    /**
+     * 一次创建多个items，由于异步问题，会导致promise返回后显示对象的添加的先后顺序错乱(index 5先被添加到0，0位置)
+     * @param captions
+     * @param handler
+     * @returns
+     */
+    addItems(captions, handler) {
+        return new Promise((resolve, reject) => {
+            const count = captions.length;
+            this._list.addItems(count).then((objlist) => {
+                for (let i = 0; i < count; i++) {
+                    const obj = objlist[i];
+                    var item = obj.asButton;
+                    item.title = captions[i];
+                    item.data = handler;
+                    item.grayed = false;
+                    var c = item.getController("checked");
+                    if (c)
+                        c.selectedIndex = 0;
+                }
+                resolve();
             });
         });
     }
@@ -22435,7 +22500,7 @@ class PopupMenu {
     addSeperator() {
         if (UIConfig.popupMenu_seperator == null)
             throw "UIConfig.popupMenu_seperator not defined";
-        this.list.addItemFromPool(UIConfig.popupMenu_seperator);
+        this._list.addItemFromPool(UIConfig.popupMenu_seperator);
     }
     getItemName(index) {
         var item = this._list.getChildAt(index);
