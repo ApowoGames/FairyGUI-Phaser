@@ -376,9 +376,9 @@ export class GComponent extends GObject {
                     if (g.inContainer)
                         displayIndex++;
                 }
-                if (displayIndex === this._container.list.length)
+                if (displayIndex === this._displayObject.list.length)
                     displayIndex--;
-                this._container.addAt(child.displayObject, displayIndex);
+                this._displayObject.addAt(child.displayObject, displayIndex);
             }
             else if (this._childrenRenderOrder == ChildrenRenderOrder.Descent) {
                 for (i = cnt - 1; i > index; i--) {
@@ -386,9 +386,9 @@ export class GComponent extends GObject {
                     if (g.inContainer)
                         displayIndex++;
                 }
-                if (displayIndex === this._container.list.length)
+                if (displayIndex === this._displayObject.list.length)
                     displayIndex--;
-                this._container.addAt(child.displayObject, displayIndex);
+                this._displayObject.addAt(child.displayObject, displayIndex);
             }
             else {
                 if (!this._buildNativeTime) this._buildNativeTime = this.scene.time.addEvent(this._buildNativeEvent);
@@ -786,19 +786,10 @@ export class GComponent extends GObject {
     }
 
     protected updateHitArea(): void {
-        // if (this.hitArea instanceof PixelHitTest) {
-        //     var hitTest: PixelHitTest = <PixelHitTest>(this.hitArea);
-        //     if (this.sourceWidth != 0)
-        //         hitTest.scaleX = this.initWidth / this.sourceWidth;
-        //     if (this.sourceHeight != 0)
-        //         hitTest.scaleY = this.initHeight / this.sourceHeight;
-        // }
-        // else 
         if (this.hitArea instanceof Phaser.Geom.Rectangle) {
-            this.hitArea.setTo(this.initWidth >> 1, this.initHeight >> 1, this.initWidth, this.initHeight);
+            this.hitArea.setTo(this._width >> 1, this._height >> 1, this._width, this._height);
             if (this._opaque) {
-                this.removeInteractive();
-                this._displayObject.setInteractive(this.hitArea, Phaser.Geom.Rectangle.Contains);
+                this._scene.sys["input"].setHitArea(this.displayObject, this.hitArea);
             }
         }
     }

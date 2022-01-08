@@ -311,20 +311,13 @@ export class GButton extends GComponent {
         }
     }
 
-    public setSize(wv: number, hv: number, ignorePivot?: boolean): void {
-        super.setSize(wv, hv, ignorePivot);
-    }
-
-    protected handleSizeChanged(): void {
-        super.handleSizeChanged();
-    }
-
     public handleControllerChanged(c: Controller): void {
         super.handleControllerChanged(c);
 
         if (this._relatedController == c)
             this.selected = this._relatedPageId == c.selectedPageId;
     }
+
 
     protected handleGrayedChanged(): void {
         if (this._buttonController && this._buttonController.hasPage(GButton.DISABLED)) {
