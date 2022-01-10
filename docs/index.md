@@ -46,27 +46,30 @@ FariyGui ui plugin that supports Phaser3
 
 ### Create ui res process：
 #### First Step 
-****You can choose any item type because the internal serialization process is the same，and phaser uses laya for the default packaging method.****
+You can choose any item type because the internal serialization process is the same，and phaser uses laya for the default packaging method.
 ![image](https://user-images.githubusercontent.com/18412751/148709749-20210157-10e5-4188-a7d8-96fd85c5b59b.png)
 
 #### Second Step
-****You can resize the stage or add any components you want to the stage****
+You can resize the stage or add any components you want to the stage
 ![image](https://user-images.githubusercontent.com/18412751/148710025-dfd00b51-62cd-4032-9afc-304be8edeff5.png)
 
 #### Third Step
+You can choose the packaging method and packaging options
 
-****You can choose the packaging method and packaging options****
 ![image](https://user-images.githubusercontent.com/18412751/148710076-a84fa8a9-8962-4fdb-9ec0-c940d7c61969.png)
 
-****You can choose any option for the packaging method, because fairygui's serialization logic and deserialization logic are basically the same, and phaser uses laya for the default packaging method.****
-![image](https://user-images.githubusercontent.com/18412751/148710089-4117bc41-ad28-4468-a655-dd7f579166f1.png)
 
-****If you choose to package, you need to provide the packaged path. After packaging, a combined image and json configuration will be generated. In addition, if there are other resources such as sound effects, they will also be sent to the provided path.Don't worry about whether the generated composite map will contradict the phaser's atlas, fairygui-phaser has converted the produced composite map into a data structure supported by phaser****
+You can choose any option for the packaging method, because fairygui's serialization logic and deserialization logic are basically the same, and phaser uses laya for the default packaging method.
+
+![image](https://user-images.githubusercontent.com/18412751/148710089-4117bc41-ad28-4468-a655-dd7f579166f1.png)
 ![image](https://user-images.githubusercontent.com/18412751/148710103-65a15b96-f5ba-461a-82e1-69602e91e240.png)
 ![image](https://user-images.githubusercontent.com/18412751/148710248-aef3e765-512b-4314-9fb1-85fe7771eca3.png)
 
+If you choose to package, you need to provide the packaged path. After packaging, a combined image and json configuration will be generated. In addition, if there are other resources such as sound effects, they will also be sent to the provided path.Don't worry about whether the generated composite map will contradict the phaser's atlas, fairygui-phaser has converted the produced composite map into a data structure supported by phaser
+
+
 #### Forth Step
-****Just import the corresponding ui resources in the project, you can use it in the project, the edited ui****
+Just import the corresponding ui resources in the project, you can use it in the project, the edited ui
 
 ### Operating procedures：
 #### First Step
