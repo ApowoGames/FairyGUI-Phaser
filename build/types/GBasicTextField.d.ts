@@ -49,6 +49,7 @@ export declare class GBasicTextField extends GTextField {
     typeset(): void;
     protected updateSize(): void;
     setSize(w: any, h: any): void;
+    dispose(): void;
     private renderWithBitmapFont;
     protected handleGrayedChanged(): void;
     protected doAlign(): void;

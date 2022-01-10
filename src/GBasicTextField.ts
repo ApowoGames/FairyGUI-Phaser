@@ -30,9 +30,6 @@ export class GBasicTextField extends GTextField {
 
     public setup_afterAdd(buffer: ByteBuffer, beginPos: number): void {
         super.setup_afterAdd(buffer, beginPos);
-
-        // // 输入文本能交互
-        // this.touchable = true;
     }
 
     public get nativeText(): TextField {
@@ -287,6 +284,14 @@ export class GBasicTextField extends GTextField {
         super.setSize(w, h);
     }
 
+    public dispose(): void {
+        if (this._textField) {
+            this._textField.preDestroy();
+            this._textField = null;
+        }
+        super.dispose();
+    }
+
     private renderWithBitmapFont(): void {
 
         // var gr: Phaser.GameObjects.Graphics = this._displayObject.graphics;
@@ -530,30 +535,6 @@ export class GBasicTextField extends GTextField {
         //     }//this.text loop
         // }//line loop
     }
-
-    // protected handleSizeChanged(): void {
-    // if (this._updatingSize)
-    //     return;
-
-    // if (this._underConstruct)
-    //     this._textField.setSize(this._width, this._height);
-    // else {
-    //     if (this._bitmapFont) {
-    //         if (!this._widthAutoSize)
-    //             this._textField["setChanged"]();
-    //         else
-    //             this.doAlign();
-    //     }
-    //     else {
-    //         if (!this._widthAutoSize) {
-    //             if (!this._heightAutoSize)
-    //                 this.setSize(this._width, this._height);
-    //             else
-    //                 this._textField.width = this._width;
-    //         }
-    //     }
-    // }
-    // }
 
     protected handleGrayedChanged(): void {
         super.handleGrayedChanged();

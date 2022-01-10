@@ -9,6 +9,8 @@ import { FillStyleType, HAlignModeString, VAlignModeString } from './Types';
 import { WrapMode } from './WrapText';
 
 const AddToDOM = Phaser.DOM.AddToDOM;
+const RemoveFromDOM = Phaser.DOM.RemoveFromDOM;
+const CanvasPool = Phaser.Display.Canvas.CanvasPool;
 export class TextField extends DisplayObject {
     public canvas: HTMLCanvasElement;
     public context: CanvasRenderingContext2D | null;
@@ -26,7 +28,7 @@ export class TextField extends DisplayObject {
 
         this.renderer = scene.sys.game.renderer;
 
-        this.canvas = Phaser.Display.Canvas.CanvasPool.create(this);
+        this.canvas = CanvasPool.create(this);
 
         this.context = this.canvas.getContext("2d");
 
@@ -63,12 +65,37 @@ export class TextField extends DisplayObject {
             context: this.context,
             parse: new Parser(),
         });
-
+        this.initRTL();
         this.scene.sys.game.events.on(Phaser.Core.Events.CONTEXT_RESTORED, this.onContextRestored, this);
 
         this.on("areadown", (pointer, localX, localY, event) => {
             console.log("areadown: ", pointer, localX, localY);
         }, this);
+    }
+
+
+    initRTL() {
+        if (!this.style.rtl) {
+            return;
+        }
+
+        //  Here is where the crazy starts.
+        //
+        //  Due to browser implementation issues, you cannot fillText BiDi text to a canvas
+        //  that is not part of the DOM. It just completely ignores the direction property.
+
+        this.canvas.dir = 'rtl';
+
+        //  Experimental atm, but one day ...
+        this.context.direction = 'rtl';
+
+        //  Add it to the DOM, but hidden within the parent canvas.
+        this.canvas.style.display = 'none';
+
+        AddToDOM(this.canvas, this.scene.sys.canvas);
+
+        //  And finally we set the x origin
+        this.originX = 1;
     }
 
     public setText(value: string | string[]) {
@@ -169,8 +196,8 @@ export class TextField extends DisplayObject {
         ).then((value: CanvasText) => {
 
             context.restore();
-            // 画完需要添加到场景上
-            AddToDOM(this.canvas, this.scene.sys.canvas);
+            // // 画完需要添加到场景上
+            // AddToDOM(this.canvas, this.scene.sys.canvas);
 
             const webglRenderer = <Phaser.Renderer.WebGL.WebGLRenderer>this.renderer;
             if (webglRenderer.gl) {
@@ -213,8 +240,6 @@ export class TextField extends DisplayObject {
         this.canvasText.disableInteractive();
         return this;
     }
-
-
 
     renderCanvas(renderer: Phaser.Renderer.Canvas.CanvasRenderer, src: TextField, camera: Phaser.Cameras.Scene2D.Camera, parentMatrix: Phaser.GameObjects.Components.TransformMatrix) {
         TextCanvasRenderer(renderer, src, camera, parentMatrix);
@@ -294,7 +319,9 @@ export class TextField extends DisplayObject {
         this.dirty = true;
     }
 
-    protected preDestroy() {
+    public preDestroy() {
+        RemoveFromDOM(this.canvas);
+        this.scene.sys.game.events.off(Phaser.Core.Events.CONTEXT_RESTORED, this.onContextRestored, this);
         if (this._canvasText) {
             this._canvasText.destroy();
             this._canvasText = undefined;
@@ -304,9 +331,10 @@ export class TextField extends DisplayObject {
             this._imageManager.destroy();
             this._imageManager = undefined;
         }
-
+        CanvasPool.remove(this.canvas);
+        if (this.texture && this.texture.key) this.texture.destroy();
         super.preDestroy();
-        this.scene.sys.game.events.off(Phaser.Core.Events.CONTEXT_RESTORED, this.onContextRestored, this);
+
     }
 
     get imageManager() {

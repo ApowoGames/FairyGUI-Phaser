@@ -266,7 +266,7 @@ export class DisplayObject extends Phaser.GameObjects.GameObject {
     }
 
     protected preDestroy() {
-
+        this.clearMask();
     }
 
     set scale(val: number) {

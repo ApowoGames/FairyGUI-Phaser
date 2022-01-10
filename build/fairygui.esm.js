@@ -13921,6 +13921,7 @@ class DisplayObject extends Phaser.GameObjects.GameObject {
     renderWebGL(renderer, src, camera, parentMatrix) {
     }
     preDestroy() {
+        this.clearMask();
     }
     set scale(val) {
         this._scaleX = val;
@@ -15337,16 +15338,16 @@ const CONST = {
     SPLITREGEXP: /(?:\r\n|\r|\n)/
 };
 
-const CanvasPool = Phaser.Display.Canvas.CanvasPool;
+const CanvasPool$1 = Phaser.Display.Canvas.CanvasPool;
 function MeasureText(textStyle) {
-    const canvas = CanvasPool.create(this);
+    const canvas = CanvasPool$1.create(this);
     const context = canvas.getContext('2d');
     textStyle.syncFont(canvas, context);
     const metrics = context.measureText(textStyle.testString);
     if ('actualBoundingBoxAscent' in metrics) {
         const ascent = metrics.actualBoundingBoxAscent;
         const descent = metrics.actualBoundingBoxDescent;
-        CanvasPool.remove(canvas);
+        CanvasPool$1.remove(canvas);
         return {
             ascent: ascent,
             descent: descent,
@@ -15376,7 +15377,7 @@ function MeasureText(textStyle) {
         output.ascent = baseline;
         output.descent = baseline + 6;
         output.fontSize = output.ascent + output.descent;
-        CanvasPool.remove(canvas);
+        CanvasPool$1.remove(canvas);
         return output;
     }
     const pixels = imagedata.data;
@@ -15421,7 +15422,7 @@ function MeasureText(textStyle) {
     }
     output.descent = (i - baseline);
     output.fontSize = output.ascent + output.descent;
-    CanvasPool.remove(canvas);
+    CanvasPool$1.remove(canvas);
     return output;
 }
 
@@ -15687,11 +15688,13 @@ class TextStyle {
 }
 
 const AddToDOM = Phaser.DOM.AddToDOM;
+const RemoveFromDOM = Phaser.DOM.RemoveFromDOM;
+const CanvasPool = Phaser.Display.Canvas.CanvasPool;
 class TextField extends DisplayObject {
     constructor(scene) {
         super(scene, "TextField");
         this.renderer = scene.sys.game.renderer;
-        this.canvas = Phaser.Display.Canvas.CanvasPool.create(this);
+        this.canvas = CanvasPool.create(this);
         this.context = this.canvas.getContext("2d");
         this._text = undefined;
         this.width = 1;
@@ -15716,10 +15719,28 @@ class TextField extends DisplayObject {
             context: this.context,
             parse: new Parser(),
         });
+        this.initRTL();
         this.scene.sys.game.events.on(Phaser.Core.Events.CONTEXT_RESTORED, this.onContextRestored, this);
         this.on("areadown", (pointer, localX, localY, event) => {
             console.log("areadown: ", pointer, localX, localY);
         }, this);
+    }
+    initRTL() {
+        if (!this.style.rtl) {
+            return;
+        }
+        //  Here is where the crazy starts.
+        //
+        //  Due to browser implementation issues, you cannot fillText BiDi text to a canvas
+        //  that is not part of the DOM. It just completely ignores the direction property.
+        this.canvas.dir = 'rtl';
+        //  Experimental atm, but one day ...
+        this.context.direction = 'rtl';
+        //  Add it to the DOM, but hidden within the parent canvas.
+        this.canvas.style.display = 'none';
+        AddToDOM(this.canvas, this.scene.sys.canvas);
+        //  And finally we set the x origin
+        this.originX = 1;
     }
     setText(value) {
         if (!value) {
@@ -15798,8 +15819,8 @@ class TextField extends DisplayObject {
         // draw
         canvasText.draw(padding.left, padding.top, textWidth, textHeight).then((value) => {
             context.restore();
-            // 画完需要添加到场景上
-            AddToDOM(this.canvas, this.scene.sys.canvas);
+            // // 画完需要添加到场景上
+            // AddToDOM(this.canvas, this.scene.sys.canvas);
             const webglRenderer = this.renderer;
             if (webglRenderer.gl) {
                 this.frame.source.glTexture = webglRenderer.canvasToTexture(canvas, this.frame.source.glTexture, true);
@@ -15893,6 +15914,8 @@ class TextField extends DisplayObject {
         this.dirty = true;
     }
     preDestroy() {
+        RemoveFromDOM(this.canvas);
+        this.scene.sys.game.events.off(Phaser.Core.Events.CONTEXT_RESTORED, this.onContextRestored, this);
         if (this._canvasText) {
             this._canvasText.destroy();
             this._canvasText = undefined;
@@ -15901,8 +15924,10 @@ class TextField extends DisplayObject {
             this._imageManager.destroy();
             this._imageManager = undefined;
         }
+        CanvasPool.remove(this.canvas);
+        if (this.texture && this.texture.key)
+            this.texture.destroy();
         super.preDestroy();
-        this.scene.sys.game.events.off(Phaser.Core.Events.CONTEXT_RESTORED, this.onContextRestored, this);
     }
     get imageManager() {
         if (!this._imageManager) {
@@ -15941,8 +15966,6 @@ class GBasicTextField extends GTextField {
     }
     setup_afterAdd(buffer, beginPos) {
         super.setup_afterAdd(buffer, beginPos);
-        // // 输入文本能交互
-        // this.touchable = true;
     }
     get nativeText() {
         return this._textField;
@@ -16153,6 +16176,13 @@ class GBasicTextField extends GTextField {
     }
     setSize(w, h) {
         super.setSize(w, h);
+    }
+    dispose() {
+        if (this._textField) {
+            this._textField.preDestroy();
+            this._textField = null;
+        }
+        super.dispose();
     }
     renderWithBitmapFont() {
         // var gr: Phaser.GameObjects.Graphics = this._displayObject.graphics;
@@ -16371,28 +16401,6 @@ class GBasicTextField extends GTextField {
         //     }//this.text loop
         // }//line loop
     }
-    // protected handleSizeChanged(): void {
-    // if (this._updatingSize)
-    //     return;
-    // if (this._underConstruct)
-    //     this._textField.setSize(this._width, this._height);
-    // else {
-    //     if (this._bitmapFont) {
-    //         if (!this._widthAutoSize)
-    //             this._textField["setChanged"]();
-    //         else
-    //             this.doAlign();
-    //     }
-    //     else {
-    //         if (!this._widthAutoSize) {
-    //             if (!this._heightAutoSize)
-    //                 this.setSize(this._width, this._height);
-    //             else
-    //                 this._textField.width = this._width;
-    //         }
-    //     }
-    // }
-    // }
     handleGrayedChanged() {
         super.handleGrayedChanged();
         // if (this.grayed)
@@ -17565,19 +17573,10 @@ class GButton extends GComponent {
             }
         }
     }
-    setSize(wv, hv, ignorePivot) {
-        super.setSize(wv, hv, ignorePivot);
-    }
-    handleSizeChanged() {
-        super.handleSizeChanged();
-    }
     handleControllerChanged(c) {
         super.handleControllerChanged(c);
         if (this._relatedController == c)
             this.selected = this._relatedPageId == c.selectedPageId;
-    }
-    setTouchable(value) {
-        super.setTouchable(value);
     }
     handleGrayedChanged() {
         if (this._buttonController && this._buttonController.hasPage(GButton.DISABLED)) {

@@ -15,6 +15,7 @@ export declare class TextField extends DisplayObject {
     protected _canvasText: CanvasText;
     protected _style: TextStyle;
     constructor(scene: Phaser.Scene);
+    initRTL(): void;
     setText(value: string | string[]): this;
     addImage(key: string, config: string): this;
     drawAreaBounds(graphics: any, color: any): this;
@@ -41,7 +42,7 @@ export declare class TextField extends DisplayObject {
     setFontSize(fontSize: string | number): this;
     setValign(val: VAlignModeString): void;
     protected onContextRestored(): void;
-    protected preDestroy(): void;
+    preDestroy(): void;
     get imageManager(): ImageManager;
     get canvasText(): CanvasText;
     get style(): TextStyle;
