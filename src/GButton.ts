@@ -54,6 +54,7 @@ export class GButton extends GComponent {
         this._soundVolumeScale = UIConfig.buttonSoundVolumeScale;
         this._changeStateOnClick = true;
         this._downEffectValue = 0.8;
+        this._touchable = true;
         //console.log("button create===>", this);
     }
 
