@@ -49,7 +49,7 @@ export declare class GComponent extends GObject {
     getChildIndex(child: GObject): number;
     setChildIndex(child: GObject, index: number): void;
     setChildIndexBefore(child: GObject, index: number): number;
-    private _setChildIndex;
+    protected _setChildIndex(child: GObject, oldIndex: number, index: number): number;
     swapChildren(child1: GObject, child2: GObject): void;
     swapChildrenAt(index1: number, index2: number): void;
     get numChildren(): number;
@@ -89,7 +89,7 @@ export declare class GComponent extends GObject {
     protected handleGrayedChanged(): void;
     handleControllerChanged(c: Controller): void;
     setBoundsChangedFlag(): void;
-    private __render;
+    protected __render(): void;
     ensureBoundsCorrect(): void;
     protected updateBounds(): void;
     setBounds(ax: number, ay: number, aw: number, ah: number): void;

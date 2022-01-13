@@ -50,6 +50,7 @@ export declare class GList extends GComponent {
      */
     protected _tempItemList: any[];
     constructor(scene: Phaser.Scene, type: any);
+    createDisplayObject(): void;
     private __keyDown;
     private __keyUp;
     dispose(): void;
@@ -118,12 +119,12 @@ export declare class GList extends GComponent {
     getFirstChildInView(): number;
     childIndexToItemIndex(index: number): number;
     itemIndexToChildIndex(index: number): number;
-    setVirtual(): void;
+    setVirtual(): Promise<void>;
     /**
      * Set the list to be virtual list, and has loop behavior.
      */
-    setVirtualAndLoop(): void;
-    protected _setVirtual(loop: boolean): void;
+    setVirtualAndLoop(): Promise<void>;
+    protected _setVirtual(loop: boolean): Promise<void>;
     /**
      * Set the list item count.
      * If the list instanceof not virtual, specified number of items will be created.

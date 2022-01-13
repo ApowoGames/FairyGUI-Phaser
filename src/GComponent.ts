@@ -62,7 +62,7 @@ export class GComponent extends GObject {
         this._displayObject = this.scene.make.container(undefined, false);
         this._displayObject["$owner"] = this;
         this._container = this._displayObject;
-        const _delay = 0.001;
+        const _delay = 1;
         this._renderEvent = { delay: _delay, callback: this.__render, callbackScope: this };
         this._buildNativeEvent = { delay: _delay, callback: this.buildNativeDisplayList, callbackScope: this };
     }
@@ -353,7 +353,7 @@ export class GComponent extends GObject {
             return this._setChildIndex(child, oldIndex, index);
     }
 
-    private _setChildIndex(child: GObject, oldIndex: number, index: number): number {
+    protected _setChildIndex(child: GObject, oldIndex: number, index: number): number {
         var cnt: number = this._children.length;
         if (index > cnt)
             index = cnt;
@@ -376,9 +376,9 @@ export class GComponent extends GObject {
                     if (g.inContainer)
                         displayIndex++;
                 }
-                if (displayIndex === this._displayObject.list.length)
+                if (displayIndex === this._container.list.length)
                     displayIndex--;
-                this._displayObject.addAt(child.displayObject, displayIndex);
+                this._container.addAt(child.displayObject, displayIndex);
             }
             else if (this._childrenRenderOrder == ChildrenRenderOrder.Descent) {
                 for (i = cnt - 1; i > index; i--) {
@@ -386,9 +386,9 @@ export class GComponent extends GObject {
                     if (g.inContainer)
                         displayIndex++;
                 }
-                if (displayIndex === this._displayObject.list.length)
+                if (displayIndex === this._container.list.length)
                     displayIndex--;
-                this._displayObject.addAt(child.displayObject, displayIndex);
+                this._container.addAt(child.displayObject, displayIndex);
             }
             else {
                 if (!this._buildNativeTime) this._buildNativeTime = this.scene.time.addEvent(this._buildNativeEvent);
@@ -884,7 +884,7 @@ export class GComponent extends GObject {
         }
     }
 
-    private __render(): void {
+    protected __render(): void {
         if (this._boundsChanged) {
             var i1: number = 0;
             var len: number = this._children.length;

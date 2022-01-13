@@ -308,7 +308,7 @@ export class ScrollPane {
         // if (ScrollPane.draggingPane == this) {
         //     ScrollPane.draggingPane = null;
         // }
-    
+
         this._owner.scene.input.off("pointerdown", this.__mouseDown, this);
         this._owner.scene.input.off("pointermove", this.__mouseMove, this);
         this._owner.scene.input.off("pointerup", this.__mouseUp, this);

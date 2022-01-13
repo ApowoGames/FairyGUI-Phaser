@@ -11772,7 +11772,7 @@ class GComponent extends GObject {
         this._displayObject = this.scene.make.container(undefined, false);
         this._displayObject["$owner"] = this;
         this._container = this._displayObject;
-        const _delay = 0.001;
+        const _delay = 1;
         this._renderEvent = { delay: _delay, callback: this.__render, callbackScope: this };
         this._buildNativeEvent = { delay: _delay, callback: this.buildNativeDisplayList, callbackScope: this };
     }
@@ -12035,9 +12035,9 @@ class GComponent extends GObject {
                     if (g.inContainer)
                         displayIndex++;
                 }
-                if (displayIndex === this._displayObject.list.length)
+                if (displayIndex === this._container.list.length)
                     displayIndex--;
-                this._displayObject.addAt(child.displayObject, displayIndex);
+                this._container.addAt(child.displayObject, displayIndex);
             }
             else if (this._childrenRenderOrder == ChildrenRenderOrder.Descent) {
                 for (i = cnt - 1; i > index; i--) {
@@ -12045,9 +12045,9 @@ class GComponent extends GObject {
                     if (g.inContainer)
                         displayIndex++;
                 }
-                if (displayIndex === this._displayObject.list.length)
+                if (displayIndex === this._container.list.length)
                     displayIndex--;
-                this._displayObject.addAt(child.displayObject, displayIndex);
+                this._container.addAt(child.displayObject, displayIndex);
             }
             else {
                 if (!this._buildNativeTime)
@@ -19098,6 +19098,13 @@ class GList extends GComponent {
             this.scene.input.keyboard.on('keyup', this.__keyUp, this);
         }
     }
+    createDisplayObject() {
+        this._displayObject = this.scene.make.container(undefined, false);
+        this._displayObject["$owner"] = this;
+        const _delay = 1;
+        this._renderEvent = { delay: _delay, callback: this.__render, callbackScope: this };
+        this._buildNativeEvent = { delay: _delay, callback: this.buildNativeDisplayList, callbackScope: this };
+    }
     __keyDown(event) {
         switch (event.keyCode) {
             // shift
@@ -19280,8 +19287,6 @@ class GList extends GComponent {
             child.selected = false;
             child.changeStateOnClick = false;
         }
-        // // todo click
-        // this.scene.input.on("pointerup", this.__clickItem, this);
         return child;
     }
     addItem(url) {
@@ -19992,53 +19997,76 @@ class GList extends GComponent {
         }
     }
     setVirtual() {
-        this._setVirtual(false);
+        return new Promise((resolve, reject) => {
+            this._setVirtual(false).then(() => {
+                resolve();
+            }).catch((error) => {
+                reject();
+            });
+        });
     }
     /**
      * Set the list to be virtual list, and has loop behavior.
      */
     setVirtualAndLoop() {
-        this._setVirtual(true);
+        return new Promise((resolve, reject) => {
+            this._setVirtual(true).then(() => {
+                resolve();
+            }).catch((error) => {
+                reject();
+            });
+        });
     }
     _setVirtual(loop) {
-        if (!this._virtual) {
-            if (this._scrollPane == null)
-                throw new Error("Virtual list must be scrollable!");
-            if (loop) {
-                if (this._layout == ListLayoutType.FlowHorizontal || this._layout == ListLayoutType.FlowVertical)
-                    throw new Error("Loop list instanceof not supported for FlowHorizontal or FlowVertical this.layout!");
-                this._scrollPane.bouncebackEffect = false;
-            }
-            this._virtual = true;
-            this._loop = loop;
-            this._virtualItems = new Array();
-            this.removeChildrenToPool();
-            if (this._itemSize == null) {
-                this._itemSize = new Phaser.Geom.Point();
-                this.getFromPool(null).then((obj) => {
-                    if (obj == null) {
-                        throw new Error("Virtual List must have a default list item resource.");
+        return new Promise((resolve, reject) => {
+            if (!this._virtual) {
+                if (this._scrollPane == null)
+                    throw new Error("Virtual list must be scrollable!");
+                if (loop) {
+                    if (this._layout == ListLayoutType.FlowHorizontal || this._layout == ListLayoutType.FlowVertical)
+                        throw new Error("Loop list instanceof not supported for FlowHorizontal or FlowVertical this.layout!");
+                    this._scrollPane.bouncebackEffect = false;
+                }
+                this._virtual = true;
+                this._loop = loop;
+                this._virtualItems = new Array();
+                this.removeChildrenToPool();
+                const fun = () => {
+                    if (this._layout == ListLayoutType.SingleColumn || this._layout == ListLayoutType.FlowHorizontal) {
+                        this._scrollPane.scrollStep = this._itemSize.y;
+                        if (this._loop)
+                            this._scrollPane._loop = 2;
                     }
                     else {
-                        this._itemSize.x = obj.width;
-                        this._itemSize.y = obj.height;
+                        this._scrollPane.scrollStep = this._itemSize.x;
+                        if (this._loop)
+                            this._scrollPane._loop = 1;
                     }
-                    this.returnToPool(obj);
-                });
+                    this.on(Events.SCROLL, this.__scrolled, this);
+                    this.setVirtualListChangedFlag(true);
+                };
+                if (this._itemSize == null) {
+                    this._itemSize = new Phaser.Geom.Point();
+                    this.getFromPool(null).then((obj) => {
+                        if (obj == null) {
+                            reject("Virtual List must have a default list item resource.");
+                            // throw new Error("Virtual List must have a default list item resource.");
+                        }
+                        else {
+                            this._itemSize.x = obj.width;
+                            this._itemSize.y = obj.height;
+                        }
+                        this.returnToPool(obj);
+                        fun();
+                        resolve();
+                    });
+                }
+                else {
+                    fun();
+                    resolve();
+                }
             }
-            if (this._layout == ListLayoutType.SingleColumn || this._layout == ListLayoutType.FlowHorizontal) {
-                this._scrollPane.scrollStep = this._itemSize.y;
-                if (this._loop)
-                    this._scrollPane._loop = 2;
-            }
-            else {
-                this._scrollPane.scrollStep = this._itemSize.x;
-                if (this._loop)
-                    this._scrollPane._loop = 1;
-            }
-            this.on(Events.SCROLL, this.__scrolled, this);
-            this.setVirtualListChangedFlag(true);
-        }
+        });
     }
     /**
      * Set the list item count.
@@ -20235,12 +20263,10 @@ class GList extends GComponent {
                     pos2 -= (this._virtualItems[i].height + this._lineGap);
                     if (pos2 <= s_n) {
                         s_n = pos2;
-                        //console.log("0 ===>", i);
                         return i;
                     }
                 }
                 s_n = 0;
-                //console.log("1 ===>", i);
                 return 0;
             }
             else {
@@ -20248,13 +20274,11 @@ class GList extends GComponent {
                     pos3 = pos2 + this._virtualItems[i].height + this._lineGap;
                     if (pos3 > s_n) {
                         s_n = pos2;
-                        //console.log("2 ===>", i);
                         return i;
                     }
                     pos2 = pos3;
                 }
                 s_n = pos2;
-                //console.log("3 ===>", i);
                 return this._realNumItems - this._curLineItemCount;
             }
         }
@@ -20264,14 +20288,12 @@ class GList extends GComponent {
                 pos3 = pos2 + this._virtualItems[i].height + this._lineGap;
                 if (pos3 > s_n) {
                     s_n = pos2;
-                    //console.log("4 ===>", i);
                     return i;
                 }
                 pos2 = pos3;
             }
             s_n = pos2;
-            //console.log("5 ===>", i);
-            return 0; //this._realNumItems - this._curLineItemCount;
+            return this._realNumItems - this._curLineItemCount;
         }
     }
     getIndexOnPos2(forceUpdate) {
@@ -20428,6 +20450,8 @@ class GList extends GComponent {
                 return;
             }
             var oldFirstIndex = this._firstIndex;
+            // console.log("newFirstIndex ===>", newFirstIndex);
+            // console.log("oldFirstIndex ===>", oldFirstIndex);
             this._firstIndex = newFirstIndex;
             var curIndex = newFirstIndex;
             var forward = oldFirstIndex > newFirstIndex;
@@ -20619,7 +20643,7 @@ class GList extends GComponent {
             s_n = pos;
             var newFirstIndex = this.getIndexOnPos2(forceUpdate);
             pos = s_n;
-            console.log("pos ===>", pos, newFirstIndex);
+            // console.log("pos ===>", pos, newFirstIndex);
             if (newFirstIndex == this._firstIndex && !forceUpdate)
                 return false;
             var oldFirstIndex = this._firstIndex;

@@ -86,6 +86,14 @@ export class GList extends GComponent {
         }
     }
 
+    public createDisplayObject(): void {
+        this._displayObject = this.scene.make.container(undefined, false);
+        this._displayObject["$owner"] = this;
+        const _delay = 1;
+        this._renderEvent = { delay: _delay, callback: this.__render, callbackScope: this };
+        this._buildNativeEvent = { delay: _delay, callback: this.buildNativeDisplayList, callbackScope: this };
+    }
+
     private __keyDown(event) {
 
         switch (event.keyCode) {
@@ -302,10 +310,6 @@ export class GList extends GComponent {
             child.selected = false;
             child.changeStateOnClick = false;
         }
-        // // todo click
-        // this.scene.input.on("pointerup", this.__clickItem, this);
-
-
         return child;
     }
 
@@ -1086,62 +1090,84 @@ export class GList extends GComponent {
         }
     }
 
-    public setVirtual(): void {
-        this._setVirtual(false);
+    public setVirtual(): Promise<void> {
+        return new Promise((resolve, reject) => {
+            this._setVirtual(false).then(() => {
+                resolve();
+            }).catch((error) => {
+                reject();
+            })
+        });
     }
 
     /**
      * Set the list to be virtual list, and has loop behavior.
      */
-    public setVirtualAndLoop(): void {
-        this._setVirtual(true);
+    public setVirtualAndLoop(): Promise<void> {
+        return new Promise((resolve, reject) => {
+            this._setVirtual(true).then(() => {
+                resolve();
+            }).catch((error) => {
+                reject();
+            })
+        });
     }
 
-    protected _setVirtual(loop: boolean): void {
-        if (!this._virtual) {
-            if (this._scrollPane == null)
-                throw new Error("Virtual list must be scrollable!");
+    protected _setVirtual(loop: boolean): Promise<void> {
+        return new Promise((resolve, reject) => {
+            if (!this._virtual) {
+                if (this._scrollPane == null)
+                    throw new Error("Virtual list must be scrollable!");
 
-            if (loop) {
-                if (this._layout == ListLayoutType.FlowHorizontal || this._layout == ListLayoutType.FlowVertical)
-                    throw new Error("Loop list instanceof not supported for FlowHorizontal or FlowVertical this.layout!");
+                if (loop) {
+                    if (this._layout == ListLayoutType.FlowHorizontal || this._layout == ListLayoutType.FlowVertical)
+                        throw new Error("Loop list instanceof not supported for FlowHorizontal or FlowVertical this.layout!");
 
-                this._scrollPane.bouncebackEffect = false;
-            }
+                    this._scrollPane.bouncebackEffect = false;
+                }
 
-            this._virtual = true;
-            this._loop = loop;
-            this._virtualItems = new Array<ItemInfo>();
-            this.removeChildrenToPool();
+                this._virtual = true;
+                this._loop = loop;
+                this._virtualItems = new Array<ItemInfo>();
+                this.removeChildrenToPool();
 
-            if (this._itemSize == null) {
-                this._itemSize = new Phaser.Geom.Point();
-                this.getFromPool(null).then((obj) => {
-                    if (obj == null) {
-                        throw new Error("Virtual List must have a default list item resource.");
+                const fun = () => {
+                    if (this._layout == ListLayoutType.SingleColumn || this._layout == ListLayoutType.FlowHorizontal) {
+                        this._scrollPane.scrollStep = this._itemSize.y;
+                        if (this._loop)
+                            this._scrollPane._loop = 2;
                     }
                     else {
-                        this._itemSize.x = obj.width;
-                        this._itemSize.y = obj.height;
+                        this._scrollPane.scrollStep = this._itemSize.x;
+                        if (this._loop)
+                            this._scrollPane._loop = 1;
                     }
-                    this.returnToPool(obj);
-                });
-            }
 
-            if (this._layout == ListLayoutType.SingleColumn || this._layout == ListLayoutType.FlowHorizontal) {
-                this._scrollPane.scrollStep = this._itemSize.y;
-                if (this._loop)
-                    this._scrollPane._loop = 2;
-            }
-            else {
-                this._scrollPane.scrollStep = this._itemSize.x;
-                if (this._loop)
-                    this._scrollPane._loop = 1;
-            }
+                    this.on(Events.SCROLL, this.__scrolled, this);
+                    this.setVirtualListChangedFlag(true);
+                };
 
-            this.on(Events.SCROLL, this.__scrolled, this);
-            this.setVirtualListChangedFlag(true);
-        }
+                if (this._itemSize == null) {
+                    this._itemSize = new Phaser.Geom.Point();
+                    this.getFromPool(null).then((obj) => {
+                        if (obj == null) {
+                            reject("Virtual List must have a default list item resource.");
+                            // throw new Error("Virtual List must have a default list item resource.");
+                        }
+                        else {
+                            this._itemSize.x = obj.width;
+                            this._itemSize.y = obj.height;
+                        }
+                        this.returnToPool(obj);
+                        fun();
+                        resolve()
+                    });
+                } else {
+                    fun();
+                    resolve();
+                }
+            }
+        });
     }
 
     /**
@@ -1363,13 +1389,11 @@ export class GList extends GComponent {
                     pos2 -= (this._virtualItems[i].height + this._lineGap);
                     if (pos2 <= s_n) {
                         s_n = pos2;
-                        //console.log("0 ===>", i);
                         return i;
                     }
                 }
 
                 s_n = 0;
-                //console.log("1 ===>", i);
                 return 0;
             }
             else {
@@ -1377,14 +1401,12 @@ export class GList extends GComponent {
                     pos3 = pos2 + this._virtualItems[i].height + this._lineGap;
                     if (pos3 > s_n) {
                         s_n = pos2;
-                        //console.log("2 ===>", i);
                         return i;
                     }
                     pos2 = pos3;
                 }
 
                 s_n = pos2;
-                //console.log("3 ===>", i);
                 return this._realNumItems - this._curLineItemCount;
             }
         }
@@ -1394,15 +1416,13 @@ export class GList extends GComponent {
                 pos3 = pos2 + this._virtualItems[i].height + this._lineGap;
                 if (pos3 > s_n) {
                     s_n = pos2;
-                    //console.log("4 ===>", i);
                     return i;
                 }
                 pos2 = pos3;
             }
 
             s_n = pos2;
-            //console.log("5 ===>", i);
-            return 0;//this._realNumItems - this._curLineItemCount;
+            return this._realNumItems - this._curLineItemCount;
         }
     }
 
@@ -1573,6 +1593,8 @@ export class GList extends GComponent {
 
 
             var oldFirstIndex: number = this._firstIndex;
+            // console.log("newFirstIndex ===>", newFirstIndex);
+            // console.log("oldFirstIndex ===>", oldFirstIndex);
             this._firstIndex = newFirstIndex;
             var curIndex: number = newFirstIndex;
             var forward: boolean = oldFirstIndex > newFirstIndex;
@@ -1775,7 +1797,7 @@ export class GList extends GComponent {
         s_n = pos;
         var newFirstIndex: number = this.getIndexOnPos2(forceUpdate);
         pos = s_n;
-        console.log("pos ===>", pos, newFirstIndex);
+        // console.log("pos ===>", pos, newFirstIndex);
         if (newFirstIndex == this._firstIndex && !forceUpdate)
             return false;
 
@@ -2007,7 +2029,7 @@ export class GList extends GComponent {
                             url = this._defaultItem;
                         url = UIPackage.normalizeURL(url);
                     }
-                    ii.obj = await this._pool.getObject(url)
+                    ii.obj = await this._pool.getObject(url);
                     this.addChildAt(ii.obj, insertIndex);
                 }
                 else {
