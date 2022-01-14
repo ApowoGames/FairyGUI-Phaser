@@ -19,6 +19,7 @@ export declare class InputTextField extends TextField {
     private mRectangle;
     constructor(owner: GBasicTextField);
     destroy(): void;
+    updateText(runWrap?: boolean): this;
     private onFocusHandler;
     private onBlurHandler;
     private createElement;

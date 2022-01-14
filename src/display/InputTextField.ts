@@ -50,6 +50,97 @@ export class InputTextField extends TextField {
         }
     }
 
+    public updateText(runWrap: boolean = true) {
+        if (this._text === undefined) {
+            return;
+        }
+        const canvasText = this.canvasText;
+
+        const style = this._style;
+        if (runWrap) {
+            canvasText.updatePenManager(
+                this._text,
+                style.wrapMode,
+                style.wrapWidth
+            )
+        }
+
+        const padding = this.padding;
+        const textWidth = this._width;
+        const textHeight = this._height;
+        // if (style.fixedWidth === 0) {
+        //     textWidth = canvasText.textWidth
+        //     this.width = textWidth + padding.left + padding.right;
+        // } else {
+        //     this.width = style.fixedWidth;
+        //     textWidth = this.width - padding.left - padding.right;
+        //     if (textWidth > canvasText.textWidth) {
+        //         textWidth = canvasText.textWidth;
+        //     }
+        // }
+        // if (style.fixedHeight === 0) {
+        //     textHeight = canvasText.textHeight;
+        //     this.height = textHeight + padding.top + padding.bottom;
+        // } else {
+        //     this.height = style.fixedHeight;
+        //     textHeight = this.height - padding.top - padding.bottom;
+        //     if (textHeight < canvasText.textHeight) {
+        //         textHeight = canvasText.textHeight;
+        //     }
+        // }
+
+        let w = this.width;
+        let h = this.height;
+
+        this.updateDisplayOrigin();
+
+        const resolution = style.resolution;
+        w *= resolution;
+        h *= resolution;
+
+        w = Math.max(Math.ceil(w), 1);
+        h = Math.max(Math.ceil(h), 1);
+
+        const canvas = this.canvas;
+        const context = this.context;
+        if (canvas.width !== w || canvas.height !== h) {
+            canvas.width = w;
+            canvas.height = h;
+            this.frame.setSize(w, h);
+        } else {
+            context.clearRect(0, 0, w, h);
+        }
+
+        context.save();
+        context.scale(resolution, resolution);
+
+        // draw
+        canvasText.draw(
+            padding.left,
+            padding.top,
+            textWidth,
+            textHeight
+        ).then(() => {
+
+            context.restore();
+
+            const webglRenderer = <Phaser.Renderer.WebGL.WebGLRenderer>this.renderer;
+            if (webglRenderer.gl) {
+                this.frame.source.glTexture = webglRenderer.canvasToTexture(canvas, this.frame.source.glTexture, true);
+                this.frame.glTexture = this.frame.source.glTexture;
+            }
+
+            this.dirty = true;
+
+            const input = this.input;
+            if (input && !input.customHitArea) {
+                input.hitArea.width = this.width;
+                input.hitArea.height = this.height;
+            }
+        });
+        return this;
+    }
+
     private onFocusHandler(point: Phaser.Input.Pointer) {
         if (!this.checkInBounds(point)) return;
         if (!this.editable || this._editing)
