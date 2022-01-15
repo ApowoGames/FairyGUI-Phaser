@@ -35,7 +35,7 @@ export class PenManager {
     }
 
     getLineStartIndex(index: number) {
-        if (index >= this.lines.length) { 
+        if (index >= this.lines.length) {
             return this.getLineEndIndex(index);
         }
         const line = this.lines[index];
@@ -202,7 +202,7 @@ export class PenManager {
 
     clone(targetPenManager?: PenManager) {
         if (!targetPenManager) {
-            targetPenManager = new PenManager({ penPool: this.penPool })
+            targetPenManager = new PenManager({ penPool: this.penPool });
         }
 
         targetPenManager.freePens();
@@ -221,7 +221,7 @@ export class PenManager {
             targetLine.y = srcLine.y;
             targetLine.height = srcLine.height;
         }
-        
+
         return targetPenManager;
     }
 

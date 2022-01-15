@@ -137,7 +137,7 @@ export class CanvasText {
         if (penManager === undefined) {
             penManager = this._penManager;
         }
-        return penManager.lastPen; ``
+        return penManager.lastPen;
     }
 
     setInteractive() {
