@@ -82,6 +82,27 @@ export class UIPackage {
         return pkg;
     }
 
+    public static loadPackages(resKeys: string[]): Promise<UIPackage[]> {
+        return new Promise((resolve) => {
+            let length = resKeys.length;
+            let promises = [];
+            let i: number = 0;
+            for (i = 0; i < length; i++) {
+                const key = resKeys[i];
+                promises.push(UIPackage.loadPackage(key));
+            }
+            Promise.all(promises).then(() => {
+                const list = [];
+                for (i = 0; i < length; i++) {
+                    const key = resKeys[i];
+                    let pkg = this._instById[key];
+                    list.push(pkg);
+                }
+                resolve(list);
+            });
+        })
+    }
+
     public static loadPackage(resKey: string, onProgress?: (event: ProgressEvent) => void): Promise<UIPackage> {
         return new Promise((resolve) => {
             let pkg = this._instById[resKey];
@@ -98,7 +119,6 @@ export class UIPackage {
             // scene preload bytearray
             const buf = scene.cache.binary.get(resKey);
             if (!buf) {
-                scene.load.binary(resKey, url);
                 scene.load.once("complete", () => {
                     pkg = new UIPackage();
                     pkg._resKey = resKey;
@@ -127,6 +147,7 @@ export class UIPackage {
                     else
                         resolve2();
                 });
+                scene.load.binary(resKey, url);
                 scene.load.start();
             } else {
                 pkg = new UIPackage();
