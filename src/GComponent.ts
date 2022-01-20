@@ -61,10 +61,18 @@ export class GComponent extends GObject {
     public createDisplayObject(): void {
         this._displayObject = this.scene.make.container(undefined, false);
         this._displayObject["$owner"] = this;
-        this._container = this._displayObject;
+        this.container = this._displayObject;
         const _delay = 1;
         this._renderEvent = { delay: _delay, callback: this.__render, callbackScope: this };
         this._buildNativeEvent = { delay: _delay, callback: this.buildNativeDisplayList, callbackScope: this };
+    }
+
+    get container(): Phaser.GameObjects.Container {
+        return this._container;
+    }
+
+    set container(value: Phaser.GameObjects.Container) {
+        this._container = value;
     }
 
     public dispose(): void {
@@ -106,7 +114,7 @@ export class GComponent extends GObject {
     }
 
     public get displayListContainer(): Phaser.GameObjects.Container {
-        return this._container;
+        return this.container;
     }
 
     public realAddChildDisplayObject(child: GObject, index?: number) {
@@ -121,9 +129,9 @@ export class GComponent extends GObject {
             }
         }
         if (index === undefined) {
-            this._container.add(display);
+            this.container.add(display);
         } else {
-            this._container.addAt(display, index);
+            this.container.addAt(display, index);
         }
         this.displayObject.emit(DisplayObjectEvent.ADDTOSTAGE);
     }
@@ -376,9 +384,9 @@ export class GComponent extends GObject {
                     if (g.inContainer)
                         displayIndex++;
                 }
-                if (displayIndex === this._container.list.length)
+                if (displayIndex === this.container.list.length)
                     displayIndex--;
-                this._container.addAt(child.displayObject, displayIndex);
+                this.container.addAt(child.displayObject, displayIndex);
             }
             else if (this._childrenRenderOrder == ChildrenRenderOrder.Descent) {
                 for (i = cnt - 1; i > index; i--) {
@@ -386,9 +394,9 @@ export class GComponent extends GObject {
                     if (g.inContainer)
                         displayIndex++;
                 }
-                if (displayIndex === this._container.list.length)
+                if (displayIndex === this.container.list.length)
                     displayIndex--;
-                this._container.addAt(child.displayObject, displayIndex);
+                this.container.addAt(child.displayObject, displayIndex);
             }
             else {
                 if (!this._buildNativeTime) this._buildNativeTime = this.scene.time.addEvent(this._buildNativeEvent);
@@ -505,8 +513,8 @@ export class GComponent extends GObject {
                         if (g.displayObject && g.displayObject.parentContainer)
                             index++;
                     }
-                    if (this._container) {
-                        this._container.addAt(child.displayObject, index);
+                    if (this.container) {
+                        this.container.addAt(child.displayObject, index);
                     } else {
                         GRoot.inst.addToStage(child.displayObject);
                     }
@@ -524,7 +532,7 @@ export class GComponent extends GObject {
                             index++;
                     }
                     this.realAddChildDisplayObject(child, index);
-                    // this._container.addAt(child.displayObject, index);
+                    // this.container.addAt(child.displayObject, index);
                 }
                 else {
                     this.realAddChildDisplayObject(child);
@@ -535,7 +543,7 @@ export class GComponent extends GObject {
         }
         else {
             if (child.displayObject.parentContainer) {
-                this._container.remove(child.displayObject);
+                this.container.remove(child.displayObject);
                 child.displayObject.removeFromUpdateList();
                 child.displayObject.removeFromDisplayList();
                 // console.log("remove display", child);
@@ -566,7 +574,7 @@ export class GComponent extends GObject {
                         } else {
                             if (child.displayObject.parentContainer) child.displayObject.parentContainer.remove(child.displayObject);
                         }
-                        //this._container.add(child.displayObject);
+                        //this.container.add(child.displayObject);
                     }
                 }
                 break;
@@ -726,7 +734,7 @@ export class GComponent extends GObject {
     public set margin(value: Margin) {
         this._margin.copy(value);
         if (this.scrollRect) {
-            this._container.setPosition(this._margin.left + this._alignOffset.x, this._margin.top + this._alignOffset.y);
+            this.container.setPosition(this._margin.left + this._alignOffset.x, this._margin.top + this._alignOffset.y);
         }
         this.handleSizeChanged();
     }
@@ -809,9 +817,9 @@ export class GComponent extends GObject {
 
     protected setupScroll(buffer: ByteBuffer): Promise<void> {
         return new Promise((resolve, reject) => {
-            if (this._displayObject == this._container) {
-                this._container = new Phaser.GameObjects.Container(this.scene);
-                this._displayObject.add(this._container);
+            if (this._displayObject == this.container) {
+                this.container = new Phaser.GameObjects.Container(this.scene);
+                this._displayObject.add(this.container);
             }
             this._scrollPane = new ScrollPane(this);
             this._scrollPane.setup(buffer).then(() => {
@@ -822,19 +830,19 @@ export class GComponent extends GObject {
 
     protected setupOverflow(overflow: number): void {
         if (overflow == OverflowType.Hidden) {
-            if (this._displayObject == this._container) {
-                this._container = new Phaser.GameObjects.Container(this.scene);
-                this._displayObject.add(this._container);
+            if (this._displayObject == this.container) {
+                this.container = new Phaser.GameObjects.Container(this.scene);
+                this._displayObject.add(this.container);
             }
             this.updateMask();
-            this._container.setPosition(this._margin.left, this._margin.top);
+            this.container.setPosition(this._margin.left, this._margin.top);
         }
         else if (this._margin.left != 0 || this._margin.top != 0) {
-            if (this._displayObject == this._container) {
-                this._container = new Phaser.GameObjects.Container(this.scene);
-                this._displayObject.add(this._container);
+            if (this._displayObject == this.container) {
+                this.container = new Phaser.GameObjects.Container(this.scene);
+                this._displayObject.add(this.container);
             }
-            this._container.setPosition(this._margin.left, this._margin.top);
+            this.container.setPosition(this._margin.left, this._margin.top);
         }
     }
 
@@ -1485,10 +1493,12 @@ export class GComponent extends GObject {
 
     public setXY(xv: number, yv: number, force: boolean = false): void {
         super.setXY(xv, yv, force);
-        let worldMatrix;
-        if (this.parent) {
-            worldMatrix = (<Phaser.GameObjects.Container>this.parent.displayObject).getWorldTransformMatrix();
-        }
+
+        const worldMatrix = this.parent && <Phaser.GameObjects.Container>this.parent.displayObject ?
+            (<Phaser.GameObjects.Container>this.parent.displayObject).getWorldTransformMatrix()
+            // : this.container && this.container.parentContainer ?
+            //     this.container.parentContainer.getWorldTransformMatrix()
+                : undefined;
         this._children.forEach((obj) => {
             if (obj && obj instanceof GComponent) {
                 const component = (<GComponent>obj);

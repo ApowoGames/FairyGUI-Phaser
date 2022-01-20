@@ -31,6 +31,8 @@ export declare class GComponent extends GObject {
     _alignOffset: Phaser.Geom.Point;
     constructor(scene?: Phaser.Scene, type?: number);
     createDisplayObject(): void;
+    get container(): Phaser.GameObjects.Container;
+    set container(value: Phaser.GameObjects.Container);
     dispose(): void;
     get displayListContainer(): Phaser.GameObjects.Container;
     realAddChildDisplayObject(child: GObject, index?: number): void;

@@ -7005,7 +7005,7 @@ class DefaultBoudingRectCalculator {
     }
 }
 class UIStage extends Phaser.Events.EventEmitter {
-    constructor(scene, rootContainer) {
+    constructor(scene) {
         super();
         this.scene = scene;
         this.$width = 0;
@@ -7017,18 +7017,21 @@ class UIStage extends Phaser.Events.EventEmitter {
         this.offsetY = 0;
         this.$sizeCalcer = new DefaultBoudingRectCalculator();
         UIStageInst.push(this);
-        this.rootContainer = rootContainer;
-        // this.rootContainer = this.scene.add.container(0, 0);
-        // this.uiContainer = this.scene.add.container(0, 0);
-        // this.dialogContainer = this.scene.add.container(0, 0);
-        // this.tipsContainer = this.scene.add.container(0, 0);
-        // this.maskContainer = this.scene.add.container(0, 0);
-        // this.rootContainer.setInteractive(new Phaser.Geom.Rectangle(0, 0, GRoot.inst.width, GRoot.inst.height), Phaser.Geom.Rectangle.Contains);
-        // this.scene.sys.displayList.add(this.rootContainer);
-        // this.scene.sys.displayList.add(this.uiContainer);
-        // this.scene.sys.displayList.add(this.dialogContainer);
-        // this.scene.sys.displayList.add(this.tipsContainer);
-        // this.scene.sys.displayList.add(this.maskContainer);
+        this.containerMap = new Map();
+        this.getContainer(UISceneDisplay.LAYER_ROOT);
+    }
+    getContainer(sortIndex) {
+        if (!this.containerMap)
+            this.containerMap = new Map();
+        let con = this.containerMap.get(sortIndex);
+        if (!con) {
+            con = this.scene.add.container(0, 0);
+            this.containerMap.set(sortIndex, con);
+        }
+        return con;
+    }
+    get containersNum() {
+        return this.containerMap.size;
     }
     get nativeStage() {
         return this.scene.input;
@@ -7039,55 +7042,21 @@ class UIStage extends Phaser.Events.EventEmitter {
     get stageHeight() {
         return this.$height;
     }
-    get displayObject() {
-        return this.rootContainer;
-    }
+    // public get displayObject(): Phaser.GameObjects.Container {
+    //     return this.rootContainer;
+    // }
     addChild(child, type, index = -1) {
+        const con = this.getContainer(type);
         if (index < 0) {
-            this.rootContainer.add(child);
+            con.add(child);
         }
         else {
-            this.rootContainer.addAt(child, index);
+            con.addAt(child, index);
         }
-        // switch (type) {
-        //     case UISceneDisplay.LAYER_ROOT:
-        //         if (index < 0) {
-        //             this.rootContainer.add(child);
-        //         } else {
-        //             this.rootContainer.addAt(child, index);
-        //         }
-        //         break;
-        //     case UISceneDisplay.LAYER_UI:
-        //         if (index < 0) {
-        //             this.uiContainer.add(child);
-        //         } else {
-        //             this.uiContainer.addAt(child, index);
-        //         }
-        //         break;
-        //     case UISceneDisplay.LAYER_DIALOG:
-        //         if (index < 0) {
-        //             this.dialogContainer.add(child);
-        //         } else {
-        //             this.dialogContainer.addAt(child, index);
-        //         }
-        //         break;
-        //     case UISceneDisplay.LAYER_TOOLTIPS:
-        //         if (index < 0) {
-        //             this.tipsContainer.add(child);
-        //         } else {
-        //             this.tipsContainer.addAt(child, index);
-        //         }
-        //         break;
-        //     case UISceneDisplay.LAYER_MASK:
-        //         if (index < 0) {
-        //             this.maskContainer.add(child);
-        //         } else {
-        //             this.maskContainer.addAt(child, index);
-        //         }
-        //         break;
-        // }
     }
-    removeChild(child, type) {
+    removeChild(child) {
+        if (child.parentContainer)
+            child.parentContainer.remove(child);
         child.removeFromUpdateList();
         child.removeFromDisplayList();
     }
@@ -11791,10 +11760,16 @@ class GComponent extends GObject {
     createDisplayObject() {
         this._displayObject = this.scene.make.container(undefined, false);
         this._displayObject["$owner"] = this;
-        this._container = this._displayObject;
+        this.container = this._displayObject;
         const _delay = 1;
         this._renderEvent = { delay: _delay, callback: this.__render, callbackScope: this };
         this._buildNativeEvent = { delay: _delay, callback: this.buildNativeDisplayList, callbackScope: this };
+    }
+    get container() {
+        return this._container;
+    }
+    set container(value) {
+        this._container = value;
     }
     dispose() {
         if (this._renderTime) {
@@ -11829,7 +11804,7 @@ class GComponent extends GObject {
         super.dispose();
     }
     get displayListContainer() {
-        return this._container;
+        return this.container;
     }
     realAddChildDisplayObject(child, index) {
         const display = child.displayObject;
@@ -11843,10 +11818,10 @@ class GComponent extends GObject {
             }
         }
         if (index === undefined) {
-            this._container.add(display);
+            this.container.add(display);
         }
         else {
-            this._container.addAt(display, index);
+            this.container.addAt(display, index);
         }
         this.displayObject.emit(DisplayObjectEvent.ADDTOSTAGE);
     }
@@ -12055,9 +12030,9 @@ class GComponent extends GObject {
                     if (g.inContainer)
                         displayIndex++;
                 }
-                if (displayIndex === this._container.list.length)
+                if (displayIndex === this.container.list.length)
                     displayIndex--;
-                this._container.addAt(child.displayObject, displayIndex);
+                this.container.addAt(child.displayObject, displayIndex);
             }
             else if (this._childrenRenderOrder == ChildrenRenderOrder.Descent) {
                 for (i = cnt - 1; i > index; i--) {
@@ -12065,9 +12040,9 @@ class GComponent extends GObject {
                     if (g.inContainer)
                         displayIndex++;
                 }
-                if (displayIndex === this._container.list.length)
+                if (displayIndex === this.container.list.length)
                     displayIndex--;
-                this._container.addAt(child.displayObject, displayIndex);
+                this.container.addAt(child.displayObject, displayIndex);
             }
             else {
                 if (!this._buildNativeTime)
@@ -12163,8 +12138,8 @@ class GComponent extends GObject {
                         if (g.displayObject && g.displayObject.parentContainer)
                             index++;
                     }
-                    if (this._container) {
-                        this._container.addAt(child.displayObject, index);
+                    if (this.container) {
+                        this.container.addAt(child.displayObject, index);
                     }
                     else {
                         GRoot.inst.addToStage(child.displayObject);
@@ -12182,7 +12157,7 @@ class GComponent extends GObject {
                             index++;
                     }
                     this.realAddChildDisplayObject(child, index);
-                    // this._container.addAt(child.displayObject, index);
+                    // this.container.addAt(child.displayObject, index);
                 }
                 else {
                     this.realAddChildDisplayObject(child);
@@ -12194,7 +12169,7 @@ class GComponent extends GObject {
         }
         else {
             if (child.displayObject.parentContainer) {
-                this._container.remove(child.displayObject);
+                this.container.remove(child.displayObject);
                 child.displayObject.removeFromUpdateList();
                 child.displayObject.removeFromDisplayList();
                 // console.log("remove display", child);
@@ -12226,7 +12201,7 @@ class GComponent extends GObject {
                             if (child.displayObject.parentContainer)
                                 child.displayObject.parentContainer.remove(child.displayObject);
                         }
-                        //this._container.add(child.displayObject);
+                        //this.container.add(child.displayObject);
                     }
                 }
                 break;
@@ -12375,7 +12350,7 @@ class GComponent extends GObject {
     set margin(value) {
         this._margin.copy(value);
         if (this.scrollRect) {
-            this._container.setPosition(this._margin.left + this._alignOffset.x, this._margin.top + this._alignOffset.y);
+            this.container.setPosition(this._margin.left + this._alignOffset.x, this._margin.top + this._alignOffset.y);
         }
         this.handleSizeChanged();
     }
@@ -12443,9 +12418,9 @@ class GComponent extends GObject {
     }
     setupScroll(buffer) {
         return new Promise((resolve, reject) => {
-            if (this._displayObject == this._container) {
-                this._container = new Phaser.GameObjects.Container(this.scene);
-                this._displayObject.add(this._container);
+            if (this._displayObject == this.container) {
+                this.container = new Phaser.GameObjects.Container(this.scene);
+                this._displayObject.add(this.container);
             }
             this._scrollPane = new ScrollPane(this);
             this._scrollPane.setup(buffer).then(() => {
@@ -12455,19 +12430,19 @@ class GComponent extends GObject {
     }
     setupOverflow(overflow) {
         if (overflow == OverflowType.Hidden) {
-            if (this._displayObject == this._container) {
-                this._container = new Phaser.GameObjects.Container(this.scene);
-                this._displayObject.add(this._container);
+            if (this._displayObject == this.container) {
+                this.container = new Phaser.GameObjects.Container(this.scene);
+                this._displayObject.add(this.container);
             }
             this.updateMask();
-            this._container.setPosition(this._margin.left, this._margin.top);
+            this.container.setPosition(this._margin.left, this._margin.top);
         }
         else if (this._margin.left != 0 || this._margin.top != 0) {
-            if (this._displayObject == this._container) {
-                this._container = new Phaser.GameObjects.Container(this.scene);
-                this._displayObject.add(this._container);
+            if (this._displayObject == this.container) {
+                this.container = new Phaser.GameObjects.Container(this.scene);
+                this._displayObject.add(this.container);
             }
-            this._container.setPosition(this._margin.left, this._margin.top);
+            this.container.setPosition(this._margin.left, this._margin.top);
         }
     }
     handleSizeChanged() {
@@ -13036,10 +13011,11 @@ class GComponent extends GObject {
     }
     setXY(xv, yv, force = false) {
         super.setXY(xv, yv, force);
-        let worldMatrix;
-        if (this.parent) {
-            worldMatrix = this.parent.displayObject.getWorldTransformMatrix();
-        }
+        const worldMatrix = this.parent && this.parent.displayObject ?
+            this.parent.displayObject.getWorldTransformMatrix()
+            // : this.container && this.container.parentContainer ?
+            //     this.container.parentContainer.getWorldTransformMatrix()
+            : undefined;
         this._children.forEach((obj) => {
             if (obj && obj instanceof GComponent) {
                 const component = obj;
@@ -13171,13 +13147,13 @@ class GRoot extends GComponent {
             this._uiStage.destroy();
         }
         this._stageOptions = stageOptions;
-        let con = this._stageOptions.container;
-        if (!con) {
-            con = this.scene.add.container(this._stageOptions.x, this._stageOptions.y);
-            con.setSize(this._stageOptions.width, this._stageOptions.height);
-            // con.setInteractive(new Phaser.Geom.Rectangle(con.x, con.y, this._width, this._height), Phaser.Geom.Rectangle.Contains);
-        }
-        this._uiStage = new UIStage(scene, con);
+        // let con = this._stageOptions.container;
+        // if (!con) {
+        //     con = this.scene.add.container(this._stageOptions.x, this._stageOptions.y);
+        //     con.setSize(this._stageOptions.width, this._stageOptions.height);
+        //     // con.setInteractive(new Phaser.Geom.Rectangle(con.x, con.y, this._width, this._height), Phaser.Geom.Rectangle.Contains);
+        // }
+        this._uiStage = new UIStage(scene);
         this._scene.stage = this._uiStage;
         this._width = stageOptions.width;
         this._height = stageOptions.height;
@@ -13185,15 +13161,15 @@ class GRoot extends GComponent {
         this.createDisplayObject();
         this.addListen();
     }
-    addToStage(child, type = UISceneDisplay.LAYER_ROOT, index = -1) {
+    addToStage(child, type = 0, index = -1) {
         if (!this._uiStage)
             return;
         this._uiStage.addChild(child, type, index);
     }
-    removeFromStage(child, type) {
+    removeFromStage(child) {
         if (!this._uiStage)
             return;
-        this._uiStage.removeChild(child, type);
+        this._uiStage.removeChild(child);
     }
     getResUrl(key) {
         return this._stageOptions.res + key;
@@ -13276,8 +13252,24 @@ class GRoot extends GComponent {
         // this._tooltipWin.y = yy;
         // this.addChild(this._tooltipWin);
     }
+    /**
+     * type用于获取传入该层级的容器或容器
+     * @param child
+     * @param type
+     * @returns
+     */
+    addChild(child, type) {
+        if (typeof (type) === "number")
+            this._container = this._uiStage.getContainer(type);
+        else if (typeof (type) === "undefined")
+            this._container = this._uiStage.getContainer(0);
+        else
+            this._container = type;
+        this.addChildAt(child, this._children.length);
+        return child;
+    }
     showWindow(win) {
-        this.addChild(win);
+        this.addChild(win, UISceneDisplay.LAYER_TOOLTIPS);
         win.requestFocus();
         if (win.x > this.width)
             win.x = this.width - win.width;
@@ -13293,8 +13285,8 @@ class GRoot extends GComponent {
         win.hide();
     }
     createDisplayObject() {
-        this._displayObject = this._uiStage.displayObject;
-        this._displayObject["$owner"] = this;
+        // this._displayObject = this._uiStage.displayObject;
+        // this._displayObject["$owner"] = this;
         // this._modalLayer = new GGraph(this.scene, ObjectType.Graph);
         // this._modalLayer.setSize(this.width, this.height);
         // this._modalLayer.drawRect(0, null, UIConfig.modalLayerColor);
@@ -13360,7 +13352,7 @@ class GRoot extends GComponent {
                 p = p.parent;
             }
         }
-        this.addChild(popup);
+        this.addChild(popup, UISceneDisplay.LAYER_TOOLTIPS);
         this.adjustModalLayer();
         var pos;
         var sizeW = 0, sizeH = 0;
@@ -13371,7 +13363,7 @@ class GRoot extends GComponent {
         }
         else {
             // console.log("show 100,100");
-            pos = this.globalToLocal(100, 100);
+            pos = this.globalToLocal(this._width >> 1, this._height >> 1);
         }
         var xx, yy;
         xx = pos.x;
@@ -13381,10 +13373,6 @@ class GRoot extends GComponent {
         if (((dir === undefined || dir === PopupDirection.Auto) && pos.y + popup.height > this.height)
             || dir === false || dir === PopupDirection.Up) {
             yy = pos.y - popup.height - 1;
-            // if (yy < 0) {
-            //     yy = 0;
-            //     xx += sizeW / 2;
-            // }
         }
         popup.x = xx;
         popup.y = yy;

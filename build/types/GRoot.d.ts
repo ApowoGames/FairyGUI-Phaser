@@ -1,8 +1,8 @@
-import { InputManager } from './input/InputManager';
-import { GObject } from './GObject';
+import { InputManager } from "./input/InputManager";
+import { GObject } from "./GObject";
 import { GComponent } from "./GComponent";
-import { PopupDirection, Window } from '.';
-import { TextureManager } from './texture/TextureManager';
+import { PopupDirection, Window } from ".";
+import { TextureManager } from "./texture/TextureManager";
 export declare class GRootMouseStatus {
     touchDown: boolean;
     mouseX: number;
@@ -51,8 +51,8 @@ export declare class GRoot extends GComponent {
      * @param stageOptions
      */
     attachTo(scene: Phaser.Scene, stageOptions?: any): void;
-    addToStage(child: Phaser.GameObjects.GameObject, type?: UISceneDisplay, index?: number): void;
-    removeFromStage(child: Phaser.GameObjects.GameObject, type: UISceneDisplay): void;
+    addToStage(child: Phaser.GameObjects.GameObject, type?: number, index?: number): void;
+    removeFromStage(child: Phaser.GameObjects.GameObject): void;
     getResUrl(key: string): string;
     getResUIUrl(key: string): string;
     getOsdRes(value: string): string;
@@ -63,6 +63,13 @@ export declare class GRoot extends GComponent {
     playOneShotSound(url: string, volumeScale?: number): void;
     showTooltips(msg: string): void;
     showTooltipsWin(tooltipWin: GObject, xx?: number, yy?: number): void;
+    /**
+     * type用于获取传入该层级的容器或容器
+     * @param child
+     * @param type
+     * @returns
+     */
+    addChild(child: GObject, type?: any): GObject;
     showWindow(win: Window): void;
     hideWindow(win: Window): void;
     createDisplayObject(): void;

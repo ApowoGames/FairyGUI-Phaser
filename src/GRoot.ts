@@ -1,15 +1,15 @@
-import { InputManager } from './input/InputManager';
-import { ToolSet } from './utils/ToolSet';
-import { GObject } from './GObject';
-import { GGraph } from './GGraph';
-import { UIStage, UIStageOptions } from './display/UIStage';
+import { InputManager } from "./input/InputManager";
+import { ToolSet } from "./utils/ToolSet";
+import { GObject } from "./GObject";
+import { GGraph } from "./GGraph";
+import { UIStage, UIStageOptions } from "./display/UIStage";
 import { GComponent } from "./GComponent";
-import { DisplayObjectEvent } from './event/DisplayObjectEvent';
-import { UIConfig } from './UIConfig';
-import { UIPackage } from './UIPackage';
-import { InteractiveEvent, ObjectType, PopupDirection, RelationType, Window } from '.';
-import { Utils } from './utils/Utils';
-import { TextureManager } from './texture/TextureManager';
+import { DisplayObjectEvent } from "./event/DisplayObjectEvent";
+import { UIConfig } from "./UIConfig";
+import { UIPackage } from "./UIPackage";
+import { InteractiveEvent, ObjectType, PopupDirection, RelationType, Window } from ".";
+import { Utils } from "./utils/Utils";
+import { TextureManager } from "./texture/TextureManager";
 export class GRootMouseStatus {
     public touchDown: boolean = false;
     public mouseX: number = 0;
@@ -105,13 +105,13 @@ export class GRoot extends GComponent {
             this._uiStage.destroy();
         }
         this._stageOptions = stageOptions;
-        let con = this._stageOptions.container;
-        if (!con) {
-            con = this.scene.add.container(this._stageOptions.x, this._stageOptions.y);
-            con.setSize(this._stageOptions.width, this._stageOptions.height);
-            // con.setInteractive(new Phaser.Geom.Rectangle(con.x, con.y, this._width, this._height), Phaser.Geom.Rectangle.Contains);
-        }
-        this._uiStage = new UIStage(scene, con);
+        // let con = this._stageOptions.container;
+        // if (!con) {
+        //     con = this.scene.add.container(this._stageOptions.x, this._stageOptions.y);
+        //     con.setSize(this._stageOptions.width, this._stageOptions.height);
+        //     // con.setInteractive(new Phaser.Geom.Rectangle(con.x, con.y, this._width, this._height), Phaser.Geom.Rectangle.Contains);
+        // }
+        this._uiStage = new UIStage(scene);
         (<any>this._scene).stage = this._uiStage;
         this._width = stageOptions.width;
         this._height = stageOptions.height;
@@ -120,14 +120,14 @@ export class GRoot extends GComponent {
         this.addListen();
     }
 
-    public addToStage(child: Phaser.GameObjects.GameObject, type: UISceneDisplay = UISceneDisplay.LAYER_ROOT, index: number = -1) {
+    public addToStage(child: Phaser.GameObjects.GameObject, type: number = 0, index: number = -1) {
         if (!this._uiStage) return;
         this._uiStage.addChild(child, type, index);
     }
 
-    public removeFromStage(child: Phaser.GameObjects.GameObject, type: UISceneDisplay) {
+    public removeFromStage(child: Phaser.GameObjects.GameObject) {
         if (!this._uiStage) return;
-        this._uiStage.removeChild(child, type);
+        this._uiStage.removeChild(child);
     }
 
     public getResUrl(key: string): string {
@@ -171,7 +171,6 @@ export class GRoot extends GComponent {
     public playOneShotSound(url: string, volumeScale?: number): void {
         if (ToolSet.startsWith(url, "ui://"))
             return;
-
         this.scene.sound.play(url);
     }
 
@@ -225,8 +224,22 @@ export class GRoot extends GComponent {
         // this.addChild(this._tooltipWin);
     }
 
+    /**
+     * type用于获取传入该层级的容器或容器
+     * @param child 
+     * @param type 
+     * @returns 
+     */
+    public addChild(child: GObject, type?: any): GObject {
+        if (typeof (type) === "number") this._container = this._uiStage.getContainer(type);
+        else if (typeof (type) === "undefined") this._container = this._uiStage.getContainer(0);
+        else this._container = type;
+        this.addChildAt(child, this._children.length);
+        return child;
+    }
+
     public showWindow(win: Window): void {
-        this.addChild(win);
+        this.addChild(win, UISceneDisplay.LAYER_TOOLTIPS);
         win.requestFocus();
 
         if (win.x > this.width)
@@ -247,8 +260,8 @@ export class GRoot extends GComponent {
     }
 
     public createDisplayObject() {
-        this._displayObject = this._uiStage.displayObject;
-        this._displayObject["$owner"] = this;
+        // this._displayObject = this._uiStage.displayObject;
+        // this._displayObject["$owner"] = this;
 
         // this._modalLayer = new GGraph(this.scene, ObjectType.Graph);
         // this._modalLayer.setSize(this.width, this.height);
@@ -323,7 +336,7 @@ export class GRoot extends GComponent {
             }
         }
 
-        this.addChild(popup);
+        this.addChild(popup, UISceneDisplay.LAYER_TOOLTIPS);
         this.adjustModalLayer();
 
         var pos: Phaser.Geom.Point;
@@ -335,7 +348,7 @@ export class GRoot extends GComponent {
         }
         else {
             // console.log("show 100,100");
-            pos = this.globalToLocal(100, 100);
+            pos = this.globalToLocal(this._width >> 1, this._height >> 1);
         }
         var xx: number, yy: number;
         xx = pos.x;
@@ -345,10 +358,6 @@ export class GRoot extends GComponent {
         if (((dir === undefined || dir === PopupDirection.Auto) && pos.y + popup.height > this.height)
             || dir === false || dir === PopupDirection.Up) {
             yy = pos.y - popup.height - 1;
-            // if (yy < 0) {
-            //     yy = 0;
-            //     xx += sizeW / 2;
-            // }
         }
 
         popup.x = xx;

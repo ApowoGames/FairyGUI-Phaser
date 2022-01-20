@@ -33,7 +33,6 @@ export interface UIStageOptions {
     y: number;
     width: number;
     height: number;
-    container: Phaser.GameObjects.Container;
     alignV?: StageAlign;
     alignH?: StageAlign;
     fallbackWidth?: number;
@@ -59,7 +58,7 @@ export declare class DefaultUIStageOptions implements UIStageOptions {
 }
 export declare class UIStage extends Phaser.Events.EventEmitter {
     private scene;
-    protected rootContainer: Phaser.GameObjects.Container;
+    protected containerMap: Map<number, Phaser.GameObjects.Container>;
     protected $options: UIStageOptions;
     protected $width: number;
     protected $height: number;
@@ -69,13 +68,14 @@ export declare class UIStage extends Phaser.Events.EventEmitter {
     offsetX: number;
     offsetY: number;
     private $sizeCalcer;
-    constructor(scene: Phaser.Scene, rootContainer: Phaser.GameObjects.Container);
+    constructor(scene: Phaser.Scene);
+    getContainer(sortIndex: UISceneDisplay): Phaser.GameObjects.Container;
+    get containersNum(): number;
     get nativeStage(): Phaser.Input.InputPlugin;
     get stageWidth(): number;
     get stageHeight(): number;
-    get displayObject(): Phaser.GameObjects.Container;
-    addChild(child: Phaser.GameObjects.GameObject, type: UISceneDisplay, index?: number): void;
-    removeChild(child: Phaser.GameObjects.GameObject, type: UISceneDisplay): void;
+    addChild(child: Phaser.GameObjects.GameObject, type: number, index?: number): void;
+    removeChild(child: Phaser.GameObjects.GameObject): void;
     /**@internal */
     updateScreenSize(): void;
 }
