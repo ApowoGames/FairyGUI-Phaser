@@ -7867,41 +7867,72 @@ class AssetProxy {
         }
         this._resCallBackMap.set(key, rescbMap);
         this.addListen(type, key);
-        if (GRoot.inst.scene.cache.obj.has(key)) {
+        const fun = (value) => {
             rescbMap.forEach((obj) => {
-                obj.completeCallBack();
+                obj.completeCallBack(value);
             });
-            return;
-        }
+        };
         switch (type) {
             case LoaderType.IMAGE:
+                if (GRoot.inst.scene.textures.exists(key)) {
+                    fun(key);
+                    return;
+                }
                 GRoot.inst.scene.load.image(key, url);
                 break;
             case LoaderType.ATLAS:
                 GRoot.inst.scene.load.atlas(key, url);
                 break;
             case LoaderType.AUDIO:
+                if (GRoot.inst.scene.cache.audio.exists(key)) {
+                    fun(key);
+                    return;
+                }
                 GRoot.inst.scene.load.audio(key, url);
                 break;
             case LoaderType.VIDEO:
+                if (GRoot.inst.scene.cache.video.exists(key)) {
+                    fun(key);
+                    return;
+                }
                 GRoot.inst.scene.load.video(key, url);
                 break;
             case LoaderType.JSON:
+                if (GRoot.inst.scene.cache.json.exists(key)) {
+                    fun(key);
+                    return;
+                }
                 GRoot.inst.scene.load.json(key, url);
                 break;
             case LoaderType.SCRIPT:
+                if (GRoot.inst.scene.cache.obj.exists(key)) {
+                    fun(key);
+                    return;
+                }
                 GRoot.inst.scene.load.script(key, url);
                 break;
             case LoaderType.GLSL:
+                if (GRoot.inst.scene.cache.shader.exists(key)) {
+                    fun(key);
+                    return;
+                }
                 GRoot.inst.scene.load.glsl(key, url);
                 break;
             case LoaderType.BITMAPFONT:
+                if (GRoot.inst.scene.cache.bitmapFont.exists(key)) {
+                    fun(key);
+                    return;
+                }
                 GRoot.inst.scene.load.bitmapFont(key, url);
                 break;
             case LoaderType.SPRITESHEET:
                 GRoot.inst.scene.load.spritesheet(key, url);
                 break;
             default:
+                if (GRoot.inst.scene.textures.exists(key)) {
+                    fun(key);
+                    return;
+                }
                 GRoot.inst.scene.load.image(key, url);
                 break;
         }
