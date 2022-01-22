@@ -105,6 +105,7 @@ export class GRoot extends GComponent {
             this._uiStage.destroy();
         }
         this._stageOptions = stageOptions;
+        GRoot.inst.updateContentScaleLevel();
         // let con = this._stageOptions.container;
         // if (!con) {
         //     con = this.scene.add.container(this._stageOptions.x, this._stageOptions.y);
@@ -300,17 +301,17 @@ export class GRoot extends GComponent {
     }
 
     private updateContentScaleLevel(): void {
-        GRoot.contentScaleLevel = this._stageOptions.dpr;
+        const ss = this._stageOptions.dpr;
         // var mat: Phaser.GameObjects.Components.TransformMatrix = <Phaser.GameObjects.Components.TransformMatrix>(<any>Laya.stage)._canvasTransform;
         // var ss: number = Math.max(mat.getScaleX(), mat.getScaleY());
-        // if (ss >= 3.5)
-        //     GRoot.contentScaleLevel = 3; //x4
-        // else if (ss >= 2.5)
-        //     GRoot.contentScaleLevel = 2; //x3
-        // else if (ss >= 1.5)
-        //     GRoot.contentScaleLevel = 1; //x2
-        // else
-        //     GRoot.contentScaleLevel = 0;
+        if (ss >= 3.5)
+            GRoot.contentScaleLevel = 3; //x4
+        else if (ss >= 2.5)
+            GRoot.contentScaleLevel = 2; //x3
+        else if (ss >= 1.5)
+            GRoot.contentScaleLevel = 1; //x2
+        else
+            GRoot.contentScaleLevel = 0;
     }
 
     public showPopup(popup: GObject, target?: GObject, dir?: PopupDirection | boolean): void {
