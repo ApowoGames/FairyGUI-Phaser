@@ -24,6 +24,8 @@ export enum UISceneDisplay {
     LAYER_MASK
 }
 
+const roundHalf = num => Math.round(num * 2) / 2
+
 /**
  * gui根对象（逻辑对象）
  */
@@ -105,7 +107,6 @@ export class GRoot extends GComponent {
             this._uiStage.destroy();
         }
         this._stageOptions = stageOptions;
-        GRoot.inst.updateContentScaleLevel();
         // let con = this._stageOptions.container;
         // if (!con) {
         //     con = this.scene.add.container(this._stageOptions.x, this._stageOptions.y);
@@ -116,6 +117,12 @@ export class GRoot extends GComponent {
         (<any>this._scene).stage = this._uiStage;
         this._width = stageOptions.width;
         this._height = stageOptions.height;
+
+        const dpr = this._stageOptions.dpr;
+        this._width = Math.round(Math.max(this._width, this._height) * dpr);
+        this._height = Math.round(Math.min(this._width, this._height) * dpr)
+
+        GRoot.inst.updateContentScaleLevel();
         // 初始化场景
         this.createDisplayObject();
         this.addListen();
@@ -301,7 +308,7 @@ export class GRoot extends GComponent {
     }
 
     private updateContentScaleLevel(): void {
-        const ss = this._stageOptions.dpr;
+        const ss = roundHalf(Math.min(Math.max(this._height / 360, 1), 4))
         // var mat: Phaser.GameObjects.Components.TransformMatrix = <Phaser.GameObjects.Components.TransformMatrix>(<any>Laya.stage)._canvasTransform;
         // var ss: number = Math.max(mat.getScaleX(), mat.getScaleY());
         if (ss >= 3.5)
@@ -312,6 +319,10 @@ export class GRoot extends GComponent {
             GRoot.contentScaleLevel = 1; //x2
         else
             GRoot.contentScaleLevel = 0;
+
+        let { width, height } = this._scene.cameras.main;
+        width /= GRoot.contentScaleLevel;
+        height /= GRoot.contentScaleLevel;
     }
 
     public showPopup(popup: GObject, target?: GObject, dir?: PopupDirection | boolean): void {

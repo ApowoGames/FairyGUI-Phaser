@@ -36,6 +36,9 @@ export interface UIStageOptions {
     resolution?: number;
     x: number;
     y: number;
+    // 16:9 = 3840×2160 2560X1440 1920×1080 1600×900 1366×768 1280×720 1024×576 960×540 854×480 720×405 640x360
+    desginWidth:number;
+    desinHeight:number;
     width: number;
     height: number;
     alignV?: StageAlign,
@@ -49,8 +52,11 @@ export class DefaultUIStageOptions implements UIStageOptions {
     public scaleMode?: StageScaleMode = StageScaleMode.SHOW_ALL;
     public orientation?: StageOrientation = StageOrientation.AUTO;
     public resolution?: number = 1;
-    public width: number = 800;
-    public height: number = 600;
+    // 默认竖屏
+    public desginWidth: number = 360;
+    public desinHeight: number = 640;
+    public width: number = 480;
+    public height: number = 854;
     public x: number = 0;
     public y: number = 0;
     public alignV: StageAlign = StageAlign.MIDDLE;

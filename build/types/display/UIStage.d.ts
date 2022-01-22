@@ -31,6 +31,8 @@ export interface UIStageOptions {
     resolution?: number;
     x: number;
     y: number;
+    desginWidth: number;
+    desinHeight: number;
     width: number;
     height: number;
     alignV?: StageAlign;
@@ -42,6 +44,8 @@ export declare class DefaultUIStageOptions implements UIStageOptions {
     scaleMode?: StageScaleMode;
     orientation?: StageOrientation;
     resolution?: number;
+    desginWidth: number;
+    desinHeight: number;
     width: number;
     height: number;
     x: number;
