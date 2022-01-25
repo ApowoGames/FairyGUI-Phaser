@@ -25,14 +25,13 @@ export interface UIStageOptions {
     osd: string;
     res: string;
     resUI: string;
-    dpr: number;
     scaleMode?: StageScaleMode;
     orientation?: StageOrientation;
-    resolution?: number;
+    dpr: number;
     x: number;
     y: number;
     desginWidth: number;
-    desinHeight: number;
+    desginHeight: number;
     width: number;
     height: number;
     alignV?: StageAlign;
@@ -43,22 +42,20 @@ export interface UIStageOptions {
 export declare class DefaultUIStageOptions implements UIStageOptions {
     scaleMode?: StageScaleMode;
     orientation?: StageOrientation;
-    resolution?: number;
+    dpr: number;
     desginWidth: number;
-    desinHeight: number;
+    desginHeight: number;
     width: number;
     height: number;
     x: number;
     y: number;
-    alignV: StageAlign;
-    alignH: StageAlign;
+    alignV?: StageAlign;
+    alignH?: StageAlign;
     fallbackWidth: number;
     fallbackHeight: number;
-    container: Phaser.GameObjects.Container;
     osd: string;
     res: string;
     resUI: string;
-    dpr: number;
 }
 export declare class UIStage extends Phaser.Events.EventEmitter {
     private scene;
@@ -73,6 +70,7 @@ export declare class UIStage extends Phaser.Events.EventEmitter {
     offsetY: number;
     private $sizeCalcer;
     constructor(scene: Phaser.Scene);
+    get stageOption(): UIStageOptions;
     getContainer(sortIndex: UISceneDisplay): Phaser.GameObjects.Container;
     get containersNum(): number;
     get nativeStage(): Phaser.Input.InputPlugin;

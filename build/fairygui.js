@@ -2228,20 +2228,24 @@
                 var info = this._defs[i];
                 switch (info.type) {
                     case exports.RelationType.Center_Center:
-                        this._owner.x -= (0.5 - (applyPivot ? this._owner.pivotX : 0)) * dWidth;
+                        this._owner.x = this._owner.parent ? this._owner.parent._width - this._owner._width >> 1 : this._owner._width >> 1;
+                        //this._owner.x -= (0.5 - (applyPivot ? this._owner.pivotX : 0)) * dWidth;
                         break;
                     case exports.RelationType.Right_Center:
                     case exports.RelationType.Right_Left:
                     case exports.RelationType.Right_Right:
-                        this._owner.x -= (1 - (applyPivot ? this._owner.pivotX : 0)) * dWidth;
+                        this._owner.x = this._owner.parent ? this._owner.parent._width - this._owner._width : 0;
+                        // this._owner.x -= (1 - (applyPivot ? this._owner.pivotX : 0)) * dWidth;
                         break;
                     case exports.RelationType.Middle_Middle:
-                        this._owner.y -= (0.5 - (applyPivot ? this._owner.pivotY : 0)) * dHeight;
+                        // this._owner.y -= (0.5 - (applyPivot ? this._owner.pivotY : 0)) * dHeight;
+                        this._owner.y = this._owner.parent ? this._owner.parent._height - this._owner._height >> 1 : this._owner._height >> 1;
                         break;
                     case exports.RelationType.Bottom_Middle:
                     case exports.RelationType.Bottom_Top:
                     case exports.RelationType.Bottom_Bottom:
-                        this._owner.y -= (1 - (applyPivot ? this._owner.pivotY : 0)) * dHeight;
+                        this._owner.y = this._owner.parent ? this._owner.parent._height - this._owner._height : 0;
+                        // this._owner.y -= (1 - (applyPivot ? this._owner.pivotY : 0)) * dHeight;
                         break;
                 }
             }
@@ -2335,10 +2339,10 @@
                 }
                 if (info.percent) {
                     if (this._targetWidth != 0)
-                        delta = this._target._width / this._targetWidth;
+                        delta = (this._target._width || this._target.initWidth) / this._targetWidth;
                 }
                 else
-                    delta = this._target._width - this._targetWidth;
+                    delta = (this._target._width || this._target.initWidth) - this._targetWidth;
             }
             else {
                 if (this._target != this._owner.parent) {
@@ -2348,11 +2352,13 @@
                 }
                 if (info.percent) {
                     if (this._targetHeight != 0)
-                        delta = this._target._height / this._targetHeight;
+                        delta = (this._target._height || this._target.initHeight) / this._targetHeight;
                 }
                 else
-                    delta = this._target._height - this._targetHeight;
+                    delta = (this._target._height || this._target.initHeight) - this._targetHeight;
             }
+            if (delta === NaN)
+                delta = 0;
             switch (info.type) {
                 case exports.RelationType.Left_Left:
                     if (info.percent)
@@ -6957,10 +6963,10 @@
         constructor() {
             this.scaleMode = exports.StageScaleMode.SHOW_ALL;
             this.orientation = exports.StageOrientation.AUTO;
-            this.resolution = 1;
+            this.dpr = 1;
             // 默认竖屏
             this.desginWidth = 360;
-            this.desinHeight = 640;
+            this.desginHeight = 640;
             this.width = 480;
             this.height = 854;
             this.x = 0;
@@ -6972,7 +6978,6 @@
             this.osd = "/";
             this.res = "resources/";
             this.resUI = "resources/ui";
-            this.dpr = 1;
             // [key: string]: string | number;
         }
     }
@@ -7026,6 +7031,10 @@
             UIStageInst.push(this);
             this.containerMap = new Map();
             this.getContainer(UISceneDisplay.LAYER_ROOT);
+            this.$options = new DefaultUIStageOptions();
+        }
+        get stageOption() {
+            return this.$options;
         }
         getContainer(sortIndex) {
             if (!this.containerMap)
@@ -7791,8 +7800,8 @@
             return this;
         }
         getHighResolution() {
-            if (this.highResolution && GRoot.contentScaleLevel > 0) {
-                var itemId = this.highResolution[GRoot.contentScaleLevel - 1];
+            if (this.highResolution && GRoot.contentDprLevel > 0) {
+                var itemId = this.highResolution[GRoot.contentDprLevel - 1];
                 if (itemId)
                     return this.owner.getItemById(itemId);
             }
@@ -13129,7 +13138,6 @@
         UISceneDisplay[UISceneDisplay["LAYER_TOOLTIPS"] = 3] = "LAYER_TOOLTIPS";
         UISceneDisplay[UISceneDisplay["LAYER_MASK"] = 4] = "LAYER_MASK";
     })(UISceneDisplay || (UISceneDisplay = {}));
-    const roundHalf = num => Math.round(num * 2) / 2;
     /**
      * gui根对象（逻辑对象）
      */
@@ -13196,10 +13204,12 @@
             this._scene.stage = this._uiStage;
             this._width = stageOptions.width;
             this._height = stageOptions.height;
-            const dpr = this._stageOptions.dpr;
-            this._width = Math.round(Math.max(this._width, this._height) * dpr);
-            this._height = Math.round(Math.min(this._width, this._height) * dpr);
+            if (!this._stageOptions.desginWidth)
+                this._stageOptions.desginWidth = this._width > this._height ? this._uiStage.stageOption.desginHeight : this._uiStage.stageOption.desginWidth;
+            if (!this._stageOptions.desginHeight)
+                this._stageOptions.desginHeight = this._height > this._width ? this._uiStage.stageOption.desginWidth : this._uiStage.stageOption.desginHeight;
             GRoot.inst.updateContentScaleLevel();
+            GRoot.inst.updateContentDprLevel();
             // 初始化场景
             this.createDisplayObject();
             this.addListen();
@@ -13359,23 +13369,28 @@
         }
         $winResize(stage) {
             // this._container.setSize(stage.stageWidth, stage.stageHeight);
-            this.updateContentScaleLevel();
+            this.updateContentDprLevel();
         }
         updateContentScaleLevel() {
-            const ss = roundHalf(Math.min(Math.max(this._height / 360, 1), 4));
+            const widthScale = this._width / this._stageOptions.desginWidth;
+            const heightScale = this._height / this._stageOptions.desginHeight;
+            GRoot.contentScaleLevel = widthScale < heightScale ? widthScale : heightScale;
+            const camera = this._scene.cameras.main;
+            camera.setZoom();
+            camera.setScroll(-(this._width - this._stageOptions.desginWidth) / 2, -(this._height - this._stageOptions.desginHeight) / 2);
+        }
+        updateContentDprLevel() {
+            const dpr = this._stageOptions.dpr;
             // var mat: Phaser.GameObjects.Components.TransformMatrix = <Phaser.GameObjects.Components.TransformMatrix>(<any>Laya.stage)._canvasTransform;
-            // var ss: number = Math.max(mat.getScaleX(), mat.getScaleY());
-            if (ss >= 3.5)
-                GRoot.contentScaleLevel = 3; //x4
-            else if (ss >= 2.5)
-                GRoot.contentScaleLevel = 2; //x3
-            else if (ss >= 1.5)
-                GRoot.contentScaleLevel = 1; //x2
+            // var dpr: number = Math.max(mat.getScaleX(), mat.getScaleY());
+            if (dpr >= 3.5)
+                GRoot.contentDprLevel = 3; //x4
+            else if (dpr >= 2.5)
+                GRoot.contentDprLevel = 2; //x3
+            else if (dpr >= 1.5)
+                GRoot.contentDprLevel = 1; //x2
             else
-                GRoot.contentScaleLevel = 0;
-            let { width, height } = this._scene.cameras.main;
-            width /= GRoot.contentScaleLevel;
-            height /= GRoot.contentScaleLevel;
+                GRoot.contentDprLevel = 0;
         }
         showPopup(popup, target, dir) {
             if (this._popupStack.length > 0) {
@@ -13506,6 +13521,7 @@
                 this.removeChild(this._modalLayer);
         }
     }
+    GRoot.contentDprLevel = 0;
     GRoot.contentScaleLevel = 0;
     GRoot._gmStatus = new GRootMouseStatus();
 
@@ -17342,7 +17358,8 @@
             if (this._content2)
                 this._content2.setScale(sx, sy);
             else {
-                this._content.setScale(sx, sy);
+                // this._content.setScale(sx, sy);
+                this._content.setSize(cw, ch);
                 // if (this._content.frames) {
                 //     this._content.setSize(cw, ch, this._content.frames[0]);
                 // } else {

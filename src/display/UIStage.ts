@@ -30,15 +30,14 @@ export interface UIStageOptions {
     osd: string;
     res: string;
     resUI: string;
-    dpr: number;
     scaleMode?: StageScaleMode;
     orientation?: StageOrientation;
-    resolution?: number;
+    dpr: number;
     x: number;
     y: number;
     // 16:9 = 3840×2160 2560X1440 1920×1080 1600×900 1366×768 1280×720 1024×576 960×540 854×480 720×405 640x360
-    desginWidth:number;
-    desinHeight:number;
+    desginWidth: number;
+    desginHeight: number;
     width: number;
     height: number;
     alignV?: StageAlign,
@@ -51,23 +50,21 @@ export interface UIStageOptions {
 export class DefaultUIStageOptions implements UIStageOptions {
     public scaleMode?: StageScaleMode = StageScaleMode.SHOW_ALL;
     public orientation?: StageOrientation = StageOrientation.AUTO;
-    public resolution?: number = 1;
+    public dpr: number = 1;
     // 默认竖屏
     public desginWidth: number = 360;
-    public desinHeight: number = 640;
+    public desginHeight: number = 640;
     public width: number = 480;
     public height: number = 854;
     public x: number = 0;
     public y: number = 0;
-    public alignV: StageAlign = StageAlign.MIDDLE;
-    public alignH: StageAlign = StageAlign.CENTER;
+    public alignV?: StageAlign = StageAlign.MIDDLE;
+    public alignH?: StageAlign = StageAlign.CENTER;
     public fallbackWidth: number = 0;
     public fallbackHeight: number = 0;
-    public container: Phaser.GameObjects.Container;
-    osd: string = "/";
-    res: string = "resources/";
-    resUI: string = "resources/ui";
-    dpr: number = 1;
+    public osd: string = "/";
+    public res: string = "resources/";
+    public resUI: string = "resources/ui";
     // [key: string]: string | number;
 }
 
@@ -140,6 +137,11 @@ export class UIStage extends Phaser.Events.EventEmitter {
         UIStageInst.push(this);
         this.containerMap = new Map();
         this.getContainer(UISceneDisplay.LAYER_ROOT);
+        this.$options = new DefaultUIStageOptions();
+    }
+
+    get stageOption(): UIStageOptions {
+        return this.$options;
     }
 
     public getContainer(sortIndex: UISceneDisplay): Phaser.GameObjects.Container {

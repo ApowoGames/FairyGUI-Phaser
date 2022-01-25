@@ -466,7 +466,8 @@ export class GLoader extends GObject {
         if (this._content2)
             this._content2.setScale(sx, sy);
         else {
-            this._content.setScale(sx, sy);
+            // this._content.setScale(sx, sy);
+            this._content.setSize(cw, ch);
             // if (this._content.frames) {
             //     this._content.setSize(cw, ch, this._content.frames[0]);
             // } else {

@@ -63,8 +63,8 @@ export class PackageItem {
     }
 
     public getHighResolution(): PackageItem {
-        if (this.highResolution && GRoot.contentScaleLevel > 0) {
-            var itemId: string = this.highResolution[GRoot.contentScaleLevel - 1];
+        if (this.highResolution && GRoot.contentDprLevel > 0) {
+            var itemId: string = this.highResolution[GRoot.contentDprLevel - 1];
             if (itemId)
                 return this.owner.getItemById(itemId);
         }

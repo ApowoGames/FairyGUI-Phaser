@@ -32,6 +32,7 @@ const roundHalf = num => Math.round(num * 2) / 2
 export class GRoot extends GComponent {
 
     private static _inst: GRoot;
+    public static contentDprLevel: number = 0;
     public static contentScaleLevel: number = 0;
     private static _gmStatus = new GRootMouseStatus();
     private _uiStage: UIStage;
@@ -118,11 +119,14 @@ export class GRoot extends GComponent {
         this._width = stageOptions.width;
         this._height = stageOptions.height;
 
-        const dpr = this._stageOptions.dpr;
-        this._width = Math.round(Math.max(this._width, this._height) * dpr);
-        this._height = Math.round(Math.min(this._width, this._height) * dpr)
+        if (!this._stageOptions.desginWidth)
+            this._stageOptions.desginWidth = this._width > this._height ? this._uiStage.stageOption.desginHeight : this._uiStage.stageOption.desginWidth;
+        if (!this._stageOptions.desginHeight)
+            this._stageOptions.desginHeight = this._height > this._width ? this._uiStage.stageOption.desginWidth : this._uiStage.stageOption.desginHeight;
+
 
         GRoot.inst.updateContentScaleLevel();
+        GRoot.inst.updateContentDprLevel();
         // 初始化场景
         this.createDisplayObject();
         this.addListen();
@@ -304,25 +308,31 @@ export class GRoot extends GComponent {
 
     private $winResize(stage: UIStage): void {
         // this._container.setSize(stage.stageWidth, stage.stageHeight);
-        this.updateContentScaleLevel();
+        this.updateContentDprLevel();
     }
 
-    private updateContentScaleLevel(): void {
-        const ss = roundHalf(Math.min(Math.max(this._height / 360, 1), 4))
-        // var mat: Phaser.GameObjects.Components.TransformMatrix = <Phaser.GameObjects.Components.TransformMatrix>(<any>Laya.stage)._canvasTransform;
-        // var ss: number = Math.max(mat.getScaleX(), mat.getScaleY());
-        if (ss >= 3.5)
-            GRoot.contentScaleLevel = 3; //x4
-        else if (ss >= 2.5)
-            GRoot.contentScaleLevel = 2; //x3
-        else if (ss >= 1.5)
-            GRoot.contentScaleLevel = 1; //x2
-        else
-            GRoot.contentScaleLevel = 0;
+    private updateContentScaleLevel() {
+        const widthScale = this._width / this._stageOptions.desginWidth;
+        const heightScale = this._height / this._stageOptions.desginHeight;
+        GRoot.contentScaleLevel = widthScale < heightScale ? widthScale : heightScale;
 
-        let { width, height } = this._scene.cameras.main;
-        width /= GRoot.contentScaleLevel;
-        height /= GRoot.contentScaleLevel;
+        const camera = this._scene.cameras.main;
+        camera.setZoom();
+        camera.setScroll(-(this._width - this._stageOptions.desginWidth) / 2, -(this._height - this._stageOptions.desginHeight) / 2)
+    }
+
+    private updateContentDprLevel(): void {
+        const dpr = this._stageOptions.dpr;
+        // var mat: Phaser.GameObjects.Components.TransformMatrix = <Phaser.GameObjects.Components.TransformMatrix>(<any>Laya.stage)._canvasTransform;
+        // var dpr: number = Math.max(mat.getScaleX(), mat.getScaleY());
+        if (dpr >= 3.5)
+            GRoot.contentDprLevel = 3; //x4
+        else if (dpr >= 2.5)
+            GRoot.contentDprLevel = 2; //x3
+        else if (dpr >= 1.5)
+            GRoot.contentDprLevel = 1; //x2
+        else
+            GRoot.contentDprLevel = 0;
     }
 
     public showPopup(popup: GObject, target?: GObject, dir?: PopupDirection | boolean): void {

@@ -20,6 +20,7 @@ export declare enum UISceneDisplay {
  */
 export declare class GRoot extends GComponent {
     private static _inst;
+    static contentDprLevel: number;
     static contentScaleLevel: number;
     private static _gmStatus;
     private _uiStage;
@@ -78,6 +79,7 @@ export declare class GRoot extends GComponent {
     private onStageMove;
     private $winResize;
     private updateContentScaleLevel;
+    private updateContentDprLevel;
     showPopup(popup: GObject, target?: GObject, dir?: PopupDirection | boolean): void;
     hidePopup(popup?: GObject): void;
     closePopup(target: GObject): void;
