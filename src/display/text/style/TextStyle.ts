@@ -154,8 +154,8 @@ export class TextStyle implements ITextStyle {
     rtl?: boolean = false;
 
     // wrap
-    wrapMode?: WrapMode;
-    wrapWidth?: number;
+    private _wrapMode?: WrapMode;
+    private _wrapWidth?: number;
 
     antialias?: boolean = true;
     protected _font: string;
@@ -182,6 +182,25 @@ export class TextStyle implements ITextStyle {
     get font(): string {
         return this._font;
     }
+
+    get wrapMode(): number {
+        return this._wrapMode;
+    }
+
+    set wrapMode(val: number) {
+        this._wrapMode = val;
+    }
+
+    get wrapWidth(): number {
+        return this._wrapWidth;
+    }
+
+    set wrapWidth(val: number) {
+        this._wrapWidth = val;
+        this.update(true);
+    }
+
+
 
     syncFont(canvas, context) {
         context.font = this._font;

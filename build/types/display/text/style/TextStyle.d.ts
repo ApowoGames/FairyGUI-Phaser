@@ -1,6 +1,5 @@
 import { TextField } from "../TextField";
 import { FillStyleType, HAlignModeString, VAlignModeString } from "../Types";
-import { WrapMode } from "../WrapText";
 export interface ITextStyle {
     fontFamily?: string;
     fontSize?: string;
@@ -82,14 +81,18 @@ export declare class TextStyle implements ITextStyle {
     lineSpacing?: number;
     letterSpacing?: number;
     rtl?: boolean;
-    wrapMode?: WrapMode;
-    wrapWidth?: number;
+    private _wrapMode?;
+    private _wrapWidth?;
     antialias?: boolean;
     protected _font: string;
     parent: TextField;
     private _metrics;
     constructor(text: TextField, style: ITextStyle);
     get font(): string;
+    get wrapMode(): number;
+    set wrapMode(val: number);
+    get wrapWidth(): number;
+    set wrapWidth(val: number);
     syncFont(canvas: any, context: any): void;
     setStyle(style: ITextStyle, updateText?: boolean, setDefaults?: boolean): TextField;
     update(recalculateMetrics: boolean): TextField;

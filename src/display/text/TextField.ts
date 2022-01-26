@@ -214,7 +214,7 @@ export class TextField extends DisplayObject {
         return this;
     }
 
-    setWordWrapWidth(width: number, useAdvancedWrap: boolean) {
+    setWordWrapWidth(width: number, useAdvancedWrap: boolean = false) {
         this._style.wrapMode = WrapMode.char;
         this._style.wrapWidth = width;
     }

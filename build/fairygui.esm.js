@@ -13365,20 +13365,18 @@ class GRoot extends GComponent {
     }
     $winResize(stage) {
         // this._container.setSize(stage.stageWidth, stage.stageHeight);
+        this.updateContentScaleLevel();
         this.updateContentDprLevel();
     }
     updateContentScaleLevel() {
         const widthScale = this._width / this._stageOptions.desginWidth;
         const heightScale = this._height / this._stageOptions.desginHeight;
         GRoot.contentScaleLevel = widthScale < heightScale ? widthScale : heightScale;
-        const camera = this._scene.cameras.main;
-        camera.setZoom();
-        camera.setScroll(-(this._width - this._stageOptions.desginWidth) / 2, -(this._height - this._stageOptions.desginHeight) / 2);
+        this._scene.cameras.main;
+        // camera.setScroll(-(this._width - this._stageOptions.desginWidth) / 2, -(this._height - this._stageOptions.desginHeight) / 2)
     }
     updateContentDprLevel() {
         const dpr = this._stageOptions.dpr;
-        // var mat: Phaser.GameObjects.Components.TransformMatrix = <Phaser.GameObjects.Components.TransformMatrix>(<any>Laya.stage)._canvasTransform;
-        // var dpr: number = Math.max(mat.getScaleX(), mat.getScaleY());
         if (dpr >= 3.5)
             GRoot.contentDprLevel = 3; //x4
         else if (dpr >= 2.5)
@@ -13778,8 +13776,6 @@ class GTextField extends GObject {
         var str = buffer.readS();
         if (str != null)
             this.text = str;
-        // // 普通文本默认没有交互
-        // this.touchable = false;
     }
 }
 
@@ -15578,6 +15574,19 @@ class TextStyle {
     get font() {
         return this._font;
     }
+    get wrapMode() {
+        return this._wrapMode;
+    }
+    set wrapMode(val) {
+        this._wrapMode = val;
+    }
+    get wrapWidth() {
+        return this._wrapWidth;
+    }
+    set wrapWidth(val) {
+        this._wrapWidth = val;
+        this.update(true);
+    }
     syncFont(canvas, context) {
         context.font = this._font;
     }
@@ -15899,7 +15908,7 @@ class TextField extends DisplayObject {
         });
         return this;
     }
-    setWordWrapWidth(width, useAdvancedWrap) {
+    setWordWrapWidth(width, useAdvancedWrap = false) {
         this._style.wrapMode = WrapMode.char;
         this._style.wrapWidth = width;
     }
@@ -16030,6 +16039,8 @@ class GBasicTextField extends GTextField {
     }
     setup_afterAdd(buffer, beginPos) {
         super.setup_afterAdd(buffer, beginPos);
+        this.fontSize *= GRoot.contentDprLevel;
+        this._textField.setWordWrapWidth(this._textWidth * GRoot.contentDprLevel);
     }
     get nativeText() {
         return this._textField;

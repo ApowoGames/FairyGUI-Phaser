@@ -2,7 +2,7 @@ import { AutoSizeType } from './FieldTypes';
 import { BitmapFont } from './display/BitmapFont';
 import { GTextField } from './GTextField';
 import { TextField } from './display/text/TextField';
-import { ByteBuffer, ToolSet, UIConfig, UIPackage } from '.';
+import { ByteBuffer, GRoot, ToolSet, UIConfig, UIPackage } from '.';
 import { HAlignModeString, VAlignModeString } from './display/text/Types';
 export class GBasicTextField extends GTextField {
     protected _textField: TextField;
@@ -30,6 +30,10 @@ export class GBasicTextField extends GTextField {
 
     public setup_afterAdd(buffer: ByteBuffer, beginPos: number): void {
         super.setup_afterAdd(buffer, beginPos);
+
+
+        this.fontSize *= GRoot.contentDprLevel;
+        this._textField.setWordWrapWidth(this._textWidth*GRoot.contentDprLevel);
     }
 
     public get nativeText(): TextField {

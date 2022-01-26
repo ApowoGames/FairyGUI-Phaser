@@ -308,6 +308,7 @@ export class GRoot extends GComponent {
 
     private $winResize(stage: UIStage): void {
         // this._container.setSize(stage.stageWidth, stage.stageHeight);
+        this.updateContentScaleLevel();
         this.updateContentDprLevel();
     }
 
@@ -317,14 +318,11 @@ export class GRoot extends GComponent {
         GRoot.contentScaleLevel = widthScale < heightScale ? widthScale : heightScale;
 
         const camera = this._scene.cameras.main;
-        camera.setZoom();
-        camera.setScroll(-(this._width - this._stageOptions.desginWidth) / 2, -(this._height - this._stageOptions.desginHeight) / 2)
+        // camera.setScroll(-(this._width - this._stageOptions.desginWidth) / 2, -(this._height - this._stageOptions.desginHeight) / 2)
     }
 
     private updateContentDprLevel(): void {
         const dpr = this._stageOptions.dpr;
-        // var mat: Phaser.GameObjects.Components.TransformMatrix = <Phaser.GameObjects.Components.TransformMatrix>(<any>Laya.stage)._canvasTransform;
-        // var dpr: number = Math.max(mat.getScaleX(), mat.getScaleY());
         if (dpr >= 3.5)
             GRoot.contentDprLevel = 3; //x4
         else if (dpr >= 2.5)

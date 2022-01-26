@@ -334,7 +334,5 @@ export class GTextField extends GObject {
         var str: string = buffer.readS();
         if (str != null)
             this.text = str;
-        // // 普通文本默认没有交互
-        // this.touchable = false;
     }
 }
