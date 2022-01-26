@@ -21,6 +21,7 @@ export declare class TextField extends DisplayObject {
     drawAreaBounds(graphics: any, color: any): this;
     updateText(runWrap?: boolean): this;
     setWordWrapWidth(width: number, useAdvancedWrap?: boolean): void;
+    setResolution(resolution: number): void;
     setSingleLine(val: boolean): void;
     setInteractive(hitArea?: Phaser.Types.Input.InputConfiguration | any, callback?: Phaser.Types.Input.HitAreaCallback, dropZone?: boolean): this;
     disableInteractive(): this;

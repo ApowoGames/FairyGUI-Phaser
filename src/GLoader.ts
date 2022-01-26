@@ -458,10 +458,12 @@ export class GLoader extends GObject {
                         sy = 1;
                 }
 
-                cw = this.sourceWidth * sx;
-                ch = this.sourceHeight * sy;
+                cw = Math.round(this.sourceWidth * sx);
+                ch = Math.round(this.sourceHeight * sy);
             }
         }
+        this.adaptiveScaleX = sx;
+        this.adaptiveScaleY = sy;
 
         if (this._content2)
             this._content2.setScale(sx, sy);
@@ -489,11 +491,11 @@ export class GLoader extends GObject {
             ny = (0.5 - pivotY) * ch + (this.height - ch);
         else
             ny = (0.5 - pivotY) * ch;
-
+        // 需要将位置除以缩放值进行计算，因为缩放后位置会产生偏移
         if (this._content2)
-            this._content2.setXY(nx, ny);
+            this._content2.setXY(nx / sx, ny / sy);
         else {
-            this._content.setPosition(nx, ny);
+            this._content.setPosition(nx / sx, ny / sy);
         }
 
     }

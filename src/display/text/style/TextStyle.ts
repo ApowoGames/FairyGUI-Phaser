@@ -147,7 +147,7 @@ export class TextStyle implements ITextStyle {
     // size
     fixedWidth?: number = 0;
     fixedHeight?: number = 0;
-    resolution?: number = 1;
+    private _resolution: number = 1;
     lineSpacing?: number = 0;
     letterSpacing?: number = 0;
 
@@ -197,6 +197,15 @@ export class TextStyle implements ITextStyle {
 
     set wrapWidth(val: number) {
         this._wrapWidth = val;
+        this.update(true);
+    }
+
+    get resolution(): number {
+        return this._resolution;
+    }
+
+    set resolution(val) {
+        this._resolution = val;
         this.update(true);
     }
 

@@ -2229,13 +2229,13 @@
                 switch (info.type) {
                     case exports.RelationType.Center_Center:
                         this._owner.x = this._owner.parent ? this._owner.parent._width - this._owner._width >> 1 : this._owner._width >> 1;
-                        //this._owner.x -= (0.5 - (applyPivot ? this._owner.pivotX : 0)) * dWidth;
+                        // this._owner.x -= (0.5 - (applyPivot ? this._owner.pivotX : 0)) * dWidth;
                         break;
                     case exports.RelationType.Right_Center:
                     case exports.RelationType.Right_Left:
                     case exports.RelationType.Right_Right:
-                        this._owner.x = this._owner.parent ? this._owner.parent._width - this._owner._width : 0;
-                        // this._owner.x -= (1 - (applyPivot ? this._owner.pivotX : 0)) * dWidth;
+                        // this._owner.x = this._owner.parent ? this._owner.parent._width - this._owner._width : 0;
+                        this._owner.x -= (1 - (applyPivot ? this._owner.pivotX : 0)) * dWidth;
                         break;
                     case exports.RelationType.Middle_Middle:
                         // this._owner.y -= (0.5 - (applyPivot ? this._owner.pivotY : 0)) * dHeight;
@@ -2244,8 +2244,8 @@
                     case exports.RelationType.Bottom_Middle:
                     case exports.RelationType.Bottom_Top:
                     case exports.RelationType.Bottom_Bottom:
-                        this._owner.y = this._owner.parent ? this._owner.parent._height - this._owner._height : 0;
-                        // this._owner.y -= (1 - (applyPivot ? this._owner.pivotY : 0)) * dHeight;
+                        // this._owner.y = this._owner.parent ? this._owner.parent._height - this._owner._height : 0;
+                        this._owner.y -= (1 - (applyPivot ? this._owner.pivotY : 0)) * dHeight;
                         break;
                 }
             }
@@ -2342,7 +2342,7 @@
                         delta = (this._target._width || this._target.initWidth) / this._targetWidth;
                 }
                 else
-                    delta = (this._target._width || this._target.initWidth) - this._targetWidth;
+                    delta = (this._target._width || this._target.initWidth) / (this._target.adaptiveScaleX) - this._targetWidth;
             }
             else {
                 if (this._target != this._owner.parent) {
@@ -2355,7 +2355,7 @@
                         delta = (this._target._height || this._target.initHeight) / this._targetHeight;
                 }
                 else
-                    delta = (this._target._height || this._target.initHeight) - this._targetHeight;
+                    delta = (this._target._height || this._target.initHeight) / (this._target.adaptiveScaleY) - this._targetHeight;
             }
             if (delta === NaN)
                 delta = 0;
@@ -3304,6 +3304,8 @@
             this._pivotY = 0;
             this._pivotOffsetX = 0;
             this._pivotOffsetY = 0;
+            this._adaptiveScaleX = 1;
+            this._adaptiveScaleY = 1;
             this._sortingOrder = 0;
             this._internalVisible = true;
             this._xOffset = 0;
@@ -3334,6 +3336,18 @@
             this._displayStyle = new DisplayStyle();
             this._relations = new Relations(this);
             this._gears = new Array(10);
+        }
+        get adaptiveScaleX() {
+            return this._adaptiveScaleX;
+        }
+        set adaptiveScaleX(val) {
+            this._adaptiveScaleX = val;
+        }
+        get adaptiveScaleY() {
+            return this._adaptiveScaleY;
+        }
+        set adaptiveScaleY(val) {
+            this._adaptiveScaleY = val;
         }
         resizeMask(wid, hei) {
             if (!this.displayObject)
@@ -15556,7 +15570,7 @@
             // size
             this.fixedWidth = 0;
             this.fixedHeight = 0;
-            this.resolution = 1;
+            this._resolution = 1;
             this.lineSpacing = 0;
             this.letterSpacing = 0;
             this.rtl = false;
@@ -15589,6 +15603,13 @@
         }
         set wrapWidth(val) {
             this._wrapWidth = val;
+            this.update(true);
+        }
+        get resolution() {
+            return this._resolution;
+        }
+        set resolution(val) {
+            this._resolution = val;
             this.update(true);
         }
         syncFont(canvas, context) {
@@ -15916,6 +15937,9 @@
             this._style.wrapMode = WrapMode.char;
             this._style.wrapWidth = width;
         }
+        setResolution(resolution) {
+            this._style.resolution = resolution;
+        }
         setSingleLine(val) {
             this._style.wrapMode = val ? WrapMode.none : WrapMode.char;
         }
@@ -16037,14 +16061,26 @@
             this._widthAutoSize = this._heightAutoSize = true;
             // this._textField["_sizeDirty"] = false;
         }
+        set adaptiveScaleX(val) {
+            this._adaptiveScaleX = val;
+            this.doAlign();
+        }
+        set adaptiveScaleY(val) {
+            this._adaptiveScaleY = val;
+            this.doAlign();
+        }
         createDisplayObject() {
             this._displayObject = this._textField = new TextField(this.scene);
             this._displayObject.mouseEnabled = false;
         }
         setup_afterAdd(buffer, beginPos) {
             super.setup_afterAdd(buffer, beginPos);
-            this.fontSize *= GRoot.contentDprLevel;
-            this._textField.setWordWrapWidth(this._textWidth * GRoot.contentDprLevel);
+            // 对文本进行适配
+            this.setResolution(GRoot.contentDprLevel);
+        }
+        setResolution(val) {
+            this.adaptiveScaleX = this.adaptiveScaleY = GRoot.contentDprLevel;
+            this._textField.setResolution(val);
         }
         get nativeText() {
             return this._textField;
@@ -16517,6 +16553,9 @@
                     this._yOffset = Math.floor(dh);
             }
             this.handleXYChanged();
+        }
+        setXY(xv, yv, force = false) {
+            super.setXY(xv, yv);
         }
         flushVars() {
             this.text = this._text;
@@ -17362,10 +17401,12 @@
                         if (sy > 1)
                             sy = 1;
                     }
-                    cw = this.sourceWidth * sx;
-                    ch = this.sourceHeight * sy;
+                    cw = Math.round(this.sourceWidth * sx);
+                    ch = Math.round(this.sourceHeight * sy);
                 }
             }
+            this.adaptiveScaleX = sx;
+            this.adaptiveScaleY = sy;
             if (this._content2)
                 this._content2.setScale(sx, sy);
             else {
@@ -17390,10 +17431,11 @@
                 ny = (0.5 - pivotY) * ch + (this.height - ch);
             else
                 ny = (0.5 - pivotY) * ch;
+            // 需要将位置除以缩放值进行计算，因为缩放后位置会产生偏移
             if (this._content2)
-                this._content2.setXY(nx, ny);
+                this._content2.setXY(nx / sx, ny / sy);
             else {
-                this._content.setPosition(nx, ny);
+                this._content.setPosition(nx / sx, ny / sy);
             }
         }
         clearContent() {

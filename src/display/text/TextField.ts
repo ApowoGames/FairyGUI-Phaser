@@ -219,6 +219,10 @@ export class TextField extends DisplayObject {
         this._style.wrapWidth = width;
     }
 
+    setResolution(resolution: number) {
+        this._style.resolution = resolution;
+    }
+
     setSingleLine(val: boolean) {
         this._style.wrapMode = val ? WrapMode.none : WrapMode.char;
     }

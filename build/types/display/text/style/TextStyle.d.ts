@@ -77,7 +77,7 @@ export declare class TextStyle implements ITextStyle {
     valign?: VAlignModeString;
     fixedWidth?: number;
     fixedHeight?: number;
-    resolution?: number;
+    private _resolution;
     lineSpacing?: number;
     letterSpacing?: number;
     rtl?: boolean;
@@ -93,6 +93,8 @@ export declare class TextStyle implements ITextStyle {
     set wrapMode(val: number);
     get wrapWidth(): number;
     set wrapWidth(val: number);
+    get resolution(): number;
+    set resolution(val: number);
     syncFont(canvas: any, context: any): void;
     setStyle(style: ITextStyle, updateText?: boolean, setDefaults?: boolean): TextField;
     update(recalculateMetrics: boolean): TextField;

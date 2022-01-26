@@ -23,6 +23,16 @@ export class GBasicTextField extends GTextField {
         // this._textField["_sizeDirty"] = false;
     }
 
+    set adaptiveScaleX(val) {
+        this._adaptiveScaleX = val;
+        this.doAlign();
+    }
+
+    set adaptiveScaleY(val) {
+        this._adaptiveScaleY = val;
+        this.doAlign();
+    }
+
     public createDisplayObject(): void {
         this._displayObject = this._textField = new TextField(this.scene);
         this._displayObject.mouseEnabled = false;
@@ -31,9 +41,13 @@ export class GBasicTextField extends GTextField {
     public setup_afterAdd(buffer: ByteBuffer, beginPos: number): void {
         super.setup_afterAdd(buffer, beginPos);
 
+        // 对文本进行适配
+        this.setResolution(GRoot.contentDprLevel);
+    }
 
-        this.fontSize *= GRoot.contentDprLevel;
-        this._textField.setWordWrapWidth(this._textWidth*GRoot.contentDprLevel);
+    public setResolution(val) {
+        this.adaptiveScaleX = this.adaptiveScaleY = GRoot.contentDprLevel;
+        this._textField.setResolution(val);
     }
 
     public get nativeText(): TextField {
@@ -576,6 +590,10 @@ export class GBasicTextField extends GTextField {
                 this._yOffset = Math.floor(dh);
         }
         this.handleXYChanged();
+    }
+
+    public setXY(xv: number, yv: number, force: boolean = false): void {
+        super.setXY(xv, yv);
     }
 
     public flushVars(): void {

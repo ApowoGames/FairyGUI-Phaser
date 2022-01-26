@@ -65,6 +65,8 @@ export class GObject {
     protected _pivotAsAnchor: boolean;
     protected _pivotOffsetX: number = 0;
     protected _pivotOffsetY: number = 0;
+    protected _adaptiveScaleX: number = 1;
+    protected _adaptiveScaleY: number = 1;
     private _sortingOrder: number = 0;
     private _internalVisible: boolean = true;
     private _handlingController?: boolean;
@@ -123,6 +125,22 @@ export class GObject {
 
         this._relations = new Relations(this);
         this._gears = new Array<GearBase>(10);
+    }
+
+    get adaptiveScaleX(): number {
+        return this._adaptiveScaleX;
+    }
+
+    set adaptiveScaleX(val) {
+        this._adaptiveScaleX = val;
+    }
+
+    get adaptiveScaleY(): number {
+        return this._adaptiveScaleY;
+    }
+
+    set adaptiveScaleY(val) {
+        this._adaptiveScaleY = val;
     }
 
     public resizeMask(wid: number, hei: number) {
@@ -1398,7 +1416,7 @@ export class GObject {
             this.visible = false;
         // console.log("visible object ===>", this);
         const touchable = buffer.readBool();
-        if(this.type !== ObjectType.Text){
+        if (this.type !== ObjectType.Text) {
             this.touchable = touchable;
         }
         // if (!buffer.readBool()) {

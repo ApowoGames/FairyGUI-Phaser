@@ -55,6 +55,8 @@ export declare class GObject {
     protected _pivotAsAnchor: boolean;
     protected _pivotOffsetX: number;
     protected _pivotOffsetY: number;
+    protected _adaptiveScaleX: number;
+    protected _adaptiveScaleY: number;
     private _sortingOrder;
     private _internalVisible;
     private _handlingController?;
@@ -96,6 +98,10 @@ export declare class GObject {
     _treeNode?: GTreeNode;
     protected _objectType: number;
     constructor(scene: Phaser.Scene, type: number);
+    get adaptiveScaleX(): number;
+    set adaptiveScaleX(val: number);
+    get adaptiveScaleY(): number;
+    set adaptiveScaleY(val: number);
     resizeMask(wid: number, hei: number): void;
     private _resizeMask;
     set type(val: number);

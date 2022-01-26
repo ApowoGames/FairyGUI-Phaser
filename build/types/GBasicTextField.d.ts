@@ -9,8 +9,11 @@ export declare class GBasicTextField extends GTextField {
     private _bitmapFont?;
     private _lines?;
     constructor(scene: Phaser.Scene, type: number);
+    set adaptiveScaleX(val: any);
+    set adaptiveScaleY(val: any);
     createDisplayObject(): void;
     setup_afterAdd(buffer: ByteBuffer, beginPos: number): void;
+    setResolution(val: any): void;
     get nativeText(): TextField;
     set text(value: string);
     get text(): string;
@@ -53,6 +56,7 @@ export declare class GBasicTextField extends GTextField {
     private renderWithBitmapFont;
     protected handleGrayedChanged(): void;
     protected doAlign(): void;
+    setXY(xv: number, yv: number, force?: boolean): void;
     flushVars(): void;
 }
 export interface LineInfo {
