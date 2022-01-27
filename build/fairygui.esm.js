@@ -2220,28 +2220,30 @@ class RelationItem {
             return;
         var ox = this._owner.x;
         var oy = this._owner.y;
+        const scaleWid = this._owner._width / this._owner.adaptiveScaleX;
+        const scaleHei = this._owner._height / this._owner.adaptiveScaleY;
         for (var i = 0; i < cnt; i++) {
             var info = this._defs[i];
             switch (info.type) {
                 case RelationType.Center_Center:
-                    this._owner.x = this._owner.parent ? this._owner.parent._width - this._owner._width >> 1 : this._owner._width >> 1;
+                    this._owner.x = this._owner.parent ? (this._owner.parent._width * GRoot.contentScaleWid - scaleWid) / 2 : scaleWid / 2;
                     // this._owner.x -= (0.5 - (applyPivot ? this._owner.pivotX : 0)) * dWidth;
                     break;
                 case RelationType.Right_Center:
                 case RelationType.Right_Left:
                 case RelationType.Right_Right:
-                    // this._owner.x = this._owner.parent ? this._owner.parent._width - this._owner._width : 0;
-                    this._owner.x -= (1 - (applyPivot ? this._owner.pivotX : 0)) * dWidth;
+                    this._owner.x = this._owner.parent ? this._owner.parent._width * GRoot.contentScaleWid - scaleWid : 0;
+                    // this._owner.x -= (1 - (applyPivot ? this._owner.pivotX : 0)) * dWidth;
                     break;
                 case RelationType.Middle_Middle:
                     // this._owner.y -= (0.5 - (applyPivot ? this._owner.pivotY : 0)) * dHeight;
-                    this._owner.y = this._owner.parent ? this._owner.parent._height - this._owner._height >> 1 : this._owner._height >> 1;
+                    this._owner.y = this._owner.parent ? (this._owner.parent._height * GRoot.contentScaleHei - scaleHei) / 2 : scaleHei / 2;
                     break;
                 case RelationType.Bottom_Middle:
                 case RelationType.Bottom_Top:
                 case RelationType.Bottom_Bottom:
-                    // this._owner.y = this._owner.parent ? this._owner.parent._height - this._owner._height : 0;
-                    this._owner.y -= (1 - (applyPivot ? this._owner.pivotY : 0)) * dHeight;
+                    this._owner.y = this._owner.parent ? this._owner.parent._height * GRoot.contentScaleHei - scaleHei : 0;
+                    // this._owner.y -= (1 - (applyPivot ? this._owner.pivotY : 0)) * dHeight * GRoot.contentDprLevel;
                     break;
             }
         }
@@ -2335,7 +2337,7 @@ class RelationItem {
             }
             if (info.percent) {
                 if (this._targetWidth != 0)
-                    delta = (this._target._width || this._target.initWidth) / this._targetWidth;
+                    delta = ((this._target._width || this._target.initWidth) / this._target.adaptiveScaleX) / this._targetWidth;
             }
             else
                 delta = (this._target._width || this._target.initWidth) / (this._target.adaptiveScaleX) - this._targetWidth;
@@ -2348,7 +2350,7 @@ class RelationItem {
             }
             if (info.percent) {
                 if (this._targetHeight != 0)
-                    delta = (this._target._height || this._target.initHeight) / this._targetHeight;
+                    delta = ((this._target._height || this._target.initHeight) / this._target.adaptiveScaleY) / this._targetHeight;
             }
             else
                 delta = (this._target._height || this._target.initHeight) / (this._target.adaptiveScaleY) - this._targetHeight;
@@ -13383,9 +13385,9 @@ class GRoot extends GComponent {
         this.updateContentDprLevel();
     }
     updateContentScaleLevel() {
-        const widthScale = this._width / this._stageOptions.desginWidth;
-        const heightScale = this._height / this._stageOptions.desginHeight;
-        GRoot.contentScaleLevel = widthScale < heightScale ? widthScale : heightScale;
+        GRoot.contentScaleWid = this._width / this._stageOptions.desginWidth;
+        GRoot.contentScaleHei = this._height / this._stageOptions.desginHeight;
+        GRoot.contentScaleLevel = GRoot.contentScaleWid < GRoot.contentScaleHei ? GRoot.contentScaleWid : GRoot.contentScaleHei;
         this._scene.cameras.main;
         // camera.setScroll(-(this._width - this._stageOptions.desginWidth) / 2, -(this._height - this._stageOptions.desginHeight) / 2)
     }
@@ -13531,6 +13533,8 @@ class GRoot extends GComponent {
 }
 GRoot.contentDprLevel = 0;
 GRoot.contentScaleLevel = 0;
+GRoot.contentScaleWid = 0;
+GRoot.contentScaleHei = 0;
 GRoot._gmStatus = new GRootMouseStatus();
 
 var TextType;
@@ -17046,6 +17050,9 @@ class GLoader extends GObject {
         if (this._content2)
             this._content2.dispose();
         super.dispose();
+    }
+    setXY(xv, yv, force) {
+        super.setXY(xv, yv, force);
     }
     get url() {
         return this._url;

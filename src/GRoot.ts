@@ -34,6 +34,8 @@ export class GRoot extends GComponent {
     private static _inst: GRoot;
     public static contentDprLevel: number = 0;
     public static contentScaleLevel: number = 0;
+    public static contentScaleWid: number = 0;
+    public static contentScaleHei: number = 0;
     private static _gmStatus = new GRootMouseStatus();
     private _uiStage: UIStage;
     private _modalLayer: GGraph;
@@ -313,9 +315,9 @@ export class GRoot extends GComponent {
     }
 
     private updateContentScaleLevel() {
-        const widthScale = this._width / this._stageOptions.desginWidth;
-        const heightScale = this._height / this._stageOptions.desginHeight;
-        GRoot.contentScaleLevel = widthScale < heightScale ? widthScale : heightScale;
+        GRoot.contentScaleWid = this._width / this._stageOptions.desginWidth;
+        GRoot.contentScaleHei = this._height / this._stageOptions.desginHeight;
+        GRoot.contentScaleLevel = GRoot.contentScaleWid < GRoot.contentScaleHei ? GRoot.contentScaleWid : GRoot.contentScaleHei;
 
         const camera = this._scene.cameras.main;
         // camera.setScroll(-(this._width - this._stageOptions.desginWidth) / 2, -(this._height - this._stageOptions.desginHeight) / 2)

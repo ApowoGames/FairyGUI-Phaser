@@ -20,6 +20,7 @@ export declare class GLoader extends GObject {
     constructor(scene: Phaser.Scene, type: any);
     createDisplayObject(): void;
     dispose(): void;
+    setXY(xv: number, yv: number, force?: boolean): void;
     get url(): string;
     set url(value: string);
     get icon(): string;

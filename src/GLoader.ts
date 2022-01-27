@@ -57,6 +57,10 @@ export class GLoader extends GObject {
         super.dispose();
     }
 
+    public setXY(xv: number, yv: number, force?: boolean): void {
+        super.setXY(xv, yv, force);
+    }
+
     public get url(): string {
         return this._url;
     }

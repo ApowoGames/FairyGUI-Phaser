@@ -22,6 +22,8 @@ export declare class GRoot extends GComponent {
     private static _inst;
     static contentDprLevel: number;
     static contentScaleLevel: number;
+    static contentScaleWid: number;
+    static contentScaleHei: number;
     private static _gmStatus;
     private _uiStage;
     private _modalLayer;
