@@ -42,7 +42,7 @@ export class GBasicTextField extends GTextField {
         super.setup_afterAdd(buffer, beginPos);
 
         // 对文本进行适配
-        this.setResolution(GRoot.contentDprLevel);
+        this.setResolution(GRoot.contentDprLevel + 1);
     }
 
     public setResolution(val) {

@@ -116,8 +116,6 @@ export class RelationItem {
 
         const scaleWid = this._owner._width / this._owner.adaptiveScaleX;
         const scaleHei = this._owner._height / this._owner.adaptiveScaleY
-        let tempX = 0;
-        let tempY = 0;
         for (var i: number = 0; i < cnt; i++) {
             var info: RelationDef = this._defs[i];
             switch (info.type) {
@@ -239,7 +237,6 @@ export class RelationItem {
     private applyOnSizeChanged(info: RelationDef): void {
         var pos: number = 0, pivot: number = 0, delta: number = 0;
         var v: number, tmp: number;
-
         if (info.axis == 0) {
             if (this._target != this._owner.parent) {
                 pos = this._target.x;
@@ -249,10 +246,10 @@ export class RelationItem {
 
             if (info.percent) {
                 if (this._targetWidth != 0)
-                    delta = ((this._target._width || this._target.initWidth) / this._target.adaptiveScaleX) / this._targetWidth;
+                    delta = ((this._target._width) / this._target.adaptiveScaleX) / this._targetWidth;
             }
             else
-                delta = (this._target._width || this._target.initWidth) / (this._target.adaptiveScaleX) - this._targetWidth;
+                delta = (this._target._width) / (this._target.adaptiveScaleX) - this._targetWidth;
         }
         else {
             if (this._target != this._owner.parent) {
@@ -263,10 +260,10 @@ export class RelationItem {
 
             if (info.percent) {
                 if (this._targetHeight != 0)
-                    delta = ((this._target._height || this._target.initHeight) / this._target.adaptiveScaleY) / this._targetHeight;
+                    delta = ((this._target._height) / this._target.adaptiveScaleY) / this._targetHeight;
             }
             else
-                delta = (this._target._height || this._target.initHeight) / (this._target.adaptiveScaleY) - this._targetHeight;
+                delta = (this._target._height) / (this._target.adaptiveScaleY) - this._targetHeight;
         }
         if (delta === NaN) delta = 0;
         switch (info.type) {

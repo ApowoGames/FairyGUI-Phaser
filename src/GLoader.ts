@@ -472,8 +472,8 @@ export class GLoader extends GObject {
         if (this._content2)
             this._content2.setScale(sx, sy);
         else {
-            // this._content.setScale(sx, sy);
-            this._content.setSize(cw, ch);
+            if (!this.scene.game.device.os.desktop) this._content.setSize(cw, ch);
+            else this._content.setScale(sx, sy);
             // if (this._content.frames) {
             //     this._content.setSize(cw, ch, this._content.frames[0]);
             // } else {
@@ -499,7 +499,8 @@ export class GLoader extends GObject {
         if (this._content2)
             this._content2.setXY(nx / sx, ny / sy);
         else {
-            this._content.setPosition(nx / sx, ny / sy);
+            if (!this.scene.game.device.os.desktop) this._content.setPosition(nx / sx, ny / sy);
+            else this._content.setPosition(nx, ny);
         }
 
     }

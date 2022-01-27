@@ -2341,10 +2341,10 @@
                 }
                 if (info.percent) {
                     if (this._targetWidth != 0)
-                        delta = ((this._target._width || this._target.initWidth) / this._target.adaptiveScaleX) / this._targetWidth;
+                        delta = ((this._target._width) / this._target.adaptiveScaleX) / this._targetWidth;
                 }
                 else
-                    delta = (this._target._width || this._target.initWidth) / (this._target.adaptiveScaleX) - this._targetWidth;
+                    delta = (this._target._width) / (this._target.adaptiveScaleX) - this._targetWidth;
             }
             else {
                 if (this._target != this._owner.parent) {
@@ -2354,10 +2354,10 @@
                 }
                 if (info.percent) {
                     if (this._targetHeight != 0)
-                        delta = ((this._target._height || this._target.initHeight) / this._target.adaptiveScaleY) / this._targetHeight;
+                        delta = ((this._target._height) / this._target.adaptiveScaleY) / this._targetHeight;
                 }
                 else
-                    delta = (this._target._height || this._target.initHeight) / (this._target.adaptiveScaleY) - this._targetHeight;
+                    delta = (this._target._height) / (this._target.adaptiveScaleY) - this._targetHeight;
             }
             if (delta === NaN)
                 delta = 0;
@@ -3596,9 +3596,10 @@
             this.setScale(this._scaleX, value);
         }
         setScale(sx, sy) {
-            if (this._scaleX != sx || this._scaleY != sy) {
-                this._scaleX = sx;
-                this._scaleY = sy;
+            const zoom = this.scene.cameras.main.zoom;
+            if (this._scaleX != sx * zoom || this._scaleY != sy * zoom) {
+                this._scaleX = sx * zoom;
+                this._scaleY = sy * zoom;
                 this.handleScaleChanged();
                 this.applyPivot();
                 this.updateGear(2);
@@ -6133,6 +6134,12 @@
                 this.image.color = value;
                 this.updateGear(4);
             }
+        }
+        get width() {
+            return this._width;
+        }
+        get height() {
+            return this._height;
         }
         set width(value) {
             this.setSize(value, this._rawHeight);
@@ -16080,7 +16087,7 @@
         setup_afterAdd(buffer, beginPos) {
             super.setup_afterAdd(buffer, beginPos);
             // 对文本进行适配
-            this.setResolution(GRoot.contentDprLevel);
+            this.setResolution(GRoot.contentDprLevel + 1);
         }
         setResolution(val) {
             this.adaptiveScaleX = this.adaptiveScaleY = GRoot.contentDprLevel;
@@ -17417,8 +17424,10 @@
             if (this._content2)
                 this._content2.setScale(sx, sy);
             else {
-                // this._content.setScale(sx, sy);
-                this._content.setSize(cw, ch);
+                if (!this.scene.game.device.os.desktop)
+                    this._content.setSize(cw, ch);
+                else
+                    this._content.setScale(sx, sy);
                 // if (this._content.frames) {
                 //     this._content.setSize(cw, ch, this._content.frames[0]);
                 // } else {
@@ -17442,7 +17451,10 @@
             if (this._content2)
                 this._content2.setXY(nx / sx, ny / sy);
             else {
-                this._content.setPosition(nx / sx, ny / sy);
+                if (!this.scene.game.device.os.desktop)
+                    this._content.setPosition(nx / sx, ny / sy);
+                else
+                    this._content.setPosition(nx, ny);
             }
         }
         clearContent() {
