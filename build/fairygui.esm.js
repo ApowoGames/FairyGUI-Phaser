@@ -2362,7 +2362,7 @@ class RelationItem {
                 if (info.percent)
                     this._owner.xMin = pos + (this._owner.xMin - pos) * delta;
                 else if (pivot != 0)
-                    this._owner.x += delta * (-pivot);
+                    this._owner.x += delta * (0.5 - pivot);
                 break;
             case RelationType.Left_Center:
                 if (info.percent)
@@ -3592,10 +3592,9 @@ class GObject {
         this.setScale(this._scaleX, value);
     }
     setScale(sx, sy) {
-        const zoom = this.scene.cameras.main.zoom;
-        if (this._scaleX != sx * zoom || this._scaleY != sy * zoom) {
-            this._scaleX = sx * zoom;
-            this._scaleY = sy * zoom;
+        if (this._scaleX != sx || this._scaleY != sy) {
+            this._scaleX = sx;
+            this._scaleY = sy;
             this.handleScaleChanged();
             this.applyPivot();
             this.updateGear(2);
@@ -7809,6 +7808,7 @@ class PackageItem {
         this.ty = 0;
         this.width = 0;
         this.height = 0;
+        this._isHighRes = false;
     }
     getBranch() {
         if (this.branches && this.owner._branchIndex != -1) {
@@ -7819,12 +7819,23 @@ class PackageItem {
         return this;
     }
     getHighResolution() {
+        this._isHighRes = false;
         if (this.highResolution && GRoot.contentDprLevel > 0) {
             var itemId = this.highResolution[GRoot.contentDprLevel - 1];
-            if (itemId)
-                return this.owner.getItemById(itemId);
+            if (itemId) {
+                const item = this.owner.getItemById(itemId);
+                item.isHighRes = true;
+                this._isHighRes = true;
+                return item;
+            }
         }
         return this;
+    }
+    get isHighRes() {
+        return this._isHighRes;
+    }
+    set isHighRes(val) {
+        this._isHighRes = val;
     }
     toString() {
         return this.name;
@@ -17420,7 +17431,7 @@ class GLoader extends GObject {
         if (this._content2)
             this._content2.setScale(sx, sy);
         else {
-            if (!this.scene.game.device.os.desktop)
+            if (this._contentItem.isHighRes)
                 this._content.setSize(cw, ch);
             else
                 this._content.setScale(sx, sy);
@@ -17447,7 +17458,7 @@ class GLoader extends GObject {
         if (this._content2)
             this._content2.setXY(nx / sx, ny / sy);
         else {
-            if (!this.scene.game.device.os.desktop)
+            if (this._contentItem.isHighRes)
                 this._content.setPosition(nx / sx, ny / sy);
             else
                 this._content.setPosition(nx, ny);

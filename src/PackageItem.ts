@@ -49,6 +49,8 @@ export class PackageItem {
     // public templet?: Laya.Templet;
     public skeletonAnchor?: Phaser.Geom.Point;
 
+    private _isHighRes: boolean = false;
+
     constructor() {
     }
 
@@ -63,12 +65,25 @@ export class PackageItem {
     }
 
     public getHighResolution(): PackageItem {
+        this._isHighRes = false;
         if (this.highResolution && GRoot.contentDprLevel > 0) {
             var itemId: string = this.highResolution[GRoot.contentDprLevel - 1];
-            if (itemId)
-                return this.owner.getItemById(itemId);
+            if (itemId) {
+                const item = this.owner.getItemById(itemId);
+                item.isHighRes = true;
+                this._isHighRes = true;
+                return item;
+            }
         }
         return this;
+    }
+
+    public get isHighRes(): boolean {
+        return this._isHighRes;
+    }
+
+    public set isHighRes(val) {
+        this._isHighRes = val;
     }
 
     public toString(): string {

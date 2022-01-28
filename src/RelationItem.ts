@@ -271,7 +271,7 @@ export class RelationItem {
                 if (info.percent)
                     this._owner.xMin = pos + (this._owner.xMin - pos) * delta;
                 else if (pivot != 0)
-                    this._owner.x += delta * (-pivot);
+                    this._owner.x += delta * (0.5 - pivot);
                 break;
             case RelationType.Left_Center:
                 if (info.percent)

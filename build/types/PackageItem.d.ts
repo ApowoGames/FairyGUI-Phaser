@@ -33,9 +33,12 @@ export declare class PackageItem {
     extensionType?: any;
     bitmapFont?: BitmapFont;
     skeletonAnchor?: Phaser.Geom.Point;
+    private _isHighRes;
     constructor();
     getBranch(): PackageItem;
     getHighResolution(): PackageItem;
+    get isHighRes(): boolean;
+    set isHighRes(val: boolean);
     toString(): string;
     load(): Promise<Object>;
 }
