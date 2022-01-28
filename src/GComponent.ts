@@ -1357,13 +1357,18 @@ export class GComponent extends GObject {
                             reslove();
                         });
                     } else {
+                        // 做适配
                         if (this._children) {
                             const len = this._children.length;
                             for (let i: number = 0; i < len; i++) {
                                 const child = this._children[i];
+                                const scale = child.parent ? GRoot.contentDprLevel + 1 : 1;
                                 if (child.type !== ObjectType.Text) {
-                                    const scale = child.parent ? GRoot.contentDprLevel + 1 : 1;
-                                    child.setScale(scale, scale);
+                                    if (child.type === ObjectType.Image || child.type === ObjectType.MovieClip || child.type === ObjectType.Loader) {
+                                        if (!child["_contentItem"].isHighRes) child.setScale(scale, scale);
+                                    } else {
+                                        child.setScale(scale, scale);
+                                    }
                                 } else {
                                     (<GBasicTextField>child).setResolution(GRoot.contentDprLevel + 1);
                                 }

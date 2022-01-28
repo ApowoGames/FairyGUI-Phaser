@@ -5,6 +5,7 @@ import { GObject } from './GObject';
 import { ByteBuffer } from './utils/ByteBuffer';
 export class GMovieClip extends GObject {
     private _movieClip: MovieClip;
+    private _contentItem: PackageItem;
 
     constructor(scene: Phaser.Scene, type: number) {
         super(scene, type);
@@ -64,7 +65,7 @@ export class GMovieClip extends GObject {
 
     //从start帧开始，播放到end帧（-1表示结尾），重复times次（0表示无限循环），循环结束后，停止在endAt帧（-1表示参数end）
     public setPlaySettings(start?: number, end?: number, times?: number, endAt?: number, endHandler?: () => void): void {
-       //  this._movieClip.setPlaySettings(start, end, times, endAt, endHandler);
+        //  this._movieClip.setPlaySettings(start, end, times, endAt, endHandler);
     }
 
     public set touchable(value: boolean) {
@@ -115,15 +116,15 @@ export class GMovieClip extends GObject {
 
     public constructFromResource(): Promise<void> {
         return new Promise((reslove, reject) => {
-            var displayItem: PackageItem = this.packageItem.getBranch();
+            this._contentItem = this.packageItem.getBranch();
 
-            this.sourceWidth = displayItem.width;
-            this.sourceHeight = displayItem.height;
+            this.sourceWidth = this._contentItem.width;
+            this.sourceHeight = this._contentItem.height;
             this.initWidth = this.sourceWidth;
             this.initHeight = this.sourceHeight;
 
-            displayItem = displayItem.getHighResolution();
-            displayItem.load().then((packageItem: PackageItem) => {
+            this._contentItem = this._contentItem.getHighResolution();
+            this._contentItem.load().then((packageItem: PackageItem) => {
                 // this._movieClip.setSize(packageItem.width, packageItem.height);
                 this._movieClip.interval = packageItem.interval;
                 this._movieClip.swing = packageItem.swing;

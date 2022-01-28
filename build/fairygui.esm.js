@@ -6641,13 +6641,13 @@ class GMovieClip extends GObject {
     }
     constructFromResource() {
         return new Promise((reslove, reject) => {
-            var displayItem = this.packageItem.getBranch();
-            this.sourceWidth = displayItem.width;
-            this.sourceHeight = displayItem.height;
+            this._contentItem = this.packageItem.getBranch();
+            this.sourceWidth = this._contentItem.width;
+            this.sourceHeight = this._contentItem.height;
             this.initWidth = this.sourceWidth;
             this.initHeight = this.sourceHeight;
-            displayItem = displayItem.getHighResolution();
-            displayItem.load().then((packageItem) => {
+            this._contentItem = this._contentItem.getHighResolution();
+            this._contentItem.load().then((packageItem) => {
                 // this._movieClip.setSize(packageItem.width, packageItem.height);
                 this._movieClip.interval = packageItem.interval;
                 this._movieClip.swing = packageItem.swing;
@@ -12955,13 +12955,20 @@ class GComponent extends GObject {
                             });
                         }
                         else {
+                            // 做适配
                             if (this._children) {
                                 const len = this._children.length;
                                 for (let i = 0; i < len; i++) {
                                     const child = this._children[i];
+                                    const scale = child.parent ? GRoot.contentDprLevel + 1 : 1;
                                     if (child.type !== ObjectType.Text) {
-                                        const scale = child.parent ? GRoot.contentDprLevel + 1 : 1;
-                                        child.setScale(scale, scale);
+                                        if (child.type === ObjectType.Image || child.type === ObjectType.MovieClip || child.type === ObjectType.Loader) {
+                                            if (!child["_contentItem"].isHighRes)
+                                                child.setScale(scale, scale);
+                                        }
+                                        else {
+                                            child.setScale(scale, scale);
+                                        }
                                     }
                                     else {
                                         child.setResolution(GRoot.contentDprLevel + 1);
