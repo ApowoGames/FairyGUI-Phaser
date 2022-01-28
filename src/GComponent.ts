@@ -1,3 +1,4 @@
+import { GBasicTextField } from './GBasicTextField';
 import { HitArea } from "./utils/HitArea";
 import { TranslationHelper } from "./TranslationHelper";
 import { PackageItem } from "./PackageItem";
@@ -14,7 +15,7 @@ import { Controller } from "./Controller";
 import { Graphics } from "./display/Graphics";
 import { GObject } from "./GObject";
 import { Decls, UIPackage } from "./UIPackage";
-import { GRoot, Image, DisplayObjectEvent, ObjectName } from ".";
+import { GRoot, Image, DisplayObjectEvent, ObjectName, GTextField } from ".";
 export class GComponent extends GObject {
     private _sortingChildCount: number = 0;
     protected _opaque: boolean;
@@ -1350,12 +1351,24 @@ export class GComponent extends GObject {
                     this.buildNativeDisplayList();
                     this.setBoundsChangedFlag();
 
-                    if (contentItem.objectType != ObjectType.Component || contentItem.name === ObjectName.JoyStick) {
+                    if (contentItem.objectType !== ObjectType.Component || contentItem.name === ObjectName.JoyStick) {
                         this.constructExtension(buffer).then(() => {
                             this.onConstruct();
                             reslove();
                         });
                     } else {
+                        if (this._children) {
+                            const len = this._children.length;
+                            for (let i: number = 0; i < len; i++) {
+                                const child = this._children[i];
+                                if (child.type !== ObjectType.Text) {
+                                    const scale = child.parent ? GRoot.contentDprLevel + 1 : 1;
+                                    child.setScale(scale, scale);
+                                } else {
+                                    (<GBasicTextField>child).setResolution(GRoot.contentDprLevel + 1);
+                                }
+                            }
+                        }
                         this.onConstruct();
                         reslove();
                     }
@@ -1498,7 +1511,7 @@ export class GComponent extends GObject {
             (<Phaser.GameObjects.Container>this.parent.displayObject).getWorldTransformMatrix()
             // : this.container && this.container.parentContainer ?
             //     this.container.parentContainer.getWorldTransformMatrix()
-                : undefined;
+            : undefined;
         this._children.forEach((obj) => {
             if (obj && obj instanceof GComponent) {
                 const component = (<GComponent>obj);

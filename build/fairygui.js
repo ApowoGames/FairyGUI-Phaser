@@ -12952,13 +12952,26 @@
                             this._underConstruct = false;
                             this.buildNativeDisplayList();
                             this.setBoundsChangedFlag();
-                            if (contentItem.objectType != exports.ObjectType.Component || contentItem.name === exports.ObjectName.JoyStick) {
+                            if (contentItem.objectType !== exports.ObjectType.Component || contentItem.name === exports.ObjectName.JoyStick) {
                                 this.constructExtension(buffer).then(() => {
                                     this.onConstruct();
                                     reslove();
                                 });
                             }
                             else {
+                                if (this._children) {
+                                    const len = this._children.length;
+                                    for (let i = 0; i < len; i++) {
+                                        const child = this._children[i];
+                                        if (child.type !== exports.ObjectType.Text) {
+                                            const scale = child.parent ? GRoot.contentDprLevel + 1 : 1;
+                                            child.setScale(scale, scale);
+                                        }
+                                        else {
+                                            child.setResolution(GRoot.contentDprLevel + 1);
+                                        }
+                                    }
+                                }
                                 this.onConstruct();
                                 reslove();
                             }
@@ -16098,7 +16111,7 @@
         setup_afterAdd(buffer, beginPos) {
             super.setup_afterAdd(buffer, beginPos);
             // 对文本进行适配
-            this.setResolution(GRoot.contentDprLevel + 1);
+            // this.setResolution(GRoot.contentDprLevel + 1);
         }
         setResolution(val) {
             this.adaptiveScaleX = this.adaptiveScaleY = GRoot.contentDprLevel;
