@@ -2220,29 +2220,29 @@ class RelationItem {
             return;
         var ox = this._owner.x;
         var oy = this._owner.y;
-        const scaleWid = this._owner._width / this._owner.adaptiveScaleX * this._owner.scaleX;
-        const scaleHei = this._owner._height / this._owner.adaptiveScaleY * this._owner.scaleX;
+        const scaleWid = this._owner._width / this._owner.adaptiveScaleX;
+        const scaleHei = this._owner._height / this._owner.adaptiveScaleY;
         for (var i = 0; i < cnt; i++) {
             var info = this._defs[i];
             switch (info.type) {
                 case RelationType.Center_Center:
-                    this._owner.x = this._owner.parent ? (this._owner.parent._width * GRoot.contentScaleWid - scaleWid) / 2 : scaleWid / 2;
+                    this._owner.x = this._owner.parent ? (this._owner.parent._width * GRoot.dpr * GRoot.contentScaleWid - scaleWid) / 2 : scaleWid / 2;
                     // this._owner.x -= (0.5 - (applyPivot ? this._owner.pivotX : 0)) * dWidth;
                     break;
                 case RelationType.Right_Center:
                 case RelationType.Right_Left:
                 case RelationType.Right_Right:
-                    this._owner.x = this._owner.parent ? this._owner.parent._width * GRoot.contentScaleWid - scaleWid : 0;
+                    this._owner.x = this._owner.parent ? this._owner.parent._width * GRoot.dpr * GRoot.contentScaleWid - scaleWid : 0;
                     // this._owner.x -= (1 - (applyPivot ? this._owner.pivotX : 0)) * dWidth;
                     break;
                 case RelationType.Middle_Middle:
                     // this._owner.y -= (0.5 - (applyPivot ? this._owner.pivotY : 0)) * dHeight;
-                    this._owner.y = this._owner.parent ? (this._owner.parent._height * GRoot.contentScaleHei - scaleHei) / 2 : scaleHei / 2;
+                    this._owner.y = this._owner.parent ? ((this._owner.parent._height * GRoot.dpr * GRoot.contentScaleHei - scaleHei) / 2) : scaleHei / 2;
                     break;
                 case RelationType.Bottom_Middle:
                 case RelationType.Bottom_Top:
                 case RelationType.Bottom_Bottom:
-                    this._owner.y = this._owner.parent ? this._owner.parent._height * GRoot.contentScaleHei - scaleHei : 0;
+                    this._owner.y = this._owner.parent ? this._owner.parent._height * GRoot.dpr * GRoot.contentScaleHei - scaleHei : 0;
                     // this._owner.y -= (1 - (applyPivot ? this._owner.pivotY : 0)) * dHeight * GRoot.contentDprLevel;
                     break;
             }
@@ -2357,6 +2357,8 @@ class RelationItem {
         }
         if (delta === NaN)
             delta = 0;
+        const targetScale = this._target["_contentItem"] && this._target["_contentItem"].isHighRes ? 1 : GRoot.dpr;
+        const ownerScale = this._owner["_contentItem"] && this._owner["_contentItem"].isHighRes ? 1 : GRoot.dpr;
         switch (info.type) {
             case RelationType.Left_Left:
                 if (info.percent)
@@ -2368,37 +2370,37 @@ class RelationItem {
                 if (info.percent)
                     this._owner.xMin = pos + (this._owner.xMin - pos) * delta;
                 else
-                    this._owner.x = this._target.x + this._target._width / (this._target.adaptiveScaleX * 2);
+                    this._owner.x = this._target.x + (this._target.width * targetScale) / (2 * this._target.adaptiveScaleX);
                 break;
             case RelationType.Left_Right:
                 if (info.percent)
                     this._owner.xMin = pos + (this._owner.xMin - pos) * delta;
                 else
-                    this._owner.x = this._target.x + this._target._width / this._target.adaptiveScaleX;
+                    this._owner.x = this._target.x + this._target.width * targetScale / this._target.adaptiveScaleX;
                 break;
             case RelationType.Center_Center:
                 if (info.percent)
                     this._owner.xMin = pos + (this._owner.xMin + this._owner._rawWidth * 0.5 - pos) * delta - this._owner._rawWidth * 0.5;
                 else
-                    this._owner.x = this._target.x + this._target._width / (this._target.adaptiveScaleX * 2) - this._owner._width / (this._owner.adaptiveScaleX * 2);
+                    this._owner.x = this._target.x + (this._target.width * targetScale) / (2 * this._target.adaptiveScaleX) - (this._owner._width * ownerScale) / (2 * this._owner.adaptiveScaleX);
                 break;
             case RelationType.Right_Left:
                 if (info.percent)
                     this._owner.xMin = pos + (this._owner.xMin + this._owner._rawWidth - pos) * delta - this._owner._rawWidth;
                 else if (pivot != 0)
-                    this._owner.x = this._target.x - this._owner._width / this._owner.adaptiveScaleX;
+                    this._owner.x = this._target.x - this._owner._width * ownerScale / this._owner.adaptiveScaleX;
                 break;
             case RelationType.Right_Center:
                 if (info.percent)
                     this._owner.xMin = pos + (this._owner.xMin + this._owner._rawWidth - pos) * delta - this._owner._rawWidth;
                 else
-                    this._owner.x = this._target.x + this._target._width / (this._target.adaptiveScaleX * 2) - this._owner._width / this._owner.adaptiveScaleX;
+                    this._owner.x = this._target.x + (this._target.width * targetScale) / (2 * this._target.adaptiveScaleX) - this._owner._width * ownerScale / this._owner.adaptiveScaleX;
                 break;
             case RelationType.Right_Right:
                 if (info.percent)
                     this._owner.xMin = pos + (this._owner.xMin + this._owner._rawWidth - pos) * delta - this._owner._rawWidth;
                 else
-                    this._owner.x = this._target.x + this._target._width / this._target.adaptiveScaleX - this._owner._width / this._owner.adaptiveScaleX;
+                    this._owner.x = this._target.x + this._target.width * targetScale / this._target.adaptiveScaleX - this._owner._width * ownerScale / this._owner.adaptiveScaleX;
                 break;
             case RelationType.Top_Top:
                 if (info.percent)
@@ -2410,37 +2412,38 @@ class RelationItem {
                 if (info.percent)
                     this._owner.yMin = pos + (this._owner.yMin - pos) * delta;
                 else
-                    this._owner.y = this._target.y + this._target._height / (this._target.adaptiveScaleY * 2);
+                    this._owner.y = this._target.y + (this._target._height * targetScale) / (2 * this._target.adaptiveScaleY);
                 break;
             case RelationType.Top_Bottom:
                 if (info.percent)
                     this._owner.yMin = pos + (this._owner.yMin - pos) * delta;
                 else
-                    this._owner.y = this._target.y + this._target._height / this._target.adaptiveScaleY;
+                    this._owner.y = this._target.y + this._target._height * targetScale / this._target.adaptiveScaleY;
                 break;
             case RelationType.Middle_Middle:
                 if (info.percent)
                     this._owner.yMin = pos + (this._owner.yMin + this._owner._rawHeight * 0.5 - pos) * delta - this._owner._rawHeight * 0.5;
-                else
-                    this._owner.y = this._target.y + this._target._height / (this._target.adaptiveScaleY * 2) - this._owner._height / (this._owner.adaptiveScaleY * 2);
+                else {
+                    this._owner.y = this._target.y + (this._target._height * targetScale) / (2 * this._target.adaptiveScaleY) - (this._owner._height * ownerScale) / (2 * this._owner.adaptiveScaleY);
+                }
                 break;
             case RelationType.Bottom_Top:
                 if (info.percent)
                     this._owner.yMin = pos + (this._owner.yMin + this._owner._rawHeight - pos) * delta - this._owner._rawHeight;
                 else if (pivot != 0)
-                    this._owner.y = this._target.y - this._owner._height / this._owner.adaptiveScaleY;
+                    this._owner.y = this._target.y - this._owner._height * ownerScale / this._owner.adaptiveScaleY;
                 break;
             case RelationType.Bottom_Middle:
                 if (info.percent)
                     this._owner.yMin = pos + (this._owner.yMin + this._owner._rawHeight - pos) * delta - this._owner._rawHeight;
                 else
-                    this._owner.y = this._target.y + this._target._height / (this._target.adaptiveScaleY * 2) - this._owner._height / this._owner.adaptiveScaleY;
+                    this._owner.y = this._target.y + (this._target._height * targetScale) / (2 * this._target.adaptiveScaleY) - this._owner._height * ownerScale / this._owner.adaptiveScaleY;
                 break;
             case RelationType.Bottom_Bottom:
                 if (info.percent)
                     this._owner.yMin = pos + (this._owner.yMin + this._owner._rawHeight - pos) * delta - this._owner._rawHeight;
                 else
-                    this._owner.y = this._target.y + this._target._height / this._target.adaptiveScaleY - this._owner._height / this._owner.adaptiveScaleY;
+                    this._owner.y = this._target.y + this._target._height * targetScale / this._target.adaptiveScaleY - this._owner._height * ownerScale / this._owner.adaptiveScaleY;
                 break;
             case RelationType.Width:
                 if (this._owner._underConstruct && this._owner == this._target.parent)
@@ -13183,6 +13186,7 @@ class TextureManager {
     }
 }
 
+const { width, height } = window.screen;
 class GRootMouseStatus {
     constructor() {
         this.touchDown = false;
@@ -13433,19 +13437,19 @@ class GRoot extends GComponent {
         this.updateContentDprLevel();
     }
     updateContentScaleLevel() {
-        GRoot.contentScaleWid = this._width / this._stageOptions.desginWidth;
-        GRoot.contentScaleHei = this._height / this._stageOptions.desginHeight;
+        GRoot.contentScaleWid = width / this._stageOptions.desginWidth;
+        GRoot.contentScaleHei = height / this._stageOptions.desginHeight;
         GRoot.contentScaleLevel = GRoot.contentScaleWid < GRoot.contentScaleHei ? GRoot.contentScaleWid : GRoot.contentScaleHei;
-        this._scene.cameras.main;
+        // const camera = this._scene.cameras.main;
         // camera.setScroll(-(this._width - this._stageOptions.desginWidth) / 2, -(this._height - this._stageOptions.desginHeight) / 2)
     }
     updateContentDprLevel() {
-        const dpr = this._stageOptions.dpr;
-        if (dpr >= 3.5)
+        GRoot.dpr = this._stageOptions.dpr;
+        if (GRoot.dpr >= 3.5)
             GRoot.contentDprLevel = 3; //x4
-        else if (dpr >= 2.5)
+        else if (GRoot.dpr >= 2.5)
             GRoot.contentDprLevel = 2; //x3
-        else if (dpr >= 1.5)
+        else if (GRoot.dpr >= 1.5)
             GRoot.contentDprLevel = 1; //x2
         else
             GRoot.contentDprLevel = 0;
@@ -13579,6 +13583,7 @@ class GRoot extends GComponent {
             this.removeChild(this._modalLayer);
     }
 }
+GRoot.dpr = 1;
 GRoot.contentDprLevel = 0;
 GRoot.contentScaleLevel = 0;
 GRoot.contentScaleWid = 0;

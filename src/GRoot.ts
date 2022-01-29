@@ -10,6 +10,7 @@ import { UIPackage } from "./UIPackage";
 import { InteractiveEvent, ObjectType, PopupDirection, RelationType, Window } from ".";
 import { Utils } from "./utils/Utils";
 import { TextureManager } from "./texture/TextureManager";
+const { width, height } = window.screen;
 export class GRootMouseStatus {
     public touchDown: boolean = false;
     public mouseX: number = 0;
@@ -32,6 +33,7 @@ const roundHalf = num => Math.round(num * 2) / 2
 export class GRoot extends GComponent {
 
     private static _inst: GRoot;
+    public static dpr: number = 1;
     public static contentDprLevel: number = 0;
     public static contentScaleLevel: number = 0;
     public static contentScaleWid: number = 0;
@@ -315,21 +317,21 @@ export class GRoot extends GComponent {
     }
 
     private updateContentScaleLevel() {
-        GRoot.contentScaleWid = this._width / this._stageOptions.desginWidth;
-        GRoot.contentScaleHei = this._height / this._stageOptions.desginHeight;
+        GRoot.contentScaleWid = width / this._stageOptions.desginWidth;
+        GRoot.contentScaleHei = height / this._stageOptions.desginHeight;
         GRoot.contentScaleLevel = GRoot.contentScaleWid < GRoot.contentScaleHei ? GRoot.contentScaleWid : GRoot.contentScaleHei;
 
-        const camera = this._scene.cameras.main;
+        // const camera = this._scene.cameras.main;
         // camera.setScroll(-(this._width - this._stageOptions.desginWidth) / 2, -(this._height - this._stageOptions.desginHeight) / 2)
     }
 
     private updateContentDprLevel(): void {
-        const dpr = this._stageOptions.dpr;
-        if (dpr >= 3.5)
+        GRoot.dpr = this._stageOptions.dpr;
+        if (GRoot.dpr >= 3.5)
             GRoot.contentDprLevel = 3; //x4
-        else if (dpr >= 2.5)
+        else if (GRoot.dpr >= 2.5)
             GRoot.contentDprLevel = 2; //x3
-        else if (dpr >= 1.5)
+        else if (GRoot.dpr >= 1.5)
             GRoot.contentDprLevel = 1; //x2
         else
             GRoot.contentDprLevel = 0;
