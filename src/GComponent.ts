@@ -1373,6 +1373,10 @@ export class GComponent extends GObject {
                                     (<GBasicTextField>child).setResolution(GRoot.contentDprLevel + 1);
                                 }
                             }
+                            for (let i: number = 0; i < len; i++) {
+                                const child = this._children[i];
+                                child.forceSize();
+                            }
                         }
                         this.onConstruct();
                         reslove();

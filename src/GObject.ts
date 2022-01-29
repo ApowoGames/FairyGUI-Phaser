@@ -353,6 +353,13 @@ export class GObject {
         this.setSize(this._rawWidth, value);
     }
 
+    public forceSize() {
+        if (this._parent) {
+            this._relations.onOwnerSizeChanged();
+        }
+        this.displayObject.emit(DisplayObjectEvent.SIZE_CHANGED);
+    }
+
     public setSize(wv: number, hv: number, ignorePivot?: boolean): void {
         if (this._rawWidth != wv || this._rawHeight != hv) {
             this._rawWidth = wv;
@@ -388,7 +395,7 @@ export class GObject {
             this.updateGear(2);
 
             if (this._parent) {
-                this._relations.onOwnerSizeChanged(dWidth, dHeight, this._pivotAsAnchor || !ignorePivot);
+                this._relations.onOwnerSizeChanged();
                 this._parent.setBoundsChangedFlag();
                 if (this._group)
                     this._group.setBoundsChangedFlag();

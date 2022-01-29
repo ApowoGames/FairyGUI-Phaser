@@ -13,7 +13,7 @@ export declare class Relations {
     clearAll(): void;
     copyFrom(source: Relations): void;
     dispose(): void;
-    onOwnerSizeChanged(dWidth: number, dHeight: number, applyPivot: boolean): void;
+    onOwnerSizeChanged(): void;
     ensureRelationsSizeCorrect(): void;
     get empty(): boolean;
     setup(buffer: ByteBuffer, parentToChild: boolean): void;

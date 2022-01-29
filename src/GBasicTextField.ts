@@ -23,6 +23,14 @@ export class GBasicTextField extends GTextField {
         // this._textField["_sizeDirty"] = false;
     }
 
+    get adaptiveScaleX(): number {
+        return this._adaptiveScaleX
+    }
+
+    get adaptiveScaleY(): number {
+        return this._adaptiveScaleY
+    }
+
     set adaptiveScaleX(val) {
         this._adaptiveScaleX = val;
         this.doAlign();

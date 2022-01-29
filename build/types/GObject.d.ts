@@ -133,6 +133,7 @@ export declare class GObject {
     set width(value: number);
     get height(): number;
     set height(value: number);
+    forceSize(): void;
     setSize(wv: number, hv: number, ignorePivot?: boolean): void;
     ensureSizeCorrect(): void;
     makeFullScreen(): void;

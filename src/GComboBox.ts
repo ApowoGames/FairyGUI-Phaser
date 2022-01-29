@@ -76,7 +76,7 @@ export class GComboBox extends GComponent {
             this.updateGear(2);
 
             if (this._parent) {
-                this._relations.onOwnerSizeChanged(dWidth, dHeight, this._pivotAsAnchor || !ignorePivot);
+                this._relations.onOwnerSizeChanged();
                 this._parent.setBoundsChangedFlag();
                 if (this._group)
                     this._group.setBoundsChangedFlag();
