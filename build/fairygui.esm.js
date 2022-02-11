@@ -7068,7 +7068,8 @@ class UIStage extends Phaser.Events.EventEmitter {
             this.containerMap = new Map();
         let con = this.containerMap.get(sortIndex);
         if (!con) {
-            con = this.scene.add.container(0, 0);
+            const _gameObject = (this.scene.sys.displayList.list[sortIndex]);
+            con = _gameObject ? _gameObject : this.scene.add.container(0, 0);
             this.containerMap.set(sortIndex, con);
         }
         return con;
