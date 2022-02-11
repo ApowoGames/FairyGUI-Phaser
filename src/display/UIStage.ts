@@ -148,7 +148,7 @@ export class UIStage extends Phaser.Events.EventEmitter {
         if (!this.containerMap) this.containerMap = new Map();
         let con = this.containerMap.get(sortIndex);
         if (!con) {
-            con = this.scene.add.container(0, 0);
+            con = this.scene.sys.displayList[sortIndex] ? this.scene.sys.displayList[sortIndex] : this.scene.add.container(0, 0);
             this.containerMap.set(sortIndex, con);
         }
         return con;
