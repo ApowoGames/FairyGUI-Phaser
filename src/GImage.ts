@@ -3,6 +3,7 @@ import { FlipType, ObjectPropID } from './FieldTypes';
 import { PackageItem } from './PackageItem';
 import { Image } from './display/Image';
 import { GObject } from './GObject';
+import { GRoot } from '.';
 export class GImage extends GObject {
     private _image: Image;
     private _flip: number = 0;
@@ -175,5 +176,14 @@ export class GImage extends GObject {
 
     public setup_afterAdd(buffer: ByteBuffer, beginPos: number) {
         super.setup_afterAdd(buffer, beginPos);
+        if (this.parent && this._pivotAsAnchor && (this.parent.pivotX !== 0 || this.parent.pivotY !== 0)) {
+            const targetScale = this["_contentItem"] && this["_contentItem"].isHighRes ? 1 : GRoot.dpr;
+            const ownerScale = this["_contentItem"] && this["_contentItem"].isHighRes ? 1 : GRoot.dpr;
+            const _delayY = this.y - this.parent.initHeight * (this.parent.pivotY);
+            const _tmpX = this.pivotX === 0 ? this.x : this.pivotX * this.initWidth * targetScale / this.adaptiveScaleX - this.parent.pivotX * this.parent.initWidth * ownerScale / this.parent.adaptiveScaleX;
+            const _tmpY = _delayY;
+            // const _tmpY = this.pivotY === 0 ? this.y : this.pivotY * this.initHeight * targetScale / this.adaptiveScaleY - this.parent.pivotY * this.parent.initHeight * ownerScale / this.parent.adaptiveScaleY;
+            this.setXY(_tmpX, _tmpY);
+        }
     }
 }

@@ -3475,6 +3475,27 @@ class GObject {
                 this.localToGlobalRect(0, 0, this._width, this._height, sGlobalRect);
         }
     }
+    _setXY(xv, yv, force = false) {
+        if (this._x != xv || this._y != yv || force) {
+            var dx = xv - this._x;
+            var dy = yv - this._y;
+            this._x = xv;
+            this._y = yv;
+            this.handleXYChanged();
+            if (this instanceof GGroup)
+                this.moveChildren(dx, dy);
+            this.updateGear(1);
+            // if (this._parent && !(this._parent instanceof GList)) {
+            if (this._parent) {
+                this._parent.setBoundsChangedFlag();
+                if (this._group)
+                    this._group.setBoundsChangedFlag(true);
+                // this.displayObject.emit(DisplayObjectEvent.XY_CHANGED);
+            }
+            if (GObject.draggingObject == this && !sUpdateInDragging)
+                this.localToGlobalRect(0, 0, this._width, this._height, sGlobalRect);
+        }
+    }
     get xMin() {
         return this._pivotAsAnchor ? (this._x - this._width * this._pivotX) : this._x;
     }
@@ -4315,8 +4336,8 @@ class GObject {
         var xv = this._x + this._xOffset;
         var yv = this._y + this._yOffset;
         // if (this._pivotAsAnchor) {
-        //     xv += this._pivotX * this._width;
-        //     yv += this._pivotY * this._height;
+        //     xv -= this._pivotX * this.initWidth;
+        //     yv -= this._pivotY * this.initHeight;
         // }
         if (this._pixelSnapping) {
             xv = Math.round(xv);
@@ -4473,6 +4494,8 @@ class GObject {
         }
         this.setSize(this.initWidth, this.initHeight, true);
         this.setTouchable(this._touchable);
+        this.adaptiveScaleX = this.initWidth / this.sourceWidth;
+        this.adaptiveScaleY = this.initHeight / this.sourceHeight;
     }
     //drag support
     //-------------------------------------------------------------------
@@ -6260,6 +6283,15 @@ class GImage extends GObject {
     }
     setup_afterAdd(buffer, beginPos) {
         super.setup_afterAdd(buffer, beginPos);
+        if (this.parent && this._pivotAsAnchor && (this.parent.pivotX !== 0 || this.parent.pivotY !== 0)) {
+            const targetScale = this["_contentItem"] && this["_contentItem"].isHighRes ? 1 : GRoot.dpr;
+            const ownerScale = this["_contentItem"] && this["_contentItem"].isHighRes ? 1 : GRoot.dpr;
+            const _delayY = this.y - this.parent.initHeight * (this.parent.pivotY);
+            const _tmpX = this.pivotX === 0 ? this.x : this.pivotX * this.initWidth * targetScale / this.adaptiveScaleX - this.parent.pivotX * this.parent.initWidth * ownerScale / this.parent.adaptiveScaleX;
+            const _tmpY = _delayY;
+            // const _tmpY = this.pivotY === 0 ? this.y : this.pivotY * this.initHeight * targetScale / this.adaptiveScaleY - this.parent.pivotY * this.parent.initHeight * ownerScale / this.parent.adaptiveScaleY;
+            this.setXY(_tmpX, _tmpY);
+        }
     }
 }
 
@@ -16135,11 +16167,20 @@ class GBasicTextField extends GTextField {
     }
     setup_afterAdd(buffer, beginPos) {
         super.setup_afterAdd(buffer, beginPos);
+        if (this.parent && this._pivotAsAnchor && (this.parent.pivotX !== 0 || this.parent.pivotY !== 0)) {
+            const targetScale = GRoot.contentDprLevel + 1;
+            this.adaptiveScaleX = this.adaptiveScaleY = GRoot.contentDprLevel + 1;
+            const ownerScale = this["_contentItem"] && this["_contentItem"].isHighRes ? 1 : GRoot.dpr;
+            const _delayY = this.y - this.parent.initHeight * (this.parent.pivotY);
+            const _tmpX = this.pivotX === 0 ? this.x : this.pivotX * this._textWidth * targetScale / this.adaptiveScaleX - this.parent.pivotX * this.parent.initWidth * ownerScale / this.parent.adaptiveScaleX;
+            // const _tmpY = this.pivotY === 0 ? this.y : this.pivotY * this.initHeight * targetScale / this.adaptiveScaleY - this.parent.pivotY * this.parent.initHeight * ownerScale / this.parent.adaptiveScaleY;
+            this._setXY(_tmpX + this._textWidth, _delayY);
+        }
         // 对文本进行适配
         // this.setResolution(GRoot.contentDprLevel + 1);
     }
     setResolution(val) {
-        this.adaptiveScaleX = this.adaptiveScaleY = GRoot.contentDprLevel;
+        this.adaptiveScaleX = this.adaptiveScaleY = val;
         this._textField.setResolution(val);
     }
     get nativeText() {

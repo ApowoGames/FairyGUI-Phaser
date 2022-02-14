@@ -49,12 +49,21 @@ export class GBasicTextField extends GTextField {
     public setup_afterAdd(buffer: ByteBuffer, beginPos: number): void {
         super.setup_afterAdd(buffer, beginPos);
 
+        if (this.parent && this._pivotAsAnchor && (this.parent.pivotX !== 0 || this.parent.pivotY !== 0)) {
+            const targetScale = GRoot.contentDprLevel + 1;
+            this.adaptiveScaleX = this.adaptiveScaleY = GRoot.contentDprLevel + 1;
+            const ownerScale = this["_contentItem"] && this["_contentItem"].isHighRes ? 1 : GRoot.dpr;
+            const _delayY = this.y - this.parent.initHeight * (this.parent.pivotY);
+            const _tmpX = this.pivotX === 0 ? this.x : this.pivotX * this._textWidth * targetScale / this.adaptiveScaleX - this.parent.pivotX * this.parent.initWidth * ownerScale / this.parent.adaptiveScaleX;
+            // const _tmpY = this.pivotY === 0 ? this.y : this.pivotY * this.initHeight * targetScale / this.adaptiveScaleY - this.parent.pivotY * this.parent.initHeight * ownerScale / this.parent.adaptiveScaleY;
+            this._setXY(_tmpX + this._textWidth, _delayY);
+        }
         // 对文本进行适配
         // this.setResolution(GRoot.contentDprLevel + 1);
     }
 
     public setResolution(val) {
-        this.adaptiveScaleX = this.adaptiveScaleY = GRoot.contentDprLevel;
+        this.adaptiveScaleX = this.adaptiveScaleY = val;
         this._textField.setResolution(val);
     }
 

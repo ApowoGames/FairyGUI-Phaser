@@ -284,6 +284,32 @@ export class GObject {
         }
     }
 
+    public _setXY(xv: number, yv: number, force: boolean = false): void {
+        if (this._x != xv || this._y != yv || force) {
+            var dx: number = xv - this._x;
+            var dy: number = yv - this._y;
+            this._x = xv;
+            this._y = yv;
+
+            this.handleXYChanged();
+            if (this instanceof GGroup)
+                this.moveChildren(dx, dy);
+
+            this.updateGear(1);
+
+            // if (this._parent && !(this._parent instanceof GList)) {
+            if (this._parent) {
+                this._parent.setBoundsChangedFlag();
+                if (this._group)
+                    this._group.setBoundsChangedFlag(true);
+                // this.displayObject.emit(DisplayObjectEvent.XY_CHANGED);
+            }
+
+            if (GObject.draggingObject == this && !sUpdateInDragging)
+                this.localToGlobalRect(0, 0, this._width, this._height, sGlobalRect);
+        }
+    }
+
     public get xMin(): number {
         return this._pivotAsAnchor ? (this._x - this._width * this._pivotX) : this._x;
     }
@@ -1285,9 +1311,11 @@ export class GObject {
         var yv: number = this._y + this._yOffset;
 
         // if (this._pivotAsAnchor) {
-        //     xv += this._pivotX * this._width;
-        //     yv += this._pivotY * this._height;
+        //     xv -= this._pivotX * this.initWidth;
+        //     yv -= this._pivotY * this.initHeight;
         // }
+
+
         if (this._pixelSnapping) {
             xv = Math.round(xv);
             yv = Math.round(yv);
@@ -1473,6 +1501,8 @@ export class GObject {
         }
         this.setSize(this.initWidth, this.initHeight, true);
         this.setTouchable(this._touchable);
+        this.adaptiveScaleX = this.initWidth / this.sourceWidth;
+        this.adaptiveScaleY = this.initHeight / this.sourceHeight;
 
     }
 

@@ -122,6 +122,7 @@ export declare class GObject {
     get timeEvent(): Phaser.Time.TimerEvent;
     set timeEvent(value: Phaser.Time.TimerEvent);
     setXY(xv: number, yv: number, force?: boolean): void;
+    _setXY(xv: number, yv: number, force?: boolean): void;
     get xMin(): number;
     set xMin(value: number);
     get yMin(): number;
