@@ -954,8 +954,8 @@ export class ScrollPane {
         if (this.maskScrollRect) {
             var rect: Phaser.Geom.Rectangle = new Phaser.Geom.Rectangle()//this._maskContainer["scrollRect"];
             if (rect) {
-                rect.width = this._viewSize.x / GRoot.dpr;
-                rect.height = this._viewSize.y / GRoot.dpr;
+                rect.width = this._viewSize.x ;
+                rect.height = this._viewSize.y ;
                 if (this._vScrollNone && this._vtScrollBar)
                     rect.width += this._vtScrollBar.width;
                 if (this._hScrollNone && this._hzScrollBar)
@@ -968,7 +968,7 @@ export class ScrollPane {
                 this._maskContainer.clearMask();
                 this._mask.clear();
                 this._mask.fillStyle(0x00ff00, .4);
-                this._mask.fillRect(this._owner.x, this._owner.y, this.maskScrollRect.width / GRoot.dpr, this.maskScrollRect.height / GRoot.dpr);
+                this._mask.fillRect(this._owner.x, this._owner.y, this.maskScrollRect.width , this.maskScrollRect.height );
                 this._maskContainer.setInteractive(this.maskScrollRect, Phaser.Geom.Rectangle.Contains);
                 // 查看mask实际位置
                 // this._owner.scene.sys.displayList.add(this._mask);

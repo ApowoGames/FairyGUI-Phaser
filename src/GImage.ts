@@ -178,7 +178,7 @@ export class GImage extends GObject {
     public setup_afterAdd(buffer: ByteBuffer, beginPos: number) {
         super.setup_afterAdd(buffer, beginPos);
         // this.handleXYChanged();
-        // this.setXY(this.x / GRoot.dpr, this.y / GRoot.dpr);
+        // this.setXY(this.x , this.y );
         // if (this.parent && this._pivotAsAnchor && (this.parent.pivotX !== 0 || this.parent.pivotY !== 0)) {
         //     const targetScale = this["_contentItem"] && this["_contentItem"].isHighRes ? 1 : GRoot.dpr;
         //     const ownerScale = this["_contentItem"] && this["_contentItem"].isHighRes ? 1 : GRoot.dpr;

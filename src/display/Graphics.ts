@@ -37,21 +37,21 @@ export class Graphics extends Phaser.GameObjects.Graphics {
         this._graphicsType = GRAPHICSTYPE.RECTANGLE;
         this._width = width;
         this._height = height;
-        return super.fillRect(x, y, this._width / GRoot.dpr, this._height / GRoot.dpr);
+        return super.fillRect(x, y, this._width , this._height );
     }
 
     public strokeRect(x: number, y: number, width: number, height: number): this {
-        return super.strokeRect(x, y, width / GRoot.dpr, height / GRoot.dpr);
+        return super.strokeRect(x, y, width , height );
     }
 
     public fillCircle(x: number, y: number, radius: number): this {
         this._graphicsType = GRAPHICSTYPE.CIRCLE;
         this._radius = radius;
-        return super.fillCircle(x, y, this._radius / GRoot.dpr);
+        return super.fillCircle(x, y, this._radius );
     }
 
     public strokeCircle(x: number, y: number, radius: number): this {
-        return super.strokeCircle(x, y, radius / GRoot.dpr);
+        return super.strokeCircle(x, y, radius );
     }
 
     public fillTriangle(x0: number, y0: number, x1: number, y1: number, x2: number, y2: number): this {
@@ -64,15 +64,15 @@ export class Graphics extends Phaser.GameObjects.Graphics {
 
     public fillEllipse(x: number, y: number, width: number, height: number, smoothness?: number): this {
         this._graphicsType = GRAPHICSTYPE.ELLIPSE;
-        return super.fillEllipse(x, y, width / GRoot.dpr, height / GRoot.dpr, smoothness);
+        return super.fillEllipse(x, y, width , height , smoothness);
     }
 
     public fillRoundedRect(x: number, y: number, width: number, height: number, radius?: Phaser.Types.GameObjects.Graphics.RoundedRectRadius | number): this {
-        return super.fillRoundedRect(x, y, width / GRoot.dpr, height / GRoot.dpr, Number(radius) / GRoot.dpr);
+        return super.fillRoundedRect(x, y, width , height , Number(radius) );
     }
 
     public strokeRoundedRect(x: number, y: number, width: number, height: number, radius?: Phaser.Types.GameObjects.Graphics.RoundedRectRadius | number): this {
-        return super.strokeRoundedRect(x, y, width / GRoot.dpr, height / GRoot.dpr, Number(radius) / GRoot.dpr);
+        return super.strokeRoundedRect(x, y, width , height , Number(radius) );
     }
 
     public get graphicsType(): GRAPHICSTYPE {

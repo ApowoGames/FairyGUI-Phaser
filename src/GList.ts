@@ -1750,7 +1750,7 @@ export class GList extends GComponent {
                             // g.fillStyle(0xFFCC00);
                             // g.fillRoundedRect(0, 0, ii.obj.initWidth, ii.obj.initHeight - 4);
                             // (<Phaser.GameObjects.Container>ii.obj.displayObject).addAt(g, 0);
-                            ii.obj.displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, ii.obj.initWidth / GRoot.dpr, ii.obj.initHeight / GRoot.dpr), Phaser.Geom.Rectangle.Contains);
+                            ii.obj.displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, ii.obj.initWidth , ii.obj.initHeight ), Phaser.Geom.Rectangle.Contains);
                             if (forward)
                                 this.addChildAt(ii.obj, curIndex - newFirstIndex);
                             else

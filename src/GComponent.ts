@@ -714,7 +714,7 @@ export class GComponent extends GObject {
 
 
                 if (this.hitArea instanceof Phaser.Geom.Rectangle)
-                    this.hitArea.setTo(this.initWidth >> 1, this.initHeight >> 1, this.initWidth / GRoot.dpr, this.initHeight / GRoot.dpr);
+                    this.hitArea.setTo(this.initWidth >> 1, this.initHeight >> 1, this.initWidth , this.initHeight );
                 this._displayObject.setInteractive(this.hitArea, Phaser.Geom.Rectangle.Contains);
             }
             else {
@@ -954,7 +954,7 @@ export class GComponent extends GObject {
 
         if (this._opaque) {
             this.removeInteractive();
-            this.hitArea = new Phaser.Geom.Rectangle(ax + aw >> 1, ay + ah >> 1, aw / GRoot.dpr, ah / GRoot.dpr);
+            this.hitArea = new Phaser.Geom.Rectangle(ax + aw >> 1, ay + ah >> 1, aw , ah );
             // console.log("set bounds", aw, ah);
             this._displayObject.setInteractive(this.hitArea, Phaser.Geom.Rectangle.Contains);
             // if (this._g) {
@@ -1380,7 +1380,7 @@ export class GComponent extends GObject {
                             }
                         }
                         if (this._children) {
-                            fun1(this._children);
+                            // fun1(this._children);
                             // const len = this._children.length;
                             // for (let i: number = 0; i < len; i++) {
                             //     const child = this._children[i];
