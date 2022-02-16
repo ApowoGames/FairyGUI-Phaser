@@ -13016,7 +13016,7 @@
                                         const scale = child.parent ? GRoot.dpr : 1;
                                         if (child.type !== exports.ObjectType.Text) {
                                             if (child.type === exports.ObjectType.Image || child.type === exports.ObjectType.MovieClip || child.type === exports.ObjectType.Loader) {
-                                                if (!child["_contentItem"].isHighRes)
+                                                if (!child["_contentItem"] || !child["_contentItem"].isHighRes)
                                                     child.setScale(scale, scale);
                                             }
                                             else {

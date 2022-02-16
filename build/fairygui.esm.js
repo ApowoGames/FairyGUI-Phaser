@@ -13012,7 +13012,7 @@ class GComponent extends GObject {
                                     const scale = child.parent ? GRoot.dpr : 1;
                                     if (child.type !== ObjectType.Text) {
                                         if (child.type === ObjectType.Image || child.type === ObjectType.MovieClip || child.type === ObjectType.Loader) {
-                                            if (!child["_contentItem"].isHighRes)
+                                            if (!child["_contentItem"] || !child["_contentItem"].isHighRes)
                                                 child.setScale(scale, scale);
                                         }
                                         else {
