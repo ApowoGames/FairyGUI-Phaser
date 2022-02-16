@@ -10,7 +10,6 @@ import { UIPackage } from "./UIPackage";
 import { InteractiveEvent, ObjectType, PopupDirection, RelationType, Window } from ".";
 import { Utils } from "./utils/Utils";
 import { TextureManager } from "./texture/TextureManager";
-const { width, height } = window.screen;
 export class GRootMouseStatus {
     public touchDown: boolean = false;
     public mouseX: number = 0;
@@ -34,6 +33,7 @@ export class GRoot extends GComponent {
 
     private static _inst: GRoot;
     public static dpr: number = 1;
+    public static uiScale: number = 1;
     public static contentDprLevel: number = 0;
     public static contentScaleLevel: number = 0;
     public static contentScaleWid: number = 0;
@@ -134,6 +134,14 @@ export class GRoot extends GComponent {
         // 初始化场景
         this.createDisplayObject();
         this.addListen();
+    }
+
+    public stageWidth(): number {
+        return this._width;
+    }
+
+    public stageHeight(): number {
+        return this._height;
     }
 
     public addToStage(child: Phaser.GameObjects.GameObject, type: number = 0, index: number = -1) {
@@ -317,9 +325,9 @@ export class GRoot extends GComponent {
     }
 
     private updateContentScaleLevel() {
-        GRoot.contentScaleWid = width / this._stageOptions.desginWidth;
-        GRoot.contentScaleHei = height / this._stageOptions.desginHeight;
-        GRoot.contentScaleLevel = GRoot.contentScaleWid < GRoot.contentScaleHei ? GRoot.contentScaleWid : GRoot.contentScaleHei;
+        GRoot.contentScaleWid = this._width / this._stageOptions.desginWidth;
+        GRoot.contentScaleHei = this._height / this._stageOptions.desginHeight;
+        GRoot.contentScaleLevel = Math.round(GRoot.contentScaleWid < GRoot.contentScaleHei ? GRoot.contentScaleWid : GRoot.contentScaleHei);
 
         // const camera = this._scene.cameras.main;
         // camera.setScroll(-(this._width - this._stageOptions.desginWidth) / 2, -(this._height - this._stageOptions.desginHeight) / 2)

@@ -1,3 +1,4 @@
+import { GRoot } from './GRoot';
 import { ByteBuffer } from './utils/ByteBuffer';
 import { ObjectPropID } from './FieldTypes';
 import { GObject } from './GObject';

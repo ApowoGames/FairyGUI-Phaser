@@ -48,16 +48,6 @@ export class GBasicTextField extends GTextField {
 
     public setup_afterAdd(buffer: ByteBuffer, beginPos: number): void {
         super.setup_afterAdd(buffer, beginPos);
-
-        if (this.parent && this._pivotAsAnchor && (this.parent.pivotX !== 0 || this.parent.pivotY !== 0)) {
-            const targetScale = GRoot.contentDprLevel + 1;
-            this.adaptiveScaleX = this.adaptiveScaleY = GRoot.contentDprLevel + 1;
-            const ownerScale = this["_contentItem"] && this["_contentItem"].isHighRes ? 1 : GRoot.dpr;
-            const _delayY = this.y - this.parent.initHeight * (this.parent.pivotY);
-            const _tmpX = this.pivotX === 0 ? this.x : this.pivotX * this._textWidth * targetScale / this.adaptiveScaleX - this.parent.pivotX * this.parent.initWidth * ownerScale / this.parent.adaptiveScaleX;
-            // const _tmpY = this.pivotY === 0 ? this.y : this.pivotY * this.initHeight * targetScale / this.adaptiveScaleY - this.parent.pivotY * this.parent.initHeight * ownerScale / this.parent.adaptiveScaleY;
-            this._setXY(_tmpX + this._textWidth, _delayY);
-        }
         // 对文本进行适配
         // this.setResolution(GRoot.contentDprLevel + 1);
     }
@@ -616,6 +606,39 @@ export class GBasicTextField extends GTextField {
     public flushVars(): void {
         this.text = this._text;
     }
+
+    // protected handleXYChanged(): void {
+    //     var xv: number = this._x + this._xOffset;
+    //     var yv: number = this._y + this._yOffset;
+
+    //     // if (this._pivotAsAnchor) {
+    //     //     xv = xv * GRoot.dpr - this._pivotX * this.initWidth;
+    //     //     yv = yv * GRoot.dpr - this._pivotY * this.initHeight;
+    //     // }
+
+    //     if (this.parent && this._pivotAsAnchor && (this.parent.pivotX !== 0 || this.parent.pivotY !== 0)) {
+    //         xv = xv * GRoot.dpr - this.parent.initWidth * this.parent.pivotX;
+    //         // this.pivotX === 0 ? this.x : this.pivotX * this.initWidth * targetScale / this.adaptiveScaleX - this.parent.pivotX * this.parent.initWidth * ownerScale / this.parent.adaptiveScaleX;
+    //         yv = yv * GRoot.dpr - this.parent.initHeight * this.parent.pivotY;
+    //         // const _tmpY = this.pivotY === 0 ? this.y : this.pivotY * this.initHeight * targetScale / this.adaptiveScaleY - this.parent.pivotY * this.parent.initHeight * ownerScale / this.parent.adaptiveScaleY;
+
+    //     }
+
+    //     // if (this.parent && this._pivotAsAnchor && (this.parent.pivotX !== 0 || this.parent.pivotY !== 0)) {
+    //     //     const _tmpX = this.x * GRoot.dpr - this.parent.initWidth * this.parent.pivotX;
+    //     //     const _tmpY = this.y * GRoot.dpr - this.parent.initHeight * this.parent.pivotY;
+    //     //     // this.pivotX === 0 ? this.x : this.pivotX * this._textWidth * targetScale / this.adaptiveScaleX - this.parent.pivotX * this.parent.initWidth * ownerScale / this.parent.adaptiveScaleX;
+    //     //     // const _tmpY = this.pivotY === 0 ? this.y : this.pivotY * this.initHeight * targetScale / this.adaptiveScaleY - this.parent.pivotY * this.parent.initHeight * ownerScale / this.parent.adaptiveScaleY;
+    //     //     this.setXY(this.x/GRoot.dpr,this.y/GRoot.dpr);
+    //     // }
+
+    //     if (this._pixelSnapping) {
+    //         xv = Math.round(xv);
+    //         yv = Math.round(yv);
+    //     }
+
+    //     this._displayObject.setPosition(xv, yv);
+    // }
 }
 
 export interface LineInfo {

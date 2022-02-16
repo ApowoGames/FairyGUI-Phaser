@@ -285,7 +285,7 @@ export class RelationItem {
                 if (info.percent)
                     this._owner.xMin = pos + (this._owner.xMin - pos) * delta;
                 else
-                    this._owner.x = this._target.x + this._target.width * targetScale / this._target.adaptiveScaleX;
+                    this._owner.x = this._target.x + this._target.width;
                 break;
             case RelationType.Center_Center:
                 if (info.percent)

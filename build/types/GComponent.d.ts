@@ -113,6 +113,7 @@ export declare class GComponent extends GObject {
     setup_afterAdd(buffer: ByteBuffer, beginPos: number): void;
     checkMask(): void;
     setXY(xv: number, yv: number, force?: boolean): void;
+    protected handleScaleChanged(): void;
     protected ___added(): void;
     protected ___removed(): void;
 }

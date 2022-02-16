@@ -46,8 +46,8 @@ export declare class GObject {
     protected _touchable: boolean;
     private _grayed;
     private _draggable?;
-    private _scaleX;
-    private _scaleY;
+    protected _scaleX: number;
+    protected _scaleY: number;
     protected _skewX: number;
     protected _skewY: number;
     protected _pivotX: number;
@@ -122,7 +122,6 @@ export declare class GObject {
     get timeEvent(): Phaser.Time.TimerEvent;
     set timeEvent(value: Phaser.Time.TimerEvent);
     setXY(xv: number, yv: number, force?: boolean): void;
-    _setXY(xv: number, yv: number, force?: boolean): void;
     get xMin(): number;
     set xMin(value: number);
     get yMin(): number;

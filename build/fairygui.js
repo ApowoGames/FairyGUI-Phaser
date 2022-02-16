@@ -2380,7 +2380,7 @@
                     if (info.percent)
                         this._owner.xMin = pos + (this._owner.xMin - pos) * delta;
                     else
-                        this._owner.x = this._target.x + this._target.width * targetScale / this._target.adaptiveScaleX;
+                        this._owner.x = this._target.x + this._target.width;
                     break;
                 case exports.RelationType.Center_Center:
                     if (info.percent)
@@ -3343,12 +3343,14 @@
             this._gears = new Array(10);
         }
         get adaptiveScaleX() {
+            this._adaptiveScaleX = this.initWidth / this.sourceWidth;
             return this._adaptiveScaleX;
         }
         set adaptiveScaleX(val) {
             this._adaptiveScaleX = val;
         }
         get adaptiveScaleY() {
+            this._adaptiveScaleY = this.initHeight / this.sourceHeight;
             return this._adaptiveScaleY;
         }
         set adaptiveScaleY(val) {
@@ -3474,27 +3476,6 @@
                     if (this._group)
                         this._group.setBoundsChangedFlag(true);
                     this.displayObject.emit(DisplayObjectEvent.XY_CHANGED);
-                }
-                if (GObject.draggingObject == this && !sUpdateInDragging)
-                    this.localToGlobalRect(0, 0, this._width, this._height, sGlobalRect);
-            }
-        }
-        _setXY(xv, yv, force = false) {
-            if (this._x != xv || this._y != yv || force) {
-                var dx = xv - this._x;
-                var dy = yv - this._y;
-                this._x = xv;
-                this._y = yv;
-                this.handleXYChanged();
-                if (this instanceof GGroup)
-                    this.moveChildren(dx, dy);
-                this.updateGear(1);
-                // if (this._parent && !(this._parent instanceof GList)) {
-                if (this._parent) {
-                    this._parent.setBoundsChangedFlag();
-                    if (this._group)
-                        this._group.setBoundsChangedFlag(true);
-                    // this.displayObject.emit(DisplayObjectEvent.XY_CHANGED);
                 }
                 if (GObject.draggingObject == this && !sUpdateInDragging)
                     this.localToGlobalRect(0, 0, this._width, this._height, sGlobalRect);
@@ -3712,7 +3693,7 @@
                 if (this._displayObject) {
                     if (this._touchable) {
                         this.removeInteractive();
-                        this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this.initWidth, this.initHeight), Phaser.Geom.Rectangle.Contains);
+                        this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this.initWidth / GRoot.dpr, this.initHeight / GRoot.dpr), Phaser.Geom.Rectangle.Contains);
                     }
                     else {
                         this.removeInteractive();
@@ -3742,7 +3723,7 @@
                     // 注册点不在中心需要重新调整交互区域
                     if (this._pivotX !== 0 || this._pivotY !== 0) {
                         this.removeInteractive();
-                        this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this.initWidth / this.scaleX, this.initHeight / this.scaleY), Phaser.Geom.Rectangle.Contains);
+                        this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, (this.initWidth / this.scaleX) / GRoot.dpr, (this.initHeight / this.scaleY) / GRoot.dpr), Phaser.Geom.Rectangle.Contains);
                     }
                     else {
                         this._displayObject.setInteractive(new Phaser.Geom.Rectangle(this.initWidth / 2, this.initWidth / 2, this.initWidth / this.scaleX, this.initHeight / this.scaleY), Phaser.Geom.Rectangle.Contains);
@@ -4340,9 +4321,15 @@
             var xv = this._x + this._xOffset;
             var yv = this._y + this._yOffset;
             // if (this._pivotAsAnchor) {
-            //     xv -= this._pivotX * this.initWidth;
-            //     yv -= this._pivotY * this.initHeight;
+            //     xv = xv * GRoot.dpr - this._pivotX * this.initWidth;
+            //     yv = yv * GRoot.dpr - this._pivotY * this.initHeight;
             // }
+            if (this.parent && this._pivotAsAnchor && (this.parent.pivotX !== 0 || this.parent.pivotY !== 0)) {
+                xv = xv / GRoot.dpr - this.parent.initWidth * this.parent.pivotX / GRoot.dpr;
+                // this.pivotX === 0 ? this.x : this.pivotX * this.initWidth * targetScale / this.adaptiveScaleX - this.parent.pivotX * this.parent.initWidth * ownerScale / this.parent.adaptiveScaleX;
+                yv = yv / GRoot.dpr - this.parent.initHeight * this.parent.pivotY / GRoot.dpr;
+                // const _tmpY = this.pivotY === 0 ? this.y : this.pivotY * this.initHeight * targetScale / this.adaptiveScaleY - this.parent.pivotY * this.parent.initHeight * ownerScale / this.parent.adaptiveScaleY;
+            }
             if (this._pixelSnapping) {
                 xv = Math.round(xv);
                 yv = Math.round(yv);
@@ -4351,7 +4338,7 @@
         }
         handleSizeChanged() {
             // (<Phaser.GameObjects.Container>this.displayObject).setDisplaySize(this._width, this._height);
-            this._displayObject.setSize(this._width, this._height);
+            this._displayObject.setSize(this._width / GRoot.dpr, this._height / GRoot.dpr);
             // this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this._width, this._height), Phaser.Geom.Rectangle.Contains);
         }
         handleScaleChanged() {
@@ -4496,7 +4483,13 @@
                 gear.setup(buffer);
                 buffer.position = nextPos;
             }
-            this.setSize(this.initWidth, this.initHeight, true);
+            let wid = this.initWidth;
+            let hei = this.initHeight;
+            // if (this.parent && this.parent instanceof GRoot) {
+            //     wid = GRoot.inst.stageWidth();
+            //     hei = GRoot.inst.stageHeight();
+            // }
+            this.setSize(wid, hei, true);
             this.setTouchable(this._touchable);
             this.adaptiveScaleX = this.initWidth / this.sourceWidth;
             this.adaptiveScaleY = this.initHeight / this.sourceHeight;
@@ -5612,12 +5605,18 @@
             this._graphicsType = exports.GRAPHICSTYPE.RECTANGLE;
             this._width = width;
             this._height = height;
-            return super.fillRect(x, y, width, height);
+            return super.fillRect(x, y, this._width / GRoot.dpr, this._height / GRoot.dpr);
+        }
+        strokeRect(x, y, width, height) {
+            return super.strokeRect(x, y, width / GRoot.dpr, height / GRoot.dpr);
         }
         fillCircle(x, y, radius) {
             this._graphicsType = exports.GRAPHICSTYPE.CIRCLE;
             this._radius = radius;
-            return super.fillCircle(x, y, radius);
+            return super.fillCircle(x, y, this._radius / GRoot.dpr);
+        }
+        strokeCircle(x, y, radius) {
+            return super.strokeCircle(x, y, radius / GRoot.dpr);
         }
         fillTriangle(x0, y0, x1, y1, x2, y2) {
             // 三角形是多边形
@@ -5628,7 +5627,13 @@
         }
         fillEllipse(x, y, width, height, smoothness) {
             this._graphicsType = exports.GRAPHICSTYPE.ELLIPSE;
-            return super.fillEllipse(x, y, width, height, smoothness);
+            return super.fillEllipse(x, y, width / GRoot.dpr, height / GRoot.dpr, smoothness);
+        }
+        fillRoundedRect(x, y, width, height, radius) {
+            return super.fillRoundedRect(x, y, width / GRoot.dpr, height / GRoot.dpr, Number(radius) / GRoot.dpr);
+        }
+        strokeRoundedRect(x, y, width, height, radius) {
+            return super.strokeRoundedRect(x, y, width / GRoot.dpr, height / GRoot.dpr, Number(radius) / GRoot.dpr);
         }
         get graphicsType() {
             return this._graphicsType;
@@ -6287,15 +6292,17 @@
         }
         setup_afterAdd(buffer, beginPos) {
             super.setup_afterAdd(buffer, beginPos);
-            if (this.parent && this._pivotAsAnchor && (this.parent.pivotX !== 0 || this.parent.pivotY !== 0)) {
-                const targetScale = this["_contentItem"] && this["_contentItem"].isHighRes ? 1 : GRoot.dpr;
-                const ownerScale = this["_contentItem"] && this["_contentItem"].isHighRes ? 1 : GRoot.dpr;
-                const _delayY = this.y - this.parent.initHeight * (this.parent.pivotY);
-                const _tmpX = this.pivotX === 0 ? this.x : this.pivotX * this.initWidth * targetScale / this.adaptiveScaleX - this.parent.pivotX * this.parent.initWidth * ownerScale / this.parent.adaptiveScaleX;
-                const _tmpY = _delayY;
-                // const _tmpY = this.pivotY === 0 ? this.y : this.pivotY * this.initHeight * targetScale / this.adaptiveScaleY - this.parent.pivotY * this.parent.initHeight * ownerScale / this.parent.adaptiveScaleY;
-                this.setXY(_tmpX, _tmpY);
-            }
+            // this.handleXYChanged();
+            // this.setXY(this.x / GRoot.dpr, this.y / GRoot.dpr);
+            // if (this.parent && this._pivotAsAnchor && (this.parent.pivotX !== 0 || this.parent.pivotY !== 0)) {
+            //     const targetScale = this["_contentItem"] && this["_contentItem"].isHighRes ? 1 : GRoot.dpr;
+            //     const ownerScale = this["_contentItem"] && this["_contentItem"].isHighRes ? 1 : GRoot.dpr;
+            //     const _tmpX = this.x * GRoot.dpr - this.parent.initWidth * this.parent.pivotX;
+            //     // this.pivotX === 0 ? this.x : this.pivotX * this.initWidth * targetScale / this.adaptiveScaleX - this.parent.pivotX * this.parent.initWidth * ownerScale / this.parent.adaptiveScaleX;
+            //     const _tmpY = this.y * GRoot.dpr - this.parent.initHeight * (this.parent.pivotY);
+            //     // const _tmpY = this.pivotY === 0 ? this.y : this.pivotY * this.initHeight * targetScale / this.adaptiveScaleY - this.parent.pivotY * this.parent.initHeight * ownerScale / this.parent.adaptiveScaleY;
+            //     this.setXY(_tmpX, _tmpY);
+            // }
         }
     }
 
@@ -9557,8 +9564,8 @@
             if (this.maskScrollRect) {
                 var rect = new Phaser.Geom.Rectangle(); //this._maskContainer["scrollRect"];
                 if (rect) {
-                    rect.width = this._viewSize.x;
-                    rect.height = this._viewSize.y;
+                    rect.width = this._viewSize.x / GRoot.dpr;
+                    rect.height = this._viewSize.y / GRoot.dpr;
                     if (this._vScrollNone && this._vtScrollBar)
                         rect.width += this._vtScrollBar.width;
                     if (this._hScrollNone && this._hzScrollBar)
@@ -9571,7 +9578,7 @@
                     this._maskContainer.clearMask();
                     this._mask.clear();
                     this._mask.fillStyle(0x00ff00, .4);
-                    this._mask.fillRect(this._owner.x, this._owner.y, this.maskScrollRect.width, this.maskScrollRect.height);
+                    this._mask.fillRect(this._owner.x, this._owner.y, this.maskScrollRect.width / GRoot.dpr, this.maskScrollRect.height / GRoot.dpr);
                     this._maskContainer.setInteractive(this.maskScrollRect, Phaser.Geom.Rectangle.Contains);
                     // 查看mask实际位置
                     // this._owner.scene.sys.displayList.add(this._mask);
@@ -12455,7 +12462,7 @@
                         this.hitArea = new Phaser.Geom.Rectangle();
                     }
                     if (this.hitArea instanceof Phaser.Geom.Rectangle)
-                        this.hitArea.setTo(this.initWidth >> 1, this.initHeight >> 1, this.initWidth, this.initHeight);
+                        this.hitArea.setTo(this.initWidth >> 1, this.initHeight >> 1, this.initWidth / GRoot.dpr, this.initHeight / GRoot.dpr);
                     this._displayObject.setInteractive(this.hitArea, Phaser.Geom.Rectangle.Contains);
                 }
                 else {
@@ -12653,7 +12660,7 @@
             this._boundsChanged = false;
             if (this._opaque) {
                 this.removeInteractive();
-                this.hitArea = new Phaser.Geom.Rectangle(ax + aw >> 1, ay + ah >> 1, aw, ah);
+                this.hitArea = new Phaser.Geom.Rectangle(ax + aw >> 1, ay + ah >> 1, aw / GRoot.dpr, ah / GRoot.dpr);
                 // console.log("set bounds", aw, ah);
                 this._displayObject.setInteractive(this.hitArea, Phaser.Geom.Rectangle.Contains);
                 // if (this._g) {
@@ -13002,11 +13009,11 @@
                             }
                             else {
                                 // 做适配
-                                if (this._children) {
-                                    const len = this._children.length;
+                                const fun1 = (children) => {
+                                    const len = children.length;
                                     for (let i = 0; i < len; i++) {
-                                        const child = this._children[i];
-                                        const scale = child.parent ? GRoot.contentDprLevel + 1 : 1;
+                                        const child = children[i];
+                                        const scale = child.parent ? GRoot.dpr : 1;
                                         if (child.type !== exports.ObjectType.Text) {
                                             if (child.type === exports.ObjectType.Image || child.type === exports.ObjectType.MovieClip || child.type === exports.ObjectType.Loader) {
                                                 if (!child["_contentItem"].isHighRes)
@@ -13017,13 +13024,35 @@
                                             }
                                         }
                                         else {
-                                            child.setResolution(GRoot.contentDprLevel + 1);
+                                            child.setResolution(GRoot.dpr);
                                         }
                                     }
                                     for (let i = 0; i < len; i++) {
-                                        const child = this._children[i];
+                                        const child = children[i];
                                         child.forceSize();
                                     }
+                                };
+                                if (this._children) {
+                                    fun1(this._children);
+                                    // const len = this._children.length;
+                                    // for (let i: number = 0; i < len; i++) {
+                                    //     const child = this._children[i];
+                                    //     const scale = child.parent ? GRoot.contentDprLevel + 1 : 1;
+                                    //     if (child.type !== ObjectType.Text) {
+                                    //         if (child.type === ObjectType.Image || child.type === ObjectType.MovieClip || child.type === ObjectType.Loader) {
+                                    //             if (!child["_contentItem"].isHighRes) child.setScale(scale, scale);
+                                    //         }
+                                    //         else {
+                                    //             child.setScale(scale, scale);
+                                    //         }
+                                    //     } else {
+                                    //         (<GBasicTextField>child).setResolution(GRoot.contentDprLevel + 1);
+                                    //     }
+                                    // }
+                                    // for (let i: number = 0; i < len; i++) {
+                                    //     const child = this._children[i];
+                                    //     child.forceSize();
+                                    // }
                                 }
                                 this.onConstruct();
                                 reslove();
@@ -13191,6 +13220,18 @@
                 this.checkMask();
             }
         }
+        handleScaleChanged() {
+            if (this._children) {
+                const len = this._children.length;
+                for (let i = 0; i < len; i++) {
+                    const child = this._children[i];
+                    if (child.type === exports.ObjectType.Text) {
+                        child.setScale(1, 1);
+                    }
+                }
+            }
+            super.handleScaleChanged();
+        }
         ___added() {
             var cnt = this._transitions.length;
             for (var i = 0; i < cnt; ++i) {
@@ -13223,7 +13264,6 @@
         }
     }
 
-    const { width, height } = window.screen;
     class GRootMouseStatus {
         constructor() {
             this.touchDown = false;
@@ -13314,6 +13354,12 @@
             // 初始化场景
             this.createDisplayObject();
             this.addListen();
+        }
+        stageWidth() {
+            return this._width;
+        }
+        stageHeight() {
+            return this._height;
         }
         addToStage(child, type = 0, index = -1) {
             if (!this._uiStage)
@@ -13474,9 +13520,9 @@
             this.updateContentDprLevel();
         }
         updateContentScaleLevel() {
-            GRoot.contentScaleWid = width / this._stageOptions.desginWidth;
-            GRoot.contentScaleHei = height / this._stageOptions.desginHeight;
-            GRoot.contentScaleLevel = GRoot.contentScaleWid < GRoot.contentScaleHei ? GRoot.contentScaleWid : GRoot.contentScaleHei;
+            GRoot.contentScaleWid = this._width / this._stageOptions.desginWidth;
+            GRoot.contentScaleHei = this._height / this._stageOptions.desginHeight;
+            GRoot.contentScaleLevel = Math.round(GRoot.contentScaleWid < GRoot.contentScaleHei ? GRoot.contentScaleWid : GRoot.contentScaleHei);
             // const camera = this._scene.cameras.main;
             // camera.setScroll(-(this._width - this._stageOptions.desginWidth) / 2, -(this._height - this._stageOptions.desginHeight) / 2)
         }
@@ -13621,6 +13667,7 @@
         }
     }
     GRoot.dpr = 1;
+    GRoot.uiScale = 1;
     GRoot.contentDprLevel = 0;
     GRoot.contentScaleLevel = 0;
     GRoot.contentScaleWid = 0;
@@ -13923,6 +13970,10 @@
             this._displayOriginY = 0;
             this._originComponent = true;
             this._blendMode = Phaser.BlendModes.NORMAL;
+            this._scaleX /= GRoot.dpr;
+            this._scaleY /= GRoot.dpr;
+            this._scaleX = Number(this._scaleY.toFixed(2));
+            this._scaleY = Number(this._scaleX.toFixed(2));
         }
         setOrigin(x, y) {
             if (x === undefined)
@@ -16171,15 +16222,6 @@
         }
         setup_afterAdd(buffer, beginPos) {
             super.setup_afterAdd(buffer, beginPos);
-            if (this.parent && this._pivotAsAnchor && (this.parent.pivotX !== 0 || this.parent.pivotY !== 0)) {
-                const targetScale = GRoot.contentDprLevel + 1;
-                this.adaptiveScaleX = this.adaptiveScaleY = GRoot.contentDprLevel + 1;
-                const ownerScale = this["_contentItem"] && this["_contentItem"].isHighRes ? 1 : GRoot.dpr;
-                const _delayY = this.y - this.parent.initHeight * (this.parent.pivotY);
-                const _tmpX = this.pivotX === 0 ? this.x : this.pivotX * this._textWidth * targetScale / this.adaptiveScaleX - this.parent.pivotX * this.parent.initWidth * ownerScale / this.parent.adaptiveScaleX;
-                // const _tmpY = this.pivotY === 0 ? this.y : this.pivotY * this.initHeight * targetScale / this.adaptiveScaleY - this.parent.pivotY * this.parent.initHeight * ownerScale / this.parent.adaptiveScaleY;
-                this._setXY(_tmpX + this._textWidth, _delayY);
-            }
             // 对文本进行适配
             // this.setResolution(GRoot.contentDprLevel + 1);
         }
@@ -20903,7 +20945,7 @@
                                 // g.fillStyle(0xFFCC00);
                                 // g.fillRoundedRect(0, 0, ii.obj.initWidth, ii.obj.initHeight - 4);
                                 // (<Phaser.GameObjects.Container>ii.obj.displayObject).addAt(g, 0);
-                                ii.obj.displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, ii.obj.initWidth, ii.obj.initHeight), Phaser.Geom.Rectangle.Contains);
+                                ii.obj.displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, ii.obj.initWidth / GRoot.dpr, ii.obj.initHeight / GRoot.dpr), Phaser.Geom.Rectangle.Contains);
                                 if (forward)
                                     this.addChildAt(ii.obj, curIndex - newFirstIndex);
                                 else

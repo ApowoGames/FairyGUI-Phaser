@@ -2,6 +2,7 @@ import { ByteBuffer } from './utils/ByteBuffer';
 import { AutoSizeType, ObjectPropID } from './FieldTypes';
 import { GObject } from './GObject';
 import { HAlignModeString, VAlignModeString } from './display/text/Types';
+import { GRoot } from '.';
 
 export enum TextType {
     BASIC,

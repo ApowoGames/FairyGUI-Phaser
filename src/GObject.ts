@@ -56,8 +56,8 @@ export class GObject {
     protected _touchable: boolean = false;
     private _grayed: boolean;
     private _draggable?: boolean;
-    private _scaleX: number = 1;
-    private _scaleY: number = 1;
+    protected _scaleX: number = 1;
+    protected _scaleY: number = 1;
     protected _skewX: number = 0;
     protected _skewY: number = 0;
     protected _pivotX: number = 0;
@@ -128,6 +128,7 @@ export class GObject {
     }
 
     get adaptiveScaleX(): number {
+        this._adaptiveScaleX = this.initWidth / this.sourceWidth;
         return this._adaptiveScaleX;
     }
 
@@ -136,6 +137,7 @@ export class GObject {
     }
 
     get adaptiveScaleY(): number {
+        this._adaptiveScaleY = this.initHeight / this.sourceHeight;
         return this._adaptiveScaleY;
     }
 
@@ -277,32 +279,6 @@ export class GObject {
                 if (this._group)
                     this._group.setBoundsChangedFlag(true);
                 this.displayObject.emit(DisplayObjectEvent.XY_CHANGED);
-            }
-
-            if (GObject.draggingObject == this && !sUpdateInDragging)
-                this.localToGlobalRect(0, 0, this._width, this._height, sGlobalRect);
-        }
-    }
-
-    public _setXY(xv: number, yv: number, force: boolean = false): void {
-        if (this._x != xv || this._y != yv || force) {
-            var dx: number = xv - this._x;
-            var dy: number = yv - this._y;
-            this._x = xv;
-            this._y = yv;
-
-            this.handleXYChanged();
-            if (this instanceof GGroup)
-                this.moveChildren(dx, dy);
-
-            this.updateGear(1);
-
-            // if (this._parent && !(this._parent instanceof GList)) {
-            if (this._parent) {
-                this._parent.setBoundsChangedFlag();
-                if (this._group)
-                    this._group.setBoundsChangedFlag(true);
-                // this.displayObject.emit(DisplayObjectEvent.XY_CHANGED);
             }
 
             if (GObject.draggingObject == this && !sUpdateInDragging)
@@ -566,7 +542,7 @@ export class GObject {
             if (this._displayObject) {
                 if (this._touchable) {
                     this.removeInteractive();
-                    this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this.initWidth, this.initHeight), Phaser.Geom.Rectangle.Contains);
+                    this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this.initWidth / GRoot.dpr, this.initHeight / GRoot.dpr), Phaser.Geom.Rectangle.Contains);
                 } else {
                     this.removeInteractive();
                 }
@@ -600,7 +576,7 @@ export class GObject {
                 // 注册点不在中心需要重新调整交互区域
                 if (this._pivotX !== 0 || this._pivotY !== 0) {
                     this.removeInteractive();
-                    this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this.initWidth / this.scaleX, this.initHeight / this.scaleY), Phaser.Geom.Rectangle.Contains);
+                    this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, (this.initWidth / this.scaleX) / GRoot.dpr, (this.initHeight / this.scaleY) / GRoot.dpr), Phaser.Geom.Rectangle.Contains);
                 } else {
                     this._displayObject.setInteractive(new Phaser.Geom.Rectangle(this.initWidth / 2, this.initWidth / 2, this.initWidth / this.scaleX, this.initHeight / this.scaleY), Phaser.Geom.Rectangle.Contains);
                 }
@@ -1311,10 +1287,16 @@ export class GObject {
         var yv: number = this._y + this._yOffset;
 
         // if (this._pivotAsAnchor) {
-        //     xv -= this._pivotX * this.initWidth;
-        //     yv -= this._pivotY * this.initHeight;
+        //     xv = xv * GRoot.dpr - this._pivotX * this.initWidth;
+        //     yv = yv * GRoot.dpr - this._pivotY * this.initHeight;
         // }
 
+        if (this.parent && this._pivotAsAnchor && (this.parent.pivotX !== 0 || this.parent.pivotY !== 0)) {
+            xv = xv / GRoot.dpr - this.parent.initWidth * this.parent.pivotX / GRoot.dpr;
+            // this.pivotX === 0 ? this.x : this.pivotX * this.initWidth * targetScale / this.adaptiveScaleX - this.parent.pivotX * this.parent.initWidth * ownerScale / this.parent.adaptiveScaleX;
+            yv = yv / GRoot.dpr - this.parent.initHeight * this.parent.pivotY / GRoot.dpr;
+            // const _tmpY = this.pivotY === 0 ? this.y : this.pivotY * this.initHeight * targetScale / this.adaptiveScaleY - this.parent.pivotY * this.parent.initHeight * ownerScale / this.parent.adaptiveScaleY;
+        }
 
         if (this._pixelSnapping) {
             xv = Math.round(xv);
@@ -1326,7 +1308,7 @@ export class GObject {
 
     protected handleSizeChanged(): void {
         // (<Phaser.GameObjects.Container>this.displayObject).setDisplaySize(this._width, this._height);
-        this._displayObject.setSize(this._width, this._height);
+        this._displayObject.setSize(this._width / GRoot.dpr, this._height / GRoot.dpr);
         // this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this._width, this._height), Phaser.Geom.Rectangle.Contains);
     }
 
@@ -1499,7 +1481,13 @@ export class GObject {
 
             buffer.position = nextPos;
         }
-        this.setSize(this.initWidth, this.initHeight, true);
+        let wid: number = this.initWidth;
+        let hei: number = this.initHeight;
+        // if (this.parent && this.parent instanceof GRoot) {
+        //     wid = GRoot.inst.stageWidth();
+        //     hei = GRoot.inst.stageHeight();
+        // }
+        this.setSize(wid, hei, true);
         this.setTouchable(this._touchable);
         this.adaptiveScaleX = this.initWidth / this.sourceWidth;
         this.adaptiveScaleY = this.initHeight / this.sourceHeight;

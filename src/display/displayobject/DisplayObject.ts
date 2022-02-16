@@ -1,3 +1,4 @@
+import { GRoot } from './../../GRoot';
 //  bitmask flag for GameObject.renderMask
 const _VISIBLE_FLAG = 1;
 const _ALPHA_FLAG = 2; // 0010
@@ -54,6 +55,10 @@ export class DisplayObject extends Phaser.GameObjects.GameObject {
 
     constructor(scene: Phaser.Scene, type: string = "DisplayObject") {
         super(scene, type);
+        this._scaleX /= GRoot.dpr;
+        this._scaleY /= GRoot.dpr;
+        this._scaleX = Number(this._scaleY.toFixed(2));
+        this._scaleY = Number(this._scaleX.toFixed(2));
     }
 
     setOrigin(x?: number, y?: number) {

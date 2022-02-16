@@ -21,6 +21,7 @@ export declare enum UISceneDisplay {
 export declare class GRoot extends GComponent {
     private static _inst;
     static dpr: number;
+    static uiScale: number;
     static contentDprLevel: number;
     static contentScaleLevel: number;
     static contentScaleWid: number;
@@ -55,6 +56,8 @@ export declare class GRoot extends GComponent {
      * @param stageOptions
      */
     attachTo(scene: Phaser.Scene, stageOptions?: any): void;
+    stageWidth(): number;
+    stageHeight(): number;
     addToStage(child: Phaser.GameObjects.GameObject, type?: number, index?: number): void;
     removeFromStage(child: Phaser.GameObjects.GameObject): void;
     getResUrl(key: string): string;
