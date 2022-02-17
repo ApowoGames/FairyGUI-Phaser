@@ -407,6 +407,63 @@ export class GObject {
         }
     }
 
+    public externalSetSize(wv: number, hv: number, ignorePivot?: boolean): void {
+        if (this._rawWidth != wv || this._rawHeight != hv) {
+            this._rawWidth = wv;
+            this._rawHeight = hv;
+            if (wv < this.minWidth)
+                wv = this.minWidth;
+            if (hv < this.minHeight)
+                hv = this.minHeight;
+            if (this.maxWidth > 0 && wv > this.maxWidth)
+                wv = this.maxWidth;
+            if (this.maxHeight > 0 && hv > this.maxHeight)
+                hv = this.maxHeight;
+            var dWidth: number = wv - this._width;
+            var dHeight: number = hv - this._height;
+            this._width = wv;
+            this._height = hv;
+
+            this.handleSizeChanged();
+            if (this._pivotX != 0 || this._pivotY != 0) {
+                if (!this._pivotAsAnchor) {
+                    if (!ignorePivot)
+                        this.setXY(this.x - this._pivotX * dWidth, this.y - this._pivotY * dHeight);
+                    this.updatePivotOffset();
+                }
+                else {
+                    this.applyPivot();
+                }
+            }
+
+            if (this instanceof GGroup)
+                this.resizeChildren(dWidth, dHeight);
+
+            this.updateGear(2);
+
+            if (this._parent) {
+                this._relations.onOwnerSizeChanged();
+                this._parent.setBoundsChangedFlag();
+                if (this._group)
+                    this._group.setBoundsChangedFlag();
+            }
+
+            if (this["_childrens"]) {
+                this["_childrens"].forEach(child => {
+                    if (child._relations) {
+                        child._relations.onOwnerSizeChanged();
+                    }
+                });
+            }
+
+
+            this.displayObject.emit(DisplayObjectEvent.SIZE_CHANGED);
+        }
+    }
+
+
+
+
     public ensureSizeCorrect(): void {
     }
 

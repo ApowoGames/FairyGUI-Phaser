@@ -114,8 +114,8 @@ export class RelationItem {
         var ox: number = this._owner.x;
         var oy: number = this._owner.y;
 
-        const scaleWid = this._owner._width / this._owner.adaptiveScaleX;
-        const scaleHei = this._owner._height / this._owner.adaptiveScaleY;
+        const scaleWid = this._owner._width;
+        const scaleHei = this._owner._height;
         for (var i: number = 0; i < cnt; i++) {
             var info: RelationDef = this._defs[i];
             switch (info.type) {
@@ -246,7 +246,7 @@ export class RelationItem {
 
             if (info.percent) {
                 if (this._targetWidth != 0)
-                    delta = ((this._target._width) / this._target.adaptiveScaleX) / this._targetWidth;
+                    delta = ((this._target._width)) / this._targetWidth;
             }
             else
                 delta = (this._target._width) / (this._target.adaptiveScaleX) - this._targetWidth;
@@ -260,7 +260,7 @@ export class RelationItem {
 
             if (info.percent) {
                 if (this._targetHeight != 0)
-                    delta = (this._target._height / this._target.adaptiveScaleY) / this._targetHeight;
+                    delta = (this._target._height) / this._targetHeight;
             }
             else
                 delta = (this._target._height) / (this._target.adaptiveScaleY) - this._targetHeight;
@@ -273,93 +273,93 @@ export class RelationItem {
                 if (info.percent)
                     this._owner.xMin = pos + (this._owner.xMin - pos) * delta;
                 else if (pivot != 0)
-                    this._owner.x = this._target.x;
+                    this._owner.x = this._target.x - this._target.initWidth * this._target.pivotX - this._owner.initWidth * this._owner.pivotX;
                 break;
             case RelationType.Left_Center:
                 if (info.percent)
                     this._owner.xMin = pos + (this._owner.xMin - pos) * delta;
                 else
-                    this._owner.x = this._target.x + (this._target.width * targetScale) / (2 * this._target.adaptiveScaleX);
+                    this._owner.x = this._target.x + this._target.initWidth * (0.5 - this._target.pivotX) - this._owner.initWidth * this._owner.pivotX;
                 break;
             case RelationType.Left_Right:
                 if (info.percent)
                     this._owner.xMin = pos + (this._owner.xMin - pos) * delta;
                 else
-                    this._owner.x = this._target.x + this._target.width;
+                    this._owner.x = this._target.x + this._target.initWidth * (1 - this._target.pivotX) + this._owner.initWidth * this._owner.pivotX;
                 break;
             case RelationType.Center_Center:
                 if (info.percent)
                     this._owner.xMin = pos + (this._owner.xMin + this._owner._rawWidth * 0.5 - pos) * delta - this._owner._rawWidth * 0.5;
                 else
-                    this._owner.x = this._target.x + (this._target.width * targetScale) / (2 * this._target.adaptiveScaleX) - (this._owner._width * ownerScale) / (2 * this._owner.adaptiveScaleX);
+                    this._owner.x = this._target.x + this._target.initWidth * (0.5 - this._target.pivotX) - this._owner.initWidth * (0.5 - this._owner.pivotX);
                 break;
             case RelationType.Right_Left:
                 if (info.percent)
                     this._owner.xMin = pos + (this._owner.xMin + this._owner._rawWidth - pos) * delta - this._owner._rawWidth;
-                else if (pivot != 0)
-                    this._owner.x = this._target.x - this._owner._width * ownerScale / this._owner.adaptiveScaleX;
+                else
+                    this._owner.x = this._target.x - this._target.initWidth * this._target.pivotX - this._owner.initWidth * (1 - this._owner.pivotX);
                 break;
             case RelationType.Right_Center:
                 if (info.percent)
                     this._owner.xMin = pos + (this._owner.xMin + this._owner._rawWidth - pos) * delta - this._owner._rawWidth;
                 else
-                    this._owner.x = this._target.x + (this._target.width * targetScale) / (2 * this._target.adaptiveScaleX) - this._owner._width * ownerScale / this._owner.adaptiveScaleX;
+                    this._owner.x = this._target.x + this._target.initWidth * (0.5 - this._target.pivotX) - this._owner.initWidth * (1 - this._owner.pivotX);
                 break;
             case RelationType.Right_Right:
                 if (info.percent)
                     this._owner.xMin = pos + (this._owner.xMin + this._owner._rawWidth - pos) * delta - this._owner._rawWidth;
                 else
-                    this._owner.x = this._target.x + this._target.width * targetScale / this._target.adaptiveScaleX - this._owner._width * ownerScale / this._owner.adaptiveScaleX;
+                    this._owner.x = this._target.x + this._target.initWidth * (1 - this._target.pivotX) - this._owner.initWidth * (1 - this._owner.pivotX);
                 break;
 
             case RelationType.Top_Top:
                 if (info.percent)
                     this._owner.yMin = pos + (this._owner.yMin - pos) * delta;
                 else
-                    this._owner.y = this._target.y;
+                    this._owner.y = this._target.y - this._target.initHeight * this._target.pivotY + this._owner.initHeight * this._owner.pivotY;
                 break;
             case RelationType.Top_Middle:
                 if (info.percent)
                     this._owner.yMin = pos + (this._owner.yMin - pos) * delta;
                 else
-                    this._owner.y = this._target.y + (this._target._height * targetScale) / (2 * this._target.adaptiveScaleY);
+                    this._owner.y = this._target.y + this._target.initHeight * (0.5 - this._target.pivotY) + this._owner.initHeight * this._owner.pivotY;
                 break;
             case RelationType.Top_Bottom:
                 if (info.percent)
                     this._owner.yMin = pos + (this._owner.yMin - pos) * delta;
                 else
-                    this._owner.y = this._target.y + this._target._height * targetScale / this._target.adaptiveScaleY;
+                    this._owner.y = this._target.y + this._target.initHeight * (1 - this._target.pivotY) + this._owner.initHeight * this._owner.pivotY;
                 break;
             case RelationType.Middle_Middle:
                 if (info.percent)
                     this._owner.yMin = pos + (this._owner.yMin + this._owner._rawHeight * 0.5 - pos) * delta - this._owner._rawHeight * 0.5;
                 else {
-                    this._owner.y = this._target.y + (this._target._height * targetScale) / (2 * this._target.adaptiveScaleY) - (this._owner._height * ownerScale) / (2 * this._owner.adaptiveScaleY);
+                    this._owner.y = this._target.y + this._target.initHeight * (0.5 - this._target.pivotY) - this._owner.initHeight * (0.5 - this._owner.pivotY);
+                    break;
                 }
-
                 break;
             case RelationType.Bottom_Top:
                 if (info.percent)
                     this._owner.yMin = pos + (this._owner.yMin + this._owner._rawHeight - pos) * delta - this._owner._rawHeight;
                 else if (pivot != 0)
-                    this._owner.y = this._target.y - this._owner._height * ownerScale / this._owner.adaptiveScaleY;
+                    this._owner.y = this._target.y - this._target.initHeight * this._target.pivotY - this._owner.initHeight * (1 - this._owner.pivotY);
                 break;
             case RelationType.Bottom_Middle:
                 if (info.percent)
                     this._owner.yMin = pos + (this._owner.yMin + this._owner._rawHeight - pos) * delta - this._owner._rawHeight;
                 else
-                    this._owner.y = this._target.y + (this._target._height * targetScale) / (2 * this._target.adaptiveScaleY) - this._owner._height * ownerScale / this._owner.adaptiveScaleY;
+                    this._owner.y = this._target.y + this._target.initHeight * (0.5 - this._target.pivotY) - this._owner.initHeight * (1 - this._owner.pivotY);
                 break;
             case RelationType.Bottom_Bottom:
                 if (info.percent)
                     this._owner.yMin = pos + (this._owner.yMin + this._owner._rawHeight - pos) * delta - this._owner._rawHeight;
                 else
-                    this._owner.y = this._target.y + this._target._height * targetScale / this._target.adaptiveScaleY - this._owner._height * ownerScale / this._owner.adaptiveScaleY;
+                    this._owner.y = this._target.y + this._target.initHeight * (1 - this._target.pivotY) - this._owner.initHeight * (1 - this._owner.pivotY);
                 break;
 
             case RelationType.Width:
                 if (this._owner._underConstruct && this._owner == this._target.parent)
-                    v = this._owner.sourceWidth - this._target.initWidth;
+                    v = this._owner.sourceWidth - this._target._width;
                 else
                     v = this._owner._rawWidth - this._targetWidth;
                 if (info.percent)
@@ -378,7 +378,7 @@ export class RelationItem {
                 break;
             case RelationType.Height:
                 if (this._owner._underConstruct && this._owner == this._target.parent)
-                    v = this._owner.sourceHeight - this._target.initHeight;
+                    v = this._owner.sourceHeight - this._target._height;
                 else
                     v = this._owner._rawHeight - this._targetHeight;
                 if (info.percent)

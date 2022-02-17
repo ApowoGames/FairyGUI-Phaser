@@ -125,7 +125,7 @@ export enum RelationType {
     Left_Left = 0,
     Left_Center = 1,
     Left_Right = 2,
-    Center_Center = 3,
+    Center_Center = 3, // 左右居中
     Right_Left = 4,
     Right_Center = 5,
     Right_Right = 6,
@@ -133,13 +133,13 @@ export enum RelationType {
     Top_Top = 7,
     Top_Middle = 8,
     Top_Bottom = 9,
-    Middle_Middle = 10,
+    Middle_Middle = 10, // 上下居中
     Bottom_Top = 11,
     Bottom_Middle = 12,
     Bottom_Bottom = 13,
 
-    Width = 14,
-    Height = 15,
+    Width = 14, // 宽对宽
+    Height = 15, // 高对高
 
     LeftExt_Left = 16,
     LeftExt_Right = 17,
