@@ -49,7 +49,7 @@ export class GBasicTextField extends GTextField {
     public setup_afterAdd(buffer: ByteBuffer, beginPos: number): void {
         super.setup_afterAdd(buffer, beginPos);
         // 对文本进行适配
-        this.setResolution(GRoot.dpr);
+        // this.setResolution(GRoot.dpr);
     }
 
     public setResolution(val) {
@@ -88,6 +88,24 @@ export class GBasicTextField extends GTextField {
             this.doAlign();
         }
     }
+
+    // public get width(): number {
+    //     this._width = !this._width ? this.initWidth : this._width;
+    //     this._width = this._textWidth ? this._textWidth : this._width;
+    //     return this._width;
+    // }
+    // public set width(value: number) {
+    //     this._width = value;
+    // }
+
+    // public get height(): number {
+    //     this._height = !this._height ? this.initHeight : this._height;
+    //     this._height = this._textHeight ? this._textHeight : this._height;
+    //     return this._height;
+    // }
+    // public set height(value: number) {
+    //     this._height = value;
+    // }
 
     public get text(): string {
         return this._text;
@@ -303,10 +321,6 @@ export class GBasicTextField extends GTextField {
         this._updatingSize = true;
         this.setSize(w, h);
         this._updatingSize = false;
-    }
-
-    public setSize(w, h) {
-        super.setSize(w, h);
     }
 
     public dispose(): void {

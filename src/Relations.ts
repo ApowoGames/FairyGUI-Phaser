@@ -101,14 +101,14 @@ export class Relations {
         this.clearAll();
     }
 
-    public onOwnerSizeChanged(): void {
+    public onOwnerSizeChanged(dWidth: number, dHeight: number, applyPivot: boolean): void {
         if (this._items.length == 0)
             return;
 
         var length: number = this._items.length;
         for (var i: number = 0; i < length; i++) {
             var item: RelationItem = this._items[i];
-            item.applyOnSelfResized();
+            item.applyOnSelfResized(dWidth, dHeight, applyPivot);
         }
     }
 

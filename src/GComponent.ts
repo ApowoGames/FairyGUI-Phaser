@@ -714,7 +714,7 @@ export class GComponent extends GObject {
 
 
                 if (this.hitArea instanceof Phaser.Geom.Rectangle)
-                    this.hitArea.setTo(this.initWidth >> 1, this.initHeight >> 1, this.initWidth , this.initHeight );
+                    this.hitArea.setTo(this.initWidth >> 1, this.initHeight >> 1, this.initWidth, this.initHeight);
                 this._displayObject.setInteractive(this.hitArea, Phaser.Geom.Rectangle.Contains);
             }
             else {
@@ -954,7 +954,7 @@ export class GComponent extends GObject {
 
         if (this._opaque) {
             this.removeInteractive();
-            this.hitArea = new Phaser.Geom.Rectangle(ax + aw >> 1, ay + ah >> 1, aw , ah );
+            this.hitArea = new Phaser.Geom.Rectangle(ax + aw >> 1, ay + ah >> 1, aw, ah);
             // console.log("set bounds", aw, ah);
             this._displayObject.setInteractive(this.hitArea, Phaser.Geom.Rectangle.Contains);
             // if (this._g) {
@@ -1358,49 +1358,30 @@ export class GComponent extends GObject {
                         });
                     } else {
                         // 做适配
-                        const fun1 = (children) => {
-                            const len = children.length;
-                            for (let i: number = 0; i < len; i++) {
-                                const child = children[i];
-                                const scale = child.parent ? GRoot.dpr : 1;
-                                if (child.type !== ObjectType.Text) {
-                                    if (child.type === ObjectType.Image || child.type === ObjectType.MovieClip || child.type === ObjectType.Loader) {
-                                        if (!child["_contentItem"] || !child["_contentItem"].isHighRes) child.setScale(scale, scale);
-                                    }
-                                    else {
-                                        child.setScale(scale, scale);
-                                    }
-                                } else {
-                                    (<GBasicTextField>child).setResolution(GRoot.dpr);
-                                }
-                            }
-                            for (let i: number = 0; i < len; i++) {
-                                const child = children[i];
-                                child.forceSize();
-                            }
-                        }
-                        if (this._children) {
-                            // fun1(this._children);
-                            // const len = this._children.length;
-                            // for (let i: number = 0; i < len; i++) {
-                            //     const child = this._children[i];
-                            //     const scale = child.parent ? GRoot.contentDprLevel + 1 : 1;
-                            //     if (child.type !== ObjectType.Text) {
-                            //         if (child.type === ObjectType.Image || child.type === ObjectType.MovieClip || child.type === ObjectType.Loader) {
-                            //             if (!child["_contentItem"].isHighRes) child.setScale(scale, scale);
-                            //         }
-                            //         else {
-                            //             child.setScale(scale, scale);
-                            //         }
-                            //     } else {
-                            //         (<GBasicTextField>child).setResolution(GRoot.contentDprLevel + 1);
-                            //     }
-                            // }
-                            // for (let i: number = 0; i < len; i++) {
-                            //     const child = this._children[i];
-                            //     child.forceSize();
-                            // }
-                        }
+                        // const fun1 = (children) => {
+                        //     const len = children.length;
+                        //     for (let i: number = 0; i < len; i++) {
+                        //         const child = children[i];
+                        //         const scale = child.parent ? GRoot.dpr : 1;
+                        //         if (child.type !== ObjectType.Text) {
+                        //             if (child.type === ObjectType.Image || child.type === ObjectType.MovieClip || child.type === ObjectType.Loader) {
+                        //                 if (!child["_contentItem"] || !child["_contentItem"].isHighRes) child.setScale(scale, scale);
+                        //             }
+                        //             else {
+                        //                 child.setScale(scale, scale);
+                        //             }
+                        //         } else {
+                        //             (<GBasicTextField>child).setResolution(GRoot.dpr);
+                        //         }
+                        //     }
+                        //     for (let i: number = 0; i < len; i++) {
+                        //         const child = children[i];
+                        //         child.forceSize();
+                        //     }
+                        // }
+                        // if (this._children) {
+                        //     // fun1(this._children);
+                        // }
                         this.onConstruct();
                         reslove();
                     }

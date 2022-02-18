@@ -14,7 +14,6 @@ import { GTween } from './tween/GTween';
 import { Events } from './Events';
 import { Utils } from './utils/Utils';
 import { GRoot } from '.';
-
 export class ScrollPane {
     private _owner: GComponent;
     private _container: Phaser.GameObjects.Container;
@@ -954,8 +953,8 @@ export class ScrollPane {
         if (this.maskScrollRect) {
             var rect: Phaser.Geom.Rectangle = new Phaser.Geom.Rectangle()//this._maskContainer["scrollRect"];
             if (rect) {
-                rect.width = this._viewSize.x ;
-                rect.height = this._viewSize.y ;
+                rect.width = this._viewSize.x;
+                rect.height = this._viewSize.y;
                 if (this._vScrollNone && this._vtScrollBar)
                     rect.width += this._vtScrollBar.width;
                 if (this._hScrollNone && this._hzScrollBar)
@@ -968,7 +967,7 @@ export class ScrollPane {
                 this._maskContainer.clearMask();
                 this._mask.clear();
                 this._mask.fillStyle(0x00ff00, .4);
-                this._mask.fillRect(this._owner.x, this._owner.y, this.maskScrollRect.width , this.maskScrollRect.height );
+                this._mask.fillRect(this._owner.x * GRoot.dpr, this._owner.y * GRoot.dpr, this.maskScrollRect.width * GRoot.dpr, this.maskScrollRect.height * GRoot.dpr);
                 this._maskContainer.setInteractive(this.maskScrollRect, Phaser.Geom.Rectangle.Contains);
                 // 查看mask实际位置
                 // this._owner.scene.sys.displayList.add(this._mask);

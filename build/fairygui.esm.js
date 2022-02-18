@@ -2214,36 +2214,36 @@ class RelationItem {
     get isEmpty() {
         return this._defs.length == 0;
     }
-    applyOnSelfResized() {
+    applyOnSelfResized(dWidth, dHeight, applyPivot) {
         var cnt = this._defs.length;
         if (cnt == 0)
             return;
         var ox = this._owner.x;
         var oy = this._owner.y;
-        const scaleWid = this._owner._width / this._owner.adaptiveScaleX;
-        const scaleHei = this._owner._height / this._owner.adaptiveScaleY;
+        // const scaleWid = this._owner.width;
+        // const scaleHei = this._owner.height;
         for (var i = 0; i < cnt; i++) {
             var info = this._defs[i];
             switch (info.type) {
                 case RelationType.Center_Center:
-                    this._owner.x = this._owner.parent ? (this._owner.parent._width * GRoot.dpr * GRoot.contentScaleWid - scaleWid) / 2 : scaleWid / 2;
-                    // this._owner.x -= (0.5 - (applyPivot ? this._owner.pivotX : 0)) * dWidth;
+                    // this._owner.x = this._owner.parent ? (this._owner.parent.width * GRoot.dpr * GRoot.contentScaleWid - scaleWid) / 2 : scaleWid / 2;
+                    this._owner.x -= (0.5 - (applyPivot ? this._owner.pivotX : 0)) * dWidth;
                     break;
                 case RelationType.Right_Center:
                 case RelationType.Right_Left:
                 case RelationType.Right_Right:
-                    this._owner.x = this._owner.parent ? this._owner.parent._width * GRoot.dpr * GRoot.contentScaleWid - scaleWid : 0;
-                    // this._owner.x -= (1 - (applyPivot ? this._owner.pivotX : 0)) * dWidth;
+                    // this._owner.x = this._owner.parent ? this._owner.parent.width * GRoot.dpr * GRoot.contentScaleWid - scaleWid : 0;
+                    this._owner.x -= (1 - (applyPivot ? this._owner.pivotX : 0)) * dWidth;
                     break;
                 case RelationType.Middle_Middle:
-                    // this._owner.y -= (0.5 - (applyPivot ? this._owner.pivotY : 0)) * dHeight;
-                    this._owner.y = this._owner.parent ? ((this._owner.parent._height * GRoot.dpr * GRoot.contentScaleHei - scaleHei) / 2) : scaleHei / 2;
+                    this._owner.y -= (0.5 - (applyPivot ? this._owner.pivotY : 0)) * dHeight;
+                    // this._owner.y = this._owner.parent ? ((this._owner.parent.height * GRoot.dpr * GRoot.contentScaleHei - scaleHei) / 2) : scaleHei / 2;
                     break;
                 case RelationType.Bottom_Middle:
                 case RelationType.Bottom_Top:
                 case RelationType.Bottom_Bottom:
-                    this._owner.y = this._owner.parent ? this._owner.parent._height * GRoot.dpr * GRoot.contentScaleHei - scaleHei : 0;
-                    // this._owner.y -= (1 - (applyPivot ? this._owner.pivotY : 0)) * dHeight * GRoot.contentDprLevel;
+                    // this._owner.y = this._owner.parent ? this._owner.parent.height * GRoot.dpr * GRoot.contentScaleHei - scaleHei : 0;
+                    this._owner.y -= (1 - (applyPivot ? this._owner.pivotY : 0)) * dHeight; // * GRoot.contentDprLevel;
                     break;
             }
         }
@@ -2337,10 +2337,10 @@ class RelationItem {
             }
             if (info.percent) {
                 if (this._targetWidth != 0)
-                    delta = ((this._target._width) / this._target.adaptiveScaleX) / this._targetWidth;
+                    delta = ((this._target.width)) / this._targetWidth;
             }
             else
-                delta = (this._target._width) / (this._target.adaptiveScaleX) - this._targetWidth;
+                delta = (this._target.width) / (this._target.adaptiveScaleX) - this._targetWidth;
         }
         else {
             if (this._target != this._owner.parent) {
@@ -2350,104 +2350,105 @@ class RelationItem {
             }
             if (info.percent) {
                 if (this._targetHeight != 0)
-                    delta = (this._target._height / this._target.adaptiveScaleY) / this._targetHeight;
+                    delta = (this._target.height) / this._targetHeight;
             }
             else
-                delta = (this._target._height) / (this._target.adaptiveScaleY) - this._targetHeight;
+                delta = (this._target.height) / (this._target.adaptiveScaleY) - this._targetHeight;
         }
         if (delta === NaN)
             delta = 0;
-        const targetScale = this._target["_contentItem"] && this._target["_contentItem"].isHighRes ? 1 : GRoot.dpr;
-        const ownerScale = this._owner["_contentItem"] && this._owner["_contentItem"].isHighRes ? 1 : GRoot.dpr;
+        // const targetScale = this._target["_contentItem"] && this._target["_contentItem"].isHighRes ? 1 : GRoot.dpr;
+        // const ownerScale = this._owner["_contentItem"] && this._owner["_contentItem"].isHighRes ? 1 : GRoot.dpr;
         switch (info.type) {
             case RelationType.Left_Left:
                 if (info.percent)
                     this._owner.xMin = pos + (this._owner.xMin - pos) * delta;
                 else if (pivot != 0)
-                    this._owner.x = this._target.x;
+                    this._owner.x = this._target.x - this._target.width * this._target.pivotX - this._owner.width * this._owner.pivotX;
                 break;
             case RelationType.Left_Center:
                 if (info.percent)
                     this._owner.xMin = pos + (this._owner.xMin - pos) * delta;
                 else
-                    this._owner.x = this._target.x + (this._target.width * targetScale) / (2 * this._target.adaptiveScaleX);
+                    this._owner.x = this._target.x + this._target.width * (0.5 - this._target.pivotX) - this._owner.width * this._owner.pivotX;
                 break;
             case RelationType.Left_Right:
                 if (info.percent)
                     this._owner.xMin = pos + (this._owner.xMin - pos) * delta;
                 else
-                    this._owner.x = this._target.x + this._target.width;
+                    this._owner.x = this._target.x + this._target.width * (1 - this._target.pivotX) + this._owner.width * this._owner.pivotX;
                 break;
             case RelationType.Center_Center:
                 if (info.percent)
                     this._owner.xMin = pos + (this._owner.xMin + this._owner._rawWidth * 0.5 - pos) * delta - this._owner._rawWidth * 0.5;
                 else
-                    this._owner.x = this._target.x + (this._target.width * targetScale) / (2 * this._target.adaptiveScaleX) - (this._owner._width * ownerScale) / (2 * this._owner.adaptiveScaleX);
+                    this._owner.x = this._target.x + this._target.width * (0.5 - this._target.pivotX) - this._owner.width * (0.5 - this._owner.pivotX);
                 break;
             case RelationType.Right_Left:
                 if (info.percent)
                     this._owner.xMin = pos + (this._owner.xMin + this._owner._rawWidth - pos) * delta - this._owner._rawWidth;
-                else if (pivot != 0)
-                    this._owner.x = this._target.x - this._owner._width * ownerScale / this._owner.adaptiveScaleX;
+                else
+                    this._owner.x = this._target.x - this._target.width * this._target.pivotX - this._owner.width * (1 - this._owner.pivotX);
                 break;
             case RelationType.Right_Center:
                 if (info.percent)
                     this._owner.xMin = pos + (this._owner.xMin + this._owner._rawWidth - pos) * delta - this._owner._rawWidth;
                 else
-                    this._owner.x = this._target.x + (this._target.width * targetScale) / (2 * this._target.adaptiveScaleX) - this._owner._width * ownerScale / this._owner.adaptiveScaleX;
+                    this._owner.x = this._target.x + this._target.width * (0.5 - this._target.pivotX) - this._owner.width * (1 - this._owner.pivotX);
                 break;
             case RelationType.Right_Right:
                 if (info.percent)
                     this._owner.xMin = pos + (this._owner.xMin + this._owner._rawWidth - pos) * delta - this._owner._rawWidth;
                 else
-                    this._owner.x = this._target.x + this._target.width * targetScale / this._target.adaptiveScaleX - this._owner._width * ownerScale / this._owner.adaptiveScaleX;
+                    this._owner.x = this._target.x + this._target.width * (1 - this._target.pivotX) - this._owner.width * (1 - this._owner.pivotX);
                 break;
             case RelationType.Top_Top:
                 if (info.percent)
                     this._owner.yMin = pos + (this._owner.yMin - pos) * delta;
                 else
-                    this._owner.y = this._target.y;
+                    this._owner.y = this._target.y - this._target.height * this._target.pivotY + this._owner.height * this._owner.pivotY;
                 break;
             case RelationType.Top_Middle:
                 if (info.percent)
                     this._owner.yMin = pos + (this._owner.yMin - pos) * delta;
                 else
-                    this._owner.y = this._target.y + (this._target._height * targetScale) / (2 * this._target.adaptiveScaleY);
+                    this._owner.y = this._target.y + this._target.height * (0.5 - this._target.pivotY) + this._owner.height * this._owner.pivotY;
                 break;
             case RelationType.Top_Bottom:
                 if (info.percent)
                     this._owner.yMin = pos + (this._owner.yMin - pos) * delta;
                 else
-                    this._owner.y = this._target.y + this._target._height * targetScale / this._target.adaptiveScaleY;
+                    this._owner.y = this._target.y + this._target.height * (1 - this._target.pivotY) + this._owner.height * this._owner.pivotY;
                 break;
             case RelationType.Middle_Middle:
                 if (info.percent)
                     this._owner.yMin = pos + (this._owner.yMin + this._owner._rawHeight * 0.5 - pos) * delta - this._owner._rawHeight * 0.5;
                 else {
-                    this._owner.y = this._target.y + (this._target._height * targetScale) / (2 * this._target.adaptiveScaleY) - (this._owner._height * ownerScale) / (2 * this._owner.adaptiveScaleY);
+                    this._owner.y = this._target.y + this._target.height * (0.5 - this._target.pivotY) - this._owner.height * (0.5 - this._owner.pivotY);
+                    break;
                 }
                 break;
             case RelationType.Bottom_Top:
                 if (info.percent)
                     this._owner.yMin = pos + (this._owner.yMin + this._owner._rawHeight - pos) * delta - this._owner._rawHeight;
                 else if (pivot != 0)
-                    this._owner.y = this._target.y - this._owner._height * ownerScale / this._owner.adaptiveScaleY;
+                    this._owner.y = this._target.y - this._target.height * this._target.pivotY - this._owner.height * (1 - this._owner.pivotY);
                 break;
             case RelationType.Bottom_Middle:
                 if (info.percent)
                     this._owner.yMin = pos + (this._owner.yMin + this._owner._rawHeight - pos) * delta - this._owner._rawHeight;
                 else
-                    this._owner.y = this._target.y + (this._target._height * targetScale) / (2 * this._target.adaptiveScaleY) - this._owner._height * ownerScale / this._owner.adaptiveScaleY;
+                    this._owner.y = this._target.y + this._target.height * (0.5 - this._target.pivotY) - this._owner.height * (1 - this._owner.pivotY);
                 break;
             case RelationType.Bottom_Bottom:
                 if (info.percent)
                     this._owner.yMin = pos + (this._owner.yMin + this._owner._rawHeight - pos) * delta - this._owner._rawHeight;
                 else
-                    this._owner.y = this._target.y + this._target._height * targetScale / this._target.adaptiveScaleY - this._owner._height * ownerScale / this._owner.adaptiveScaleY;
+                    this._owner.y = this._target.y + this._target.height * (1 - this._target.pivotY) - this._owner.height * (1 - this._owner.pivotY);
                 break;
             case RelationType.Width:
                 if (this._owner._underConstruct && this._owner == this._target.parent)
-                    v = this._owner.sourceWidth - this._target.initWidth;
+                    v = this._owner.sourceWidth - this._target.width;
                 else
                     v = this._owner._rawWidth - this._targetWidth;
                 if (info.percent)
@@ -2455,18 +2456,18 @@ class RelationItem {
                 if (this._target == this._owner.parent) {
                     if (this._owner.pivotAsAnchor) {
                         tmp = this._owner.xMin;
-                        this._owner.setSize(this._target._width + v, this._owner._rawHeight, true);
+                        this._owner.setSize(this._target.width + v, this._owner._rawHeight, true);
                         this._owner.xMin = tmp;
                     }
                     else
-                        this._owner.setSize(this._target._width + v, this._owner._rawHeight, true);
+                        this._owner.setSize(this._target.width + v, this._owner._rawHeight, true);
                 }
                 else
-                    this._owner.width = this._target._width + v;
+                    this._owner.width = this._target.width + v;
                 break;
             case RelationType.Height:
                 if (this._owner._underConstruct && this._owner == this._target.parent)
-                    v = this._owner.sourceHeight - this._target.initHeight;
+                    v = this._owner.sourceHeight - this._target.height;
                 else
                     v = this._owner._rawHeight - this._targetHeight;
                 if (info.percent)
@@ -2474,14 +2475,14 @@ class RelationItem {
                 if (this._target == this._owner.parent) {
                     if (this._owner.pivotAsAnchor) {
                         tmp = this._owner.yMin;
-                        this._owner.setSize(this._owner._rawWidth, this._target._height + v, true);
+                        this._owner.setSize(this._owner._rawWidth, this._target.height + v, true);
                         this._owner.yMin = tmp;
                     }
                     else
-                        this._owner.setSize(this._owner._rawWidth, this._target._height + v, true);
+                        this._owner.setSize(this._owner._rawWidth, this._target.height + v, true);
                 }
                 else
-                    this._owner.height = this._target._height + v;
+                    this._owner.height = this._target.height + v;
                 break;
             case RelationType.LeftExt_Left:
                 tmp = this._owner.xMin;
@@ -2515,7 +2516,7 @@ class RelationItem {
                 if (info.percent) {
                     if (this._owner == this._target.parent) {
                         if (this._owner._underConstruct)
-                            this._owner.width = pos + this._target._width - this._target._width * pivot +
+                            this._owner.width = pos + this._target.width - this._target.width * pivot +
                                 (this._owner.sourceWidth - pos - this._target.initWidth + this._target.initWidth * pivot) * delta;
                         else
                             this._owner.width = pos + (this._owner._rawWidth - pos) * delta;
@@ -2529,7 +2530,7 @@ class RelationItem {
                 else {
                     if (this._owner == this._target.parent) {
                         if (this._owner._underConstruct)
-                            this._owner.width = this._owner.sourceWidth + (this._target._width - this._target.initWidth) * (1 - pivot);
+                            this._owner.width = this._owner.sourceWidth + (this._target.width - this._target.initWidth) * (1 - pivot);
                         else
                             this._owner.width = this._owner._rawWidth + delta * (1 - pivot);
                     }
@@ -2572,7 +2573,7 @@ class RelationItem {
                 if (info.percent) {
                     if (this._owner == this._target.parent) {
                         if (this._owner._underConstruct)
-                            this._owner.height = pos + this._target._height - this._target._height * pivot +
+                            this._owner.height = pos + this._target.height - this._target.height * pivot +
                                 (this._owner.sourceHeight - pos - this._target.initHeight + this._target.initHeight * pivot) * delta;
                         else
                             this._owner.height = pos + (this._owner._rawHeight - pos) * delta;
@@ -2586,7 +2587,7 @@ class RelationItem {
                 else {
                     if (this._owner == this._target.parent) {
                         if (this._owner._underConstruct)
-                            this._owner.height = this._owner.sourceHeight + (this._target._height - this._target.initHeight) * (1 - pivot);
+                            this._owner.height = this._owner.sourceHeight + (this._target.height - this._target.initHeight) * (1 - pivot);
                         else
                             this._owner.height = this._owner._rawHeight + delta * (1 - pivot);
                     }
@@ -2654,8 +2655,8 @@ class RelationItem {
         if (this._owner.relations.sizeDirty)
             this._owner.relations.ensureRelationsSizeCorrect();
         if (this._owner.relations.handling) {
-            this._targetWidth = this._target._width;
-            this._targetHeight = this._target._height;
+            this._targetWidth = this._target.width;
+            this._targetHeight = this._target.height;
             return;
         }
         this._owner.relations.handling = this._target;
@@ -2667,8 +2668,8 @@ class RelationItem {
         for (var i = 0; i < cnt; i++) {
             this.applyOnSizeChanged(this._defs[i]);
         }
-        this._targetWidth = this._target._width;
-        this._targetHeight = this._target._height;
+        this._targetWidth = this._target.width;
+        this._targetHeight = this._target.height;
         if (ox != this._owner.x || oy != this._owner.y) {
             ox = this._owner.x - ox;
             oy = this._owner.y - oy;
@@ -2783,13 +2784,13 @@ class Relations {
     dispose() {
         this.clearAll();
     }
-    onOwnerSizeChanged() {
+    onOwnerSizeChanged(dWidth, dHeight, applyPivot) {
         if (this._items.length == 0)
             return;
         var length = this._items.length;
         for (var i = 0; i < length; i++) {
             var item = this._items[i];
-            item.applyOnSelfResized();
+            item.applyOnSelfResized(dWidth, dHeight, applyPivot);
         }
     }
     ensureRelationsSizeCorrect() {
@@ -3294,7 +3295,6 @@ class GObject {
         this._alpha = 1;
         this._rotation = 0;
         this._visible = true;
-        this._dpr = 1;
         // 可交互默认false
         this._touchable = false;
         this._scaleX = 1;
@@ -3405,12 +3405,6 @@ class GObject {
     }
     get type() {
         return this._objectType;
-    }
-    get dpr() {
-        return this._dpr;
-    }
-    set dpr(value) {
-        this._dpr = value;
     }
     get id() {
         return this._id;
@@ -3534,12 +3528,12 @@ class GObject {
     set height(value) {
         this.setSize(this._rawWidth, value);
     }
-    forceSize() {
-        if (this._parent) {
-            this._relations.onOwnerSizeChanged();
-        }
-        this.displayObject.emit(DisplayObjectEvent.SIZE_CHANGED);
-    }
+    // public forceSize() {
+    //     if (this._parent) {
+    //         this._relations.onOwnerSizeChanged(dWidth, dHeight, this._pivotAsAnchor || !ignorePivot);
+    //     }
+    //     this.displayObject.emit(DisplayObjectEvent.SIZE_CHANGED);
+    // }
     setSize(wv, hv, ignorePivot) {
         if (this._rawWidth != wv || this._rawHeight != hv) {
             this._rawWidth = wv;
@@ -3570,11 +3564,57 @@ class GObject {
             if (this instanceof GGroup)
                 this.resizeChildren(dWidth, dHeight);
             this.updateGear(2);
+            // if (this._parent) {
+            //     this._relations.onOwnerSizeChanged(dWidth, dHeight, this._pivotAsAnchor || !ignorePivot);
+            //     this._parent.setBoundsChangedFlag();
+            //     if (this._group)
+            //         this._group.setBoundsChangedFlag();
+            // }
+            this.displayObject.emit(DisplayObjectEvent.SIZE_CHANGED);
+        }
+    }
+    externalSetSize(wv, hv, ignorePivot) {
+        if (this._rawWidth != wv || this._rawHeight != hv) {
+            this._rawWidth = wv;
+            this._rawHeight = hv;
+            if (wv < this.minWidth)
+                wv = this.minWidth;
+            if (hv < this.minHeight)
+                hv = this.minHeight;
+            if (this.maxWidth > 0 && wv > this.maxWidth)
+                wv = this.maxWidth;
+            if (this.maxHeight > 0 && hv > this.maxHeight)
+                hv = this.maxHeight;
+            var dWidth = wv - this._width;
+            var dHeight = hv - this._height;
+            this._width = wv;
+            this._height = hv;
+            this.handleSizeChanged();
+            if (this._pivotX != 0 || this._pivotY != 0) {
+                if (!this._pivotAsAnchor) {
+                    if (!ignorePivot)
+                        this.setXY(this.x - this._pivotX * dWidth, this.y - this._pivotY * dHeight);
+                    this.updatePivotOffset();
+                }
+                else {
+                    this.applyPivot();
+                }
+            }
+            if (this instanceof GGroup)
+                this.resizeChildren(dWidth, dHeight);
+            this.updateGear(2);
             if (this._parent) {
-                this._relations.onOwnerSizeChanged();
+                this._relations.onOwnerSizeChanged(dWidth, dHeight, this._pivotAsAnchor || !ignorePivot);
                 this._parent.setBoundsChangedFlag();
                 if (this._group)
                     this._group.setBoundsChangedFlag();
+            }
+            if (this["_childrens"]) {
+                this["_childrens"].forEach(child => {
+                    if (child._relations) {
+                        child._relations.onOwnerSizeChanged();
+                    }
+                });
             }
             this.displayObject.emit(DisplayObjectEvent.SIZE_CHANGED);
         }
@@ -7869,15 +7909,15 @@ class PackageItem {
     }
     getHighResolution() {
         this._isHighRes = false;
-        if (this.highResolution && GRoot.contentDprLevel > 0) {
-            var itemId = this.highResolution[GRoot.contentDprLevel - 1];
-            if (itemId) {
-                const item = this.owner.getItemById(itemId);
-                item.isHighRes = true;
-                this._isHighRes = true;
-                return item;
-            }
-        }
+        // if (this.highResolution && GRoot.contentDprLevel > 0) {
+        //     var itemId: string = this.highResolution[GRoot.contentDprLevel - 1];
+        //     if (itemId) {
+        //         const item = this.owner.getItemById(itemId);
+        //         item.isHighRes = true;
+        //         this._isHighRes = true;
+        //         return item;
+        //     }
+        // }
         return this;
     }
     get isHighRes() {
@@ -9574,7 +9614,7 @@ class ScrollPane {
                 this._maskContainer.clearMask();
                 this._mask.clear();
                 this._mask.fillStyle(0x00ff00, .4);
-                this._mask.fillRect(this._owner.x, this._owner.y, this.maskScrollRect.width, this.maskScrollRect.height);
+                this._mask.fillRect(this._owner.x * GRoot.dpr, this._owner.y * GRoot.dpr, this.maskScrollRect.width * GRoot.dpr, this.maskScrollRect.height * GRoot.dpr);
                 this._maskContainer.setInteractive(this.maskScrollRect, Phaser.Geom.Rectangle.Contains);
                 // 查看mask实际位置
                 // this._owner.scene.sys.displayList.add(this._mask);
@@ -13004,7 +13044,31 @@ class GComponent extends GObject {
                             });
                         }
                         else {
-                            if (this._children) ;
+                            // 做适配
+                            // const fun1 = (children) => {
+                            //     const len = children.length;
+                            //     for (let i: number = 0; i < len; i++) {
+                            //         const child = children[i];
+                            //         const scale = child.parent ? GRoot.dpr : 1;
+                            //         if (child.type !== ObjectType.Text) {
+                            //             if (child.type === ObjectType.Image || child.type === ObjectType.MovieClip || child.type === ObjectType.Loader) {
+                            //                 if (!child["_contentItem"] || !child["_contentItem"].isHighRes) child.setScale(scale, scale);
+                            //             }
+                            //             else {
+                            //                 child.setScale(scale, scale);
+                            //             }
+                            //         } else {
+                            //             (<GBasicTextField>child).setResolution(GRoot.dpr);
+                            //         }
+                            //     }
+                            //     for (let i: number = 0; i < len; i++) {
+                            //         const child = children[i];
+                            //         child.forceSize();
+                            //     }
+                            // }
+                            // if (this._children) {
+                            //     // fun1(this._children);
+                            // }
                             this.onConstruct();
                             reslove();
                         }
@@ -13921,10 +13985,10 @@ class DisplayObject extends Phaser.GameObjects.GameObject {
         this._displayOriginY = 0;
         this._originComponent = true;
         this._blendMode = Phaser.BlendModes.NORMAL;
-        this._scaleX /= GRoot.dpr;
-        this._scaleY /= GRoot.dpr;
-        this._scaleX = Number(this._scaleY.toFixed(2));
-        this._scaleY = Number(this._scaleX.toFixed(2));
+        // this._scaleX /= GRoot.dpr;
+        // this._scaleY /= GRoot.dpr;
+        // this._scaleX = Number(this._scaleY.toFixed(2));
+        // this._scaleY = Number(this._scaleX.toFixed(2));
     }
     setOrigin(x, y) {
         if (x === undefined)
@@ -16174,7 +16238,7 @@ class GBasicTextField extends GTextField {
     setup_afterAdd(buffer, beginPos) {
         super.setup_afterAdd(buffer, beginPos);
         // 对文本进行适配
-        this.setResolution(GRoot.dpr);
+        // this.setResolution(GRoot.dpr);
     }
     setResolution(val) {
         this.adaptiveScaleX = this.adaptiveScaleY = val;
@@ -16208,6 +16272,22 @@ class GBasicTextField extends GTextField {
             this.doAlign();
         }
     }
+    // public get width(): number {
+    //     this._width = !this._width ? this.initWidth : this._width;
+    //     this._width = this._textWidth ? this._textWidth : this._width;
+    //     return this._width;
+    // }
+    // public set width(value: number) {
+    //     this._width = value;
+    // }
+    // public get height(): number {
+    //     this._height = !this._height ? this.initHeight : this._height;
+    //     this._height = this._textHeight ? this._textHeight : this._height;
+    //     return this._height;
+    // }
+    // public set height(value: number) {
+    //     this._height = value;
+    // }
     get text() {
         return this._text;
     }
@@ -16386,9 +16466,6 @@ class GBasicTextField extends GTextField {
         this._updatingSize = true;
         this.setSize(w, h);
         this._updatingSize = false;
-    }
-    setSize(w, h) {
-        super.setSize(w, h);
     }
     dispose() {
         if (this._textField) {
@@ -18325,7 +18402,7 @@ class GComboBox extends GComponent {
                 this.resizeChildren(dWidth, dHeight);
             this.updateGear(2);
             if (this._parent) {
-                this._relations.onOwnerSizeChanged();
+                this._relations.onOwnerSizeChanged(dWidth, dHeight, this._pivotAsAnchor || !ignorePivot);
                 this._parent.setBoundsChangedFlag();
                 if (this._group)
                     this._group.setBoundsChangedFlag();
@@ -20891,11 +20968,11 @@ class GList extends GComponent {
                     else {
                         this._pool.getObject(url).then((obj) => {
                             ii.obj = obj;
-                            // const g = this.scene.make.graphics(undefined, false);
-                            // g.clear();
-                            // g.fillStyle(0xFFCC00);
-                            // g.fillRoundedRect(0, 0, ii.obj.initWidth, ii.obj.initHeight - 4);
-                            // (<Phaser.GameObjects.Container>ii.obj.displayObject).addAt(g, 0);
+                            const g = this.scene.make.graphics(undefined, false);
+                            g.clear();
+                            g.fillStyle(0xFFCC00);
+                            g.fillRoundedRect(0, 0, ii.obj.initWidth, ii.obj.initHeight - 4);
+                            ii.obj.displayObject.addAt(g, 0);
                             ii.obj.displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, ii.obj.initWidth, ii.obj.initHeight), Phaser.Geom.Rectangle.Contains);
                             if (forward)
                                 this.addChildAt(ii.obj, curIndex - newFirstIndex);

@@ -17,7 +17,7 @@ export declare class RelationItem {
     copyFrom(source: RelationItem): void;
     dispose(): void;
     get isEmpty(): boolean;
-    applyOnSelfResized(): void;
+    applyOnSelfResized(dWidth: number, dHeight: number, applyPivot: boolean): void;
     private applyOnXYChanged;
     private applyOnSizeChanged;
     private addRefTarget;

@@ -42,7 +42,6 @@ export declare class GObject {
     private _alpha;
     private _rotation;
     private _visible;
-    private _dpr;
     protected _touchable: boolean;
     private _grayed;
     private _draggable?;
@@ -106,8 +105,6 @@ export declare class GObject {
     private _resizeMask;
     set type(val: number);
     get type(): number;
-    get dpr(): number;
-    set dpr(value: number);
     get id(): string;
     set id(value: string);
     get name(): string;
@@ -133,8 +130,8 @@ export declare class GObject {
     set width(value: number);
     get height(): number;
     set height(value: number);
-    forceSize(): void;
     setSize(wv: number, hv: number, ignorePivot?: boolean): void;
+    externalSetSize(wv: number, hv: number, ignorePivot?: boolean): void;
     ensureSizeCorrect(): void;
     makeFullScreen(): void;
     get actualWidth(): number;

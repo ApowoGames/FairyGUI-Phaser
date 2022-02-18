@@ -66,15 +66,15 @@ export class PackageItem {
 
     public getHighResolution(): PackageItem {
         this._isHighRes = false;
-        if (this.highResolution && GRoot.contentDprLevel > 0) {
-            var itemId: string = this.highResolution[GRoot.contentDprLevel - 1];
-            if (itemId) {
-                const item = this.owner.getItemById(itemId);
-                item.isHighRes = true;
-                this._isHighRes = true;
-                return item;
-            }
-        }
+        // if (this.highResolution && GRoot.contentDprLevel > 0) {
+        //     var itemId: string = this.highResolution[GRoot.contentDprLevel - 1];
+        //     if (itemId) {
+        //         const item = this.owner.getItemById(itemId);
+        //         item.isHighRes = true;
+        //         this._isHighRes = true;
+        //         return item;
+        //     }
+        // }
         return this;
     }
 

@@ -51,7 +51,6 @@ export class GObject {
     private _alpha: number = 1;
     private _rotation: number = 0;
     private _visible: boolean = true;
-    private _dpr: number = 1;
     // 可交互默认false
     protected _touchable: boolean = false;
     private _grayed: boolean;
@@ -195,14 +194,6 @@ export class GObject {
 
     public get type(): number {
         return this._objectType;
-    }
-
-    public get dpr(): number {
-        return this._dpr;
-    }
-
-    public set dpr(value: number) {
-        this._dpr = value;
     }
 
     public get id(): string {
@@ -355,12 +346,12 @@ export class GObject {
         this.setSize(this._rawWidth, value);
     }
 
-    public forceSize() {
-        if (this._parent) {
-            this._relations.onOwnerSizeChanged();
-        }
-        this.displayObject.emit(DisplayObjectEvent.SIZE_CHANGED);
-    }
+    // public forceSize() {
+    //     if (this._parent) {
+    //         this._relations.onOwnerSizeChanged(dWidth, dHeight, this._pivotAsAnchor || !ignorePivot);
+    //     }
+    //     this.displayObject.emit(DisplayObjectEvent.SIZE_CHANGED);
+    // }
 
     public setSize(wv: number, hv: number, ignorePivot?: boolean): void {
         if (this._rawWidth != wv || this._rawHeight != hv) {
@@ -396,12 +387,12 @@ export class GObject {
 
             this.updateGear(2);
 
-            if (this._parent) {
-                this._relations.onOwnerSizeChanged();
-                this._parent.setBoundsChangedFlag();
-                if (this._group)
-                    this._group.setBoundsChangedFlag();
-            }
+            // if (this._parent) {
+            //     this._relations.onOwnerSizeChanged(dWidth, dHeight, this._pivotAsAnchor || !ignorePivot);
+            //     this._parent.setBoundsChangedFlag();
+            //     if (this._group)
+            //         this._group.setBoundsChangedFlag();
+            // }
 
             this.displayObject.emit(DisplayObjectEvent.SIZE_CHANGED);
         }
@@ -442,7 +433,7 @@ export class GObject {
             this.updateGear(2);
 
             if (this._parent) {
-                this._relations.onOwnerSizeChanged();
+                this._relations.onOwnerSizeChanged(dWidth, dHeight, this._pivotAsAnchor || !ignorePivot);
                 this._parent.setBoundsChangedFlag();
                 if (this._group)
                     this._group.setBoundsChangedFlag();
