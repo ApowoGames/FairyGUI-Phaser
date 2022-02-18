@@ -4096,9 +4096,14 @@ class GObject {
     }
     dispose() {
         this.removeFromParent();
-        this._relations.dispose();
-        this._displayObject.destroy();
-        this._displayObject = null;
+        if (this._relations) {
+            this._relations.dispose();
+            this._relations = null;
+        }
+        if (this._displayObject) {
+            this._displayObject.destroy();
+            this._displayObject = null;
+        }
         for (var i = 0; i < 10; i++) {
             var gear = this._gears[i];
             if (gear)

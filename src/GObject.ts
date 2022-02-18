@@ -931,7 +931,6 @@ export class GObject {
             p = p.parent;
         }
         return GRoot.inst;
-        return null;
     }
 
     public get asCom(): GComponent {
@@ -1042,9 +1041,14 @@ export class GObject {
 
     public dispose(): void {
         this.removeFromParent();
-        this._relations.dispose();
-        this._displayObject.destroy();
-        this._displayObject = null;
+        if (this._relations) {
+            this._relations.dispose();
+            this._relations = null;
+        }
+        if (this._displayObject) {
+            this._displayObject.destroy();
+            this._displayObject = null;
+        }
         for (var i: number = 0; i < 10; i++) {
             var gear: GearBase = this._gears[i];
             if (gear)
