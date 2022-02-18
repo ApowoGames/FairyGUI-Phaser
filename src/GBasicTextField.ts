@@ -324,7 +324,7 @@ export class GBasicTextField extends GTextField {
     }
 
     public dispose(): void {
-        if (this._textField) {
+        if (this._textField && this._textField.active) {
             this._textField.preDestroy();
             this._textField = null;
         }

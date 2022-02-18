@@ -54,7 +54,7 @@ export class AssetProxy {
                     reject("__DEFAULT");
                 });
             } else {
-                resolve(GRoot.inst.getResUIUrl(key));
+                resolve(key);
             }
         });
     }

@@ -7986,7 +7986,7 @@
                     });
                 }
                 else {
-                    resolve(GRoot.inst.getResUIUrl(key));
+                    resolve(key);
                 }
             });
         }
@@ -12067,16 +12067,14 @@
                     this._children.splice(index, 1);
                     child.group = null;
                     if (child.inContainer) {
-                        child.displayObject.parentContainer.remove(child.displayObject);
-                        child.displayObject.removeFromDisplayList();
-                        child.displayObject.removeFromUpdateList();
+                        child.displayObject.parentContainer.remove(child.displayObject, dispose);
+                        // child.displayObject.removeFromDisplayList();
+                        // child.displayObject.removeFromUpdateList();
                         if (this._childrenRenderOrder == exports.ChildrenRenderOrder.Arch) {
                             if (!this._buildNativeTime)
                                 this._buildNativeTime = this.scene.time.addEvent(this._buildNativeEvent);
                         }
                     }
-                    if (dispose)
-                        child.dispose();
                     this.setBoundsChangedFlag();
                     reslove(child);
                 }
@@ -16180,8 +16178,8 @@
             this.dirty = true;
         }
         preDestroy() {
-            RemoveFromDOM(this.canvas);
             this.scene.sys.game.events.off(Phaser.Core.Events.CONTEXT_RESTORED, this.onContextRestored, this);
+            RemoveFromDOM(this.canvas);
             if (this._canvasText) {
                 this._canvasText.destroy();
                 this._canvasText = undefined;
@@ -16477,7 +16475,7 @@
             this._updatingSize = false;
         }
         dispose() {
-            if (this._textField) {
+            if (this._textField && this._textField.active) {
                 this._textField.preDestroy();
                 this._textField = null;
             }

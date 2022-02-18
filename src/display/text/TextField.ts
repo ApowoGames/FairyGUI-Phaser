@@ -322,8 +322,8 @@ export class TextField extends DisplayObject {
     }
 
     public preDestroy() {
-        RemoveFromDOM(this.canvas);
         this.scene.sys.game.events.off(Phaser.Core.Events.CONTEXT_RESTORED, this.onContextRestored, this);
+        RemoveFromDOM(this.canvas);
         if (this._canvasText) {
             this._canvasText.destroy();
             this._canvasText = undefined;
