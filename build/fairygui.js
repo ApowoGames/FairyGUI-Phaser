@@ -3613,13 +3613,6 @@
                     if (this._group)
                         this._group.setBoundsChangedFlag();
                 }
-                if (this["_childrens"]) {
-                    this["_childrens"].forEach(child => {
-                        if (child._relations) {
-                            child._relations.onOwnerSizeChanged();
-                        }
-                    });
-                }
                 this.displayObject.emit(DisplayObjectEvent.SIZE_CHANGED);
             }
         }
