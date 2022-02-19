@@ -121,7 +121,7 @@ export class RelationItem {
             switch (info.type) {
                 case RelationType.Center_Center:
                     // this._owner.x = this._owner.parent ? (this._owner.parent.width * GRoot.dpr * GRoot.contentScaleWid - scaleWid) / 2 : scaleWid / 2;
-                    this._owner.x -= (0.5 - (applyPivot ? this._owner.pivotX : 0)) * dWidth; 
+                    this._owner.x -= (0.5 - (applyPivot ? this._owner.pivotX : 0)) * dWidth;
                     break;
 
                 case RelationType.Right_Center:

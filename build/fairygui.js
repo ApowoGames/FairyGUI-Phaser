@@ -9599,29 +9599,29 @@
             }
             // console.log("handlesize ===>", this._owner.displayObject);
             this.updateScrollBarVisible();
-            if (this.maskScrollRect) {
+            const viewSizeX = this._viewSize.x;
+            const viewSizeY = this._viewSize.y;
+            if (this.maskScrollRect && (this.maskScrollRect.width !== viewSizeX || this.maskScrollRect.height !== viewSizeY)) {
                 var rect = new Phaser.Geom.Rectangle(); //this._maskContainer["scrollRect"];
-                if (rect) {
-                    rect.width = this._viewSize.x;
-                    rect.height = this._viewSize.y;
-                    if (this._vScrollNone && this._vtScrollBar)
-                        rect.width += this._vtScrollBar.width;
-                    if (this._hScrollNone && this._hzScrollBar)
-                        rect.height += this._hzScrollBar.height;
-                    if (this._dontClipMargin) {
-                        rect.width += (this._owner.margin.left + this._owner.margin.right);
-                        rect.height += (this._owner.margin.top + this._owner.margin.bottom);
-                    }
-                    this.maskScrollRect = rect;
-                    this._maskContainer.clearMask();
-                    this._mask.clear();
-                    this._mask.fillStyle(0x00ff00, .4);
-                    this._mask.fillRect(this._owner.x * GRoot.dpr, this._owner.y * GRoot.dpr, this.maskScrollRect.width * GRoot.dpr, this.maskScrollRect.height * GRoot.dpr);
-                    this._maskContainer.setInteractive(this.maskScrollRect, Phaser.Geom.Rectangle.Contains);
-                    // 查看mask实际位置
-                    // this._owner.scene.sys.displayList.add(this._mask);
-                    this._maskContainer.setMask(this._mask.createGeometryMask());
+                rect.width = viewSizeX;
+                rect.height = viewSizeY;
+                if (this._vScrollNone && this._vtScrollBar)
+                    rect.width += this._vtScrollBar.width;
+                if (this._hScrollNone && this._hzScrollBar)
+                    rect.height += this._hzScrollBar.height;
+                if (this._dontClipMargin) {
+                    rect.width += (this._owner.margin.left + this._owner.margin.right);
+                    rect.height += (this._owner.margin.top + this._owner.margin.bottom);
                 }
+                this.maskScrollRect = rect;
+                this._maskContainer.clearMask();
+                this._mask.clear();
+                this._mask.fillStyle(0x00ff00, .4);
+                this._mask.fillRect(this._owner.x * GRoot.dpr, this._owner.y * GRoot.dpr, this.maskScrollRect.width * GRoot.dpr, this.maskScrollRect.height * GRoot.dpr);
+                this._maskContainer.setInteractive(this.maskScrollRect, Phaser.Geom.Rectangle.Contains);
+                // 查看mask实际位置
+                // GRoot.inst.addToStage(this._mask);
+                this._maskContainer.setMask(this._mask.createGeometryMask());
             }
             if (this._scrollType == exports.ScrollType.Horizontal || this._scrollType == exports.ScrollType.Both)
                 this._overlapSize.x = Math.ceil(Math.max(0, this._contentSize.x - this._viewSize.x));
@@ -13202,37 +13202,40 @@
         }
         setXY(xv, yv, force = false) {
             super.setXY(xv, yv, force);
-            const worldMatrix = this.parent && this.parent.displayObject ?
-                this.parent.displayObject.getWorldTransformMatrix()
-                // : this.container && this.container.parentContainer ?
-                //     this.container.parentContainer.getWorldTransformMatrix()
-                : undefined;
-            this._children.forEach((obj) => {
-                if (obj && obj instanceof GComponent) {
-                    const component = obj;
-                    const posX = worldMatrix ? worldMatrix.tx + xv : xv;
-                    const posY = worldMatrix ? worldMatrix.ty + yv : yv;
-                    if (component._scrollPane) {
-                        component._scrollPane.maskPosChange(posX, posY);
-                    }
-                    const list = component._children;
-                    list.forEach((obj) => {
-                        if (obj && obj instanceof GComponent) {
-                            if (obj._mask) {
-                                obj.checkMask();
-                            }
-                            else if (obj._scrollPane) {
-                                obj._scrollPane.maskPosChange(posX, posY);
-                            }
+            // 只有owner发生移动才更新mask
+            if (this._x != xv || this._y != yv || force) {
+                const worldMatrix = this.parent && this.parent.displayObject ?
+                    this.parent.displayObject.getWorldTransformMatrix()
+                    // : this.container && this.container.parentContainer ?
+                    //     this.container.parentContainer.getWorldTransformMatrix()
+                    : undefined;
+                this._children.forEach((obj) => {
+                    if (obj && obj instanceof GComponent) {
+                        const component = obj;
+                        const posX = worldMatrix ? worldMatrix.tx + xv : xv;
+                        const posY = worldMatrix ? worldMatrix.ty + yv : yv;
+                        if (component._scrollPane) {
+                            component._scrollPane.maskPosChange(posX, posY);
                         }
-                    });
+                        const list = component._children;
+                        list.forEach((obj) => {
+                            if (obj && obj instanceof GComponent) {
+                                if (obj._mask) {
+                                    obj.checkMask();
+                                }
+                                else if (obj._scrollPane) {
+                                    obj._scrollPane.maskPosChange(posX, posY);
+                                }
+                            }
+                        });
+                    }
+                });
+                if (this._scrollPane) {
+                    this._scrollPane.maskPosChange(xv, yv);
                 }
-            });
-            if (this._scrollPane) {
-                this._scrollPane.maskPosChange(xv, yv);
-            }
-            if (this._mask) {
-                this.checkMask();
+                if (this._mask) {
+                    this.checkMask();
+                }
             }
         }
         handleScaleChanged() {
@@ -17225,9 +17228,6 @@
             if (this._content2)
                 this._content2.dispose();
             super.dispose();
-        }
-        setXY(xv, yv, force) {
-            super.setXY(xv, yv, force);
         }
         get url() {
             return this._url;

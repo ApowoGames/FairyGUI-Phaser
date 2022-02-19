@@ -1516,36 +1516,39 @@ export class GComponent extends GObject {
     public setXY(xv: number, yv: number, force: boolean = false): void {
         super.setXY(xv, yv, force);
 
-        const worldMatrix = this.parent && <Phaser.GameObjects.Container>this.parent.displayObject ?
-            (<Phaser.GameObjects.Container>this.parent.displayObject).getWorldTransformMatrix()
-            // : this.container && this.container.parentContainer ?
-            //     this.container.parentContainer.getWorldTransformMatrix()
-            : undefined;
-        this._children.forEach((obj) => {
-            if (obj && obj instanceof GComponent) {
-                const component = (<GComponent>obj);
-                const posX = worldMatrix ? worldMatrix.tx + xv : xv;
-                const posY = worldMatrix ? worldMatrix.ty + yv : yv;
-                if (component._scrollPane) {
-                    component._scrollPane.maskPosChange(posX, posY);
-                }
-                const list = component._children;
-                list.forEach((obj) => {
-                    if (obj && obj instanceof GComponent) {
-                        if (obj._mask) {
-                            obj.checkMask();
-                        } else if (obj._scrollPane) {
-                            obj._scrollPane.maskPosChange(posX, posY);
-                        }
+        // 只有owner发生移动才更新mask
+        if (this._x != xv || this._y != yv || force) {
+            const worldMatrix = this.parent && <Phaser.GameObjects.Container>this.parent.displayObject ?
+                (<Phaser.GameObjects.Container>this.parent.displayObject).getWorldTransformMatrix()
+                // : this.container && this.container.parentContainer ?
+                //     this.container.parentContainer.getWorldTransformMatrix()
+                : undefined;
+            this._children.forEach((obj) => {
+                if (obj && obj instanceof GComponent) {
+                    const component = (<GComponent>obj);
+                    const posX = worldMatrix ? worldMatrix.tx + xv : xv;
+                    const posY = worldMatrix ? worldMatrix.ty + yv : yv;
+                    if (component._scrollPane) {
+                        component._scrollPane.maskPosChange(posX, posY);
                     }
-                });
+                    const list = component._children;
+                    list.forEach((obj) => {
+                        if (obj && obj instanceof GComponent) {
+                            if (obj._mask) {
+                                obj.checkMask();
+                            } else if (obj._scrollPane) {
+                                obj._scrollPane.maskPosChange(posX, posY);
+                            }
+                        }
+                    });
+                }
+            });
+            if (this._scrollPane) {
+                this._scrollPane.maskPosChange(xv, yv);
             }
-        });
-        if (this._scrollPane) {
-            this._scrollPane.maskPosChange(xv, yv);
-        }
-        if (this._mask) {
-            this.checkMask();
+            if (this._mask) {
+                this.checkMask();
+            }
         }
     }
 

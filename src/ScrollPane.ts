@@ -950,29 +950,29 @@ export class ScrollPane {
         // console.log("handlesize ===>", this._owner.displayObject);
         this.updateScrollBarVisible();
 
-        if (this.maskScrollRect) {
+        const viewSizeX = this._viewSize.x;
+        const viewSizeY = this._viewSize.y;
+        if (this.maskScrollRect && (this.maskScrollRect.width !== viewSizeX || this.maskScrollRect.height !== viewSizeY)) {
             var rect: Phaser.Geom.Rectangle = new Phaser.Geom.Rectangle()//this._maskContainer["scrollRect"];
-            if (rect) {
-                rect.width = this._viewSize.x;
-                rect.height = this._viewSize.y;
-                if (this._vScrollNone && this._vtScrollBar)
-                    rect.width += this._vtScrollBar.width;
-                if (this._hScrollNone && this._hzScrollBar)
-                    rect.height += this._hzScrollBar.height;
-                if (this._dontClipMargin) {
-                    rect.width += (this._owner.margin.left + this._owner.margin.right);
-                    rect.height += (this._owner.margin.top + this._owner.margin.bottom);
-                }
-                this.maskScrollRect = rect;
-                this._maskContainer.clearMask();
-                this._mask.clear();
-                this._mask.fillStyle(0x00ff00, .4);
-                this._mask.fillRect(this._owner.x * GRoot.dpr, this._owner.y * GRoot.dpr, this.maskScrollRect.width * GRoot.dpr, this.maskScrollRect.height * GRoot.dpr);
-                this._maskContainer.setInteractive(this.maskScrollRect, Phaser.Geom.Rectangle.Contains);
-                // 查看mask实际位置
-                // this._owner.scene.sys.displayList.add(this._mask);
-                this._maskContainer.setMask(this._mask.createGeometryMask());
+            rect.width = viewSizeX;
+            rect.height = viewSizeY;
+            if (this._vScrollNone && this._vtScrollBar)
+                rect.width += this._vtScrollBar.width;
+            if (this._hScrollNone && this._hzScrollBar)
+                rect.height += this._hzScrollBar.height;
+            if (this._dontClipMargin) {
+                rect.width += (this._owner.margin.left + this._owner.margin.right);
+                rect.height += (this._owner.margin.top + this._owner.margin.bottom);
             }
+            this.maskScrollRect = rect;
+            this._maskContainer.clearMask();
+            this._mask.clear();
+            this._mask.fillStyle(0x00ff00, .4);
+            this._mask.fillRect(this._owner.x * GRoot.dpr, this._owner.y * GRoot.dpr, this.maskScrollRect.width * GRoot.dpr, this.maskScrollRect.height * GRoot.dpr);
+            this._maskContainer.setInteractive(this.maskScrollRect, Phaser.Geom.Rectangle.Contains);
+            // 查看mask实际位置
+            // GRoot.inst.addToStage(this._mask);
+            this._maskContainer.setMask(this._mask.createGeometryMask());
         }
 
 
