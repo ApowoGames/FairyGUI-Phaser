@@ -16873,8 +16873,13 @@
         createElement() {
             this._element = new Phaser.GameObjects.DOMElement(this.scene);
             let e;
-            {
+            if (this["$owner"].singleLine) {
                 e = document.createElement("input");
+            }
+            else {
+                e = document.createElement("textarea");
+                e.style.resize = "none";
+                e.style.overflow = "scroll";
             }
             this._inputNode = e;
             e.style.outline = "none";

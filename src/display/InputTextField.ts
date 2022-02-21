@@ -182,7 +182,7 @@ export class InputTextField extends TextField {
     private createElement() {
         this._element = new Phaser.GameObjects.DOMElement(this.scene);
         let e: InputElement;
-        if (true) {
+        if (this["$owner"].singleLine) {
             e = document.createElement("input");
         } else {
             e = document.createElement("textarea");
