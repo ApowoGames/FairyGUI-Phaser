@@ -88,12 +88,13 @@ export class GBasicTextField extends GTextField {
             // this._textField.typeset();
             this.updateSize();
             this.doAlign();
-            const offsetWidth = this._widthAutoSize ? 3 : 0;
-            const offsetHeight = this._heightAutoSize ? 4 : 0;
-            const offsetX = this.parent._width * this.parent.pivotX;
-            const offsetY = this.parent._height * this.parent.pivotY;
+            // 由于canvas2D.measureText()获取的文本尺寸与fairygui编辑器中不同，这边手动调整下尺寸，便于编辑器控制
+            const offsetWidthAuto = this._widthAutoSize && this.parent.pivotX === 0 ? 3 : 0;
+            const offsetHeightAuto = this._heightAutoSize && this.parent.pivotY === 0 ? 4 : 0;
+            const offsetParentWidth = this.parent._width * this.parent.pivotX;
+            const offsetParentHeight = this.parent._height * this.parent.pivotY;
 
-            this.setXY(this.x - offsetX + offsetWidth, this.y - offsetY + offsetHeight);
+            this.setXY(this.x - offsetParentWidth + offsetWidthAuto, this.y - offsetParentHeight + offsetHeightAuto);
         }
     }
 
