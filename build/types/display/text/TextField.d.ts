@@ -20,6 +20,7 @@ export declare class TextField extends DisplayObject {
     addImage(key: string, config: string): this;
     drawAreaBounds(graphics: any, color: any): this;
     updateText(runWrap?: boolean): this;
+    setPosition(x?: number, y?: number): this;
     setWordWrapWidth(width: number, useAdvancedWrap?: boolean): void;
     setResolution(resolution: number): void;
     setSingleLine(val: boolean): void;

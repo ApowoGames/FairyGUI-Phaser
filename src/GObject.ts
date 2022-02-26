@@ -477,8 +477,8 @@ export class GObject {
         this.setScale(this._scaleX, value);
     }
 
-    public setScale(sx: number, sy: number): void {
-        if (this._scaleX != sx || this._scaleY != sy) {
+    public setScale(sx: number, sy: number, force: boolean = false): void {
+        if (this._scaleX != sx || this._scaleY != sy || force) {
             this._scaleX = sx;
             this._scaleY = sy;
             this.handleScaleChanged();

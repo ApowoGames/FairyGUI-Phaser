@@ -1,4 +1,5 @@
 import { ByteBuffer } from './utils/ByteBuffer';
+import { RelationItem } from './RelationItem';
 import { GObject } from './GObject';
 export declare class Relations {
     private _owner;
@@ -6,6 +7,7 @@ export declare class Relations {
     handling: GObject;
     sizeDirty?: boolean;
     constructor(owner: GObject);
+    get items(): RelationItem[];
     add(target: GObject, relationType: number, usePercent?: boolean): void;
     remove(target: GObject, relationType?: number): void;
     contains(target: GObject): boolean;

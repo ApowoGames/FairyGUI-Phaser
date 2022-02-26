@@ -50,6 +50,7 @@ export declare class GBasicTextField extends GTextField {
     setShadowOffset(x: number, y: number): void;
     protected updateAutoSize(): void;
     get textWidth(): number;
+    get textHeight(): number;
     ensureSizeCorrect(): void;
     typeset(): void;
     protected updateSize(): void;
@@ -57,7 +58,6 @@ export declare class GBasicTextField extends GTextField {
     private renderWithBitmapFont;
     protected handleGrayedChanged(): void;
     protected doAlign(): void;
-    setXY(xv: number, yv: number, force?: boolean): void;
     flushVars(): void;
 }
 export interface LineInfo {

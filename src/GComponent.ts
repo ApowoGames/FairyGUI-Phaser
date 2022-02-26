@@ -1560,6 +1560,7 @@ export class GComponent extends GObject {
                 if (child.type === ObjectType.Text) {
                     (<GBasicTextField>child).setScale(1, 1);
                 }
+                child.displayObject.emit(DisplayObjectEvent.SIZE_CHANGED, this);
             }
         }
         super.handleScaleChanged();

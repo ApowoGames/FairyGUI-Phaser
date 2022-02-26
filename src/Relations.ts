@@ -14,6 +14,10 @@ export class Relations {
         this._items = [];
     }
 
+    public get items(): RelationItem[] {
+        return this._items;
+    }
+
     public add(target: GObject, relationType: number, usePercent?: boolean): void {
         var length: number = this._items.length;
         for (var i: number = 0; i < length; i++) {

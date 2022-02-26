@@ -1,9 +1,11 @@
+import { DisplayObjectEvent } from './event/DisplayObjectEvent';
 import { AutoSizeType } from './FieldTypes';
 import { BitmapFont } from './display/BitmapFont';
 import { GTextField } from './GTextField';
 import { TextField } from './display/text/TextField';
 import { ByteBuffer, GRoot, ToolSet, UIConfig, UIPackage } from '.';
 import { HAlignModeString, VAlignModeString } from './display/text/Types';
+import { RelationItem } from './RelationItem';
 export class GBasicTextField extends GTextField {
     protected _textField: TextField;
 
@@ -86,26 +88,14 @@ export class GBasicTextField extends GTextField {
             // this._textField.typeset();
             this.updateSize();
             this.doAlign();
+            const offsetWidth = this._widthAutoSize ? 3 : 0;
+            const offsetHeight = this._heightAutoSize ? 4 : 0;
+            const offsetX = this.parent._width * this.parent.pivotX;
+            const offsetY = this.parent._height * this.parent.pivotY;
+
+            this.setXY(this.x - offsetX + offsetWidth, this.y - offsetY + offsetHeight);
         }
     }
-
-    // public get width(): number {
-    //     this._width = !this._width ? this.initWidth : this._width;
-    //     this._width = this._textWidth ? this._textWidth : this._width;
-    //     return this._width;
-    // }
-    // public set width(value: number) {
-    //     this._width = value;
-    // }
-
-    // public get height(): number {
-    //     this._height = !this._height ? this.initHeight : this._height;
-    //     this._height = this._textHeight ? this._textHeight : this._height;
-    //     return this._height;
-    // }
-    // public set height(value: number) {
-    //     this._height = value;
-    // }
 
     public get text(): string {
         return this._text;
@@ -275,6 +265,10 @@ export class GBasicTextField extends GTextField {
 
     public get textWidth(): number {
         return this._textWidth;
+    }
+
+    public get textHeight(): number {
+        return this._textHeight;
     }
 
     public ensureSizeCorrect(): void {
@@ -613,46 +607,10 @@ export class GBasicTextField extends GTextField {
         this.handleXYChanged();
     }
 
-    public setXY(xv: number, yv: number, force: boolean = false): void {
-        super.setXY(xv, yv);
-    }
-
     public flushVars(): void {
         this.text = this._text;
     }
 
-    // protected handleXYChanged(): void {
-    //     var xv: number = this._x + this._xOffset;
-    //     var yv: number = this._y + this._yOffset;
-
-    //     // if (this._pivotAsAnchor) {
-    //     //     xv = xv * GRoot.dpr - this._pivotX * this.initWidth;
-    //     //     yv = yv * GRoot.dpr - this._pivotY * this.initHeight;
-    //     // }
-
-    //     if (this.parent && this._pivotAsAnchor && (this.parent.pivotX !== 0 || this.parent.pivotY !== 0)) {
-    //         xv = xv * GRoot.dpr - this.parent.initWidth * this.parent.pivotX;
-    //         // this.pivotX === 0 ? this.x : this.pivotX * this.initWidth * targetScale / this.adaptiveScaleX - this.parent.pivotX * this.parent.initWidth * ownerScale / this.parent.adaptiveScaleX;
-    //         yv = yv * GRoot.dpr - this.parent.initHeight * this.parent.pivotY;
-    //         // const _tmpY = this.pivotY === 0 ? this.y : this.pivotY * this.initHeight * targetScale / this.adaptiveScaleY - this.parent.pivotY * this.parent.initHeight * ownerScale / this.parent.adaptiveScaleY;
-
-    //     }
-
-    //     // if (this.parent && this._pivotAsAnchor && (this.parent.pivotX !== 0 || this.parent.pivotY !== 0)) {
-    //     //     const _tmpX = this.x * GRoot.dpr - this.parent.initWidth * this.parent.pivotX;
-    //     //     const _tmpY = this.y * GRoot.dpr - this.parent.initHeight * this.parent.pivotY;
-    //     //     // this.pivotX === 0 ? this.x : this.pivotX * this._textWidth * targetScale / this.adaptiveScaleX - this.parent.pivotX * this.parent.initWidth * ownerScale / this.parent.adaptiveScaleX;
-    //     //     // const _tmpY = this.pivotY === 0 ? this.y : this.pivotY * this.initHeight * targetScale / this.adaptiveScaleY - this.parent.pivotY * this.parent.initHeight * ownerScale / this.parent.adaptiveScaleY;
-    //     //     this.setXY(this.x/GRoot.dpr,this.y/GRoot.dpr);
-    //     // }
-
-    //     if (this._pixelSnapping) {
-    //         xv = Math.round(xv);
-    //         yv = Math.round(yv);
-    //     }
-
-    //     this._displayObject.setPosition(xv, yv);
-    // }
 }
 
 export interface LineInfo {
