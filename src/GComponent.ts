@@ -1514,8 +1514,6 @@ export class GComponent extends GObject {
 
 
     public setXY(xv: number, yv: number, force: boolean = false): void {
-        super.setXY(xv, yv, force);
-
         // 只有owner发生移动才更新mask
         if (this._x != xv || this._y != yv || force) {
             const worldMatrix = this.parent && <Phaser.GameObjects.Container>this.parent.displayObject ?
@@ -1550,6 +1548,7 @@ export class GComponent extends GObject {
                 this.checkMask();
             }
         }
+        super.setXY(xv, yv, force);
     }
 
     protected handleScaleChanged(): void {

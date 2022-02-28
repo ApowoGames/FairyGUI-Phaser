@@ -13198,7 +13198,6 @@ class GComponent extends GObject {
             this._displayObject.remove(this._maskDisplay.parentContainer);
     }
     setXY(xv, yv, force = false) {
-        super.setXY(xv, yv, force);
         // 只有owner发生移动才更新mask
         if (this._x != xv || this._y != yv || force) {
             const worldMatrix = this.parent && this.parent.displayObject ?
@@ -13234,6 +13233,7 @@ class GComponent extends GObject {
                 this.checkMask();
             }
         }
+        super.setXY(xv, yv, force);
     }
     handleScaleChanged() {
         if (this._children) {
