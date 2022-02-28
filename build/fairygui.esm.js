@@ -9971,7 +9971,7 @@ class ScrollPane {
         _gestureFlag = 0;
         if (!this._dragged || !this._touchEffect) {
             this._dragged = false;
-            if (this.maskScrollRect)
+            if (this.maskScrollRect && this._maskContainer.scene)
                 this._maskContainer.setInteractive(this.maskScrollRect, Phaser.Geom.Rectangle.Contains);
             return;
         }
