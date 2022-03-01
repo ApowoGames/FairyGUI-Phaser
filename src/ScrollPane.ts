@@ -968,11 +968,19 @@ export class ScrollPane {
             this._maskContainer.clearMask();
             this._mask.clear();
             this._mask.fillStyle(0x00ff00, .4);
-            this._mask.fillRect(this._owner.x * GRoot.dpr, this._owner.y * GRoot.dpr, this.maskScrollRect.width * GRoot.dpr, this.maskScrollRect.height * GRoot.dpr);
+            this._mask.fillRect(0, 0, this.maskScrollRect.width * GRoot.dpr, this.maskScrollRect.height * GRoot.dpr);
             this._maskContainer.setInteractive(this.maskScrollRect, Phaser.Geom.Rectangle.Contains);
             // 查看mask实际位置
             // GRoot.inst.addToStage(this._mask);
             this._maskContainer.setMask(this._mask.createGeometryMask());
+            const worldMatrix = this._owner.parent && <Phaser.GameObjects.Container>this._owner.parent.displayObject ?
+                (<Phaser.GameObjects.Container>this._owner.parent.displayObject).getWorldTransformMatrix()
+                : undefined;
+            const xv = this._owner.x;
+            const yv = this._owner.y;
+            const posX = worldMatrix ? worldMatrix.tx + xv : xv;
+            const posY = worldMatrix ? worldMatrix.ty + yv : yv;
+            this.maskPosChange(posX, posY);
         }
 
 
@@ -1497,20 +1505,8 @@ export class ScrollPane {
             //     }
             // this.maskScrollRect = rect;
             if (this._mask) {
-                // const parent = this.owner.parent?this.owner.parent:this.owner
-                // const world = (<Phaser.GameObjects.Container>parent.displayObject).getWorldTransformMatrix();
-                this._mask.setPosition(x, y);
+                this._mask.setPosition(x * GRoot.dpr, y * GRoot.dpr);
             }
-            // this._maskContainer.clearMask();
-            // this._mask.clear();
-            // this._mask.fillStyle(0x00ff00, .4);
-            // this._mask.fillRect(x, y, this.maskScrollRect.width, this.maskScrollRect.height);
-            // this._maskContainer.setInteractive(this.maskScrollRect, Phaser.Geom.Rectangle.Contains);
-            // // this._maskContainer.add(this._mask);
-            // // const g = this._mask.createGeometryMask();
-            // // console.log("g====>", g);
-            // this._maskContainer.setMask(this._mask.createGeometryMask());
-            // //  }
         }
     }
 

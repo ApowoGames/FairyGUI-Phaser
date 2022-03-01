@@ -9618,11 +9618,19 @@
                 this._maskContainer.clearMask();
                 this._mask.clear();
                 this._mask.fillStyle(0x00ff00, .4);
-                this._mask.fillRect(this._owner.x * GRoot.dpr, this._owner.y * GRoot.dpr, this.maskScrollRect.width * GRoot.dpr, this.maskScrollRect.height * GRoot.dpr);
+                this._mask.fillRect(0, 0, this.maskScrollRect.width * GRoot.dpr, this.maskScrollRect.height * GRoot.dpr);
                 this._maskContainer.setInteractive(this.maskScrollRect, Phaser.Geom.Rectangle.Contains);
                 // 查看mask实际位置
                 // GRoot.inst.addToStage(this._mask);
                 this._maskContainer.setMask(this._mask.createGeometryMask());
+                const worldMatrix = this._owner.parent && this._owner.parent.displayObject ?
+                    this._owner.parent.displayObject.getWorldTransformMatrix()
+                    : undefined;
+                const xv = this._owner.x;
+                const yv = this._owner.y;
+                const posX = worldMatrix ? worldMatrix.tx + xv : xv;
+                const posY = worldMatrix ? worldMatrix.ty + yv : yv;
+                this.maskPosChange(posX, posY);
             }
             if (this._scrollType == exports.ScrollType.Horizontal || this._scrollType == exports.ScrollType.Both)
                 this._overlapSize.x = Math.ceil(Math.max(0, this._contentSize.x - this._viewSize.x));
@@ -10083,7 +10091,7 @@
                 if (this._mask) {
                     // const parent = this.owner.parent?this.owner.parent:this.owner
                     // const world = (<Phaser.GameObjects.Container>parent.displayObject).getWorldTransformMatrix();
-                    this._mask.setPosition(x, y);
+                    this._mask.setPosition(x * GRoot.dpr, y * GRoot.dpr);
                 }
                 // this._maskContainer.clearMask();
                 // this._mask.clear();
@@ -13204,16 +13212,31 @@
         setXY(xv, yv, force = false) {
             // 只有owner发生移动才更新mask
             if (this._x != xv || this._y != yv || force) {
+                var dx = xv - this._x;
+                var dy = yv - this._y;
+                this._x = xv;
+                this._y = yv;
+                this.handleXYChanged();
+                if (this instanceof GGroup)
+                    this.moveChildren(dx, dy);
+                this.updateGear(1);
+                // if (this._parent && !(this._parent instanceof GList)) {
+                if (this._parent) {
+                    this._parent.setBoundsChangedFlag();
+                    if (this._group)
+                        this._group.setBoundsChangedFlag(true);
+                    this.displayObject.emit(DisplayObjectEvent.XY_CHANGED);
+                }
+                if (GObject.draggingObject === this && !sUpdateInDragging)
+                    this.localToGlobalRect(0, 0, this._width, this._height, sGlobalRect);
                 const worldMatrix = this.parent && this.parent.displayObject ?
                     this.parent.displayObject.getWorldTransformMatrix()
-                    // : this.container && this.container.parentContainer ?
-                    //     this.container.parentContainer.getWorldTransformMatrix()
                     : undefined;
+                const posX = worldMatrix ? worldMatrix.tx + xv : xv;
+                const posY = worldMatrix ? worldMatrix.ty + yv : yv;
                 this._children.forEach((obj) => {
                     if (obj && obj instanceof GComponent) {
                         const component = obj;
-                        const posX = worldMatrix ? worldMatrix.tx + xv : xv;
-                        const posY = worldMatrix ? worldMatrix.ty + yv : yv;
                         if (component._scrollPane) {
                             component._scrollPane.maskPosChange(posX, posY);
                         }
@@ -13231,13 +13254,12 @@
                     }
                 });
                 if (this._scrollPane) {
-                    this._scrollPane.maskPosChange(xv, yv);
+                    this._scrollPane.maskPosChange(posX, posY);
                 }
                 if (this._mask) {
                     this.checkMask();
                 }
             }
-            super.setXY(xv, yv, force);
         }
         handleScaleChanged() {
             if (this._children) {
@@ -19011,18 +19033,18 @@
             if (!this.canDrag) {
                 return;
             }
-            var pt = new Phaser.Geom.Point(pointer.x, pointer.y);
-            var deltaX = pt.x - this._clickPos.x;
-            var deltaY = pt.y - this._clickPos.y;
+            let pt = new Phaser.Geom.Point(pointer.x, pointer.y);
+            let deltaX = pt.x - this._clickPos.x;
+            let deltaY = pt.y - this._clickPos.y;
             if (this._reverse) {
                 deltaX = -deltaX;
                 deltaY = -deltaY;
             }
-            var percent;
+            let percent;
             if (this._barObjectH)
-                percent = this._clickPercent + deltaX / this._barMaxWidth;
+                percent = this._clickPercent + deltaX / (this._barMaxWidth * GRoot.dpr);
             else
-                percent = this._clickPercent + deltaY / this._barMaxHeight;
+                percent = this._clickPercent + deltaY / (this._barMaxHeight * GRoot.dpr);
             this.updateWithPercent(percent, true);
         }
         __gripMouseUp() {
@@ -19040,9 +19062,9 @@
             var percent = ToolSet.clamp01((this._value - this._min) / (this._max - this._min));
             var delta;
             if (this._barObjectH)
-                delta = pt.x / this._barMaxWidth;
+                delta = pt.x / this._barMaxWidth * GRoot.dpr;
             if (this._barObjectV)
-                delta = pt.y / this._barMaxHeight;
+                delta = pt.y / this._barMaxHeight * GRoot.dpr;
             if (this._reverse)
                 percent -= delta;
             else

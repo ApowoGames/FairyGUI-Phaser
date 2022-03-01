@@ -4,7 +4,7 @@ import { ToolSet } from './utils/ToolSet';
 import { ProgressTitleType } from './FieldTypes';
 import { GObject } from './GObject';
 import { GComponent } from "./GComponent";
-import { InteractiveEvent } from '.';
+import { GRoot, InteractiveEvent } from '.';
 
 export class GSlider extends GComponent {
     private _min: number = 0;
@@ -234,18 +234,18 @@ export class GSlider extends GComponent {
             return;
         }
 
-        var pt: Phaser.Geom.Point = new Phaser.Geom.Point(pointer.x, pointer.y);
-        var deltaX: number = pt.x - this._clickPos.x;
-        var deltaY: number = pt.y - this._clickPos.y;
+        let pt: Phaser.Geom.Point = new Phaser.Geom.Point(pointer.x, pointer.y);
+        let deltaX: number = pt.x - this._clickPos.x;
+        let deltaY: number = pt.y - this._clickPos.y;
         if (this._reverse) {
             deltaX = -deltaX;
             deltaY = -deltaY;
         }
-        var percent: number;
+        let percent: number;
         if (this._barObjectH)
-            percent = this._clickPercent + deltaX / this._barMaxWidth;
+            percent = this._clickPercent + deltaX / (this._barMaxWidth * GRoot.dpr);
         else
-            percent = this._clickPercent + deltaY / this._barMaxHeight;
+            percent = this._clickPercent + deltaY / (this._barMaxHeight * GRoot.dpr);
         this.updateWithPercent(percent, true);
     }
 
@@ -268,9 +268,9 @@ export class GSlider extends GComponent {
         var percent: number = ToolSet.clamp01((this._value - this._min) / (this._max - this._min));
         var delta: number;
         if (this._barObjectH)
-            delta = pt.x / this._barMaxWidth;
+            delta = pt.x / this._barMaxWidth * GRoot.dpr;
         if (this._barObjectV)
-            delta = pt.y / this._barMaxHeight;
+            delta = pt.y / this._barMaxHeight * GRoot.dpr;
         if (this._reverse)
             percent -= delta;
         else

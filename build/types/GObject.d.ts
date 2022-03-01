@@ -312,3 +312,5 @@ export declare const BlendMode: {
     3: Phaser.BlendModes;
     4: Phaser.BlendModes;
 };
+export declare var sGlobalRect: Phaser.Geom.Rectangle;
+export declare var sUpdateInDragging: boolean;

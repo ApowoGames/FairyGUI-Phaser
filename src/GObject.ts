@@ -1682,8 +1682,8 @@ export const BlendMode = {
 
 var _gInstanceCounter: number = 0;
 var sGlobalDragStart: Phaser.Geom.Point = new Phaser.Geom.Point();
-var sGlobalRect: Phaser.Geom.Rectangle = new Phaser.Geom.Rectangle();
+export var sGlobalRect: Phaser.Geom.Rectangle = new Phaser.Geom.Rectangle();
 var sHelperPoint: Phaser.Geom.Point = new Phaser.Geom.Point();
 var sDragHelperRect: Phaser.Geom.Rectangle = new Phaser.Geom.Rectangle();
-var sUpdateInDragging: boolean;
+export var sUpdateInDragging: boolean;
 var sDraggingQuery: boolean;

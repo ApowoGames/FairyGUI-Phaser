@@ -13,9 +13,9 @@ import { Transition } from "./Transition";
 import { Margin } from "./Margin";
 import { Controller } from "./Controller";
 import { Graphics } from "./display/Graphics";
-import { GObject } from "./GObject";
+import { GObject, sGlobalRect, sUpdateInDragging } from "./GObject";
 import { Decls, UIPackage } from "./UIPackage";
-import { GRoot, Image, DisplayObjectEvent, ObjectName, GTextField } from ".";
+import { GRoot, Image, DisplayObjectEvent, ObjectName } from ".";
 export class GComponent extends GObject {
     private _sortingChildCount: number = 0;
     protected _opaque: boolean;
@@ -1516,16 +1516,35 @@ export class GComponent extends GObject {
     public setXY(xv: number, yv: number, force: boolean = false): void {
         // 只有owner发生移动才更新mask
         if (this._x != xv || this._y != yv || force) {
+            var dx: number = xv - this._x;
+            var dy: number = yv - this._y;
+            this._x = xv;
+            this._y = yv;
+
+            this.handleXYChanged();
+            if (this instanceof GGroup)
+                (<GGroup>this).moveChildren(dx, dy);
+
+            this.updateGear(1);
+
+            // if (this._parent && !(this._parent instanceof GList)) {
+            if (this._parent) {
+                this._parent.setBoundsChangedFlag();
+                if (this._group)
+                    this._group.setBoundsChangedFlag(true);
+                this.displayObject.emit(DisplayObjectEvent.XY_CHANGED);
+            }
+
+            if (GObject.draggingObject === this && !sUpdateInDragging)
+                this.localToGlobalRect(0, 0, this._width, this._height, sGlobalRect);
             const worldMatrix = this.parent && <Phaser.GameObjects.Container>this.parent.displayObject ?
                 (<Phaser.GameObjects.Container>this.parent.displayObject).getWorldTransformMatrix()
-                // : this.container && this.container.parentContainer ?
-                //     this.container.parentContainer.getWorldTransformMatrix()
                 : undefined;
+            const posX = worldMatrix ? worldMatrix.tx + xv : xv;
+            const posY = worldMatrix ? worldMatrix.ty + yv : yv;
             this._children.forEach((obj) => {
                 if (obj && obj instanceof GComponent) {
                     const component = (<GComponent>obj);
-                    const posX = worldMatrix ? worldMatrix.tx + xv : xv;
-                    const posY = worldMatrix ? worldMatrix.ty + yv : yv;
                     if (component._scrollPane) {
                         component._scrollPane.maskPosChange(posX, posY);
                     }
@@ -1542,13 +1561,12 @@ export class GComponent extends GObject {
                 }
             });
             if (this._scrollPane) {
-                this._scrollPane.maskPosChange(xv, yv);
+                this._scrollPane.maskPosChange(posX, posY);
             }
             if (this._mask) {
                 this.checkMask();
             }
         }
-        super.setXY(xv, yv, force);
     }
 
     protected handleScaleChanged(): void {
