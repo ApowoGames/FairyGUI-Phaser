@@ -10089,20 +10089,8 @@
                 //     }
                 // this.maskScrollRect = rect;
                 if (this._mask) {
-                    // const parent = this.owner.parent?this.owner.parent:this.owner
-                    // const world = (<Phaser.GameObjects.Container>parent.displayObject).getWorldTransformMatrix();
                     this._mask.setPosition(x * GRoot.dpr, y * GRoot.dpr);
                 }
-                // this._maskContainer.clearMask();
-                // this._mask.clear();
-                // this._mask.fillStyle(0x00ff00, .4);
-                // this._mask.fillRect(x, y, this.maskScrollRect.width, this.maskScrollRect.height);
-                // this._maskContainer.setInteractive(this.maskScrollRect, Phaser.Geom.Rectangle.Contains);
-                // // this._maskContainer.add(this._mask);
-                // // const g = this._mask.createGeometryMask();
-                // // console.log("g====>", g);
-                // this._maskContainer.setMask(this._mask.createGeometryMask());
-                // //  }
             }
         }
         __click() {
@@ -16300,12 +16288,14 @@
                 // this._textField.typeset();
                 this.updateSize();
                 this.doAlign();
-                // 由于canvas2D.measureText()获取的文本尺寸与fairygui编辑器中不同，这边手动调整下尺寸，便于编辑器控制
-                const offsetWidthAuto = this._widthAutoSize && this.parent.pivotX === 0 ? 3 : 0;
-                const offsetHeightAuto = this._heightAutoSize && this.parent.pivotY === 0 ? 4 : 0;
-                const offsetParentWidth = this.parent._width * this.parent.pivotX;
-                const offsetParentHeight = this.parent._height * this.parent.pivotY;
-                this.setXY(this.x - offsetParentWidth + offsetWidthAuto, this.y - offsetParentHeight + offsetHeightAuto);
+                // // 由于canvas2D.measureText()获取的文本尺寸与fairygui编辑器中不同，这边手动调整下尺寸，便于编辑器控制
+                // const offsetWidthAuto = 0//this._widthAutoSize && this.parent.pivotX === 0 ? 3 : 0;
+                // const offsetHeightAuto = 0//this._heightAutoSize && this.parent.pivotY === 0 ? 4 : 0;
+                // const offsetParentWidth = this.parent._width * this.parent.pivotX;
+                // const offsetParentHeight = this.parent._height * this.parent.pivotY;
+                // const _x = this.initWidth - this._rawWidth >> 1;
+                // const _y = this.initHeight - this._rawHeight >> 1;
+                // this.setXY(this.x + _x, this.y + _y);
             }
         }
         get text() {
@@ -16754,6 +16744,20 @@
         }
         flushVars() {
             this.text = this._text;
+        }
+        handleXYChanged() {
+            var xv = this._x + this._xOffset;
+            var yv = this._y + this._yOffset;
+            if (this._pixelSnapping) {
+                xv = Math.round(xv);
+                yv = Math.round(yv);
+            }
+            // 由于canvas2D.measureText()获取的文本尺寸与fairygui编辑器中不同，这边手动调整下尺寸，便于编辑器控制
+            const offsetWidthAuto = this._widthAutoSize && this.parent && this.parent.pivotX === 0 ? 3 : 0;
+            const offsetHeightAuto = this._heightAutoSize && this.parent && this.parent.pivotY === 0 ? 4 : 0;
+            const offsetParentWidth = this.parent ? this.parent._width * this.parent.pivotX : 0;
+            const offsetParentHeight = this.parent ? this.parent._height * this.parent.pivotY : 0;
+            this._displayObject.setPosition(xv - offsetParentWidth + offsetWidthAuto, yv - offsetParentHeight + offsetHeightAuto);
         }
     }
     const GUTTER_X = 2;

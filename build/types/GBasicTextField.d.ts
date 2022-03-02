@@ -59,6 +59,7 @@ export declare class GBasicTextField extends GTextField {
     protected handleGrayedChanged(): void;
     protected doAlign(): void;
     flushVars(): void;
+    protected handleXYChanged(): void;
 }
 export interface LineInfo {
     width: number;
