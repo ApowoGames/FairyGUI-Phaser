@@ -140,6 +140,11 @@ export class GImage extends GObject {
         }
     }
 
+    protected handleSizeChanged(): void {
+        super.handleSizeChanged();
+        this.handleXYChanged();
+    }
+
     public getProp(index: number): any {
         if (index == ObjectPropID.Color)
             return this.color;

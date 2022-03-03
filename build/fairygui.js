@@ -2449,6 +2449,7 @@
                         this._owner.y += delta * (1 - pivot);
                     break;
                 case exports.RelationType.Width:
+                    this._owner.relationPivot = true;
                     if (this._owner._underConstruct && this._owner == this._target.parent)
                         v = this._owner.sourceWidth - this._target.initWidth;
                     else
@@ -2468,6 +2469,7 @@
                         this._owner.width = this._target._width + v;
                     break;
                 case exports.RelationType.Height:
+                    this._owner.relationPivot = true;
                     if (this._owner._underConstruct && this._owner == this._target.parent)
                         v = this._owner.sourceHeight - this._target.initHeight;
                     else
@@ -3308,6 +3310,7 @@
             this._skewY = 0;
             this._pivotX = 0;
             this._pivotY = 0;
+            this._relationPivot = false;
             this._pivotOffsetX = 0;
             this._pivotOffsetY = 0;
             this._adaptiveScaleX = 1;
@@ -3405,6 +3408,12 @@
             }
             return children;
         }
+        get relationPivot() {
+            return this._relationPivot;
+        }
+        set relationPivot(val) {
+            this._relationPivot = val;
+        }
         set type(val) {
             this._objectType = val;
         }
@@ -3440,6 +3449,12 @@
         }
         set scene(value) {
             this._scene = value;
+        }
+        get pivotOffsetX() {
+            return this._pivotOffsetX;
+        }
+        get pivotOffsetY() {
+            return this._pivotOffsetY;
         }
         get worldMatrix() {
             if (!this._worldMatrix) {
@@ -3533,12 +3548,6 @@
         set height(value) {
             this.setSize(this._rawWidth, value);
         }
-        // public forceSize() {
-        //     if (this._parent) {
-        //         this._relations.onOwnerSizeChanged(dWidth, dHeight, this._pivotAsAnchor || !ignorePivot);
-        //     }
-        //     this.displayObject.emit(DisplayObjectEvent.SIZE_CHANGED);
-        // }
         setSize(wv, hv, ignorePivot) {
             if (this._rawWidth != wv || this._rawHeight != hv) {
                 this._rawWidth = wv;
@@ -3724,15 +3733,14 @@
         }
         applyPivot() {
             if (this._pivotX != 0 || this._pivotY != 0) {
-                if (this._displayObject) {
-                    if (this._touchable) {
-                        this.removeInteractive();
-                        this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this.initWidth, this.initHeight), Phaser.Geom.Rectangle.Contains);
-                    }
-                    else {
-                        this.removeInteractive();
-                    }
-                }
+                // if (this._displayObject) {
+                //     if (this._touchable) {
+                //         this.removeInteractive();
+                //         this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this.initWidth, this.initHeight), Phaser.Geom.Rectangle.Contains);
+                //     } else {
+                //         this.removeInteractive();
+                //     }
+                // }
                 this.updatePivotOffset();
                 this.handleXYChanged();
             }
@@ -4048,12 +4056,12 @@
         get asGroup() {
             return this;
         }
-        // public get asSlider(): GSlider {
-        //     return <GSlider><any>this;
-        // }
-        // public get asComboBox(): GComboBox {
-        //     return <GComboBox><any>this;
-        // }
+        get asSlider() {
+            return this;
+        }
+        get asComboBox() {
+            return this;
+        }
         get asImage() {
             return this;
         }
@@ -4359,15 +4367,15 @@
         handleXYChanged() {
             var xv = this._x + this._xOffset;
             var yv = this._y + this._yOffset;
-            // if (this._pivotAsAnchor) {
-            //     xv = xv * GRoot.dpr - this._pivotX * this.initWidth;
-            //     yv = yv * GRoot.dpr - this._pivotY * this.initHeight;
-            // }
-            if (this.parent && this._pivotAsAnchor && (this.parent.pivotX !== 0 || this.parent.pivotY !== 0)) {
-                xv = xv - this.parent.initWidth * this.parent.pivotX;
-                // this.pivotX === 0 ? this.x : this.pivotX * this.initWidth * targetScale / this.adaptiveScaleX - this.parent.pivotX * this.parent.initWidth * ownerScale / this.parent.adaptiveScaleX;
-                yv = yv - this.parent.initHeight * this.parent.pivotY;
-                // const _tmpY = this.pivotY === 0 ? this.y : this.pivotY * this.initHeight * targetScale / this.adaptiveScaleY - this.parent.pivotY * this.parent.initHeight * ownerScale / this.parent.adaptiveScaleY;
+            if (this.parent) {
+                if (this._relationPivot) {
+                    xv += this.parent.pivotOffsetX;
+                    yv += this.parent.pivotOffsetY;
+                }
+                if (this._pivotAsAnchor) {
+                    xv -= this.parent.initWidth * this.parent.pivotX;
+                    yv -= this.parent.initHeight * this.parent.pivotY;
+                }
             }
             if (this._pixelSnapping) {
                 xv = Math.round(xv);
@@ -6299,6 +6307,10 @@
                 if (this.scaleY == -1)
                     this.image.y += this._height;
             }
+        }
+        handleSizeChanged() {
+            super.handleSizeChanged();
+            this.handleXYChanged();
         }
         getProp(index) {
             if (index == exports.ObjectPropID.Color)

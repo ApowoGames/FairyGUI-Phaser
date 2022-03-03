@@ -15,7 +15,7 @@ import { GComponent } from './GComponent';
 import { DisplayObjectEvent, InteractiveEvent } from './event/DisplayObjectEvent';
 import { GTree } from './GTree';
 import { GearAnimation, GearColor, GearFontSize, GearIcon, GearLook, GearSize, GearText, GearXY } from './gears';
-import { GButton, GGraph, GImage, GList, GLoader, GMovieClip, GProgressBar, GRichTextField, GRoot, GTextField, GTextInput, Image } from '.';
+import { GButton, GComboBox, GGraph, GImage, GList, GLoader, GMovieClip, GProgressBar, GRichTextField, GRoot, GSlider, GTextField, GTextInput, Image } from '.';
 export class DisplayStyle {
     static EMPTY: DisplayStyle = new DisplayStyle();
     /**水平缩放 */
@@ -61,6 +61,7 @@ export class GObject {
     protected _skewY: number = 0;
     protected _pivotX: number = 0;
     protected _pivotY: number = 0;
+    protected _relationPivot: boolean = false;
     protected _pivotAsAnchor: boolean;
     protected _pivotOffsetX: number = 0;
     protected _pivotOffsetY: number = 0;
@@ -188,6 +189,14 @@ export class GObject {
         return children;
     }
 
+    public get relationPivot(): boolean {
+        return this._relationPivot;
+    }
+
+    public set relationPivot(val: boolean) {
+        this._relationPivot = val;
+    }
+
     public set type(val) {
         this._objectType = val;
     }
@@ -233,6 +242,14 @@ export class GObject {
     }
     public set scene(value: Phaser.Scene) {
         this._scene = value;
+    }
+
+    public get pivotOffsetX(): number {
+        return this._pivotOffsetX;
+    }
+
+    public get pivotOffsetY(): number {
+        return this._pivotOffsetY;
     }
 
     public get worldMatrix(): Phaser.GameObjects.Components.TransformMatrix {
@@ -345,13 +362,6 @@ export class GObject {
     public set height(value: number) {
         this.setSize(this._rawWidth, value);
     }
-
-    // public forceSize() {
-    //     if (this._parent) {
-    //         this._relations.onOwnerSizeChanged(dWidth, dHeight, this._pivotAsAnchor || !ignorePivot);
-    //     }
-    //     this.displayObject.emit(DisplayObjectEvent.SIZE_CHANGED);
-    // }
 
     public setSize(wv: number, hv: number, ignorePivot?: boolean): void {
         if (this._rawWidth != wv || this._rawHeight != hv) {
@@ -578,14 +588,14 @@ export class GObject {
 
     protected applyPivot(): void {
         if (this._pivotX != 0 || this._pivotY != 0) {
-            if (this._displayObject) {
-                if (this._touchable) {
-                    this.removeInteractive();
-                    this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this.initWidth, this.initHeight), Phaser.Geom.Rectangle.Contains);
-                } else {
-                    this.removeInteractive();
-                }
-            }
+            // if (this._displayObject) {
+            //     if (this._touchable) {
+            //         this.removeInteractive();
+            //         this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this.initWidth, this.initHeight), Phaser.Geom.Rectangle.Contains);
+            //     } else {
+            //         this.removeInteractive();
+            //     }
+            // }
             this.updatePivotOffset();
             this.handleXYChanged();
         }
@@ -972,13 +982,14 @@ export class GObject {
         return <GGroup><any>this;
     }
 
-    // public get asSlider(): GSlider {
-    //     return <GSlider><any>this;
-    // }
 
-    // public get asComboBox(): GComboBox {
-    //     return <GComboBox><any>this;
-    // }
+    public get asSlider(): GSlider {
+        return <GSlider><any>this;
+    }
+
+    public get asComboBox(): GComboBox {
+        return <GComboBox><any>this;
+    }
 
     public get asImage(): GImage {
         return <GImage><any>this;
@@ -1329,16 +1340,18 @@ export class GObject {
         var xv: number = this._x + this._xOffset;
         var yv: number = this._y + this._yOffset;
 
-        // if (this._pivotAsAnchor) {
-        //     xv = xv * GRoot.dpr - this._pivotX * this.initWidth;
-        //     yv = yv * GRoot.dpr - this._pivotY * this.initHeight;
-        // }
 
-        if (this.parent && this._pivotAsAnchor && (this.parent.pivotX !== 0 || this.parent.pivotY !== 0)) {
-            xv = xv - this.parent.initWidth * this.parent.pivotX;
-            // this.pivotX === 0 ? this.x : this.pivotX * this.initWidth * targetScale / this.adaptiveScaleX - this.parent.pivotX * this.parent.initWidth * ownerScale / this.parent.adaptiveScaleX;
-            yv = yv - this.parent.initHeight * this.parent.pivotY;
-            // const _tmpY = this.pivotY === 0 ? this.y : this.pivotY * this.initHeight * targetScale / this.adaptiveScaleY - this.parent.pivotY * this.parent.initHeight * ownerScale / this.parent.adaptiveScaleY;
+
+
+        if (this.parent) {
+            if (this._relationPivot) {
+                xv += this.parent.pivotOffsetX;
+                yv += this.parent.pivotOffsetY;
+            }
+            if (this._pivotAsAnchor) {
+                xv -= this.parent.initWidth * this.parent.pivotX;
+                yv -= this.parent.initHeight * this.parent.pivotY;
+            }
         }
 
         if (this._pixelSnapping) {

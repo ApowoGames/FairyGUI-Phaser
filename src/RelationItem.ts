@@ -356,6 +356,7 @@ export class RelationItem {
                 break;
 
             case RelationType.Width:
+                this._owner.relationPivot = true;
                 if (this._owner._underConstruct && this._owner == this._target.parent)
                     v = this._owner.sourceWidth - this._target.initWidth;
                 else
@@ -375,6 +376,7 @@ export class RelationItem {
                     this._owner.width = this._target._width + v;
                 break;
             case RelationType.Height:
+                this._owner.relationPivot = true;
                 if (this._owner._underConstruct && this._owner == this._target.parent)
                     v = this._owner.sourceHeight - this._target.initHeight;
                 else

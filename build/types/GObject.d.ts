@@ -7,7 +7,7 @@ import { Relations } from './Relations';
 import { PackageItem } from './PackageItem';
 import { GComponent } from './GComponent';
 import { GTree } from './GTree';
-import { GButton, GGraph, GImage, GList, GLoader, GMovieClip, GProgressBar, GRichTextField, GRoot, GTextField, GTextInput } from '.';
+import { GButton, GComboBox, GGraph, GImage, GList, GLoader, GMovieClip, GProgressBar, GRichTextField, GRoot, GSlider, GTextField, GTextInput } from '.';
 export declare class DisplayStyle {
     static EMPTY: DisplayStyle;
     /**水平缩放 */
@@ -51,6 +51,7 @@ export declare class GObject {
     protected _skewY: number;
     protected _pivotX: number;
     protected _pivotY: number;
+    protected _relationPivot: boolean;
     protected _pivotAsAnchor: boolean;
     protected _pivotOffsetX: number;
     protected _pivotOffsetY: number;
@@ -103,6 +104,8 @@ export declare class GObject {
     set adaptiveScaleY(val: number);
     resizeMask(wid: number, hei: number): void;
     private _resizeMask;
+    get relationPivot(): boolean;
+    set relationPivot(val: boolean);
     set type(val: number);
     get type(): number;
     get id(): string;
@@ -115,6 +118,8 @@ export declare class GObject {
     set y(value: number);
     get scene(): Phaser.Scene;
     set scene(value: Phaser.Scene);
+    get pivotOffsetX(): number;
+    get pivotOffsetY(): number;
     get worldMatrix(): Phaser.GameObjects.Components.TransformMatrix;
     get timeEvent(): Phaser.Time.TimerEvent;
     set timeEvent(value: Phaser.Time.TimerEvent);
@@ -217,6 +222,8 @@ export declare class GObject {
     get asTree(): GTree;
     get asGraph(): GGraph;
     get asGroup(): GGroup;
+    get asSlider(): GSlider;
+    get asComboBox(): GComboBox;
     get asImage(): GImage;
     get asMovieClip(): GMovieClip;
     get text(): string;
