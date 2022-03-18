@@ -13,6 +13,7 @@ export interface IResCallBackObj {
     id: string;
     completeCallBack: Function;
     errorCallBack?: Function;
+    context?: any;
 }
 export declare class AssetProxy {
     private _resMap;
@@ -23,7 +24,7 @@ export declare class AssetProxy {
     private static _inst;
     static get inst(): AssetProxy;
     getRes(id: string, key: string, type: string): Promise<any>;
-    load(id: string, key: string, url: any, type: string, completeCallBack: Function, errorCallBack?: Function): void;
+    load(id: string, key: string, url: any, type: string, completeCallBack: Function, errorCallBack?: Function, context?: any): void;
     addListen(type: string, key: string): void;
     removeListen(): void;
     startLoad(): void;

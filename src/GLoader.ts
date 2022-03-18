@@ -314,7 +314,7 @@ export class GLoader extends GObject {
 
     protected loadExternal(): Promise<void> {
         return new Promise((resolve, reject) => {
-            AssetProxy.inst.load(this.id, this._url, this._url, LoaderType.IMAGE, this.__getResCompleted);
+            AssetProxy.inst.load(this.id, this._url, this._url, LoaderType.IMAGE, this.__getResCompleted, undefined, this);
             AssetProxy.inst.addListen(LoaderType.IMAGE, this._url);
             AssetProxy.inst.startLoad();
             resolve();
@@ -331,6 +331,11 @@ export class GLoader extends GObject {
         this._content.scaleByTile = false;
         this.sourceWidth = texture.source[0].width;
         this.sourceHeight = texture.source[0].height;
+        const frame: Phaser.Textures.Frame = texture.frames["__BASE"];
+        if (frame) {
+            this._content.frames = [frame];
+        }
+        this._content.setSize(this.sourceWidth, this.sourceHeight);
         this.updateLayout();
     }
 
@@ -468,7 +473,8 @@ export class GLoader extends GObject {
         if (this._content2)
             this._content2.setScale(sx, sy);
         else {
-            if (this._contentItem.isHighRes) this._content.setSize(cw, ch);
+            // 通过编辑器获取的高清资源
+            if (this._contentItem && this._contentItem.isHighRes) this._content.setSize(cw, ch);
             else this._content.setScale(sx, sy);
             // if (this._content.frames) {
             //     this._content.setSize(cw, ch, this._content.frames[0]);
@@ -495,7 +501,8 @@ export class GLoader extends GObject {
         if (this._content2)
             this._content2.setXY(nx / sx, ny / sy);
         else {
-            if (this._contentItem.isHighRes) this._content.setPosition(nx / sx, ny / sy);
+            // 通过编辑器获取的高清资源
+            if (this._contentItem && this._contentItem.isHighRes) this._content.setPosition(nx / sx, ny / sy);
             else this._content.setPosition(nx, ny);
         }
 
@@ -602,7 +609,6 @@ export class GLoader extends GObject {
             } else {
                 resolve();
             }
-
         });
 
     }

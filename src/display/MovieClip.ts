@@ -60,6 +60,7 @@ export class MovieClip extends Image {
     public set frames(value: Phaser.Textures.Frame[]) {
         this._frames = value;
         if (value) {
+            this._frameCount = this._frames.length;
             const owner: GObject = this["$owner"];
             const frame: Phaser.Textures.Frame = value[0];
             if (value.length > 1) {

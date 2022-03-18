@@ -6395,6 +6395,7 @@ class MovieClip extends Image {
     set frames(value) {
         this._frames = value;
         if (value) {
+            this._frameCount = this._frames.length;
             this["$owner"];
             const frame = value[0];
             if (value.length > 1) {
@@ -7985,21 +7986,22 @@ class AssetProxy {
                     resolve(file);
                 }, () => {
                     reject("__DEFAULT");
-                });
+                }, this);
             }
             else {
                 resolve(key);
             }
         });
     }
-    load(id, key, url, type, completeCallBack, errorCallBack) {
+    load(id, key, url, type, completeCallBack, errorCallBack, context) {
         let rescbMap = this._resCallBackMap.get(key);
         if (!rescbMap) {
             rescbMap = new Map();
             rescbMap.set(id, {
                 id,
                 completeCallBack,
-                errorCallBack
+                errorCallBack,
+                context
             });
         }
         else {
@@ -8007,7 +8009,8 @@ class AssetProxy {
                 rescbMap.set(id, {
                     id,
                     completeCallBack,
-                    errorCallBack
+                    errorCallBack,
+                    context
                 });
             }
         }
@@ -8015,7 +8018,8 @@ class AssetProxy {
         this.addListen(type, key);
         const fun = (value) => {
             rescbMap.forEach((obj) => {
-                obj.completeCallBack(value);
+                const texture = GRoot.inst.scene.textures.get(value);
+                obj.completeCallBack.apply(obj.context, [texture]);
             });
         };
         switch (type) {
@@ -8101,7 +8105,8 @@ class AssetProxy {
         const rescbMap = this._resCallBackMap.get(key);
         if (rescbMap) {
             rescbMap.forEach((obj) => {
-                obj.completeCallBack(key);
+                const texture = GRoot.inst.scene.textures.get(key);
+                obj.completeCallBack.apply(obj.context, [texture]);
             });
         }
         this._resCallBackMap.delete(key);
@@ -8112,7 +8117,8 @@ class AssetProxy {
         const rescbMap = this._resCallBackMap.get(key);
         if (rescbMap) {
             rescbMap.forEach((obj) => {
-                obj.completeCallBack(key);
+                const texture = GRoot.inst.scene.textures.get(key);
+                obj.completeCallBack.apply(obj.context, [texture]);
             });
         }
         this._resCallBackMap.delete(key);
@@ -17480,7 +17486,7 @@ class GLoader extends GObject {
     }
     loadExternal() {
         return new Promise((resolve, reject) => {
-            AssetProxy.inst.load(this.id, this._url, this._url, LoaderType.IMAGE, this.__getResCompleted);
+            AssetProxy.inst.load(this.id, this._url, this._url, LoaderType.IMAGE, this.__getResCompleted, undefined, this);
             AssetProxy.inst.addListen(LoaderType.IMAGE, this._url);
             AssetProxy.inst.startLoad();
             resolve();
@@ -17495,6 +17501,11 @@ class GLoader extends GObject {
         this._content.scaleByTile = false;
         this.sourceWidth = texture.source[0].width;
         this.sourceHeight = texture.source[0].height;
+        const frame = texture.frames["__BASE"];
+        if (frame) {
+            this._content.frames = [frame];
+        }
+        this._content.setSize(this.sourceWidth, this.sourceHeight);
         this.updateLayout();
     }
     onExternalLoadFailed() {
@@ -17622,7 +17633,8 @@ class GLoader extends GObject {
         if (this._content2)
             this._content2.setScale(sx, sy);
         else {
-            if (this._contentItem.isHighRes)
+            // 通过编辑器获取的高清资源
+            if (this._contentItem && this._contentItem.isHighRes)
                 this._content.setSize(cw, ch);
             else
                 this._content.setScale(sx, sy);
@@ -17649,7 +17661,8 @@ class GLoader extends GObject {
         if (this._content2)
             this._content2.setXY(nx / sx, ny / sy);
         else {
-            if (this._contentItem.isHighRes)
+            // 通过编辑器获取的高清资源
+            if (this._contentItem && this._contentItem.isHighRes)
                 this._content.setPosition(nx / sx, ny / sy);
             else
                 this._content.setPosition(nx, ny);
