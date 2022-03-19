@@ -6399,25 +6399,26 @@ class MovieClip extends Image {
             this["$owner"];
             const frame = value[0];
             if (value.length > 1) {
-                const key = frame.texture.key;
+                const textureKey = frame.texture.key;
                 const len = value.length;
                 const name = frame.name.split("_")[0];
                 const repeat = this._times > 0 ? this._times : -1;
-                this._curKey = key + "_mc";
+                this._curKey = textureKey + "_mc";
                 const frameRate = 1000 / this._interval;
                 if (!this._sprite)
-                    this._sprite = this.scene.make.sprite(undefined, false);
-                this._sprite.anims.create({ key: this._curKey, frames: this._sprite.anims.generateFrameNames(key, { prefix: name + "_", start: 0, end: len - 1 }), frameRate, repeat });
+                    this._sprite = this.scene.make.sprite({ key: textureKey }, false);
+                if (!this.scene.game.anims.get(this._curKey))
+                    this.scene.anims.create({ key: this._curKey, frames: this._sprite.anims.generateFrameNames(textureKey, { prefix: name + "_", start: 0, end: len - 1 }), frameRate, repeat });
                 this.add(this._sprite);
                 this.checkTimer();
             }
             else {
-                const key = frame.texture.key;
+                const textureKey = frame.texture.key;
                 if (!this._image) {
-                    this._image = new Phaser.GameObjects.Image(this.scene, 0, 0, key, frame.name);
+                    this._image = new Phaser.GameObjects.Image(this.scene, 0, 0, textureKey, frame.name);
                 }
                 else {
-                    this._image.setTexture(key, frame.name);
+                    this._image.setTexture(textureKey, frame.name);
                 }
                 this.add(this._image);
             }
