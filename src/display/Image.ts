@@ -371,8 +371,8 @@ export class Image extends Phaser.GameObjects.Container {
                 }
                 // 单张图片非图集
                 else {
-                    const img = this.scene.make.image(undefined, false);
-                    img.setTexture(_texture.key);
+                    const img = this.scene.make.image({ key: _texture.key }, false);
+                    // img.setTexture(_texture.key);
                     this.add(img);
                     this.markChanged(1);
                     resolve();
