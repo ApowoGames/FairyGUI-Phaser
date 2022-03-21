@@ -2040,6 +2040,7 @@ UIConfig.packageFileExtension = "fui";
 
 class DisplayObjectEvent {
 }
+DisplayObjectEvent.I18N_CHANGE = "__i18N_CHANGE";
 DisplayObjectEvent.XY_CHANGED = "__xyChanged";
 DisplayObjectEvent.SIZE_CHANGED = "__sizeChanged";
 DisplayObjectEvent.VISIBLE_CHANGED = "__visibleChanged";
@@ -6012,8 +6013,8 @@ class Image extends Phaser.GameObjects.Container {
                 }
                 // 单张图片非图集
                 else {
-                    const img = this.scene.make.image(undefined, false);
-                    img.setTexture(_texture.key);
+                    const img = this.scene.make.image({ key: _texture.key }, false);
+                    // img.setTexture(_texture.key);
                     this.add(img);
                     this.markChanged(1);
                     resolve();
@@ -13330,6 +13331,7 @@ var UISceneDisplay;
 class GRoot extends GComponent {
     constructor() {
         super();
+        this._i18n = null;
         this._popupStack = [];
         this._justClosedPopups = [];
         this._inputManager = new InputManager();
@@ -13342,6 +13344,13 @@ class GRoot extends GComponent {
         if (GRoot._inst == null)
             GRoot._inst = new GRoot();
         return GRoot._inst;
+    }
+    get i18n() {
+        return this._i18n;
+    }
+    set i18n(val) {
+        this._i18n = val;
+        this.emitter.emit(DisplayObjectEvent.I18N_CHANGE, val);
     }
     get input() {
         return this._inputManager;
@@ -13902,7 +13911,7 @@ class GTextField extends GObject {
         return this;
     }
     flushVars() {
-        this.text = this._text;
+        this.text = GRoot.inst.i18n ? this._baseText : this._text;
     }
     getProp(index) {
         switch (index) {
@@ -16249,6 +16258,11 @@ class GBasicTextField extends GTextField {
         this._autoSize = AutoSizeType.Both;
         this._widthAutoSize = this._heightAutoSize = true;
         // this._textField["_sizeDirty"] = false;
+        GRoot.inst.emitter.on(DisplayObjectEvent.I18N_CHANGE, this.i18nChange, this);
+    }
+    i18nChange() {
+        if (GRoot.inst.i18n && this._baseText)
+            this.text = this._baseText;
     }
     get adaptiveScaleX() {
         return this._adaptiveScaleX;
@@ -16281,7 +16295,11 @@ class GBasicTextField extends GTextField {
         return this._textField;
     }
     set text(value) {
+        this._baseText = value;
         this._text = value;
+        if (GRoot.inst.i18n && value) {
+            this._text = GRoot.inst.i18n(value);
+        }
         if (this._text == null)
             this._text = "";
         if (this._bitmapFont == null) {
@@ -16496,6 +16514,7 @@ class GBasicTextField extends GTextField {
         this._updatingSize = false;
     }
     dispose() {
+        GRoot.inst.emitter.off(DisplayObjectEvent.I18N_CHANGE, this.i18nChange, this);
         if (this._textField && this._textField.active) {
             this._textField.preDestroy();
             this._textField = null;
@@ -16758,7 +16777,7 @@ class GBasicTextField extends GTextField {
         this.handleXYChanged();
     }
     flushVars() {
-        this.text = this._text;
+        this.text = GRoot.inst.i18n ? this._baseText : this._text;
     }
     handleXYChanged() {
         var xv = this._x + this._xOffset;

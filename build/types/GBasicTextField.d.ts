@@ -9,6 +9,7 @@ export declare class GBasicTextField extends GTextField {
     private _bitmapFont?;
     private _lines?;
     constructor(scene: Phaser.Scene, type: number);
+    private i18nChange;
     get adaptiveScaleX(): number;
     get adaptiveScaleY(): number;
     set adaptiveScaleX(val: number);

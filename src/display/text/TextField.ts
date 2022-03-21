@@ -1,3 +1,5 @@
+import { GRoot } from '../..';
+import { DisplayObjectEvent } from '../../event';
 import { DisplayObject } from '../displayobject/DisplayObject';
 import { Parser } from './bbcode/Parser';
 import { CanvasText } from './canvastext/CanvasText';

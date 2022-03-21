@@ -37,9 +37,12 @@ export declare class GRoot extends GComponent {
     private _checkPopups;
     private _inputManager;
     private _textureManager;
+    private _i18n;
     constructor();
     get emitter(): Phaser.Events.EventEmitter;
     static get inst(): GRoot;
+    get i18n(): Function;
+    set i18n(val: Function);
     get input(): InputManager;
     get textureManager(): TextureManager;
     /**

@@ -11,6 +11,7 @@ export declare class GTextField extends GObject {
         [index: string]: string;
     };
     protected _text: string;
+    protected _baseText: string;
     protected _autoSize: number;
     protected _widthAutoSize: boolean;
     protected _heightAutoSize: boolean;

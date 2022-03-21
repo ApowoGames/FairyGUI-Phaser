@@ -1,6 +1,7 @@
 import { GRoot } from "..";
 
 export class DisplayObjectEvent {
+    static I18N_CHANGE = "__i18N_CHANGE";
     static XY_CHANGED = "__xyChanged";
     static SIZE_CHANGED = "__sizeChanged";
     static VISIBLE_CHANGED = "__visibleChanged";

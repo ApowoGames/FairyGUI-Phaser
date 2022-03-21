@@ -49,6 +49,7 @@ export class GRoot extends GComponent {
     private _checkPopups: boolean;
     private _inputManager: InputManager;
     private _textureManager: TextureManager;
+    private _i18n: Function = null;
     constructor() {
         super();
         this._popupStack = [];
@@ -65,6 +66,15 @@ export class GRoot extends GComponent {
         if (GRoot._inst == null)
             GRoot._inst = new GRoot();
         return GRoot._inst;
+    }
+
+    public get i18n(): Function {
+        return this._i18n;
+    }
+
+    public set i18n(val: Function) {
+        this._i18n = val;
+        this.emitter.emit(DisplayObjectEvent.I18N_CHANGE, val);
     }
 
     public get input(): InputManager {

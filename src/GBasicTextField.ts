@@ -3,9 +3,8 @@ import { AutoSizeType } from './FieldTypes';
 import { BitmapFont } from './display/BitmapFont';
 import { GTextField } from './GTextField';
 import { TextField } from './display/text/TextField';
-import { ByteBuffer, GRoot, ToolSet, UIConfig, UIPackage } from '.';
+import { ByteBuffer, GRoot, UIConfig } from '.';
 import { HAlignModeString, VAlignModeString } from './display/text/Types';
-import { RelationItem } from './RelationItem';
 export class GBasicTextField extends GTextField {
     protected _textField: TextField;
 
@@ -23,6 +22,11 @@ export class GBasicTextField extends GTextField {
         this._autoSize = AutoSizeType.Both;
         this._widthAutoSize = this._heightAutoSize = true;
         // this._textField["_sizeDirty"] = false;
+        GRoot.inst.emitter.on(DisplayObjectEvent.I18N_CHANGE, this.i18nChange, this);
+    }
+
+    private i18nChange() {
+        if (GRoot.inst.i18n && this._baseText) this.text = this._baseText;
     }
 
     get adaptiveScaleX(): number {
@@ -64,7 +68,11 @@ export class GBasicTextField extends GTextField {
     }
 
     public set text(value: string) {
+        this._baseText = value;
         this._text = value;
+        if (GRoot.inst.i18n && value) {
+            this._text = GRoot.inst.i18n(value);
+        }
         if (this._text == null)
             this._text = "";
 
@@ -321,6 +329,7 @@ export class GBasicTextField extends GTextField {
     }
 
     public dispose(): void {
+        GRoot.inst.emitter.off(DisplayObjectEvent.I18N_CHANGE, this.i18nChange, this);
         if (this._textField && this._textField.active) {
             this._textField.preDestroy();
             this._textField = null;
@@ -611,7 +620,7 @@ export class GBasicTextField extends GTextField {
     }
 
     public flushVars(): void {
-        this.text = this._text;
+        this.text = GRoot.inst.i18n ? this._baseText : this._text;
     }
 
     protected handleXYChanged(): void {

@@ -12,6 +12,7 @@ export enum TextType {
 export class GTextField extends GObject {
     protected _templateVars: { [index: string]: string };
     protected _text: string;
+    protected _baseText: string;
     protected _autoSize: number;
     protected _widthAutoSize: boolean;
     protected _heightAutoSize: boolean;
@@ -247,7 +248,7 @@ export class GTextField extends GObject {
     }
 
     public flushVars(): void {
-        this.text = this._text;
+        this.text = GRoot.inst.i18n ? this._baseText : this._text;
     }
 
     public getProp(index: number): any {

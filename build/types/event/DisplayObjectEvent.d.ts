@@ -1,4 +1,5 @@
 export declare class DisplayObjectEvent {
+    static I18N_CHANGE: string;
     static XY_CHANGED: string;
     static SIZE_CHANGED: string;
     static VISIBLE_CHANGED: string;
