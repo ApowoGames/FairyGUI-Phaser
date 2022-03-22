@@ -86,6 +86,14 @@ export class GList extends GComponent {
         }
     }
 
+    get virtual(): boolean {
+        return this._virtual;
+    }
+
+    set virtual(val) {
+        this._virtual = val;
+    }
+
     public createDisplayObject(): void {
         this._displayObject = this.scene.make.container(undefined, false);
         this._displayObject["$owner"] = this;

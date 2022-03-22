@@ -19539,6 +19539,12 @@ class GList extends GComponent {
             this.scene.input.keyboard.on('keyup', this.__keyUp, this);
         }
     }
+    get virtual() {
+        return this._virtual;
+    }
+    set virtual(val) {
+        this._virtual = val;
+    }
     createDisplayObject() {
         this._displayObject = this.scene.make.container(undefined, false);
         this._displayObject["$owner"] = this;
@@ -19793,26 +19799,6 @@ class GList extends GComponent {
     removeChildToPool(child) {
         super.removeChild(child);
         this.returnToPool(child);
-    }
-    removeAllChild() {
-        return new Promise((resolve, reject) => {
-            if (!this._children)
-                resolve(true);
-            const len = this._children.length;
-            const fun = (index) => {
-                return new Promise(() => {
-                    this._children[index];
-                    if (index >= len) {
-                        resolve(true);
-                        return;
-                    }
-                    this.removeChildAt(index).then((obj) => {
-                        fun(index + 1);
-                    });
-                });
-            };
-            fun(0);
-        });
     }
     removeChildrenToPool(beginIndex, endIndex) {
         if (beginIndex == undefined)

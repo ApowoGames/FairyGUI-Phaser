@@ -50,6 +50,8 @@ export declare class GList extends GComponent {
      */
     protected _tempItemList: any[];
     constructor(scene: Phaser.Scene, type: any);
+    get virtual(): boolean;
+    set virtual(val: boolean);
     createDisplayObject(): void;
     private __keyDown;
     private __keyUp;
@@ -93,7 +95,6 @@ export declare class GList extends GComponent {
     removeChildAt(index: number, dispose?: boolean): Promise<GObject>;
     removeChildToPoolAt(index: number): void;
     removeChildToPool(child: GObject): void;
-    removeAllChild(): Promise<any>;
     removeChildrenToPool(beginIndex?: number, endIndex?: number): void;
     get selectedIndex(): number;
     set selectedIndex(value: number);
