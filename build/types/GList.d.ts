@@ -93,6 +93,7 @@ export declare class GList extends GComponent {
     removeChildAt(index: number, dispose?: boolean): Promise<GObject>;
     removeChildToPoolAt(index: number): void;
     removeChildToPool(child: GObject): void;
+    removeAllChild(): Promise<any>;
     removeChildrenToPool(beginIndex?: number, endIndex?: number): void;
     get selectedIndex(): number;
     set selectedIndex(value: number);

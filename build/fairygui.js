@@ -19798,6 +19798,26 @@
             super.removeChild(child);
             this.returnToPool(child);
         }
+        removeAllChild() {
+            return new Promise((resolve, reject) => {
+                if (!this._children)
+                    resolve(true);
+                const len = this._children.length;
+                const fun = (index) => {
+                    return new Promise(() => {
+                        this._children[index];
+                        if (index >= len) {
+                            resolve(true);
+                            return;
+                        }
+                        this.removeChildAt(index).then((obj) => {
+                            fun(index + 1);
+                        });
+                    });
+                };
+                fun(0);
+            });
+        }
         removeChildrenToPool(beginIndex, endIndex) {
             if (beginIndex == undefined)
                 beginIndex = 0;
