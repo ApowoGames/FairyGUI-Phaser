@@ -387,26 +387,6 @@ export class GList extends GComponent {
         this.returnToPool(child);
     }
 
-    public removeAllChild(): Promise<any> {
-        return new Promise((resolve, reject) => {
-            if (!this._children) resolve(true);
-            const len = this._children.length;
-            const fun = (index): Promise<GObject> => {
-                return new Promise(() => {
-                    const child = this._children[index];
-                    if (index >= len) {
-                        resolve(true);
-                        return;
-                    }
-                    this.removeChildAt(index).then((obj) => {
-                        fun(index + 1);
-                    });
-                })
-            }
-            fun(0);
-        });
-    }
-
     public removeChildrenToPool(beginIndex?: number, endIndex?: number): void {
         if (beginIndex == undefined) beginIndex = 0;
         if (endIndex == undefined) endIndex = -1;
