@@ -77,7 +77,8 @@ export class MovieClip extends Image {
             } else {
                 const textureKey = frame.texture.key;
                 if (!this._image) {
-                    this._image = new Phaser.GameObjects.Image(this.scene, 0, 0, textureKey, frame.name);
+                    this._image = this.scene.make.image({key:textureKey,frame:frame.name},false);
+                    // new Phaser.GameObjects.Image(this.scene, 0, 0, textureKey, frame.name);
                 } else {
                     this._image.setTexture(textureKey, frame.name);
                 }
@@ -88,9 +89,11 @@ export class MovieClip extends Image {
             if (this._sprite) {
                 this._sprite.stop();
                 this.remove(this._sprite);
+                this._sprite = null;
             }
             if (this._image) {
                 this.remove(this._image);
+                this._image = null;
             }
             this.checkTimer(false);
         }

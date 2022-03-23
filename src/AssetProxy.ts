@@ -64,15 +64,15 @@ export class AssetProxy {
         let rescbMap = this._resCallBackMap.get(key);
         if (!rescbMap) {
             rescbMap = new Map();
-            rescbMap.set(id, {
+            rescbMap.set(context, {
                 id,
                 completeCallBack,
                 errorCallBack,
                 context
             });
         } else {
-            if (!rescbMap.get(id)) {
-                rescbMap.set(id, {
+            if (!rescbMap.get(context)) {
+                rescbMap.set(context, {
                     id,
                     completeCallBack,
                     errorCallBack,
@@ -81,11 +81,12 @@ export class AssetProxy {
             }
         }
         this._resCallBackMap.set(key, rescbMap);
-        this.addListen(type, key);
         const fun = (value) => {
             rescbMap.forEach((obj: IResCallBackObj) => {
-                const texture: Phaser.Textures.Texture = GRoot.inst.scene.textures.get(value);
-                obj.completeCallBack.apply(obj.context, [texture]);
+                if (obj.context && (obj.context instanceof AssetProxy === true || obj.context["_displayObject"])) {
+                    const texture: Phaser.Textures.Texture = GRoot.inst.scene.textures.get(value);
+                    obj.completeCallBack.apply(obj.context, [texture]);
+                }
             });
         }
         switch (type) {
@@ -152,10 +153,12 @@ export class AssetProxy {
                 GRoot.inst.scene.load.image(key, url);
                 break;
         }
+        this.addListen(type, key);
         GRoot.inst.scene.load.start();
     }
 
     public addListen(type: string, key: string) {
+        this.removeListen();
         GRoot.inst.scene.load.on(Phaser.Loader.Events.FILE_COMPLETE + "-" + type + "-" + key, this.onLoadComplete, this);
         GRoot.inst.scene.load.on(Phaser.Loader.Events.FILE_LOAD_ERROR + "-" + type + "-" + key, this.onLoadError, this);
         GRoot.inst.scene.load.on(Phaser.Loader.Events.COMPLETE, this.totalComplete, this);
@@ -176,8 +179,10 @@ export class AssetProxy {
         const rescbMap = this._resCallBackMap.get(key);
         if (rescbMap) {
             rescbMap.forEach((obj: IResCallBackObj) => {
-                const texture: Phaser.Textures.Texture = GRoot.inst.scene.textures.get(key);
-                obj.completeCallBack.apply(obj.context, [texture]);
+                if (obj.context && (obj.context instanceof AssetProxy === true || obj.context["_displayObject"])) {
+                    const texture: Phaser.Textures.Texture = GRoot.inst.scene.textures.get(key);
+                    obj.completeCallBack.apply(obj.context, [texture]);
+                }
             });
         }
         this._resCallBackMap.delete(key);
@@ -189,8 +194,10 @@ export class AssetProxy {
         const rescbMap = this._resCallBackMap.get(key);
         if (rescbMap) {
             rescbMap.forEach((obj: IResCallBackObj) => {
-                const texture: Phaser.Textures.Texture = GRoot.inst.scene.textures.get(key);
-                obj.completeCallBack.apply(obj.context, [texture]);
+                if (obj.context && (obj.context instanceof AssetProxy === true || obj.context["_displayObject"])) {
+                    const texture: Phaser.Textures.Texture = GRoot.inst.scene.textures.get(key);
+                    obj.completeCallBack.apply(obj.context, [texture]);
+                }
             });
         }
         this._resCallBackMap.delete(key);

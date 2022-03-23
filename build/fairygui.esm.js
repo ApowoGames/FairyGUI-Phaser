@@ -5885,7 +5885,8 @@ class Image extends Phaser.GameObjects.Container {
                 this._curImg = null;
             }
             const name = !this._scale9Grid ? patch.name : "__BASE";
-            this._curImg = new Phaser.GameObjects.Image(this.scene, 0, 0, patch.texture.key, name);
+            this._curImg = this.scene.make.image({ key: patch.texture.key, frame: name }, false);
+            // new Phaser.GameObjects.Image(this.scene, 0, 0, patch.texture.key, name);
             this._curImg.setOrigin(0);
             this._curImg.displayWidth = this.finalXs[3]; //+ (xi < 2 ? this.mCorrection : 0);
             this._curImg.displayHeight = this.finalYs[3]; //+ (yi < 2 ? this.mCorrection : 0);
@@ -5907,7 +5908,8 @@ class Image extends Phaser.GameObjects.Container {
                 //     continue;
                 // }
                 const patch = this._sourceTexture.frames[this.getPatchNameByIndex(patchIndex)];
-                const patchImg = new Phaser.GameObjects.Image(this.scene, 0, 0, patch.texture.key, patch.name);
+                const patchImg = this.scene.make.image({ key: patch.texture.key, frame: patch.name }, false);
+                // new Phaser.GameObjects.Image(this.scene, 0, 0, patch.texture.key, patch.name);
                 patchImg.setOrigin(0);
                 let posx = this.finalXs[xi];
                 let posy = this.finalYs[yi];
@@ -5970,8 +5972,33 @@ class Image extends Phaser.GameObjects.Container {
             // this._renderTexture.drawFrame(value.key, baseFrameName, 0, 0);
             // this.repaint();
             // this.markChanged(1);
+            // if (!this._sourceTexture.hasOwnProperty("useCount")) {
+            //     Object.defineProperties(this.texture, {
+            //         useCount: {
+            //             value: 0,
+            //             writable: true
+            //         }
+            //     });
+            // }
+            // // @ts-ignore
+            // this._sourceTexture.useCount++;
         }
     }
+    // public destroy(fromScene?: boolean): void {
+    //     if (this._sourceTexture) {
+    //         if (!this._sourceTexture.hasOwnProperty("useCount")) {
+    //             Object.defineProperties(this.texture, {
+    //                 useCount: {
+    //                     value: 0,
+    //                     writable: true
+    //                 }
+    //             });
+    //         }
+    //         // @ts-ignore
+    //         this._sourceTexture.useCount--;
+    //     }
+    //     super.destroy(fromScene);
+    // }
     setPackItem(value) {
         return new Promise((resolve, reject) => {
             if (!value || !value.texture) {
@@ -6416,7 +6443,8 @@ class MovieClip extends Image {
             else {
                 const textureKey = frame.texture.key;
                 if (!this._image) {
-                    this._image = new Phaser.GameObjects.Image(this.scene, 0, 0, textureKey, frame.name);
+                    this._image = this.scene.make.image({ key: textureKey, frame: frame.name }, false);
+                    // new Phaser.GameObjects.Image(this.scene, 0, 0, textureKey, frame.name);
                 }
                 else {
                     this._image.setTexture(textureKey, frame.name);
@@ -6430,9 +6458,11 @@ class MovieClip extends Image {
             if (this._sprite) {
                 this._sprite.stop();
                 this.remove(this._sprite);
+                this._sprite = null;
             }
             if (this._image) {
                 this.remove(this._image);
+                this._image = null;
             }
             this.checkTimer(false);
         }
@@ -7999,7 +8029,7 @@ class AssetProxy {
         let rescbMap = this._resCallBackMap.get(key);
         if (!rescbMap) {
             rescbMap = new Map();
-            rescbMap.set(id, {
+            rescbMap.set(context, {
                 id,
                 completeCallBack,
                 errorCallBack,
@@ -8007,8 +8037,8 @@ class AssetProxy {
             });
         }
         else {
-            if (!rescbMap.get(id)) {
-                rescbMap.set(id, {
+            if (!rescbMap.get(context)) {
+                rescbMap.set(context, {
                     id,
                     completeCallBack,
                     errorCallBack,
@@ -8017,11 +8047,12 @@ class AssetProxy {
             }
         }
         this._resCallBackMap.set(key, rescbMap);
-        this.addListen(type, key);
         const fun = (value) => {
             rescbMap.forEach((obj) => {
-                const texture = GRoot.inst.scene.textures.get(value);
-                obj.completeCallBack.apply(obj.context, [texture]);
+                if (obj.context && (obj.context instanceof AssetProxy === true || obj.context["_displayObject"])) {
+                    const texture = GRoot.inst.scene.textures.get(value);
+                    obj.completeCallBack.apply(obj.context, [texture]);
+                }
             });
         };
         switch (type) {
@@ -8088,9 +8119,11 @@ class AssetProxy {
                 GRoot.inst.scene.load.image(key, url);
                 break;
         }
+        this.addListen(type, key);
         GRoot.inst.scene.load.start();
     }
     addListen(type, key) {
+        this.removeListen();
         GRoot.inst.scene.load.on(Phaser.Loader.Events.FILE_COMPLETE + "-" + type + "-" + key, this.onLoadComplete, this);
         GRoot.inst.scene.load.on(Phaser.Loader.Events.FILE_LOAD_ERROR + "-" + type + "-" + key, this.onLoadError, this);
         GRoot.inst.scene.load.on(Phaser.Loader.Events.COMPLETE, this.totalComplete, this);
@@ -8107,8 +8140,10 @@ class AssetProxy {
         const rescbMap = this._resCallBackMap.get(key);
         if (rescbMap) {
             rescbMap.forEach((obj) => {
-                const texture = GRoot.inst.scene.textures.get(key);
-                obj.completeCallBack.apply(obj.context, [texture]);
+                if (obj.context && (obj.context instanceof AssetProxy === true || obj.context["_displayObject"])) {
+                    const texture = GRoot.inst.scene.textures.get(key);
+                    obj.completeCallBack.apply(obj.context, [texture]);
+                }
             });
         }
         this._resCallBackMap.delete(key);
@@ -8119,8 +8154,10 @@ class AssetProxy {
         const rescbMap = this._resCallBackMap.get(key);
         if (rescbMap) {
             rescbMap.forEach((obj) => {
-                const texture = GRoot.inst.scene.textures.get(key);
-                obj.completeCallBack.apply(obj.context, [texture]);
+                if (obj.context && (obj.context instanceof AssetProxy === true || obj.context["_displayObject"])) {
+                    const texture = GRoot.inst.scene.textures.get(key);
+                    obj.completeCallBack.apply(obj.context, [texture]);
+                }
             });
         }
         this._resCallBackMap.delete(key);

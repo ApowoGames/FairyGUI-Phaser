@@ -235,7 +235,8 @@ export class Image extends Phaser.GameObjects.Container {
                 this._curImg = null;
             }
             const name = !this._scale9Grid ? patch.name : "__BASE"
-            this._curImg = new Phaser.GameObjects.Image(this.scene, 0, 0, patch.texture.key, name);
+            this._curImg = this.scene.make.image({ key: patch.texture.key, frame: name }, false);
+            // new Phaser.GameObjects.Image(this.scene, 0, 0, patch.texture.key, name);
             this._curImg.setOrigin(0);
             this._curImg.displayWidth = this.finalXs[3]; //+ (xi < 2 ? this.mCorrection : 0);
             this._curImg.displayHeight = this.finalYs[3]; //+ (yi < 2 ? this.mCorrection : 0);
@@ -258,7 +259,8 @@ export class Image extends Phaser.GameObjects.Container {
                 //     continue;
                 // }
                 const patch = this._sourceTexture.frames[this.getPatchNameByIndex(patchIndex)];
-                const patchImg = new Phaser.GameObjects.Image(this.scene, 0, 0, patch.texture.key, patch.name);
+                const patchImg = this.scene.make.image({ key: patch.texture.key, frame: patch.name }, false);
+                // new Phaser.GameObjects.Image(this.scene, 0, 0, patch.texture.key, patch.name);
                 patchImg.setOrigin(0);
                 let posx = this.finalXs[xi];
                 let posy = this.finalYs[yi];
@@ -327,8 +329,34 @@ export class Image extends Phaser.GameObjects.Container {
             // this._renderTexture.drawFrame(value.key, baseFrameName, 0, 0);
             // this.repaint();
             // this.markChanged(1);
+            // if (!this._sourceTexture.hasOwnProperty("useCount")) {
+            //     Object.defineProperties(this.texture, {
+            //         useCount: {
+            //             value: 0,
+            //             writable: true
+            //         }
+            //     });
+            // }
+            // // @ts-ignore
+            // this._sourceTexture.useCount++;
         }
     }
+
+    // public destroy(fromScene?: boolean): void {
+    //     if (this._sourceTexture) {
+    //         if (!this._sourceTexture.hasOwnProperty("useCount")) {
+    //             Object.defineProperties(this.texture, {
+    //                 useCount: {
+    //                     value: 0,
+    //                     writable: true
+    //                 }
+    //             });
+    //         }
+    //         // @ts-ignore
+    //         this._sourceTexture.useCount--;
+    //     }
+    //     super.destroy(fromScene);
+    // }
 
     public setPackItem(value: PackageItem): Promise<void> {
         return new Promise((resolve, reject) => {
