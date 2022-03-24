@@ -17612,8 +17612,8 @@
             }
             let cw;
             let ch;
-            let pivotX = 0;
-            let pivotY = 0;
+            let pivotX = this.pivotX;
+            let pivotY = this.pivotY;
             if (this.parent) {
                 if (this.parent.parent) {
                     if (this.parent.parent instanceof GRoot) {
