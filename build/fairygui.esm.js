@@ -16353,10 +16353,16 @@ class GBasicTextField extends GTextField {
         return this._textField;
     }
     set text(value) {
-        this._baseText = value;
-        this._text = value;
-        if (GRoot.inst.i18n && value) {
-            this._text = GRoot.inst.i18n(value);
+        if (typeof value === "string") {
+            this._baseText = value;
+            this._text = value;
+        }
+        if (GRoot.inst.i18n && (typeof value !== "string")) {
+            this._baseText = value.msg;
+            const options = value.options;
+            this._text = GRoot.inst.i18n(value, options);
+            if ((!this._text || this._text.length < 1) && this._baseText)
+                console.warn(`${value.msg} not found in i18n`);
         }
         if (this._text == null)
             this._text = "";

@@ -5,6 +5,7 @@ import { GTextField } from './GTextField';
 import { TextField } from './display/text/TextField';
 import { ByteBuffer, GRoot, UIConfig } from '.';
 import { HAlignModeString, VAlignModeString } from './display/text/Types';
+import { i18nStr } from './GRoot';
 export class GBasicTextField extends GTextField {
     protected _textField: TextField;
 
@@ -67,11 +68,21 @@ export class GBasicTextField extends GTextField {
         return this._textField;
     }
 
-    public set text(value: string) {
-        this._baseText = value;
-        this._text = value;
-        if (GRoot.inst.i18n && value) {
-            this._text = GRoot.inst.i18n(value);
+    public set text(value: any) {
+
+        // 有本地化
+        if (GRoot.inst.i18n) {
+            if (typeof value === "string") {
+                this._baseText = value;
+                this._text = GRoot.inst.i18n(value);
+            } else {
+                this._baseText = value.msg;
+                const options = value.options;
+                this._text = GRoot.inst.i18n(value, options);
+            }
+            if ((!this._text || this._text.length < 1) && this._baseText) console.warn(`${value.msg} not found in i18n`);
+        } else {
+            this._text = value;
         }
         if (this._text == null)
             this._text = "";
@@ -109,7 +120,7 @@ export class GBasicTextField extends GTextField {
         //this.setSize(this._textWidth, this._textHeight);
     }
 
-    public get text(): string {
+    public get text(): any {
         return this._text;
     }
 

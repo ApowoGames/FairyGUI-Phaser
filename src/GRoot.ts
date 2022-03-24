@@ -16,6 +16,11 @@ export class GRootMouseStatus {
     public mouseY: number = 0;
 }
 
+export interface i18nStr{
+    msg: string,
+    options?: any
+}
+
 export enum UISceneDisplay {
     LAYER_ROOT,
     LAYER_UI,

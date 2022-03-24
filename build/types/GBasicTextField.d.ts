@@ -18,8 +18,8 @@ export declare class GBasicTextField extends GTextField {
     setup_afterAdd(buffer: ByteBuffer, beginPos: number): void;
     setResolution(val: any): void;
     get nativeText(): TextField;
-    set text(value: string);
-    get text(): string;
+    set text(value: any);
+    get text(): any;
     get font(): string;
     set font(value: string);
     get fontSize(): number;

@@ -8,6 +8,10 @@ export declare class GRootMouseStatus {
     mouseX: number;
     mouseY: number;
 }
+export interface i18nStr {
+    msg: string;
+    options?: any;
+}
 export declare enum UISceneDisplay {
     LAYER_ROOT = 0,
     LAYER_UI = 1,
