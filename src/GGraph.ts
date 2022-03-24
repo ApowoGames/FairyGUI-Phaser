@@ -92,6 +92,30 @@ export class GGraph extends GObject {
             this.updateGraph();
     }
 
+    protected handleXYChanged(): void {
+        var xv: number = this._x + this._xOffset;
+        var yv: number = this._y + this._yOffset;
+
+        if (this.parent) {
+            if (this._relationPivot) {
+                xv += this.parent.pivotOffsetX;
+                yv += this.parent.pivotOffsetY;
+            }
+            if (this._pivotAsAnchor) {
+                xv -= this.parent.initWidth * this.parent.pivotX;
+                yv -= this.parent.initHeight * this.parent.pivotY;
+            }
+        }
+
+        if (this._pixelSnapping) {
+            xv = Math.round(xv);
+            yv = Math.round(yv);
+        }
+        const _x = Math.round(this.initWidth * this._pivotX);
+        const _y = Math.round(this.initHeight * this._pivotY);
+        this._displayObject.setPosition(xv - _x, yv - _y);
+    }
+
     private updateGraph(): void {
         this._displayObject.mouseEnabled = this.touchable;
         if (this._graphics) this._graphics.clear();

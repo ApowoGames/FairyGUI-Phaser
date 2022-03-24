@@ -1340,9 +1340,6 @@ export class GObject {
         var xv: number = this._x + this._xOffset;
         var yv: number = this._y + this._yOffset;
 
-
-
-
         if (this.parent) {
             if (this._relationPivot) {
                 xv += this.parent.pivotOffsetX;
@@ -1358,7 +1355,6 @@ export class GObject {
             xv = Math.round(xv);
             yv = Math.round(yv);
         }
-
         this._displayObject.setPosition(xv, yv);
     }
 

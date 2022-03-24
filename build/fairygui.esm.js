@@ -5104,6 +5104,27 @@ class GGraph extends GObject {
         if (this._type != 0)
             this.updateGraph();
     }
+    handleXYChanged() {
+        var xv = this._x + this._xOffset;
+        var yv = this._y + this._yOffset;
+        if (this.parent) {
+            if (this._relationPivot) {
+                xv += this.parent.pivotOffsetX;
+                yv += this.parent.pivotOffsetY;
+            }
+            if (this._pivotAsAnchor) {
+                xv -= this.parent.initWidth * this.parent.pivotX;
+                yv -= this.parent.initHeight * this.parent.pivotY;
+            }
+        }
+        if (this._pixelSnapping) {
+            xv = Math.round(xv);
+            yv = Math.round(yv);
+        }
+        const _x = Math.round(this.initWidth * this._pivotX);
+        const _y = Math.round(this.initHeight * this._pivotY);
+        this._displayObject.setPosition(xv - _x, yv - _y);
+    }
     updateGraph() {
         this._displayObject.mouseEnabled = this.touchable;
         if (this._graphics)
@@ -16354,19 +16375,20 @@ class GBasicTextField extends GTextField {
             this._textField.text = "";
             this._textField["setChanged"]();
         }
-        if (this.parent && this.parent._underConstruct) {
-            // this._textField.typeset();
-            this.updateSize();
-            this.doAlign();
-            // // 由于canvas2D.measureText()获取的文本尺寸与fairygui编辑器中不同，这边手动调整下尺寸，便于编辑器控制
-            // const offsetWidthAuto = 0//this._widthAutoSize && this.parent.pivotX === 0 ? 3 : 0;
-            // const offsetHeightAuto = 0//this._heightAutoSize && this.parent.pivotY === 0 ? 4 : 0;
-            // const offsetParentWidth = this.parent._width * this.parent.pivotX;
-            // const offsetParentHeight = this.parent._height * this.parent.pivotY;
-            // const _x = this.initWidth - this._rawWidth >> 1;
-            // const _y = this.initHeight - this._rawHeight >> 1;
-            // this.setXY(this.x + _x, this.y + _y);
-        }
+        // if (this.parent && this.parent._underConstruct) {
+        // this._textField.typeset();
+        this.updateSize();
+        this.doAlign();
+        // // 由于canvas2D.measureText()获取的文本尺寸与fairygui编辑器中不同，这边手动调整下尺寸，便于编辑器控制
+        // const offsetWidthAuto = 0//this._widthAutoSize && this.parent.pivotX === 0 ? 3 : 0;
+        // const offsetHeightAuto = 0//this._heightAutoSize && this.parent.pivotY === 0 ? 4 : 0;
+        // const offsetParentWidth = this.parent._width * this.parent.pivotX;
+        // const offsetParentHeight = this.parent._height * this.parent.pivotY;
+        // const _x = this.initWidth - this._rawWidth >> 1;
+        // const _y = this.initHeight - this._rawHeight >> 1;
+        // this.setXY(this.x + _x, this.y + _y);
+        //}
+        //this.setSize(this._textWidth, this._textHeight);
     }
     get text() {
         return this._text;
@@ -16828,7 +16850,9 @@ class GBasicTextField extends GTextField {
         const offsetHeightAuto = this._heightAutoSize && this.parent && this.parent.pivotY === 0 ? 4 : 0;
         const offsetParentWidth = this.parent ? this.parent._width * this.parent.pivotX : 0;
         const offsetParentHeight = this.parent ? this.parent._height * this.parent.pivotY : 0;
-        this._displayObject.setPosition(xv - offsetParentWidth + offsetWidthAuto, yv - offsetParentHeight + offsetHeightAuto);
+        const _x = Math.round(this.initWidth * this._pivotX);
+        const _y = Math.round(this.initHeight * this._pivotY);
+        this._displayObject.setPosition(xv - offsetParentWidth + offsetWidthAuto - _x, yv - offsetParentHeight + offsetHeightAuto - _y);
     }
 }
 const GUTTER_X = 2;

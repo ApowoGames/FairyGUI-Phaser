@@ -24,6 +24,7 @@ export declare class GGraph extends GObject {
     set distances(value: number[]);
     get color(): string;
     set color(value: string);
+    protected handleXYChanged(): void;
     private updateGraph;
     dealWithPolyPoints(basePosX?: number, basePosY?: number): void;
     replaceMe(target: GObject): void;
