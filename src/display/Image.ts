@@ -1,4 +1,3 @@
-import { Events } from 'phaser3';
 import { GRoot } from '..';
 import { PackageItem } from '../PackageItem';
 import { Utils } from '../utils/Utils';
@@ -182,18 +181,28 @@ export class Image extends Phaser.GameObjects.Container {
                 this.drawPatches();
                 if (this._renderTexture) {
                     if (this.scene.textures.exists(key)) {
-                        this._curImg = this.scene.make.image({ key }, false);
+                        (<Phaser.GameObjects.Image>this._curImg) = this.scene.make.image({ key }, false);
                         resolve(this);
                     } else {
                         this._renderTexture.snapshot((img) => {
-                            this.scene.textures.once("addtexture", function () {
-                                this._curImg = this.scene.make.image({ key }, false);
-                                this.markChanged(1);
-                                resolve(this);
-                            }, this);
+                            const fun = (cbKey) => {
+                                this.scene.textures.off("addtexture", fun, this);
+                                if (cbKey === this.patchKey || this.scene.textures.get(this.patchKey)) {
+                                    (<Phaser.GameObjects.Image>this._curImg) = this.scene.make.image({ key: this.patchKey }, false);
+                                    this.markChanged(1);
+                                    resolve(this);
+                                }
+                            }
+                            this.scene.textures.off("addtexture", fun, this);
+                            // 可能同时会有多个texture add事件派发，需要判读callbackkey和当前key是否一致
+                            this.scene.textures.on("addtexture", fun, this);
                             if (!GRoot.inst.textureManager.get(key)) {
                                 GRoot.inst.textureManager.add(key);
-                                this.scene.textures.addBase64(key, (<any>img).src);
+                            }
+                            if (!this.scene.textures.get(this.patchKey)) {
+                                this.scene.textures.addBase64(this.patchKey, (<any>img).src);
+                            } else {
+                                fun(this.patchKey);
                             }
                             this._renderTexture.destroy();
                         });
@@ -234,8 +243,8 @@ export class Image extends Phaser.GameObjects.Container {
                 this._curImg.destroy();
                 this._curImg = null;
             }
-            const name = !this._scale9Grid ? patch.name : "__BASE"
-            this._curImg = this.scene.make.image({ key: patch.texture.key, frame: name }, false);
+            const name = !this._scale9Grid ? patch.name : "__BASE";
+            (<Phaser.GameObjects.Image>this._curImg) = this.scene.make.image({ key: patch.texture.key, frame: name }, false);
             // new Phaser.GameObjects.Image(this.scene, 0, 0, patch.texture.key, name);
             this._curImg.setOrigin(0);
             this._curImg.displayWidth = this.finalXs[3]; //+ (xi < 2 ? this.mCorrection : 0);

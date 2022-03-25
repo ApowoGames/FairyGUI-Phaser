@@ -4114,10 +4114,10 @@ class GObject {
         }
     }
     onClick(listener, context) {
-        this.on(InteractiveEvent.GAMEOBJECT_DOWN, listener, context);
+        this.on(InteractiveEvent.GAMEOBJECT_UP, listener, context);
     }
     offClick(listener, context) {
-        this.off(InteractiveEvent.GAMEOBJECT_DOWN, listener, context);
+        this.off(InteractiveEvent.GAMEOBJECT_UP, listener, context);
     }
     hasClickListener() {
         return this._displayObject && this._touchable; // hasListener(InteractiveEvent.CLICK);
@@ -5857,14 +5857,25 @@ class Image extends Phaser.GameObjects.Container {
                     }
                     else {
                         this._renderTexture.snapshot((img) => {
-                            this.scene.textures.once("addtexture", function () {
-                                this._curImg = this.scene.make.image({ key }, false);
-                                this.markChanged(1);
-                                resolve(this);
-                            }, this);
+                            const fun = (cbKey) => {
+                                this.scene.textures.off("addtexture", fun, this);
+                                if (cbKey === this.patchKey || this.scene.textures.get(this.patchKey)) {
+                                    this._curImg = this.scene.make.image({ key: this.patchKey }, false);
+                                    this.markChanged(1);
+                                    resolve(this);
+                                }
+                            };
+                            this.scene.textures.off("addtexture", fun, this);
+                            // 可能同时会有多个texture add事件派发，需要判读callbackkey和当前key是否一致
+                            this.scene.textures.on("addtexture", fun, this);
                             if (!GRoot.inst.textureManager.get(key)) {
                                 GRoot.inst.textureManager.add(key);
-                                this.scene.textures.addBase64(key, img.src);
+                            }
+                            if (!this.scene.textures.get(this.patchKey)) {
+                                this.scene.textures.addBase64(this.patchKey, img.src);
+                            }
+                            else {
+                                fun(this.patchKey);
                             }
                             this._renderTexture.destroy();
                         });
@@ -13240,14 +13251,18 @@ class GComponent extends GObject {
                     const key = this._mask.valueName;
                     this._maskDisplay = this.scene.make.image({ key, frame: "__BASE" });
                     if (!this._maskDisplay) {
-                        this.scene.textures.once("addtexture", function () {
-                            if (!this._maskDisplay) {
-                                throw new Error("image scale9grid:" + key + "no load");
+                        const fun1 = (cbKey) => {
+                            this.scene.textures.off("addtexture", fun1, this);
+                            if (cbKey === key || this.scene.textures.get(key)) {
+                                if (!this._maskDisplay) {
+                                    throw new Error("image scale9grid:" + key + "no load");
+                                }
+                                if (this._maskDisplay.parentContainer)
+                                    this._displayObject.remove(this._maskDisplay.parentContainer);
+                                fun();
                             }
-                            if (this._maskDisplay.parentContainer)
-                                this._displayObject.remove(this._maskDisplay.parentContainer);
-                            fun();
-                        }, this);
+                        };
+                        this.scene.textures.on("addtexture", fun1, this);
                         return;
                     }
                 }
@@ -16353,16 +16368,22 @@ class GBasicTextField extends GTextField {
         return this._textField;
     }
     set text(value) {
-        if (typeof value === "string") {
-            this._baseText = value;
-            this._text = value;
-        }
-        if (GRoot.inst.i18n && (typeof value !== "string")) {
-            this._baseText = value.msg;
-            const options = value.options;
-            this._text = GRoot.inst.i18n(value, options);
+        // 有本地化
+        if (GRoot.inst.i18n) {
+            if (typeof value === "string") {
+                this._baseText = value;
+                this._text = GRoot.inst.i18n(value);
+            }
+            else {
+                this._baseText = value.msg;
+                const options = value.options;
+                this._text = GRoot.inst.i18n(value, options);
+            }
             if ((!this._text || this._text.length < 1) && this._baseText)
                 console.warn(`${value.msg} not found in i18n`);
+        }
+        else {
+            this._text = value;
         }
         if (this._text == null)
             this._text = "";

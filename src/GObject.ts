@@ -1059,11 +1059,11 @@ export class GObject {
     }
 
     public onClick(listener: Function, context: any): void {
-        this.on(InteractiveEvent.GAMEOBJECT_DOWN, listener, context);
+        this.on(InteractiveEvent.GAMEOBJECT_UP, listener, context);
     }
 
     public offClick(listener: Function, context: any): void {
-        this.off(InteractiveEvent.GAMEOBJECT_DOWN, listener, context);
+        this.off(InteractiveEvent.GAMEOBJECT_UP, listener, context);
     }
 
     public hasClickListener(): boolean {

@@ -1480,16 +1480,20 @@ export class GComponent extends GObject {
             if (this._mask instanceof Phaser.GameObjects.Container) {
                 this._maskDisplay = this._mask.list[0];
                 if (this._maskDisplay instanceof Phaser.GameObjects.Image) {
-                    const key = (<Image>this._mask).valueName
+                    const key = (<Image>this._mask).valueName;
                     this._maskDisplay = this.scene.make.image({ key, frame: "__BASE" });
                     if (!this._maskDisplay) {
-                        this.scene.textures.once("addtexture", function () {
-                            if (!this._maskDisplay) {
-                                throw new Error("image scale9grid:" + key + "no load");
+                        const fun1 = (cbKey) => {
+                            this.scene.textures.off("addtexture", fun1, this);
+                            if (cbKey === key || this.scene.textures.get(key)) {
+                                if (!this._maskDisplay) {
+                                    throw new Error("image scale9grid:" + key + "no load");
+                                }
+                                if (this._maskDisplay.parentContainer) this._displayObject.remove(this._maskDisplay.parentContainer);
+                                fun();
                             }
-                            if (this._maskDisplay.parentContainer) this._displayObject.remove(this._maskDisplay.parentContainer);
-                            fun();
-                        }, this);
+                        }
+                        this.scene.textures.on("addtexture", fun1, this);
                         return;
                     }
                 }
