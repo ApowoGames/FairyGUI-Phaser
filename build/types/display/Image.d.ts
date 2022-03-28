@@ -66,6 +66,7 @@ export declare class Image extends Phaser.GameObjects.Container {
     get display(): any;
     get texture(): Phaser.Textures.Texture;
     set texture(value: Phaser.Textures.Texture);
+    destroy(fromScene?: boolean): void;
     setPackItem(value: PackageItem): Promise<void>;
     get scale9Grid(): Phaser.Geom.Rectangle;
     set scale9Grid(value: Phaser.Geom.Rectangle);

@@ -77,7 +77,7 @@ export class MovieClip extends Image {
             } else {
                 const textureKey = frame.texture.key;
                 if (!this._image) {
-                    this._image = this.scene.make.image({key:textureKey,frame:frame.name},false);
+                    this._image = this.scene.make.image({ key: textureKey, frame: frame.name }, false);
                     // new Phaser.GameObjects.Image(this.scene, 0, 0, textureKey, frame.name);
                 } else {
                     this._image.setTexture(textureKey, frame.name);
@@ -318,10 +318,16 @@ export class MovieClip extends Image {
     }
 
     public destroy() {
-        // if (this._movieTime) {
-        //     this._movieTime.remove(false);
-        //     this._movieTime = null;
-        // }
+        if (this._sprite) {
+            this._sprite.stop();
+            this._sprite.destroy();
+            this._sprite = null;
+        }
+        if (this._image) {
+            this._image.destroy();
+            this._image = null;
+        }
+        this.checkTimer(false);
         this._pipeline = null;
         super.destroy();
     }

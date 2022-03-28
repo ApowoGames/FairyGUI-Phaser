@@ -50,7 +50,8 @@ export class GLoader extends GObject {
         if (!this._contentItem && this._content.texture) {
             this.freeExternal(this._content.texture);
         }
-
+        if (this._content)
+            this._content.destroy();
         if (this._content2)
             this._content2.dispose();
 
@@ -516,6 +517,7 @@ export class GLoader extends GObject {
         if (!this._contentItem && this._content.texture) {
             this.freeExternal(this._content.texture);
         }
+
         this._content.texture = null;
         this._content.frames = null;
 

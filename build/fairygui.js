@@ -6020,21 +6020,9 @@
                 // this._sourceTexture.useCount++;
             }
         }
-        // public destroy(fromScene?: boolean): void {
-        //     if (this._sourceTexture) {
-        //         if (!this._sourceTexture.hasOwnProperty("useCount")) {
-        //             Object.defineProperties(this.texture, {
-        //                 useCount: {
-        //                     value: 0,
-        //                     writable: true
-        //                 }
-        //             });
-        //         }
-        //         // @ts-ignore
-        //         this._sourceTexture.useCount--;
-        //     }
-        //     super.destroy(fromScene);
-        // }
+        destroy(fromScene) {
+            super.destroy(fromScene);
+        }
         setPackItem(value) {
             return new Promise((resolve, reject) => {
                 if (!value || !value.texture) {
@@ -6694,11 +6682,23 @@
         }
         rebuild() {
         }
+        removeAll(destroyChild) {
+            return super.removeAll();
+        }
+        preDestroy() {
+            super.preDestroy();
+        }
         destroy() {
-            // if (this._movieTime) {
-            //     this._movieTime.remove(false);
-            //     this._movieTime = null;
-            // }
+            if (this._sprite) {
+                this._sprite.stop();
+                this._sprite.destroy();
+                this._sprite = null;
+            }
+            if (this._image) {
+                this._image.destroy();
+                this._image = null;
+            }
+            this.checkTimer(false);
             this._pipeline = null;
             super.destroy();
         }
@@ -17377,6 +17377,8 @@
             if (!this._contentItem && this._content.texture) {
                 this.freeExternal(this._content.texture);
             }
+            if (this._content)
+                this._content.destroy();
             if (this._content2)
                 this._content2.dispose();
             super.dispose();
