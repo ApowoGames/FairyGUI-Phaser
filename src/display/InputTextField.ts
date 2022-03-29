@@ -1,3 +1,4 @@
+import { GRoot } from './../GRoot';
 import { GBasicTextField } from "../GBasicTextField";
 import { TextField } from "./text/TextField";
 
@@ -343,10 +344,10 @@ export class InputTextField extends TextField {
             tmpX += worldMatrix.tx;
             tmpY += worldMatrix.ty;
         }
-        const left = this.x + tmpX;
-        const right = this.x + this._width + tmpX;
-        const top = this.y + tmpY;
-        const bottom = this.y + this._height + tmpY;
+        const left = this.x * GRoot.dpr + tmpX;
+        const right = this.x * GRoot.dpr + this._width + tmpX;
+        const top = this.y * GRoot.dpr + tmpY;
+        const bottom = this.y * GRoot.dpr + this._height + tmpY;
         if (px < left || px > right || py < top || py > bottom) return false;
         return true;
     }

@@ -29,8 +29,6 @@ export declare class MovieClip extends Image {
     advance(timeInMiniseconds: number): void;
     private drawFrame;
     protected rebuild(): void;
-    removeAll(destroyChild?: boolean): this;
-    protected preDestroy(): void;
     destroy(): void;
     private checkTimer;
 }

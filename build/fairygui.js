@@ -6020,9 +6020,21 @@
                 // this._sourceTexture.useCount++;
             }
         }
-        destroy(fromScene) {
-            super.destroy(fromScene);
-        }
+        // public destroy(fromScene?: boolean): void {
+        //     if (this._sourceTexture) {
+        //         if (!this._sourceTexture.hasOwnProperty("useCount")) {
+        //             Object.defineProperties(this.texture, {
+        //                 useCount: {
+        //                     value: 0,
+        //                     writable: true
+        //                 }
+        //             });
+        //         }
+        //         // @ts-ignore
+        //         this._sourceTexture.useCount--;
+        //     }
+        //     super.destroy(fromScene);
+        // }
         setPackItem(value) {
             return new Promise((resolve, reject) => {
                 if (!value || !value.texture) {
@@ -6681,12 +6693,6 @@
             this.rebuild();
         }
         rebuild() {
-        }
-        removeAll(destroyChild) {
-            return super.removeAll();
-        }
-        preDestroy() {
-            super.preDestroy();
         }
         destroy() {
             if (this._sprite) {
@@ -17167,10 +17173,10 @@
                 tmpX += worldMatrix.tx;
                 tmpY += worldMatrix.ty;
             }
-            const left = this.x + tmpX;
-            const right = this.x + this._width + tmpX;
-            const top = this.y + tmpY;
-            const bottom = this.y + this._height + tmpY;
+            const left = this.x * GRoot.dpr + tmpX;
+            const right = this.x * GRoot.dpr + this._width + tmpX;
+            const top = this.y * GRoot.dpr + tmpY;
+            const bottom = this.y * GRoot.dpr + this._height + tmpY;
             if (px < left || px > right || py < top || py > bottom)
                 return false;
             return true;
