@@ -17174,9 +17174,9 @@
                 tmpY += worldMatrix.ty;
             }
             const left = this.x * GRoot.dpr + tmpX;
-            const right = this.x * GRoot.dpr + this._width + tmpX;
+            const right = this.x * GRoot.dpr + this._width * GRoot.dpr + tmpX;
             const top = this.y * GRoot.dpr + tmpY;
-            const bottom = this.y * GRoot.dpr + this._height + tmpY;
+            const bottom = this.y * GRoot.dpr + this._height * GRoot.dpr + tmpY;
             if (px < left || px > right || py < top || py > bottom)
                 return false;
             return true;
