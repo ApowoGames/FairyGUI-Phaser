@@ -20235,7 +20235,8 @@
             }
         }
         __clickItem(pointer, gameObject) {
-            if ((this._scrollPane && this._scrollPane.isDragged) || !gameObject || !gameObject[0] || pointer.downX !== pointer.upX || pointer.downY !== pointer.upY)
+            if ((this._scrollPane && this._scrollPane.isDragged) || !gameObject || !gameObject[0] || Math.round(pointer.downX) !== Math.round(pointer.upX)
+                || Math.round(pointer.downY) !== Math.round(pointer.upY))
                 return;
             let item = (gameObject[0]["$owner"]);
             // 如果clickitem的父对象为空，不可能为glist则直接跳出
