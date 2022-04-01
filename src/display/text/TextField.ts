@@ -188,6 +188,10 @@ export class TextField extends DisplayObject {
 
         context.save();
         context.scale(resolution, resolution);
+        // 抗锯齿操作
+        const blurCnt = resolution / 2;
+        context.filter = "blur(" + `${blurCnt}` + "px)";
+        // context.setTransform(1, 0, 0, 1, resolution, resolution);
 
         // draw
         canvasText.draw(
