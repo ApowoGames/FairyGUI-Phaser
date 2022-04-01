@@ -16364,6 +16364,7 @@
         createDisplayObject() {
             this._displayObject = this._textField = new TextField(this.scene);
             this._displayObject.mouseEnabled = false;
+            this._displayObject.texture.setFilter(Phaser.Textures.FilterMode.LINEAR);
         }
         setup_afterAdd(buffer, beginPos) {
             super.setup_afterAdd(buffer, beginPos);
