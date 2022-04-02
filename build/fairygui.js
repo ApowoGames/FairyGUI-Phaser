@@ -16192,11 +16192,13 @@
             else {
                 context.clearRect(0, 0, w, h);
             }
-            context.save();
             context.scale(resolution, resolution);
             // 抗锯齿操作
-            const blurCnt = resolution / 2;
-            context.filter = "blur(" + `${blurCnt}` + "px)";
+            if (!this.scene.game.device.os.desktop) {
+                const blurCnt = 0.2;
+                context.filter = "blur(" + `${blurCnt}` + "px)";
+            }
+            context.save();
             // context.setTransform(1, 0, 0, 1, resolution, resolution);
             // draw
             canvasText.draw(padding.left, padding.top, textWidth, textHeight).then((value) => {
@@ -16373,7 +16375,7 @@
         setup_afterAdd(buffer, beginPos) {
             super.setup_afterAdd(buffer, beginPos);
             // 对文本进行适配
-            this.setResolution(GRoot.dpr);
+            // this.setResolution(GRoot.dpr);
         }
         setResolution(val) {
             this.adaptiveScaleX = this.adaptiveScaleY = val;

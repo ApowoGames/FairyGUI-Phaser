@@ -57,7 +57,7 @@ export class GBasicTextField extends GTextField {
     public setup_afterAdd(buffer: ByteBuffer, beginPos: number): void {
         super.setup_afterAdd(buffer, beginPos);
         // 对文本进行适配
-        this.setResolution(GRoot.dpr);
+        // this.setResolution(GRoot.dpr);
     }
 
     public setResolution(val) {
