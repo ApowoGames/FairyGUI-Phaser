@@ -16,7 +16,7 @@ export class GRootMouseStatus {
     public mouseY: number = 0;
 }
 
-export interface i18nStr{
+export interface i18nStr {
     msg: string,
     options?: any
 }
@@ -343,6 +343,11 @@ export class GRoot extends GComponent {
         GRoot.contentScaleWid = this._width / this._stageOptions.desginWidth;
         GRoot.contentScaleHei = this._height / this._stageOptions.desginHeight;
         GRoot.contentScaleLevel = Math.round(GRoot.contentScaleWid < GRoot.contentScaleHei ? GRoot.contentScaleWid : GRoot.contentScaleHei);
+        const realWidth = this._width / this._stageOptions.dpr;
+        const realHeight = this._height / this._stageOptions.dpr;
+        const _widthScale = realWidth > this._stageOptions.desginWidth ? 1 : realWidth / this._stageOptions.desginWidth;
+        const _heightScale = realHeight > this._stageOptions.desginHeight ? 1 : realHeight / this._stageOptions.desginHeight;
+        GRoot.uiScale = _widthScale > _heightScale ? _heightScale : _widthScale;
 
         // const camera = this._scene.cameras.main;
         // camera.setScroll(-(this._width - this._stageOptions.desginWidth) / 2, -(this._height - this._stageOptions.desginHeight) / 2)

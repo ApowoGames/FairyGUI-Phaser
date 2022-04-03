@@ -16,6 +16,7 @@ import { Graphics } from "./display/Graphics";
 import { GObject, sGlobalRect, sUpdateInDragging } from "./GObject";
 import { Decls, UIPackage } from "./UIPackage";
 import { GRoot, Image, DisplayObjectEvent, ObjectName } from ".";
+import { GLoader } from './GLoader';
 export class GComponent extends GObject {
     private _sortingChildCount: number = 0;
     protected _opaque: boolean;
@@ -783,6 +784,28 @@ export class GComponent extends GObject {
             return;
         }
     }
+
+    public setExtenralScale(sx: number, sy: number, force: boolean = false): void {
+        if (this._scaleX != sx || this._scaleY != sy || force) {
+            if (this._children) {
+                const len = this._children.length;
+                for (let i: number = 0; i < len; i++) {
+                    const component = this._children[i];
+                    if (component.name === "maskBG") {
+                        component.setScale(1 / GRoot.uiScale, 1 / GRoot.uiScale);
+                        break;
+                    }
+                }
+            };
+            this._scaleX = sx * GRoot.uiScale;
+            this._scaleY = sy * GRoot.uiScale;
+            this.handleScaleChanged();
+            this.applyPivot();
+
+            this.updateGear(2);
+        }
+    }
+
 
     public get baseUserData(): string {
         var buffer: ByteBuffer = this.packageItem.rawData;

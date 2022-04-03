@@ -1,6 +1,6 @@
 {
   "name": "fairygui-phaser",
-  "version": "0.0.58",
+  "version": "0.0.59",
   "main": "build/fairygui.js",
   "description": "A flexible UI framework for Phaser3",
   "module": "build/fairygui.esm.js",

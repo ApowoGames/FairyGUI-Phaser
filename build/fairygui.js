@@ -2386,8 +2386,14 @@
                 case exports.RelationType.Center_Center:
                     if (info.percent)
                         this._owner.xMin = pos + (this._owner.xMin + this._owner._rawWidth * 0.5 - pos) * delta - this._owner._rawWidth * 0.5;
-                    else
-                        this._owner.x += delta * (0.5 - pivot);
+                    else {
+                        if (delta >= 0) {
+                            this._owner.x += delta * (0.5 - pivot);
+                        }
+                        else {
+                            this._owner.x = (this._target._width - this._owner._width * GRoot.uiScale) / 2;
+                        }
+                    }
                     break;
                 case exports.RelationType.Right_Left:
                     if (info.percent)
@@ -2428,8 +2434,14 @@
                 case exports.RelationType.Middle_Middle:
                     if (info.percent)
                         this._owner.yMin = pos + (this._owner.yMin + this._owner._rawHeight * 0.5 - pos) * delta - this._owner._rawHeight * 0.5;
-                    else
-                        this._owner.y += delta * (0.5 - pivot);
+                    else {
+                        if (delta >= 0) {
+                            this._owner.y += delta * (0.5 - pivot);
+                        }
+                        else {
+                            this._owner.y = (this._target._height - this._owner._height * GRoot.uiScale) / 2;
+                        }
+                    }
                     break;
                 case exports.RelationType.Bottom_Top:
                     if (info.percent)
@@ -3658,6 +3670,8 @@
                 this.applyPivot();
                 this.updateGear(2);
             }
+        }
+        setExtenralScale(sx, sy, force = false) {
         }
         get skewX() {
             return this._skewX;
@@ -12651,6 +12665,25 @@
                 return;
             }
         }
+        setExtenralScale(sx, sy, force = false) {
+            if (this._scaleX != sx || this._scaleY != sy || force) {
+                if (this._children) {
+                    const len = this._children.length;
+                    for (let i = 0; i < len; i++) {
+                        const component = this._children[i];
+                        if (component.name === "maskBG") {
+                            component.setScale(1 / GRoot.uiScale, 1 / GRoot.uiScale);
+                            break;
+                        }
+                    }
+                }
+                this._scaleX = sx * GRoot.uiScale;
+                this._scaleY = sy * GRoot.uiScale;
+                this.handleScaleChanged();
+                this.applyPivot();
+                this.updateGear(2);
+            }
+        }
         get baseUserData() {
             var buffer = this.packageItem.rawData;
             buffer.seek(0, 4);
@@ -13660,6 +13693,11 @@
             GRoot.contentScaleWid = this._width / this._stageOptions.desginWidth;
             GRoot.contentScaleHei = this._height / this._stageOptions.desginHeight;
             GRoot.contentScaleLevel = Math.round(GRoot.contentScaleWid < GRoot.contentScaleHei ? GRoot.contentScaleWid : GRoot.contentScaleHei);
+            const realWidth = this._width / this._stageOptions.dpr;
+            const realHeight = this._height / this._stageOptions.dpr;
+            const _widthScale = realWidth > this._stageOptions.desginWidth ? 1 : realWidth / this._stageOptions.desginWidth;
+            const _heightScale = realHeight > this._stageOptions.desginHeight ? 1 : realHeight / this._stageOptions.desginHeight;
+            GRoot.uiScale = _widthScale > _heightScale ? _heightScale : _widthScale;
             // const camera = this._scene.cameras.main;
             // camera.setScroll(-(this._width - this._stageOptions.desginWidth) / 2, -(this._height - this._stageOptions.desginHeight) / 2)
         }

@@ -146,6 +146,7 @@ export declare class GObject {
     get scaleY(): number;
     set scaleY(value: number);
     setScale(sx: number, sy: number, force?: boolean): void;
+    setExtenralScale(sx: number, sy: number, force?: boolean): void;
     get skewX(): number;
     set skewX(value: number);
     get skewY(): number;

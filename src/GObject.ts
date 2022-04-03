@@ -497,6 +497,8 @@ export class GObject {
             this.updateGear(2);
         }
     }
+    public setExtenralScale(sx: number, sy: number, force: boolean = false): void {
+    }
 
     public get skewX(): number {
         return this._skewX;

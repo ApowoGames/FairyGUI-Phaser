@@ -290,8 +290,13 @@ export class RelationItem {
             case RelationType.Center_Center:
                 if (info.percent)
                     this._owner.xMin = pos + (this._owner.xMin + this._owner._rawWidth * 0.5 - pos) * delta - this._owner._rawWidth * 0.5;
-                else
-                    this._owner.x += delta * (0.5 - pivot);
+                else {
+                    if (delta >= 0) {
+                        this._owner.x += delta * (0.5 - pivot);
+                    } else {
+                        this._owner.x = (this._target._width - this._owner._width * GRoot.uiScale) / 2;
+                    }
+                }
                 break;
             case RelationType.Right_Left:
                 if (info.percent)
@@ -333,8 +338,13 @@ export class RelationItem {
             case RelationType.Middle_Middle:
                 if (info.percent)
                     this._owner.yMin = pos + (this._owner.yMin + this._owner._rawHeight * 0.5 - pos) * delta - this._owner._rawHeight * 0.5;
-                else
-                    this._owner.y += delta * (0.5 - pivot);
+                else {
+                    if (delta >= 0) {
+                        this._owner.y += delta * (0.5 - pivot);
+                    } else {
+                        this._owner.y = (this._target._height - this._owner._height * GRoot.uiScale) / 2;
+                    }
+                }
                 break;
             case RelationType.Bottom_Top:
                 if (info.percent)
