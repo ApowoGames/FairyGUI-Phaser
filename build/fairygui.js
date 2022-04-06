@@ -17218,10 +17218,10 @@
                 tmpX += worldMatrix.tx;
                 tmpY += worldMatrix.ty;
             }
-            const left = this.x * GRoot.dpr + tmpX;
-            const right = this.x * GRoot.dpr + this._width * GRoot.dpr + tmpX;
-            const top = this.y * GRoot.dpr + tmpY;
-            const bottom = this.y * GRoot.dpr + this._height * GRoot.dpr + tmpY;
+            const left = this.x * GRoot.dpr * GRoot.uiScale + tmpX;
+            const right = this.x * GRoot.dpr * GRoot.uiScale + this._width * GRoot.dpr * GRoot.uiScale + tmpX;
+            const top = this.y * GRoot.dpr * GRoot.uiScale + tmpY;
+            const bottom = this.y * GRoot.dpr * GRoot.uiScale + this._height * GRoot.dpr * GRoot.uiScale + tmpY;
             if (px < left || px > right || py < top || py > bottom)
                 return false;
             return true;
