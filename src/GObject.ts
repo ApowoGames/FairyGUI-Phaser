@@ -11,7 +11,7 @@ import { GTreeNode } from './GTreeNode';
 import { GGroup } from './GGroup';
 import { Relations } from './Relations';
 import { PackageItem } from './PackageItem';
-import { GComponent } from './GComponent';
+import { GComponent, ScreenType } from './GComponent';
 import { DisplayObjectEvent, InteractiveEvent } from './event/DisplayObjectEvent';
 import { GTree } from './GTree';
 import { GearAnimation, GearColor, GearFontSize, GearIcon, GearLook, GearSize, GearText, GearXY } from './gears';
@@ -497,7 +497,7 @@ export class GObject {
             this.updateGear(2);
         }
     }
-    public setExtenralScale(sx: number, sy: number, force: boolean = false): void {
+    public setExtenralScale(sx: number, sy: number, screenType: ScreenType, force: boolean = false): void {
     }
 
     public get skewX(): number {

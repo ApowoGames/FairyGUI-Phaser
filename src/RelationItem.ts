@@ -314,7 +314,11 @@ export class RelationItem {
                 if (info.percent)
                     this._owner.xMin = pos + (this._owner.xMin + this._owner._rawWidth - pos) * delta - this._owner._rawWidth;
                 else
-                    this._owner.x += delta * (1 - pivot);
+                    if (delta >= 0) {
+                        this._owner.x += delta * (1 - pivot);
+                    } else {
+                        this._owner.x += this._owner._width * (1 - GRoot.uiScale);
+                    }
                 break;
 
             case RelationType.Top_Top:

@@ -1,3 +1,4 @@
+import { ObjectUtils } from './utils/ObjectUtils';
 import { GBasicTextField } from './GBasicTextField';
 import { HitArea } from "./utils/HitArea";
 import { TranslationHelper } from "./TranslationHelper";
@@ -17,6 +18,13 @@ import { GObject, sGlobalRect, sUpdateInDragging } from "./GObject";
 import { Decls, UIPackage } from "./UIPackage";
 import { GRoot, Image, DisplayObjectEvent, ObjectName } from ".";
 import { GLoader } from './GLoader';
+
+export enum ScreenType {
+    NONE,
+    FULL,
+    WIDTH,
+    HEIGHT
+}
 export class GComponent extends GObject {
     private _sortingChildCount: number = 0;
     protected _opaque: boolean;
@@ -785,15 +793,36 @@ export class GComponent extends GObject {
         }
     }
 
-    public setExtenralScale(sx: number, sy: number, force: boolean = false): void {
+    public setExtenralScale(sx: number, sy: number, screenType: ScreenType, force: boolean = false): void {
         if (this._scaleX != sx || this._scaleY != sy || force) {
             if (this._children) {
                 const len = this._children.length;
+                let scaleX: number = 1;
+                let scaleY: number = 1;
                 for (let i: number = 0; i < len; i++) {
                     const component = this._children[i];
                     if (component.name === "maskBG") {
-                        component.setScale(1 / GRoot.uiScale, 1 / GRoot.uiScale);
-                        break;
+                        switch (screenType) {
+                            case ScreenType.FULL:
+                                scaleX = 1 / GRoot.uiScale;
+                                scaleY = 1 / GRoot.uiScale;
+                                break;
+                            case ScreenType.WIDTH:
+                                scaleX = 1 / GRoot.uiScale;
+                                break;
+                            case ScreenType.HEIGHT:
+                                scaleY = 1 / GRoot.uiScale;
+                                break;
+                            case ScreenType.NONE:
+                                scaleX = 1 / GRoot.uiScale;
+                                scaleY = 1 / GRoot.uiScale;
+                                break
+                        }
+                        component.setScale(scaleX, scaleY);
+                    }
+                    if (component.type === ObjectType.List) {
+                        component.setScale(GRoot.uiScale, GRoot.uiScale);
+                        // component.setXY(component.x + component.initWidth * (1 - GRoot.uiScale), component.y + component.initHeight * (1 - GRoot.uiScale));
                     }
                 }
             };

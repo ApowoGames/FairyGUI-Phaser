@@ -5,7 +5,7 @@ import { GTreeNode } from './GTreeNode';
 import { GGroup } from './GGroup';
 import { Relations } from './Relations';
 import { PackageItem } from './PackageItem';
-import { GComponent } from './GComponent';
+import { GComponent, ScreenType } from './GComponent';
 import { GTree } from './GTree';
 import { GButton, GComboBox, GGraph, GImage, GList, GLoader, GMovieClip, GProgressBar, GRichTextField, GRoot, GSlider, GTextField, GTextInput } from '.';
 export declare class DisplayStyle {
@@ -146,7 +146,7 @@ export declare class GObject {
     get scaleY(): number;
     set scaleY(value: number);
     setScale(sx: number, sy: number, force?: boolean): void;
-    setExtenralScale(sx: number, sy: number, force?: boolean): void;
+    setExtenralScale(sx: number, sy: number, screenType: ScreenType, force?: boolean): void;
     get skewX(): number;
     set skewX(value: number);
     get skewY(): number;

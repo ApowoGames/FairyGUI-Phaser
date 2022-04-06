@@ -2406,8 +2406,12 @@ class RelationItem {
             case RelationType.Right_Right:
                 if (info.percent)
                     this._owner.xMin = pos + (this._owner.xMin + this._owner._rawWidth - pos) * delta - this._owner._rawWidth;
-                else
+                else if (delta >= 0) {
                     this._owner.x += delta * (1 - pivot);
+                }
+                else {
+                    this._owner.x += this._owner._width * (1 - GRoot.uiScale);
+                }
                 break;
             case RelationType.Top_Top:
                 if (info.percent)
@@ -3667,7 +3671,7 @@ class GObject {
             this.updateGear(2);
         }
     }
-    setExtenralScale(sx, sy, force = false) {
+    setExtenralScale(sx, sy, screenType, force = false) {
     }
     get skewX() {
         return this._skewX;
@@ -12013,6 +12017,13 @@ function createAction(type) {
     return null;
 }
 
+var ScreenType;
+(function (ScreenType) {
+    ScreenType[ScreenType["NONE"] = 0] = "NONE";
+    ScreenType[ScreenType["FULL"] = 1] = "FULL";
+    ScreenType[ScreenType["WIDTH"] = 2] = "WIDTH";
+    ScreenType[ScreenType["HEIGHT"] = 3] = "HEIGHT";
+})(ScreenType || (ScreenType = {}));
 class GComponent extends GObject {
     constructor(scene, type) {
         super(scene, type);
@@ -12661,15 +12672,36 @@ class GComponent extends GObject {
             return;
         }
     }
-    setExtenralScale(sx, sy, force = false) {
+    setExtenralScale(sx, sy, screenType, force = false) {
         if (this._scaleX != sx || this._scaleY != sy || force) {
             if (this._children) {
                 const len = this._children.length;
+                let scaleX = 1;
+                let scaleY = 1;
                 for (let i = 0; i < len; i++) {
                     const component = this._children[i];
                     if (component.name === "maskBG") {
-                        component.setScale(1 / GRoot.uiScale, 1 / GRoot.uiScale);
-                        break;
+                        switch (screenType) {
+                            case ScreenType.FULL:
+                                scaleX = 1 / GRoot.uiScale;
+                                scaleY = 1 / GRoot.uiScale;
+                                break;
+                            case ScreenType.WIDTH:
+                                scaleX = 1 / GRoot.uiScale;
+                                break;
+                            case ScreenType.HEIGHT:
+                                scaleY = 1 / GRoot.uiScale;
+                                break;
+                            case ScreenType.NONE:
+                                scaleX = 1 / GRoot.uiScale;
+                                scaleY = 1 / GRoot.uiScale;
+                                break;
+                        }
+                        component.setScale(scaleX, scaleY);
+                    }
+                    if (component.type === ObjectType.List) {
+                        component.setScale(GRoot.uiScale, GRoot.uiScale);
+                        // component.setXY(component.x + component.initWidth * (1 - GRoot.uiScale), component.y + component.initHeight * (1 - GRoot.uiScale));
                     }
                 }
             }
