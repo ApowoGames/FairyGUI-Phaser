@@ -793,7 +793,7 @@ export class GComponent extends GObject {
         }
     }
 
-    public setExtenralScale(sx: number, sy: number, screenType: ScreenType, force: boolean = false): void {
+    public externalSetScale(sx: number, sy: number, screenType: ScreenType, force: boolean = false): void {
         if (this._scaleX != sx || this._scaleY != sy || force) {
             if (this._children) {
                 const len = this._children.length;

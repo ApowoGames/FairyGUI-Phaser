@@ -12676,7 +12676,7 @@
                 return;
             }
         }
-        setExtenralScale(sx, sy, screenType, force = false) {
+        externalSetScale(sx, sy, screenType, force = false) {
             if (this._scaleX != sx || this._scaleY != sy || force) {
                 if (this._children) {
                     const len = this._children.length;
