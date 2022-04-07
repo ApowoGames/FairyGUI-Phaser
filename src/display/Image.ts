@@ -280,9 +280,14 @@ export class Image extends Phaser.GameObjects.Container {
                 }
 
                 patchImg.setPosition(posx, posy);
-                patchImg.displayWidth = this.finalXs[xi + 1] - this.finalXs[xi] < 0 ? 0 : this.finalXs[xi + 1] - this.finalXs[xi]; //+ (xi < 2 ? this.mCorrection : 0);
-                patchImg.displayHeight = this.finalYs[yi + 1] - this.finalYs[yi] < 0 ? 0 : this.finalYs[yi + 1] - this.finalYs[yi]; //+ (yi < 2 ? this.mCorrection : 0);    
-
+                // const displayWidth = this.finalXs[xi + 1] - this.finalXs[xi] < 0 ? 0 : this.finalXs[xi + 1] - this.finalXs[xi]; //+ (xi < 2 ? this.mCorrection : 0);
+                // const displayHeight = this.finalYs[yi + 1] - this.finalYs[yi] < 0 ? 0 : this.finalYs[yi + 1] - this.finalYs[yi];
+                patchImg.displayWidth = this.finalXs[xi + 1] - this.finalXs[xi] < 0 ? 0 : this.finalXs[xi + 1] - this.finalXs[xi] + 1; //+ (xi < 2 ? this.mCorrection : 0);
+                patchImg.displayHeight = this.finalYs[yi + 1] - this.finalYs[yi] < 0 ? 0 : this.finalYs[yi + 1] - this.finalYs[yi] + 1; //+ (yi < 2 ? this.mCorrection : 0);    
+                // patchImg.setScale(
+                //     displayWidth / patch.width,
+                //     displayHeight / patch.height
+                // );
 
                 // console.log("drawImage ===>", patchImg, this.finalXs, this.finalYs);
                 if (this._renderTexture && !this._renderTexture.dirty) this._renderTexture.draw(patchImg, patchImg.x, patchImg.y);
