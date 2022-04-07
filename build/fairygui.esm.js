@@ -2387,7 +2387,12 @@ class RelationItem {
                         this._owner.x += delta * (0.5 - pivot);
                     }
                     else {
-                        this._owner.x = (this._target._width - this._owner._width * GRoot.uiScale) / 2;
+                        if (this._owner.type === ObjectType.Text) {
+                            this._owner.x = (this._target._width - this._owner._width) / 2;
+                        }
+                        else {
+                            this._owner.x = (this._target._width - this._owner._width * GRoot.uiScale) / 2;
+                        }
                     }
                 }
                 break;
@@ -2439,7 +2444,12 @@ class RelationItem {
                         this._owner.y += delta * (0.5 - pivot);
                     }
                     else {
-                        this._owner.y = (this._target._height - this._owner._height * GRoot.uiScale) / 2;
+                        if (this._owner.type === ObjectType.Text) {
+                            this._owner.y = (this._target._height - this._owner._height) / 2;
+                        }
+                        else {
+                            this._owner.y = (this._target._height - this._owner._height * GRoot.uiScale) / 2;
+                        }
                     }
                 }
                 break;
