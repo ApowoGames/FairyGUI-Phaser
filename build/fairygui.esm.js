@@ -21231,11 +21231,11 @@ class GList extends GComponent {
                     else {
                         this._pool.getObject(url).then((obj) => {
                             ii.obj = obj;
-                            const g = this.scene.make.graphics(undefined, false);
-                            g.clear();
-                            g.fillStyle(0xFFCC00);
-                            g.fillRoundedRect(0, 0, ii.obj.initWidth, ii.obj.initHeight - 4);
-                            ii.obj.displayObject.addAt(g, 0);
+                            // const g = this.scene.make.graphics(undefined, false);
+                            // g.clear();
+                            // g.fillStyle(0xFFCC00);
+                            // g.fillRoundedRect(0, 0, ii.obj.initWidth, ii.obj.initHeight - 4);
+                            // (<Phaser.GameObjects.Container>ii.obj.displayObject).addAt(g, 0);
                             ii.obj.displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, ii.obj.initWidth, ii.obj.initHeight), Phaser.Geom.Rectangle.Contains);
                             if (forward)
                                 this.addChildAt(ii.obj, curIndex - newFirstIndex);
