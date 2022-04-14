@@ -55,6 +55,7 @@ export class GRoot extends GComponent {
     private _inputManager: InputManager;
     private _textureManager: TextureManager;
     private _i18n: Function = null;
+    private _isCN: boolean = false;
     constructor() {
         super();
         this._popupStack = [];
@@ -71,6 +72,14 @@ export class GRoot extends GComponent {
         if (GRoot._inst == null)
             GRoot._inst = new GRoot();
         return GRoot._inst;
+    }
+
+    public set isCN(value: boolean) {
+        this._isCN = value;
+    }
+
+    public get isCN(): boolean {
+        return this._isCN;
     }
 
     public get i18n(): Function {

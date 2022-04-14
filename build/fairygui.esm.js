@@ -13492,6 +13492,7 @@ class GRoot extends GComponent {
     constructor() {
         super();
         this._i18n = null;
+        this._isCN = false;
         this._popupStack = [];
         this._justClosedPopups = [];
         this._inputManager = new InputManager();
@@ -13504,6 +13505,12 @@ class GRoot extends GComponent {
         if (GRoot._inst == null)
             GRoot._inst = new GRoot();
         return GRoot._inst;
+    }
+    set isCN(value) {
+        this._isCN = value;
+    }
+    get isCN() {
+        return this._isCN;
     }
     get i18n() {
         return this._i18n;
@@ -16303,14 +16310,14 @@ class TextField extends DisplayObject {
         return super.setPosition(x, y);
     }
     setWordWrapWidth(width, useAdvancedWrap = false) {
-        this._style.wrapMode = WrapMode.word;
+        this._style.wrapMode = GRoot.inst.isCN ? WrapMode.char : WrapMode.word;
         this._style.wrapWidth = width;
     }
     setResolution(resolution) {
         this._style.resolution = resolution;
     }
     setSingleLine(val) {
-        this._style.wrapMode = val ? WrapMode.none : WrapMode.word;
+        this._style.wrapMode = val ? WrapMode.none : GRoot.inst.isCN ? WrapMode.char : WrapMode.word;
     }
     setInteractive(hitArea, callback, dropZone) {
         const target = {};

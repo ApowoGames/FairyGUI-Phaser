@@ -228,7 +228,7 @@ export class TextField extends DisplayObject {
     }
 
     setWordWrapWidth(width: number, useAdvancedWrap: boolean = false) {
-        this._style.wrapMode = WrapMode.word;
+        this._style.wrapMode = GRoot.inst.isCN ? WrapMode.char : WrapMode.word;
         this._style.wrapWidth = width;
     }
 
@@ -237,7 +237,7 @@ export class TextField extends DisplayObject {
     }
 
     setSingleLine(val: boolean) {
-        this._style.wrapMode = val ? WrapMode.none : WrapMode.word;
+        this._style.wrapMode = val ? WrapMode.none : GRoot.inst.isCN ? WrapMode.char : WrapMode.word;
     }
 
     setInteractive(hitArea?: Phaser.Types.Input.InputConfiguration | any, callback?: Phaser.Types.Input.HitAreaCallback, dropZone?: boolean) {

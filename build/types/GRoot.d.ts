@@ -42,9 +42,12 @@ export declare class GRoot extends GComponent {
     private _inputManager;
     private _textureManager;
     private _i18n;
+    private _isCN;
     constructor();
     get emitter(): Phaser.Events.EventEmitter;
     static get inst(): GRoot;
+    set isCN(value: boolean);
+    get isCN(): boolean;
     get i18n(): Function;
     set i18n(val: Function);
     get input(): InputManager;
