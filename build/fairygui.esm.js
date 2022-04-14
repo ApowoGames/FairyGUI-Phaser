@@ -16303,14 +16303,14 @@ class TextField extends DisplayObject {
         return super.setPosition(x, y);
     }
     setWordWrapWidth(width, useAdvancedWrap = false) {
-        this._style.wrapMode = WrapMode.char;
+        this._style.wrapMode = WrapMode.word;
         this._style.wrapWidth = width;
     }
     setResolution(resolution) {
         this._style.resolution = resolution;
     }
     setSingleLine(val) {
-        this._style.wrapMode = val ? WrapMode.none : WrapMode.char;
+        this._style.wrapMode = val ? WrapMode.none : WrapMode.word;
     }
     setInteractive(hitArea, callback, dropZone) {
         const target = {};
