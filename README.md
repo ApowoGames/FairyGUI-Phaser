@@ -9,5 +9,5 @@ A flexible UI framework for Phaser3, working with the FREE professional Game UI 
 [Related Editor](https://www.fairygui.com/download)   
 
 
-P.S. If you have any questions, please submit an issue. The plugin is still under development. We can help the project grow better. :)
-```The phaser version under this link is used in the project, and the color filters, graphics deformation and other modifications are added internally, which are generally based on the v3.55.0 version of the original project``` </br>
+P.S. If you have any questions, please submit an issue. The plugin is still under development. We can help the project grow better. :) </br>
+```The phaser version under this link is used in the project, and the color filters, graphics deformation and other modifications are added internally, which are generally based on the v3.55.0 version of the original project``` 
