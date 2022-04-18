@@ -148,8 +148,10 @@ export class UIStage extends Phaser.Events.EventEmitter {
         if (!this.containerMap) this.containerMap = new Map();
         let con = this.containerMap.get(sortIndex);
         if (!con) {
-            const _gameObject = <Phaser.GameObjects.Container>(this.scene.sys.displayList.list[sortIndex]);
-            con = _gameObject ? _gameObject : this.scene.add.container(0, 0);
+            const parentContainer = <Phaser.GameObjects.Container>this.scene.sys.displayList.list[sortIndex];
+            con = this.scene.make.container(undefined, false);
+            const len = parentContainer && parentContainer.list && parentContainer.list.length ? parentContainer.list.length : 0
+            parentContainer.addAt(con, len);
             this.containerMap.set(sortIndex, con);
         }
         return con;

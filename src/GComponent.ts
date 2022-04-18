@@ -1,4 +1,3 @@
-import { ObjectUtils } from './utils/ObjectUtils';
 import { GBasicTextField } from './GBasicTextField';
 import { HitArea } from "./utils/HitArea";
 import { TranslationHelper } from "./TranslationHelper";
@@ -17,7 +16,6 @@ import { Graphics } from "./display/Graphics";
 import { GObject, sGlobalRect, sUpdateInDragging } from "./GObject";
 import { Decls, UIPackage } from "./UIPackage";
 import { GRoot, Image, DisplayObjectEvent, ObjectName } from ".";
-import { GLoader } from './GLoader';
 
 export enum ScreenType {
     NONE,
