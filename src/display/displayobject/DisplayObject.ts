@@ -97,7 +97,7 @@ export class DisplayObject extends Phaser.GameObjects.GameObject {
     }
 
     setScale() {
-
+        
     }
 
     setSize(w: number, h: number) {

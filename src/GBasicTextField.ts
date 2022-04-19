@@ -6,6 +6,8 @@ import { TextField } from './display/text/TextField';
 import { ByteBuffer, GRoot, UIConfig } from '.';
 import { HAlignModeString, VAlignModeString } from './display/text/Types';
 import { i18nStr } from './GRoot';
+import { ToolSet, UBBParser } from './utils';
+import { UIPackage } from './UIPackage';
 export class GBasicTextField extends GTextField {
     protected _textField: TextField;
 
@@ -92,12 +94,12 @@ export class GBasicTextField extends GTextField {
             if (this._widthAutoSize)
                 this._textField.width = 10000;
             var text2: string = this._text;
-            // if (this._templateVars)
-            // text2 = this.parseTemplate(text2);
-            // if (this._ubbEnabled) //laya还不支持同一个文本不同样式
-            //     this._textField.text = UBBParser.inst.parse(text2, true);
-            // else
-            this._textField.text = text2;
+            if (this._templateVars)
+                text2 = this.parseTemplate(text2);
+            if (this._ubbEnabled)
+                this._textField.text = UBBParser.inst.parse(text2, true);
+            else
+                this._textField.text = text2;
         }
         else {
             this._textField.text = "";
@@ -131,11 +133,30 @@ export class GBasicTextField extends GTextField {
 
     public set font(value: string) {
         this._font = value;
-        if (this._font) {
-            this._textField.setFont(this._font);
-        } else {
-            this._textField.setFont(UIConfig.defaultFont)
+        if (ToolSet.startsWith(this._font, "ui://"))
+            UIPackage.getItemAssetByURL(this._font).then((obj) => {
+                this._bitmapFont = <BitmapFont>obj;
+                this._textField["setChanged"]();
+            }).catch((err) => {
+                // console.error(err);
+                if (this._font) {
+                    this._textField.setFont(this._font);
+                } else {
+                    this._textField.setFont(UIConfig.defaultFont)
+                }
+            });
+        else{
+            delete this._bitmapFont;
         }
+            
+       
+       
+        // this._font = value;
+        // if (this._font) {
+        //     this._textField.setFont(this._font);
+        // } else {
+        //     this._textField.setFont(UIConfig.defaultFont)
+        // }
     }
 
     public get fontSize(): number {

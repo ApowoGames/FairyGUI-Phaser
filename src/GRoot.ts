@@ -160,12 +160,24 @@ export class GRoot extends GComponent {
         this.addListen();
     }
 
-    public stageWidth(): number {
+    get stageWidth(): number {
         return this._width;
     }
 
-    public stageHeight(): number {
+    get stageHeight(): number {
         return this._height;
+    }
+
+    get desginWidth(): number {
+        return this._stageOptions.desginWidth;
+    }
+
+    get desginHeight(): number {
+        return this._stageOptions.desginHeight;
+    }
+
+    get contentScaleLevel(): number {
+        return GRoot.contentScaleLevel;
     }
 
     public addToStage(child: Phaser.GameObjects.GameObject, type: number = 0, index: number = -1) {
@@ -349,9 +361,10 @@ export class GRoot extends GComponent {
     }
 
     private updateContentScaleLevel() {
-        GRoot.contentScaleWid = this._width / this._stageOptions.desginWidth;
-        GRoot.contentScaleHei = this._height / this._stageOptions.desginHeight;
-        GRoot.contentScaleLevel = Math.round(GRoot.contentScaleWid < GRoot.contentScaleHei ? GRoot.contentScaleWid : GRoot.contentScaleHei);
+        GRoot.contentScaleLevel = GRoot.inst.desginWidth / (GRoot.inst.stageWidth / GRoot.dpr) > 1 ? 1 : GRoot.inst.desginWidth / (GRoot.inst.stageWidth / GRoot.dpr);
+        // GRoot.contentScaleWid = this._width / this._stageOptions.desginWidth;
+        // GRoot.contentScaleHei = this._height / this._stageOptions.desginHeight;
+        // GRoot.contentScaleLevel = Math.round(GRoot.contentScaleWid < GRoot.contentScaleHei ? GRoot.contentScaleWid : GRoot.contentScaleHei);
         const realWidth = this._width / this._stageOptions.dpr;
         const realHeight = this._height / this._stageOptions.dpr;
         const _widthScale = realWidth > this._stageOptions.desginWidth ? 1 : realWidth / this._stageOptions.desginWidth;

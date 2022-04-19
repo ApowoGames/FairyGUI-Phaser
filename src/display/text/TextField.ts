@@ -1,3 +1,4 @@
+
 import { GRoot } from '../..';
 import { DisplayObjectEvent } from '../../event';
 import { DisplayObject } from '../displayobject/DisplayObject';
@@ -24,7 +25,7 @@ export class TextField extends DisplayObject {
     protected _imageManager: ImageManager;
     protected _canvasText: CanvasText;
     protected _style: TextStyle;
-
+    private _baseFontSize: number = 1;
     constructor(scene: Phaser.Scene) {
         super(scene, "TextField");
 
@@ -137,7 +138,7 @@ export class TextField extends DisplayObject {
             canvasText.updatePenManager(
                 this._text,
                 style.wrapMode,
-                style.wrapWidth
+                style.wrapWidth / GRoot.contentScaleLevel,
             )
         }
 
@@ -321,6 +322,7 @@ export class TextField extends DisplayObject {
     }
 
     setFontSize(fontSize: string | number) {
+        this._baseFontSize = Number(fontSize);
         this._style.setFontSize(fontSize);
 
         return this;

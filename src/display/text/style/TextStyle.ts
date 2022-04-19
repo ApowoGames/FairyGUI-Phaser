@@ -1,7 +1,7 @@
 import { TextField } from "../TextField";
 import { CONST } from "../const";
 import { FillStyleType, HAlignModeString, VAlignModeString } from "../Types";
-import { UIConfig } from "../../..";
+import { GRoot, UIConfig } from "../../..";
 import { WrapMode } from "../WrapText";
 import { MeasureText } from "../measureText";
 
@@ -325,6 +325,7 @@ export class TextStyle implements ITextStyle {
 
     setFontSize(size: string | number) {
         if (typeof size === "number") {
+            // size = (GRoot.inst.stageWidth / GRoot.dpr) / (GRoot.inst.desginWidth / size) / GRoot.uiScale;
             size = size.toString() + "px";
         }
         if (this.fontSize !== size) {

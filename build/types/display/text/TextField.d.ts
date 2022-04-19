@@ -14,6 +14,7 @@ export declare class TextField extends DisplayObject {
     protected _imageManager: ImageManager;
     protected _canvasText: CanvasText;
     protected _style: TextStyle;
+    private _baseFontSize;
     constructor(scene: Phaser.Scene);
     initRTL(): void;
     setText(value: string | string[]): this;
