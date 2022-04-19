@@ -16252,7 +16252,7 @@ class TextField extends DisplayObject {
         const canvasText = this.canvasText;
         const style = this._style;
         if (runWrap) {
-            canvasText.updatePenManager(this._text, style.wrapMode, style.wrapWidth / GRoot.contentScaleLevel);
+            canvasText.updatePenManager(this._text, style.wrapMode, style.wrapWidth);
         }
         const padding = this.padding;
         let textWidth, textHeight;
@@ -17533,10 +17533,10 @@ class GBasicTextField extends GTextField {
             var text2 = this._text;
             if (this._templateVars)
                 text2 = this.parseTemplate(text2);
-            if (this._ubbEnabled)
-                this._textField.text = UBBParser.inst.parse(text2, true);
-            else
-                this._textField.text = text2;
+            // if (this._ubbEnabled)
+            //     this._textField.text = UBBParser.inst.parse(text2, true);
+            // else
+            this._textField.text = text2;
         }
         else {
             this._textField.text = "";

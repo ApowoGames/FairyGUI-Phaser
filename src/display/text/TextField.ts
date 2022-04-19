@@ -1,6 +1,5 @@
 
 import { GRoot } from '../..';
-import { DisplayObjectEvent } from '../../event';
 import { DisplayObject } from '../displayobject/DisplayObject';
 import { Parser } from './bbcode/Parser';
 import { CanvasText } from './canvastext/CanvasText';
@@ -138,7 +137,7 @@ export class TextField extends DisplayObject {
             canvasText.updatePenManager(
                 this._text,
                 style.wrapMode,
-                style.wrapWidth / GRoot.contentScaleLevel,
+                style.wrapWidth,
             )
         }
 
