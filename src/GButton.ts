@@ -435,6 +435,11 @@ export class GButton extends GComponent {
 
     public setup_afterAdd(buffer: ByteBuffer, beginPos: number): void {
         super.setup_afterAdd(buffer, beginPos);
+        // const g = this.scene.make.graphics(undefined, false);
+        // g.clear();
+        // g.fillStyle(0xFFCCAA);
+        // g.fillRoundedRect(0, 0, this.initWidth, this.initHeight);
+        // this._displayObject.addAt(g, 0);
         if (!buffer.seek(beginPos, 6))
             return;
 
@@ -474,11 +479,6 @@ export class GButton extends GComponent {
         if (buffer.readBool())
             this._soundVolumeScale = buffer.readFloat();
         this.selected = buffer.readBool();
-        // const g = this.scene.make.graphics(undefined, false);
-        // g.clear();
-        // g.fillStyle(0xFFCC00);
-        // g.fillRoundedRect(0, 0, this.initWidth, this.initHeight);
-        // this._displayObject.addAt(g, 0);
     }
 
     public async constructFromResource2(objectPool: GObject[], poolIndex: number): Promise<void> {

@@ -16,6 +16,7 @@ import { Graphics } from "./display/Graphics";
 import { GObject, sGlobalRect, sUpdateInDragging } from "./GObject";
 import { Decls, UIPackage } from "./UIPackage";
 import { GRoot, Image, DisplayObjectEvent, ObjectName } from ".";
+import { TextField } from './display/text/TextField';
 
 export enum ScreenType {
     NONE,
@@ -797,6 +798,8 @@ export class GComponent extends GObject {
                 const len = this._children.length;
                 let scaleX: number = 1;
                 let scaleY: number = 1;
+                // const _sx = GRoot.uiScale * sx;
+                // const _sy = GRoot.uiScale * sy;
                 for (let i: number = 0; i < len; i++) {
                     const component = this._children[i];
                     if (component.name === "maskBG") {
@@ -816,21 +819,58 @@ export class GComponent extends GObject {
                                 scaleY = 1 / GRoot.uiScale;
                                 break
                         }
-                        component.setScale(scaleX, scaleY);
+                        component.setScale(scaleX * sx, scaleY * sy);
+                    } else {
+                        if (component.type === ObjectType.RichText) {
+                            // (<TextField>(<GBasicTextField>component).displayObject).setFontSize();
+                        } else {
+                            component.setXY(component.x * sx, component.y * sy, false, true);
+                            component.setScale(sx, sy);
+                        }
                     }
-                    if (component.type === ObjectType.List) {
-                        component.setScale(GRoot.uiScale, GRoot.uiScale);
-                        // component.setXY(component.x + component.initWidth * (1 - GRoot.uiScale), component.y + component.initHeight * (1 - GRoot.uiScale));
-                    }
-                }
-            };
-            this._scaleX = sx * GRoot.uiScale;
-            this._scaleY = sy * GRoot.uiScale;
-            this.handleScaleChanged();
-            this.applyPivot();
-
-            this.updateGear(2);
+                };
+            }
+            // this.setXY(this.x * sx, this.y * sy);
         }
+    }
+
+    public recursiveScale(sx: number, sy: number, screenType: ScreenType, comp: GComponent) {
+        const len = comp._children.length;
+        let scaleX: number, scaleY: number = 1;
+        const _sx = GRoot.uiScale * sx;
+        const _sy = GRoot.uiScale * sy;
+        for (let i: number = 0; i < len; i++) {
+            const component = comp._children[i];
+            // if (component.type === ObjectType.Component) {
+            //     // component.setXY(component.x * _sx, component.y * _sy);
+            //     // component.setScale(_sx, _sy);
+            //     this.recursiveScale(sx, sy, screenType, <GComponent>component);
+            // } else {
+            if (component.name === "maskBG") {
+                switch (screenType) {
+                    case ScreenType.FULL:
+                        scaleX = 1 / GRoot.uiScale;
+                        scaleY = 1 / GRoot.uiScale;
+                        break;
+                    case ScreenType.WIDTH:
+                        scaleX = 1 / GRoot.uiScale;
+                        break;
+                    case ScreenType.HEIGHT:
+                        scaleY = 1 / GRoot.uiScale;
+                        break;
+                    case ScreenType.NONE:
+                        scaleX = 1 / GRoot.uiScale;
+                        scaleY = 1 / GRoot.uiScale;
+                        break
+                }
+                component.setScale(scaleX * sx, scaleY * sy);
+            } else if (component.type === ObjectType.RichText) {
+            } else {
+                component.setXY(component.x * sx - component.pivotX * component._width, component.y * sy - component.pivotY * component._height);
+                //component.setScale(_sx, _sy);
+            }
+            // }
+        };
     }
 
 
@@ -1567,7 +1607,7 @@ export class GComponent extends GObject {
     }
 
 
-    public setXY(xv: number, yv: number, force: boolean = false): void {
+    public setXY(xv: number, yv: number, force: boolean = false, noEmitter: boolean = false): void {
         // 只有owner发生移动才更新mask
         if (this._x != xv || this._y != yv || force) {
             var dx: number = xv - this._x;
@@ -1586,7 +1626,7 @@ export class GComponent extends GObject {
                 this._parent.setBoundsChangedFlag();
                 if (this._group)
                     this._group.setBoundsChangedFlag(true);
-                this.displayObject.emit(DisplayObjectEvent.XY_CHANGED);
+                if (!noEmitter) this.displayObject.emit(DisplayObjectEvent.XY_CHANGED);
             }
 
             if (GObject.draggingObject === this && !sUpdateInDragging)

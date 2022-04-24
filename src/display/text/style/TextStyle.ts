@@ -295,7 +295,7 @@ export class TextStyle implements ITextStyle {
 
             fontStyle = (fontSplit.length > 2) ? fontSplit[i++] : '';
             fontSize = fontSplit[i++] || '16px';
-            fontFamily = fontSplit[i++] || 'Courier';
+            fontFamily = fontSplit[i++] || UIConfig.defaultFont;//'Courier';
         }
 
         if (fontFamily !== this.fontFamily || fontSize !== this.fontSize || fontStyle !== this.fontStyle) {
@@ -325,7 +325,7 @@ export class TextStyle implements ITextStyle {
 
     setFontSize(size: string | number) {
         if (typeof size === "number") {
-            // size = (GRoot.inst.stageWidth / GRoot.dpr) / (GRoot.inst.desginWidth / size) / GRoot.uiScale;
+            size *= GRoot.dpr;//Math.round((GRoot.inst.stageWidth / GRoot.dpr) / (GRoot.inst.designWidth / size));
             size = size.toString() + "px";
         }
         if (this.fontSize !== size) {
@@ -406,7 +406,7 @@ export class TextStyle implements ITextStyle {
         return this.parent.canvasText.context;
     }
 
-    get isWrapFitMode() {
+get isWrapFitMode() {
         return (this.fixedWidth > 0) && (this.wrapMode !== CONST.NO_WRAP) && (this.wrapWidth === 0);
     }
 

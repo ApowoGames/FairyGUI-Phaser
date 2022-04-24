@@ -80,6 +80,10 @@ export class GObject {
     private _dragTesting?: boolean;
     private _dragStartPos?: Phaser.Geom.Point;
 
+    // 记录是否已经调整过对象适配时而调整的缩放比例
+    private _extenalScaleBoo: boolean = false;
+
+
     protected _displayStyle: DisplayStyle;
     private _timeEvent: Phaser.Time.TimerEvent;
 
@@ -125,6 +129,14 @@ export class GObject {
 
         this._relations = new Relations(this);
         this._gears = new Array<GearBase>(10);
+    }
+
+    get extenalScaleBoo(): boolean {
+        return this._extenalScaleBoo;
+    }
+
+    set exteanalScaleBoo(val: boolean) {
+        this._extenalScaleBoo = val;
     }
 
     get adaptiveScaleX(): number {
@@ -268,7 +280,7 @@ export class GObject {
         this._timeEvent = value;
     }
 
-    public setXY(xv: number, yv: number, force: boolean = false): void {
+    public setXY(xv: number, yv: number, force: boolean = false, noEmitter: boolean = false): void {
         if (this._x != xv || this._y != yv || force) {
             var dx: number = xv - this._x;
             var dy: number = yv - this._y;
@@ -286,7 +298,7 @@ export class GObject {
                 this._parent.setBoundsChangedFlag();
                 if (this._group)
                     this._group.setBoundsChangedFlag(true);
-                this.displayObject.emit(DisplayObjectEvent.XY_CHANGED);
+                if (!noEmitter) this.displayObject.emit(DisplayObjectEvent.XY_CHANGED);
             }
 
             if (GObject.draggingObject == this && !sUpdateInDragging)
@@ -396,13 +408,6 @@ export class GObject {
                 this.resizeChildren(dWidth, dHeight);
 
             this.updateGear(2);
-
-            // if (this._parent) {
-            //     this._relations.onOwnerSizeChanged(dWidth, dHeight, this._pivotAsAnchor || !ignorePivot);
-            //     this._parent.setBoundsChangedFlag();
-            //     if (this._group)
-            //         this._group.setBoundsChangedFlag();
-            // }
 
             this.displayObject.emit(DisplayObjectEvent.SIZE_CHANGED);
         }
@@ -586,6 +591,23 @@ export class GObject {
                 this._pivotOffsetY = 0;
             }
         }
+
+        // if (this._displayObject) {
+        //     const transform = this._displayObject.getLocalTransformMatrix();
+        //     if (transform && (this._pivotX != 0 || this._pivotY != 0)) {
+        //         sHelperPoint.x = this._pivotX * this._width;
+        //         sHelperPoint.y = this._pivotY * this._height;
+        //         const pt: Phaser.Geom.Point = new Phaser.Geom.Point();
+        //         (<Phaser.Geom.Point>transform.transformPoint(this._pivotX * this.initWidth,
+        //             this._pivotY * this.initHeight, pt));
+        //         this._pivotOffsetX = this._pivotX * this._width - pt.x;
+        //         this._pivotOffsetY = this._pivotY * this._height - pt.y;
+        //     }
+        //     else {
+        //         this._pivotOffsetX = 0;
+        //         this._pivotOffsetY = 0;
+        //     }
+        // }
     }
 
     protected applyPivot(): void {
@@ -1044,6 +1066,7 @@ export class GObject {
     }
 
     public dispose(): void {
+        this._extenalScaleBoo = false;
         this.removeFromParent();
         if (this._relations) {
             this._relations.dispose();
@@ -1341,15 +1364,31 @@ export class GObject {
     protected handleXYChanged(): void {
         var xv: number = this._x + this._xOffset;
         var yv: number = this._y + this._yOffset;
-
+        // 加入由于缩放变小会产生偏移，所以计算时需要讲缩放比例计算在内
+        // const widScale = GRoot.contentScaleWid >= 1 ? 1 : GRoot.contentScaleWid;
+        // const heiScale = GRoot.contentScaleHei >= 1 ? 1 : GRoot.contentScaleHei;
+        // const widScaleOffsetX = this._width * this.pivotX * (1 - widScale);
+        // const heiScaleOffsetY = this._height * this.pivotY * (1 - heiScale);
+        // const widCenterScaleOffsetX = this._width * this.pivotX * (1 - widScale);
+        // const heiMidScaleOffsetY = this._height * this.pivotY * (1 - heiScale);
         if (this.parent) {
             if (this._relationPivot) {
                 xv += this.parent.pivotOffsetX;
                 yv += this.parent.pivotOffsetY;
             }
-            if (this._pivotAsAnchor) {
-                xv -= this.parent.initWidth * this.parent.pivotX;
-                yv -= this.parent.initHeight * this.parent.pivotY;
+            // if (this._pivotAsAnchor) {
+            //     xv -= this.parent.initWidth * this.parent.pivotX;
+            //     yv -= this.parent.initHeight * this.parent.pivotY;
+            // }
+        }
+
+        if (this._pivotAsAnchor) {
+            if (this.type === ObjectType.Image) {
+                xv -= this._pivotX * this._width * GRoot.dpr * GRoot.uiScale;
+                yv -= this._pivotY * this._height * GRoot.dpr * GRoot.uiScale;
+            } else {
+                xv -= (this._pivotX - 0.5) * this._width;
+                yv -= (this._pivotY - 0.5) * this._height;
             }
         }
 
@@ -1358,6 +1397,20 @@ export class GObject {
             yv = Math.round(yv);
         }
         this._displayObject.setPosition(xv, yv);
+
+
+        // var xv: number = this._x;
+        // var yv: number = this._y + this._yOffset;
+        // if (this._pivotAsAnchor) {
+        //     xv -= this._pivotX * this._width;
+        //     yv -= this._pivotY * this._height;
+        // }
+        // if (this._pixelSnapping) {
+        //     xv = Math.round(xv);
+        //     yv = Math.round(yv);
+        // }
+
+        // this._displayObject.setPosition(xv + this._pivotOffsetX, yv + this._pivotOffsetY);
     }
 
     protected handleSizeChanged(): void {
@@ -1443,6 +1496,7 @@ export class GObject {
         if (buffer.readBool()) {
             this.initWidth = buffer.readInt();
             this.initHeight = buffer.readInt();
+            this.setSize(this.initWidth, this.initHeight, true);
             // if (this.type === ObjectType.Image) {
             //     (<Image>this.displayObject).changeSize(this.initWidth, this.initHeight);
             // }
@@ -1666,6 +1720,22 @@ export class GObject {
             this._dragTesting = false;
             this.reset();
         }
+    }
+
+    get xOffset(): number {
+        return this._xOffset
+    }
+
+    set xOffset(val: number) {
+        this._xOffset = val;
+    }
+
+    set yOffset(val: number) {
+        this._yOffset = val;
+    }
+
+    get yOffset(): number {
+        return this._yOffset;
     }
     //-------------------------------------------------------------------
 

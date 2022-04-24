@@ -1,3 +1,4 @@
+import { GObject } from '..';
 import { GRoot } from '..';
 import { PackageItem } from '../PackageItem';
 import { Utils } from '../utils/Utils';
@@ -21,7 +22,6 @@ export class Image extends Phaser.GameObjects.Container {
     protected _times: number = 0;
     protected _endAt: number = 0;
     protected _status: number = 0; //0-none, 1-next loop, 2-ending, 3-ended
-
     protected _frameImgs: Map<string, Phaser.GameObjects.Image> = new Map();
     /**
      * 无论九宫还是非九宫的，基础贴图
@@ -234,6 +234,7 @@ export class Image extends Phaser.GameObjects.Container {
 
     drawPatches() {
         const tintFill = this.tintFill;
+        const owner: GObject = this["$owner"];
         //如果是平铺，可以不移除tilesprite，只有9宫和正常贴图才需要
         if (!this._scaleByTile) this.removeAll(true);
         // 非九宫直接画texture
@@ -250,6 +251,8 @@ export class Image extends Phaser.GameObjects.Container {
             this._curImg.displayWidth = this.finalXs[3]; //+ (xi < 2 ? this.mCorrection : 0);
             this._curImg.displayHeight = this.finalYs[3]; //+ (yi < 2 ? this.mCorrection : 0);
             this._curImg.setPosition(this.finalXs[2], this.finalYs[2]);
+            // if (owner.pivotX) owner.xOffset = -owner.pivotX*this.finalXs[3];
+            // if(owner.pivotY)owner.yOffset=-owner.pivotY*this.finalYs[3];
             // console.log("drawImage ===>", this._curImg, this.finalXs, this.finalYs);
             this.add(this._curImg);
             if (this.internalTint)

@@ -68,8 +68,8 @@ export declare class GRoot extends GComponent {
     attachTo(scene: Phaser.Scene, stageOptions?: any): void;
     get stageWidth(): number;
     get stageHeight(): number;
-    get desginWidth(): number;
-    get desginHeight(): number;
+    get designWidth(): number;
+    get designHeight(): number;
     get contentScaleLevel(): number;
     addToStage(child: Phaser.GameObjects.GameObject, type?: number, index?: number): void;
     removeFromStage(child: Phaser.GameObjects.GameObject): void;

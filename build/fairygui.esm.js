@@ -2221,30 +2221,24 @@ class RelationItem {
             return;
         var ox = this._owner.x;
         var oy = this._owner.y;
-        // const scaleWid = this._owner.width;
-        // const scaleHei = this._owner.height;
         for (var i = 0; i < cnt; i++) {
             var info = this._defs[i];
             switch (info.type) {
                 case RelationType.Center_Center:
-                    // this._owner.x = this._owner.parent ? (this._owner.parent.width * GRoot.dpr * GRoot.contentScaleWid - scaleWid) / 2 : scaleWid / 2;
                     this._owner.x -= (0.5 - (applyPivot ? this._owner.pivotX : 0)) * dWidth;
                     break;
                 case RelationType.Right_Center:
                 case RelationType.Right_Left:
                 case RelationType.Right_Right:
-                    // this._owner.x = this._owner.parent ? this._owner.parent.width * GRoot.dpr * GRoot.contentScaleWid - scaleWid : 0;
                     this._owner.x -= (1 - (applyPivot ? this._owner.pivotX : 0)) * dWidth;
                     break;
                 case RelationType.Middle_Middle:
                     this._owner.y -= (0.5 - (applyPivot ? this._owner.pivotY : 0)) * dHeight;
-                    // this._owner.y = this._owner.parent ? ((this._owner.parent.height * GRoot.dpr * GRoot.contentScaleHei - scaleHei) / 2) : scaleHei / 2;
                     break;
                 case RelationType.Bottom_Middle:
                 case RelationType.Bottom_Top:
                 case RelationType.Bottom_Bottom:
-                    // this._owner.y = this._owner.parent ? this._owner.parent.height * GRoot.dpr * GRoot.contentScaleHei - scaleHei : 0;
-                    this._owner.y -= (1 - (applyPivot ? this._owner.pivotY : 0)) * dHeight; // * GRoot.contentDprLevel;
+                    this._owner.y -= (1 - (applyPivot ? this._owner.pivotY : 0)) * dHeight;
                     break;
             }
         }
@@ -2338,10 +2332,10 @@ class RelationItem {
             }
             if (info.percent) {
                 if (this._targetWidth != 0)
-                    delta = this._target.width / this._targetWidth;
+                    delta = this._target._width / this._targetWidth;
             }
             else
-                delta = this._target.width - this._targetWidth;
+                delta = this._target._width - this._targetWidth;
         }
         else {
             if (this._target != this._owner.parent) {
@@ -2351,128 +2345,102 @@ class RelationItem {
             }
             if (info.percent) {
                 if (this._targetHeight != 0)
-                    delta = this._target.height / this._targetHeight;
+                    delta = this._target._height * this._targetHeight;
             }
             else
-                delta = this._target.height - this._targetHeight;
+                delta = this._target._height - this._targetHeight;
         }
-        if (delta === NaN)
-            delta = 0;
-        // const targetScale = this._target["_contentItem"] && this._target["_contentItem"].isHighRes ? 1 : GRoot.dpr;
-        // const ownerScale = this._owner["_contentItem"] && this._owner["_contentItem"].isHighRes ? 1 : GRoot.dpr;
         switch (info.type) {
             case RelationType.Left_Left:
                 if (info.percent)
                     this._owner.xMin = pos + (this._owner.xMin - pos) * delta;
-                else if (pivot != 0)
+                else if (delta !== 0)
                     this._owner.x += delta * (-pivot);
                 break;
             case RelationType.Left_Center:
                 if (info.percent)
                     this._owner.xMin = pos + (this._owner.xMin - pos) * delta;
-                else
+                else if (delta !== 0) {
                     this._owner.x += delta * (0.5 - pivot);
+                }
                 break;
             case RelationType.Left_Right:
                 if (info.percent)
                     this._owner.xMin = pos + (this._owner.xMin - pos) * delta;
-                else
+                else if (delta !== 0) {
                     this._owner.x += delta * (1 - pivot);
+                }
                 break;
             case RelationType.Center_Center:
                 if (info.percent)
                     this._owner.xMin = pos + (this._owner.xMin + this._owner._rawWidth * 0.5 - pos) * delta - this._owner._rawWidth * 0.5;
-                else {
-                    if (delta >= 0) {
-                        this._owner.x += delta * (0.5 - pivot);
-                    }
-                    else {
-                        if (this._owner.type === ObjectType.Text) {
-                            this._owner.x = (this._target._width - this._owner._width) / 2;
-                        }
-                        else {
-                            this._owner.x = (this._target._width - this._owner._width * GRoot.uiScale) / 2;
-                        }
-                    }
-                }
+                else
+                    this._owner.x += delta * (0.5 - pivot);
                 break;
             case RelationType.Right_Left:
                 if (info.percent)
                     this._owner.xMin = pos + (this._owner.xMin + this._owner._rawWidth - pos) * delta - this._owner._rawWidth;
-                else if (pivot != 0)
+                else if (delta != 0) {
                     this._owner.x += delta * (-pivot);
+                }
                 break;
             case RelationType.Right_Center:
                 if (info.percent)
                     this._owner.xMin = pos + (this._owner.xMin + this._owner._rawWidth - pos) * delta - this._owner._rawWidth;
-                else
+                else if (delta !== 0) {
                     this._owner.x += delta * (0.5 - pivot);
+                }
                 break;
             case RelationType.Right_Right:
                 if (info.percent)
                     this._owner.xMin = pos + (this._owner.xMin + this._owner._rawWidth - pos) * delta - this._owner._rawWidth;
-                else if (delta >= 0) {
+                else if (delta !== 0) {
                     this._owner.x += delta * (1 - pivot);
-                }
-                else {
-                    this._owner.x += this._owner._width * (1 - GRoot.uiScale);
                 }
                 break;
             case RelationType.Top_Top:
                 if (info.percent)
                     this._owner.yMin = pos + (this._owner.yMin - pos) * delta;
-                else if (pivot != 0)
+                else if (delta !== 0)
                     this._owner.y += delta * (-pivot);
                 break;
             case RelationType.Top_Middle:
                 if (info.percent)
                     this._owner.yMin = pos + (this._owner.yMin - pos) * delta;
-                else
+                else if (delta !== 0)
                     this._owner.y += delta * (0.5 - pivot);
                 break;
             case RelationType.Top_Bottom:
                 if (info.percent)
                     this._owner.yMin = pos + (this._owner.yMin - pos) * delta;
-                else
+                else if (delta !== 0)
                     this._owner.y += delta * (1 - pivot);
                 break;
             case RelationType.Middle_Middle:
                 if (info.percent)
                     this._owner.yMin = pos + (this._owner.yMin + this._owner._rawHeight * 0.5 - pos) * delta - this._owner._rawHeight * 0.5;
-                else {
-                    if (delta >= 0) {
-                        this._owner.y += delta * (0.5 - pivot);
-                    }
-                    else {
-                        if (this._owner.type === ObjectType.Text) {
-                            this._owner.y = (this._target._height - this._owner._height) / 2;
-                        }
-                        else {
-                            this._owner.y = (this._target._height - this._owner._height * GRoot.uiScale) / 2;
-                        }
-                    }
-                }
+                else
+                    this._owner.y += delta * (0.5 - pivot);
                 break;
             case RelationType.Bottom_Top:
                 if (info.percent)
                     this._owner.yMin = pos + (this._owner.yMin + this._owner._rawHeight - pos) * delta - this._owner._rawHeight;
-                else if (pivot != 0)
+                else if (delta !== 0)
                     this._owner.y += delta * (-pivot);
                 break;
             case RelationType.Bottom_Middle:
                 if (info.percent)
                     this._owner.yMin = pos + (this._owner.yMin + this._owner._rawHeight - pos) * delta - this._owner._rawHeight;
-                else
+                else if (delta !== 0)
                     this._owner.y += delta * (0.5 - pivot);
                 break;
             case RelationType.Bottom_Bottom:
                 if (info.percent)
                     this._owner.yMin = pos + (this._owner.yMin + this._owner._rawHeight - pos) * delta - this._owner._rawHeight;
-                else
+                else if (delta !== 0)
                     this._owner.y += delta * (1 - pivot);
                 break;
             case RelationType.Width:
-                this._owner.relationPivot = true;
                 if (this._owner._underConstruct && this._owner == this._target.parent)
                     v = this._owner.sourceWidth - this._target.initWidth;
                 else
@@ -2492,7 +2460,6 @@ class RelationItem {
                     this._owner.width = this._target._width + v;
                 break;
             case RelationType.Height:
-                this._owner.relationPivot = true;
                 if (this._owner._underConstruct && this._owner == this._target.parent)
                     v = this._owner.sourceHeight - this._target.initHeight;
                 else
@@ -2634,8 +2601,8 @@ class RelationItem {
         this._target.onEvent(DisplayObjectEvent.SIZE_DELAY_CHANGE, this.__targetSizeWillChange, this);
         this._targetX = this._target.x;
         this._targetY = this._target.y;
-        this._targetWidth = this._target.initWidth;
-        this._targetHeight = this._target.initHeight;
+        this._targetWidth = this._target._rawWidth;
+        this._targetHeight = this._target._rawHeight;
     }
     __targetSizeWillChange() {
         this._owner.relations.sizeDirty = true;
@@ -3340,6 +3307,8 @@ class GObject {
         this._adaptiveScaleY = 1;
         this._sortingOrder = 0;
         this._internalVisible = true;
+        // 记录是否已经调整过对象适配时而调整的缩放比例
+        this._extenalScaleBoo = false;
         this._xOffset = 0;
         this._yOffset = 0;
         this._worldTx = 0;
@@ -3368,6 +3337,12 @@ class GObject {
         this._displayStyle = new DisplayStyle();
         this._relations = new Relations(this);
         this._gears = new Array(10);
+    }
+    get extenalScaleBoo() {
+        return this._extenalScaleBoo;
+    }
+    set exteanalScaleBoo(val) {
+        this._extenalScaleBoo = val;
     }
     get adaptiveScaleX() {
         this._adaptiveScaleX = this.initWidth / this.sourceWidth;
@@ -3493,7 +3468,7 @@ class GObject {
     set timeEvent(value) {
         this._timeEvent = value;
     }
-    setXY(xv, yv, force = false) {
+    setXY(xv, yv, force = false, noEmitter = false) {
         if (this._x != xv || this._y != yv || force) {
             var dx = xv - this._x;
             var dy = yv - this._y;
@@ -3508,7 +3483,8 @@ class GObject {
                 this._parent.setBoundsChangedFlag();
                 if (this._group)
                     this._group.setBoundsChangedFlag(true);
-                this.displayObject.emit(DisplayObjectEvent.XY_CHANGED);
+                if (!noEmitter)
+                    this.displayObject.emit(DisplayObjectEvent.XY_CHANGED);
             }
             if (GObject.draggingObject == this && !sUpdateInDragging)
                 this.localToGlobalRect(0, 0, this._width, this._height, sGlobalRect);
@@ -3601,12 +3577,6 @@ class GObject {
             if (this instanceof GGroup)
                 this.resizeChildren(dWidth, dHeight);
             this.updateGear(2);
-            // if (this._parent) {
-            //     this._relations.onOwnerSizeChanged(dWidth, dHeight, this._pivotAsAnchor || !ignorePivot);
-            //     this._parent.setBoundsChangedFlag();
-            //     if (this._group)
-            //         this._group.setBoundsChangedFlag();
-            // }
             this.displayObject.emit(DisplayObjectEvent.SIZE_CHANGED);
         }
     }
@@ -3755,6 +3725,22 @@ class GObject {
                 this._pivotOffsetY = 0;
             }
         }
+        // if (this._displayObject) {
+        //     const transform = this._displayObject.getLocalTransformMatrix();
+        //     if (transform && (this._pivotX != 0 || this._pivotY != 0)) {
+        //         sHelperPoint.x = this._pivotX * this._width;
+        //         sHelperPoint.y = this._pivotY * this._height;
+        //         const pt: Phaser.Geom.Point = new Phaser.Geom.Point();
+        //         (<Phaser.Geom.Point>transform.transformPoint(this._pivotX * this.initWidth,
+        //             this._pivotY * this.initHeight, pt));
+        //         this._pivotOffsetX = this._pivotX * this._width - pt.x;
+        //         this._pivotOffsetY = this._pivotY * this._height - pt.y;
+        //     }
+        //     else {
+        //         this._pivotOffsetX = 0;
+        //         this._pivotOffsetY = 0;
+        //     }
+        // }
     }
     applyPivot() {
         if (this._pivotX != 0 || this._pivotY != 0) {
@@ -4126,6 +4112,7 @@ class GObject {
         this._displayStyle.hitArea = value;
     }
     dispose() {
+        this._extenalScaleBoo = false;
         this.removeFromParent();
         if (this._relations) {
             this._relations.dispose();
@@ -4392,14 +4379,31 @@ class GObject {
     handleXYChanged() {
         var xv = this._x + this._xOffset;
         var yv = this._y + this._yOffset;
+        // 加入由于缩放变小会产生偏移，所以计算时需要讲缩放比例计算在内
+        // const widScale = GRoot.contentScaleWid >= 1 ? 1 : GRoot.contentScaleWid;
+        // const heiScale = GRoot.contentScaleHei >= 1 ? 1 : GRoot.contentScaleHei;
+        // const widScaleOffsetX = this._width * this.pivotX * (1 - widScale);
+        // const heiScaleOffsetY = this._height * this.pivotY * (1 - heiScale);
+        // const widCenterScaleOffsetX = this._width * this.pivotX * (1 - widScale);
+        // const heiMidScaleOffsetY = this._height * this.pivotY * (1 - heiScale);
         if (this.parent) {
             if (this._relationPivot) {
                 xv += this.parent.pivotOffsetX;
                 yv += this.parent.pivotOffsetY;
             }
-            if (this._pivotAsAnchor) {
-                xv -= this.parent.initWidth * this.parent.pivotX;
-                yv -= this.parent.initHeight * this.parent.pivotY;
+            // if (this._pivotAsAnchor) {
+            //     xv -= this.parent.initWidth * this.parent.pivotX;
+            //     yv -= this.parent.initHeight * this.parent.pivotY;
+            // }
+        }
+        if (this._pivotAsAnchor) {
+            if (this.type === ObjectType.Image) {
+                xv -= this._pivotX * this._width * GRoot.dpr * GRoot.uiScale;
+                yv -= this._pivotY * this._height * GRoot.dpr * GRoot.uiScale;
+            }
+            else {
+                xv -= (this._pivotX - 0.5) * this._width;
+                yv -= (this._pivotY - 0.5) * this._height;
             }
         }
         if (this._pixelSnapping) {
@@ -4407,6 +4411,17 @@ class GObject {
             yv = Math.round(yv);
         }
         this._displayObject.setPosition(xv, yv);
+        // var xv: number = this._x;
+        // var yv: number = this._y + this._yOffset;
+        // if (this._pivotAsAnchor) {
+        //     xv -= this._pivotX * this._width;
+        //     yv -= this._pivotY * this._height;
+        // }
+        // if (this._pixelSnapping) {
+        //     xv = Math.round(xv);
+        //     yv = Math.round(yv);
+        // }
+        // this._displayObject.setPosition(xv + this._pivotOffsetX, yv + this._pivotOffsetY);
     }
     handleSizeChanged() {
         // (<Phaser.GameObjects.Container>this.displayObject).setDisplaySize(this._width, this._height);
@@ -4479,6 +4494,7 @@ class GObject {
         if (buffer.readBool()) {
             this.initWidth = buffer.readInt();
             this.initHeight = buffer.readInt();
+            this.setSize(this.initWidth, this.initHeight, true);
             // if (this.type === ObjectType.Image) {
             //     (<Image>this.displayObject).changeSize(this.initWidth, this.initHeight);
             // }
@@ -4664,6 +4680,18 @@ class GObject {
             this._dragTesting = false;
             this.reset();
         }
+    }
+    get xOffset() {
+        return this._xOffset;
+    }
+    set xOffset(val) {
+        this._xOffset = val;
+    }
+    set yOffset(val) {
+        this._yOffset = val;
+    }
+    get yOffset() {
+        return this._yOffset;
     }
     //-------------------------------------------------------------------
     static cast(sprite) {
@@ -5934,6 +5962,7 @@ class Image extends Phaser.GameObjects.Container {
     }
     drawPatches() {
         const tintFill = this.tintFill;
+        this["$owner"];
         //如果是平铺，可以不移除tilesprite，只有9宫和正常贴图才需要
         if (!this._scaleByTile)
             this.removeAll(true);
@@ -5951,6 +5980,8 @@ class Image extends Phaser.GameObjects.Container {
             this._curImg.displayWidth = this.finalXs[3]; //+ (xi < 2 ? this.mCorrection : 0);
             this._curImg.displayHeight = this.finalYs[3]; //+ (yi < 2 ? this.mCorrection : 0);
             this._curImg.setPosition(this.finalXs[2], this.finalYs[2]);
+            // if (owner.pivotX) owner.xOffset = -owner.pivotX*this.finalXs[3];
+            // if(owner.pivotY)owner.yOffset=-owner.pivotY*this.finalYs[3];
             // console.log("drawImage ===>", this._curImg, this.finalXs, this.finalYs);
             this.add(this._curImg);
             if (this.internalTint)
@@ -7187,8 +7218,8 @@ class DefaultUIStageOptions {
         this.orientation = StageOrientation.AUTO;
         this.dpr = 1;
         // 默认竖屏
-        this.desginWidth = 360;
-        this.desginHeight = 640;
+        this.designWidth = 360;
+        this.designHeight = 640;
         this.width = 480;
         this.height = 854;
         this.x = 0;
@@ -12697,6 +12728,8 @@ class GComponent extends GObject {
                 const len = this._children.length;
                 let scaleX = 1;
                 let scaleY = 1;
+                // const _sx = GRoot.uiScale * sx;
+                // const _sy = GRoot.uiScale * sy;
                 for (let i = 0; i < len; i++) {
                     const component = this._children[i];
                     if (component.name === "maskBG") {
@@ -12716,19 +12749,57 @@ class GComponent extends GObject {
                                 scaleY = 1 / GRoot.uiScale;
                                 break;
                         }
-                        component.setScale(scaleX, scaleY);
+                        component.setScale(scaleX * sx, scaleY * sy);
                     }
-                    if (component.type === ObjectType.List) {
-                        component.setScale(GRoot.uiScale, GRoot.uiScale);
-                        // component.setXY(component.x + component.initWidth * (1 - GRoot.uiScale), component.y + component.initHeight * (1 - GRoot.uiScale));
+                    else {
+                        if (component.type === ObjectType.RichText) ;
+                        else {
+                            component.setXY(component.x * sx, component.y * sy, false, true);
+                            component.setScale(sx, sy);
+                        }
                     }
                 }
             }
-            this._scaleX = sx * GRoot.uiScale;
-            this._scaleY = sy * GRoot.uiScale;
-            this.handleScaleChanged();
-            this.applyPivot();
-            this.updateGear(2);
+            // this.setXY(this.x * sx, this.y * sy);
+        }
+    }
+    recursiveScale(sx, sy, screenType, comp) {
+        const len = comp._children.length;
+        let scaleX, scaleY = 1;
+        GRoot.uiScale * sx;
+        GRoot.uiScale * sy;
+        for (let i = 0; i < len; i++) {
+            const component = comp._children[i];
+            // if (component.type === ObjectType.Component) {
+            //     // component.setXY(component.x * _sx, component.y * _sy);
+            //     // component.setScale(_sx, _sy);
+            //     this.recursiveScale(sx, sy, screenType, <GComponent>component);
+            // } else {
+            if (component.name === "maskBG") {
+                switch (screenType) {
+                    case ScreenType.FULL:
+                        scaleX = 1 / GRoot.uiScale;
+                        scaleY = 1 / GRoot.uiScale;
+                        break;
+                    case ScreenType.WIDTH:
+                        scaleX = 1 / GRoot.uiScale;
+                        break;
+                    case ScreenType.HEIGHT:
+                        scaleY = 1 / GRoot.uiScale;
+                        break;
+                    case ScreenType.NONE:
+                        scaleX = 1 / GRoot.uiScale;
+                        scaleY = 1 / GRoot.uiScale;
+                        break;
+                }
+                component.setScale(scaleX * sx, scaleY * sy);
+            }
+            else if (component.type === ObjectType.RichText) ;
+            else {
+                component.setXY(component.x * sx - component.pivotX * component._width, component.y * sy - component.pivotY * component._height);
+                //component.setScale(_sx, _sy);
+            }
+            // }
         }
     }
     get baseUserData() {
@@ -13376,7 +13447,7 @@ class GComponent extends GObject {
         if (this._maskDisplay.parentContainer)
             this._displayObject.remove(this._maskDisplay.parentContainer);
     }
-    setXY(xv, yv, force = false) {
+    setXY(xv, yv, force = false, noEmitter = false) {
         // 只有owner发生移动才更新mask
         if (this._x != xv || this._y != yv || force) {
             var dx = xv - this._x;
@@ -13392,7 +13463,8 @@ class GComponent extends GObject {
                 this._parent.setBoundsChangedFlag();
                 if (this._group)
                     this._group.setBoundsChangedFlag(true);
-                this.displayObject.emit(DisplayObjectEvent.XY_CHANGED);
+                if (!noEmitter)
+                    this.displayObject.emit(DisplayObjectEvent.XY_CHANGED);
             }
             if (GObject.draggingObject === this && !sUpdateInDragging)
                 this.localToGlobalRect(0, 0, this._width, this._height, sGlobalRect);
@@ -13569,10 +13641,10 @@ class GRoot extends GComponent {
         this._scene.stage = this._uiStage;
         this._width = stageOptions.width;
         this._height = stageOptions.height;
-        if (!this._stageOptions.desginWidth)
-            this._stageOptions.desginWidth = this._width > this._height ? this._uiStage.stageOption.desginHeight : this._uiStage.stageOption.desginWidth;
-        if (!this._stageOptions.desginHeight)
-            this._stageOptions.desginHeight = this._height > this._width ? this._uiStage.stageOption.desginWidth : this._uiStage.stageOption.desginHeight;
+        if (!this._stageOptions.designWidth)
+            this._stageOptions.designWidth = this._width > this._height ? this._uiStage.stageOption.designHeight : this._uiStage.stageOption.designWidth;
+        if (!this._stageOptions.designHeight)
+            this._stageOptions.designHeight = this._height > this._width ? this._uiStage.stageOption.designWidth : this._uiStage.stageOption.designHeight;
         GRoot.inst.updateContentScaleLevel();
         GRoot.inst.updateContentDprLevel();
         // 初始化场景
@@ -13585,11 +13657,11 @@ class GRoot extends GComponent {
     get stageHeight() {
         return this._height;
     }
-    get desginWidth() {
-        return this._stageOptions.desginWidth;
+    get designWidth() {
+        return this._stageOptions.designWidth;
     }
-    get desginHeight() {
-        return this._stageOptions.desginHeight;
+    get designHeight() {
+        return this._stageOptions.designHeight;
     }
     get contentScaleLevel() {
         return GRoot.contentScaleLevel;
@@ -13753,17 +13825,16 @@ class GRoot extends GComponent {
         this.updateContentDprLevel();
     }
     updateContentScaleLevel() {
-        GRoot.contentScaleLevel = GRoot.inst.desginWidth / (GRoot.inst.stageWidth / GRoot.dpr) > 1 ? 1 : GRoot.inst.desginWidth / (GRoot.inst.stageWidth / GRoot.dpr);
-        // GRoot.contentScaleWid = this._width / this._stageOptions.desginWidth;
-        // GRoot.contentScaleHei = this._height / this._stageOptions.desginHeight;
-        // GRoot.contentScaleLevel = Math.round(GRoot.contentScaleWid < GRoot.contentScaleHei ? GRoot.contentScaleWid : GRoot.contentScaleHei);
+        GRoot.contentScaleLevel = GRoot.inst.designWidth / (GRoot.inst.stageWidth / GRoot.dpr) > 1 ? 1 : GRoot.inst.designWidth / (GRoot.inst.stageWidth / GRoot.dpr);
         const realWidth = this._width / this._stageOptions.dpr;
         const realHeight = this._height / this._stageOptions.dpr;
-        const _widthScale = realWidth > this._stageOptions.desginWidth ? 1 : realWidth / this._stageOptions.desginWidth;
-        const _heightScale = realHeight > this._stageOptions.desginHeight ? 1 : realHeight / this._stageOptions.desginHeight;
+        GRoot.contentScaleWid = realWidth / this._stageOptions.designWidth;
+        GRoot.contentScaleHei = realHeight / this._stageOptions.designHeight;
+        const _widthScale = realWidth > this._stageOptions.designWidth ? 1 : GRoot.contentScaleWid;
+        const _heightScale = realHeight > this._stageOptions.designHeight ? 1 : GRoot.contentScaleHei;
         GRoot.uiScale = _widthScale > _heightScale ? _heightScale : _widthScale;
         // const camera = this._scene.cameras.main;
-        // camera.setScroll(-(this._width - this._stageOptions.desginWidth) / 2, -(this._height - this._stageOptions.desginHeight) / 2)
+        // camera.setScroll(-(this._width - this._stageOptions.designWidth) / 2, -(this._height - this._stageOptions.designHeight) / 2)
     }
     updateContentDprLevel() {
         GRoot.dpr = this._stageOptions.dpr;
@@ -16065,7 +16136,7 @@ class TextStyle {
             var i = 0;
             fontStyle = (fontSplit.length > 2) ? fontSplit[i++] : '';
             fontSize = fontSplit[i++] || '16px';
-            fontFamily = fontSplit[i++] || 'Courier';
+            fontFamily = fontSplit[i++] || UIConfig.defaultFont; //'Courier';
         }
         if (fontFamily !== this.fontFamily || fontSize !== this.fontSize || fontStyle !== this.fontStyle) {
             this.fontFamily = fontFamily;
@@ -16089,7 +16160,7 @@ class TextStyle {
     }
     setFontSize(size) {
         if (typeof size === "number") {
-            // size = (GRoot.inst.stageWidth / GRoot.dpr) / (GRoot.inst.desginWidth / size) / GRoot.uiScale;
+            size *= GRoot.dpr; //Math.round((GRoot.inst.stageWidth / GRoot.dpr) / (GRoot.inst.designWidth / size));
             size = size.toString() + "px";
         }
         if (this.fontSize !== size) {
@@ -18815,34 +18886,8 @@ class GLoader extends GObject {
             }
             return;
         }
-        let cw;
-        let ch;
-        let pivotX = this.pivotX;
-        let pivotY = this.pivotY;
-        if (this.parent) {
-            if (this.parent.parent) {
-                if (this.parent.parent instanceof GRoot) {
-                    cw = this.sourceWidth;
-                    ch = this.sourceHeight;
-                    pivotX = this.pivotX;
-                    pivotY = this.pivotY;
-                }
-                else {
-                    cw = this.parent.initWidth;
-                    ch = this.parent.initHeight;
-                    pivotX = this.parent.pivotX;
-                    pivotY = this.parent.pivotY;
-                }
-            }
-            else {
-                cw = this.sourceWidth;
-                ch = this.sourceHeight;
-            }
-        }
-        else {
-            cw = this.sourceWidth;
-            ch = this.sourceHeight;
-        }
+        let cw = this.sourceWidth;
+        let ch = this.sourceHeight;
         if (this._autoSize) {
             this._updatingLayout = true;
             if (cw == 0)
@@ -18857,7 +18902,7 @@ class GLoader extends GObject {
                     this._content2.setScale(1, 1);
                 }
                 else {
-                    this._content.changeSize(cw, ch);
+                    this._content.setSize(cw, ch);
                     this._content.setPosition(0, 0);
                 }
                 return;
@@ -18865,8 +18910,8 @@ class GLoader extends GObject {
         }
         var sx = 1, sy = 1;
         if (this._fill != LoaderFillType.None) {
-            sx = this.initWidth / this.sourceWidth;
-            sy = this.initHeight / this.sourceHeight;
+            sx = this.width / this.sourceWidth;
+            sy = this.height / this.sourceHeight;
             if (sx != 1 || sy != 1) {
                 if (this._fill == LoaderFillType.ScaleMatchHeight)
                     sx = sy;
@@ -18890,49 +18935,150 @@ class GLoader extends GObject {
                     if (sy > 1)
                         sy = 1;
                 }
-                cw = Math.round(this.sourceWidth * sx);
-                ch = Math.round(this.sourceHeight * sy);
+                cw = this.sourceWidth * sx;
+                ch = this.sourceHeight * sy;
             }
         }
-        this.adaptiveScaleX = sx;
-        this.adaptiveScaleY = sy;
         if (this._content2)
             this._content2.setScale(sx, sy);
-        else {
-            // 通过编辑器获取的高清资源
-            if (this._contentItem && this._contentItem.isHighRes)
-                this._content.setSize(cw, ch);
-            else
-                this._content.setScale(sx, sy);
-            // if (this._content.frames) {
-            //     this._content.setSize(cw, ch, this._content.frames[0]);
-            // } else {
-            //     this._content.setSize(cw, ch);
-            // }
-        }
+        else
+            this._content.setSize(cw, ch);
         var nx, ny;
         if (this._align == "center")
-            nx = (0.5 - pivotX) * cw + Math.floor((this.width - cw) / 2);
+            nx = Math.floor((this.width - cw) / 2);
         else if (this._align == "right")
-            nx = (0.5 - pivotX) * cw + (this.width - cw);
+            nx = this.width - cw;
         else
-            nx = (0.5 - pivotX) * cw;
+            nx = 0;
         if (this._valign == "middle")
-            ny = (0.5 - pivotY) * ch + Math.floor((this.height - ch) / 2);
+            ny = Math.floor((this.height - ch) / 2);
         else if (this._valign == "bottom")
-            ny = (0.5 - pivotY) * ch + (this.height - ch);
+            ny = this.height - ch;
         else
-            ny = (0.5 - pivotY) * ch;
-        // 需要将位置除以缩放值进行计算，因为缩放后位置会产生偏移
+            ny = 0;
         if (this._content2)
-            this._content2.setXY(nx / sx, ny / sy);
-        else {
-            // 通过编辑器获取的高清资源
-            if (this._contentItem && this._contentItem.isHighRes)
-                this._content.setPosition(nx / sx, ny / sy);
-            else
-                this._content.setPosition(nx, ny);
-        }
+            this._content2.setXY(nx, ny);
+        else
+            this._content.setPosition(nx, ny);
+        // if (!this._content2 && !this._content.texture && !this._content.frames) {
+        //     if (this._autoSize) {
+        //         this._updatingLayout = true;
+        //         this.setSize(50, 30);
+        //         this._updatingLayout = false;
+        //     }
+        //     return;
+        // }
+        // let cw;
+        // let ch;
+        // let pivotX = this.pivotX;
+        // let pivotY = this.pivotY;
+        // if (this.parent) {
+        //     if (this.parent.parent) {
+        //         if (this.parent.parent instanceof GRoot) {
+        //             cw = this.sourceWidth;
+        //             ch = this.sourceHeight;
+        //             pivotX = this.pivotX;
+        //             pivotY = this.pivotY;
+        //         } else {
+        //             cw = this.parent.initWidth;
+        //             ch = this.parent.initHeight;
+        //             pivotX = this.parent.pivotX;
+        //             pivotY = this.parent.pivotY;
+        //         }
+        //     } else {
+        //         cw = this.sourceWidth;
+        //         ch = this.sourceHeight;
+        //     }
+        // } else {
+        //     cw = this.sourceWidth;
+        //     ch = this.sourceHeight;
+        // }
+        // if (this._autoSize) {
+        //     this._updatingLayout = true;
+        //     if (cw == 0)
+        //         cw = 50;
+        //     if (ch == 0)
+        //         ch = 30;
+        //     this.setSize(cw, ch);
+        //     this._updatingLayout = false;
+        //     if (cw == this._width && ch == this._height) {
+        //         if (this._content2) {
+        //             this._content2.setXY(0, 0);
+        //             this._content2.setScale(1, 1);
+        //         }
+        //         else {
+        //             this._content.changeSize(cw, ch);
+        //             this._content.setPosition(0, 0);
+        //         }
+        //         return;
+        //     }
+        // }
+        // var sx: number = 1, sy: number = 1;
+        // if (this._fill != LoaderFillType.None) {
+        //     sx = this.initWidth / this.sourceWidth;
+        //     sy = this.initHeight / this.sourceHeight;
+        //     if (sx != 1 || sy != 1) {
+        //         if (this._fill == LoaderFillType.ScaleMatchHeight)
+        //             sx = sy;
+        //         else if (this._fill == LoaderFillType.ScaleMatchWidth)
+        //             sy = sx;
+        //         else if (this._fill == LoaderFillType.Scale) {
+        //             if (sx > sy)
+        //                 sx = sy;
+        //             else
+        //                 sy = sx;
+        //         }
+        //         else if (this._fill == LoaderFillType.ScaleNoBorder) {
+        //             if (sx > sy)
+        //                 sy = sx;
+        //             else
+        //                 sx = sy;
+        //         }
+        //         if (this._shrinkOnly) {
+        //             if (sx > 1)
+        //                 sx = 1;
+        //             if (sy > 1)
+        //                 sy = 1;
+        //         }
+        //         cw = Math.round(this.sourceWidth * sx);
+        //         ch = Math.round(this.sourceHeight * sy);
+        //     }
+        // }
+        // this.adaptiveScaleX = sx;
+        // this.adaptiveScaleY = sy;
+        // if (this._content2)
+        //     this._content2.setScale(sx, sy);
+        // else {
+        //     // 通过编辑器获取的高清资源
+        //     if (this._contentItem && this._contentItem.isHighRes) this._content.setSize(cw, ch);
+        //     else this._content.setScale(sx, sy);
+        //     // if (this._content.frames) {
+        //     //     this._content.setSize(cw, ch, this._content.frames[0]);
+        //     // } else {
+        //     //     this._content.setSize(cw, ch);
+        //     // }
+        // }
+        // var nx: number, ny: number;
+        // if (this._align == "center")
+        //     nx = (0.5 - pivotX) * cw + Math.floor((this.width - cw) / 2);
+        // else if (this._align == "right")
+        //     nx = (0.5 - pivotX) * cw + (this.width - cw);
+        // else
+        //     nx = (0.5 - pivotX) * cw;
+        // if (this._valign == "middle")
+        //     ny = (0.5 - pivotY) * ch + Math.floor((this.height - ch) / 2);
+        // else if (this._valign == "bottom")
+        //     ny = (0.5 - pivotY) * ch + (this.height - ch);
+        // else
+        //     ny = (0.5 - pivotY) * ch;
+        // // 需要将位置除以缩放值进行计算，因为缩放后位置会产生偏移
+        // if (this._content2)
+        //     this._content2.setXY(nx / sx, ny / sy);
+        // else {
+        //     // 通过编辑器获取的高清资源
+        //     if (this._contentItem && this._contentItem.isHighRes) this._content.setPosition(nx / sx, ny / sy);
+        //     else this._content.setPosition(nx, ny);
+        // }
     }
     clearContent() {
         // 异步导致清除contentItem时还未加载成功
@@ -19370,6 +19516,11 @@ class GButton extends GComponent {
     }
     setup_afterAdd(buffer, beginPos) {
         super.setup_afterAdd(buffer, beginPos);
+        // const g = this.scene.make.graphics(undefined, false);
+        // g.clear();
+        // g.fillStyle(0xFFCCAA);
+        // g.fillRoundedRect(0, 0, this.initWidth, this.initHeight);
+        // this._displayObject.addAt(g, 0);
         if (!buffer.seek(beginPos, 6))
             return;
         const type = buffer.readByte();
@@ -19405,11 +19556,6 @@ class GButton extends GComponent {
         if (buffer.readBool())
             this._soundVolumeScale = buffer.readFloat();
         this.selected = buffer.readBool();
-        // const g = this.scene.make.graphics(undefined, false);
-        // g.clear();
-        // g.fillStyle(0xFFCC00);
-        // g.fillRoundedRect(0, 0, this.initWidth, this.initHeight);
-        // this._displayObject.addAt(g, 0);
     }
     constructFromResource2(objectPool, poolIndex) {
         const _super = Object.create(null, {

@@ -386,31 +386,9 @@ export class GLoader extends GObject {
             }
             return;
         }
-        let cw;
-        let ch;
-        let pivotX = this.pivotX;
-        let pivotY = this.pivotY;
-        if (this.parent) {
-            if (this.parent.parent) {
-                if (this.parent.parent instanceof GRoot) {
-                    cw = this.sourceWidth;
-                    ch = this.sourceHeight;
-                    pivotX = this.pivotX;
-                    pivotY = this.pivotY;
-                } else {
-                    cw = this.parent.initWidth;
-                    ch = this.parent.initHeight;
-                    pivotX = this.parent.pivotX;
-                    pivotY = this.parent.pivotY;
-                }
-            } else {
-                cw = this.sourceWidth;
-                ch = this.sourceHeight;
-            }
-        } else {
-            cw = this.sourceWidth;
-            ch = this.sourceHeight;
-        }
+
+        let cw = this.sourceWidth;
+        let ch = this.sourceHeight;
 
         if (this._autoSize) {
             this._updatingLayout = true;
@@ -427,7 +405,7 @@ export class GLoader extends GObject {
                     this._content2.setScale(1, 1);
                 }
                 else {
-                    this._content.changeSize(cw, ch);
+                    this._content.setSize(cw, ch);
                     this._content.setPosition(0, 0);
                 }
                 return;
@@ -436,8 +414,8 @@ export class GLoader extends GObject {
 
         var sx: number = 1, sy: number = 1;
         if (this._fill != LoaderFillType.None) {
-            sx = this.initWidth / this.sourceWidth;
-            sy = this.initHeight / this.sourceHeight;
+            sx = this.width / this.sourceWidth;
+            sy = this.height / this.sourceHeight;
 
             if (sx != 1 || sy != 1) {
                 if (this._fill == LoaderFillType.ScaleMatchHeight)
@@ -464,48 +442,162 @@ export class GLoader extends GObject {
                         sy = 1;
                 }
 
-                cw = Math.round(this.sourceWidth * sx);
-                ch = Math.round(this.sourceHeight * sy);
+                cw = this.sourceWidth * sx;
+                ch = this.sourceHeight * sy;
             }
         }
-        this.adaptiveScaleX = sx;
-        this.adaptiveScaleY = sy;
 
         if (this._content2)
             this._content2.setScale(sx, sy);
-        else {
-            // 通过编辑器获取的高清资源
-            if (this._contentItem && this._contentItem.isHighRes) this._content.setSize(cw, ch);
-            else this._content.setScale(sx, sy);
-            // if (this._content.frames) {
-            //     this._content.setSize(cw, ch, this._content.frames[0]);
-            // } else {
-            //     this._content.setSize(cw, ch);
-            // }
-        }
-
+        else
+            this._content.setSize(cw, ch);
 
         var nx: number, ny: number;
         if (this._align == "center")
-            nx = (0.5 - pivotX) * cw + Math.floor((this.width - cw) / 2);
+            nx = Math.floor((this.width - cw) / 2);
         else if (this._align == "right")
-            nx = (0.5 - pivotX) * cw + (this.width - cw);
+            nx = this.width - cw;
         else
-            nx = (0.5 - pivotX) * cw;
+            nx = 0;
         if (this._valign == "middle")
-            ny = (0.5 - pivotY) * ch + Math.floor((this.height - ch) / 2);
+            ny = Math.floor((this.height - ch) / 2);
         else if (this._valign == "bottom")
-            ny = (0.5 - pivotY) * ch + (this.height - ch);
+            ny = this.height - ch;
         else
-            ny = (0.5 - pivotY) * ch;
-        // 需要将位置除以缩放值进行计算，因为缩放后位置会产生偏移
+            ny = 0;
+
         if (this._content2)
-            this._content2.setXY(nx / sx, ny / sy);
-        else {
-            // 通过编辑器获取的高清资源
-            if (this._contentItem && this._contentItem.isHighRes) this._content.setPosition(nx / sx, ny / sy);
-            else this._content.setPosition(nx, ny);
-        }
+            this._content2.setXY(nx, ny);
+        else
+            this._content.setPosition(nx, ny);
+        // if (!this._content2 && !this._content.texture && !this._content.frames) {
+        //     if (this._autoSize) {
+        //         this._updatingLayout = true;
+        //         this.setSize(50, 30);
+        //         this._updatingLayout = false;
+        //     }
+        //     return;
+        // }
+        // let cw;
+        // let ch;
+        // let pivotX = this.pivotX;
+        // let pivotY = this.pivotY;
+        // if (this.parent) {
+        //     if (this.parent.parent) {
+        //         if (this.parent.parent instanceof GRoot) {
+        //             cw = this.sourceWidth;
+        //             ch = this.sourceHeight;
+        //             pivotX = this.pivotX;
+        //             pivotY = this.pivotY;
+        //         } else {
+        //             cw = this.parent.initWidth;
+        //             ch = this.parent.initHeight;
+        //             pivotX = this.parent.pivotX;
+        //             pivotY = this.parent.pivotY;
+        //         }
+        //     } else {
+        //         cw = this.sourceWidth;
+        //         ch = this.sourceHeight;
+        //     }
+        // } else {
+        //     cw = this.sourceWidth;
+        //     ch = this.sourceHeight;
+        // }
+
+        // if (this._autoSize) {
+        //     this._updatingLayout = true;
+        //     if (cw == 0)
+        //         cw = 50;
+        //     if (ch == 0)
+        //         ch = 30;
+        //     this.setSize(cw, ch);
+        //     this._updatingLayout = false;
+
+        //     if (cw == this._width && ch == this._height) {
+        //         if (this._content2) {
+        //             this._content2.setXY(0, 0);
+        //             this._content2.setScale(1, 1);
+        //         }
+        //         else {
+        //             this._content.changeSize(cw, ch);
+        //             this._content.setPosition(0, 0);
+        //         }
+        //         return;
+        //     }
+        // }
+
+        // var sx: number = 1, sy: number = 1;
+        // if (this._fill != LoaderFillType.None) {
+        //     sx = this.initWidth / this.sourceWidth;
+        //     sy = this.initHeight / this.sourceHeight;
+
+        //     if (sx != 1 || sy != 1) {
+        //         if (this._fill == LoaderFillType.ScaleMatchHeight)
+        //             sx = sy;
+        //         else if (this._fill == LoaderFillType.ScaleMatchWidth)
+        //             sy = sx;
+        //         else if (this._fill == LoaderFillType.Scale) {
+        //             if (sx > sy)
+        //                 sx = sy;
+        //             else
+        //                 sy = sx;
+        //         }
+        //         else if (this._fill == LoaderFillType.ScaleNoBorder) {
+        //             if (sx > sy)
+        //                 sy = sx;
+        //             else
+        //                 sx = sy;
+        //         }
+
+        //         if (this._shrinkOnly) {
+        //             if (sx > 1)
+        //                 sx = 1;
+        //             if (sy > 1)
+        //                 sy = 1;
+        //         }
+
+        //         cw = Math.round(this.sourceWidth * sx);
+        //         ch = Math.round(this.sourceHeight * sy);
+        //     }
+        // }
+        // this.adaptiveScaleX = sx;
+        // this.adaptiveScaleY = sy;
+
+        // if (this._content2)
+        //     this._content2.setScale(sx, sy);
+        // else {
+        //     // 通过编辑器获取的高清资源
+        //     if (this._contentItem && this._contentItem.isHighRes) this._content.setSize(cw, ch);
+        //     else this._content.setScale(sx, sy);
+        //     // if (this._content.frames) {
+        //     //     this._content.setSize(cw, ch, this._content.frames[0]);
+        //     // } else {
+        //     //     this._content.setSize(cw, ch);
+        //     // }
+        // }
+
+
+        // var nx: number, ny: number;
+        // if (this._align == "center")
+        //     nx = (0.5 - pivotX) * cw + Math.floor((this.width - cw) / 2);
+        // else if (this._align == "right")
+        //     nx = (0.5 - pivotX) * cw + (this.width - cw);
+        // else
+        //     nx = (0.5 - pivotX) * cw;
+        // if (this._valign == "middle")
+        //     ny = (0.5 - pivotY) * ch + Math.floor((this.height - ch) / 2);
+        // else if (this._valign == "bottom")
+        //     ny = (0.5 - pivotY) * ch + (this.height - ch);
+        // else
+        //     ny = (0.5 - pivotY) * ch;
+        // // 需要将位置除以缩放值进行计算，因为缩放后位置会产生偏移
+        // if (this._content2)
+        //     this._content2.setXY(nx / sx, ny / sy);
+        // else {
+        //     // 通过编辑器获取的高清资源
+        //     if (this._contentItem && this._contentItem.isHighRes) this._content.setPosition(nx / sx, ny / sy);
+        //     else this._content.setPosition(nx, ny);
+        // }
 
     }
 
