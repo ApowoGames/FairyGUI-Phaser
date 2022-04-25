@@ -106,6 +106,7 @@ export interface ITextStyle {
 
 // @ts-ignore
 export class TextStyle implements ITextStyle {
+    numFontSize?: number = 16;
     fontFamily?: string = UIConfig.defaultFont;
     fontSize?: string = "16px";
     fontStyle?: string = "";
@@ -325,6 +326,7 @@ export class TextStyle implements ITextStyle {
 
     setFontSize(size: string | number) {
         if (typeof size === "number") {
+            this.numFontSize = size;
             size *= GRoot.dpr;//Math.round((GRoot.inst.stageWidth / GRoot.dpr) / (GRoot.inst.designWidth / size));
             size = size.toString() + "px";
         }
@@ -406,7 +408,7 @@ export class TextStyle implements ITextStyle {
         return this.parent.canvasText.context;
     }
 
-get isWrapFitMode() {
+    get isWrapFitMode() {
         return (this.fixedWidth > 0) && (this.wrapMode !== CONST.NO_WRAP) && (this.wrapWidth === 0);
     }
 

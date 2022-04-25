@@ -89,7 +89,7 @@ export declare class GComponent extends GObject {
     set mask(value: Graphics);
     setMask(value: any, reversed: boolean): void;
     externalSetScale(sx: number, sy: number, screenType: ScreenType, force?: boolean): void;
-    recursiveScale(sx: number, sy: number, screenType: ScreenType, comp: GComponent): void;
+    recursiveSize(sx: number, sy: number, screenType: ScreenType, comp: GComponent): void;
     get baseUserData(): string;
     protected updateHitArea(): void;
     protected updateMask(): void;

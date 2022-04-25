@@ -2338,8 +2338,9 @@
                     if (this._targetWidth != 0)
                         delta = this._target._width / this._targetWidth;
                 }
-                else
+                else {
                     delta = this._target._width - this._targetWidth;
+                }
             }
             else {
                 if (this._target != this._owner.parent) {
@@ -2351,35 +2352,40 @@
                     if (this._targetHeight != 0)
                         delta = this._target._height * this._targetHeight;
                 }
-                else
+                else {
                     delta = this._target._height - this._targetHeight;
+                }
             }
             switch (info.type) {
                 case exports.RelationType.Left_Left:
                     if (info.percent)
                         this._owner.xMin = pos + (this._owner.xMin - pos) * delta;
-                    else if (delta !== 0)
+                    else
                         this._owner.x += delta * (-pivot);
                     break;
                 case exports.RelationType.Left_Center:
                     if (info.percent)
                         this._owner.xMin = pos + (this._owner.xMin - pos) * delta;
-                    else if (delta !== 0) {
+                    else {
                         this._owner.x += delta * (0.5 - pivot);
                     }
                     break;
                 case exports.RelationType.Left_Right:
                     if (info.percent)
                         this._owner.xMin = pos + (this._owner.xMin - pos) * delta;
-                    else if (delta !== 0) {
+                    else {
                         this._owner.x += delta * (1 - pivot);
                     }
                     break;
                 case exports.RelationType.Center_Center:
                     if (info.percent)
                         this._owner.xMin = pos + (this._owner.xMin + this._owner._rawWidth * 0.5 - pos) * delta - this._owner._rawWidth * 0.5;
-                    else
-                        this._owner.x += delta * (0.5 - pivot);
+                    else {
+                        if (delta < 0)
+                            this._owner.x = (this._target._width - this._owner._width * GRoot.uiScale) / 2;
+                        else
+                            this._owner.x += delta * (0.5 - pivot);
+                    }
                     break;
                 case exports.RelationType.Right_Left:
                     if (info.percent)
@@ -2391,57 +2397,61 @@
                 case exports.RelationType.Right_Center:
                     if (info.percent)
                         this._owner.xMin = pos + (this._owner.xMin + this._owner._rawWidth - pos) * delta - this._owner._rawWidth;
-                    else if (delta !== 0) {
+                    else {
                         this._owner.x += delta * (0.5 - pivot);
                     }
                     break;
                 case exports.RelationType.Right_Right:
                     if (info.percent)
                         this._owner.xMin = pos + (this._owner.xMin + this._owner._rawWidth - pos) * delta - this._owner._rawWidth;
-                    else if (delta !== 0) {
+                    else {
                         this._owner.x += delta * (1 - pivot);
                     }
                     break;
                 case exports.RelationType.Top_Top:
                     if (info.percent)
                         this._owner.yMin = pos + (this._owner.yMin - pos) * delta;
-                    else if (delta !== 0)
+                    else
                         this._owner.y += delta * (-pivot);
                     break;
                 case exports.RelationType.Top_Middle:
                     if (info.percent)
                         this._owner.yMin = pos + (this._owner.yMin - pos) * delta;
-                    else if (delta !== 0)
+                    else
                         this._owner.y += delta * (0.5 - pivot);
                     break;
                 case exports.RelationType.Top_Bottom:
                     if (info.percent)
                         this._owner.yMin = pos + (this._owner.yMin - pos) * delta;
-                    else if (delta !== 0)
+                    else
                         this._owner.y += delta * (1 - pivot);
                     break;
                 case exports.RelationType.Middle_Middle:
                     if (info.percent)
                         this._owner.yMin = pos + (this._owner.yMin + this._owner._rawHeight * 0.5 - pos) * delta - this._owner._rawHeight * 0.5;
-                    else
-                        this._owner.y += delta * (0.5 - pivot);
+                    else {
+                        if (delta < 0)
+                            this._owner.y = (this._target._height - this._owner._height * GRoot.uiScale) / 2;
+                        else
+                            this._owner.y += delta * (0.5 - pivot);
+                    }
                     break;
                 case exports.RelationType.Bottom_Top:
                     if (info.percent)
                         this._owner.yMin = pos + (this._owner.yMin + this._owner._rawHeight - pos) * delta - this._owner._rawHeight;
-                    else if (delta !== 0)
+                    else
                         this._owner.y += delta * (-pivot);
                     break;
                 case exports.RelationType.Bottom_Middle:
                     if (info.percent)
                         this._owner.yMin = pos + (this._owner.yMin + this._owner._rawHeight - pos) * delta - this._owner._rawHeight;
-                    else if (delta !== 0)
+                    else
                         this._owner.y += delta * (0.5 - pivot);
                     break;
                 case exports.RelationType.Bottom_Bottom:
                     if (info.percent)
                         this._owner.yMin = pos + (this._owner.yMin + this._owner._rawHeight - pos) * delta - this._owner._rawHeight;
-                    else if (delta !== 0)
+                    else
                         this._owner.y += delta * (1 - pivot);
                     break;
                 case exports.RelationType.Width:
@@ -12732,8 +12742,8 @@
                     const len = this._children.length;
                     let scaleX = 1;
                     let scaleY = 1;
-                    // const _sx = GRoot.uiScale * sx;
-                    // const _sy = GRoot.uiScale * sy;
+                    GRoot.uiScale * sx;
+                    GRoot.uiScale * sy;
                     for (let i = 0; i < len; i++) {
                         const component = this._children[i];
                         if (component.name === "maskBG") {
@@ -12756,10 +12766,14 @@
                             component.setScale(scaleX * sx, scaleY * sy);
                         }
                         else {
-                            if (component.type === exports.ObjectType.RichText) ;
+                            if (component.type === exports.ObjectType.RichText || component.type === exports.ObjectType.Text) {
+                                const style = component.displayObject.style;
+                                const fontSize = style.numFontSize;
+                                style.setFontSize(fontSize * GRoot.uiScale);
+                            }
                             else {
+                                this.recursiveSize(sx, sy, screenType, component);
                                 component.setXY(component.x * sx, component.y * sy, false, true);
-                                component.setScale(sx, sy);
                             }
                         }
                     }
@@ -12767,17 +12781,17 @@
                 // this.setXY(this.x * sx, this.y * sy);
             }
         }
-        recursiveScale(sx, sy, screenType, comp) {
+        recursiveSize(sx, sy, screenType, comp) {
             const len = comp._children.length;
             let scaleX, scaleY = 1;
-            GRoot.uiScale * sx;
-            GRoot.uiScale * sy;
+            const _sx = GRoot.uiScale * sx;
+            const _sy = GRoot.uiScale * sy;
             for (let i = 0; i < len; i++) {
                 const component = comp._children[i];
                 // if (component.type === ObjectType.Component) {
                 //     // component.setXY(component.x * _sx, component.y * _sy);
                 //     // component.setScale(_sx, _sy);
-                //     this.recursiveScale(sx, sy, screenType, <GComponent>component);
+                //     this.recursiveSize(sx, sy, screenType, <GComponent>component);
                 // } else {
                 if (component.name === "maskBG") {
                     switch (screenType) {
@@ -12798,10 +12812,16 @@
                     }
                     component.setScale(scaleX * sx, scaleY * sy);
                 }
-                else if (component.type === exports.ObjectType.RichText) ;
                 else {
-                    component.setXY(component.x * sx - component.pivotX * component._width, component.y * sy - component.pivotY * component._height);
-                    //component.setScale(_sx, _sy);
+                    if (component.type === exports.ObjectType.RichText || component.type === exports.ObjectType.Text) {
+                        const style = component.displayObject.style;
+                        const fontSize = style.numFontSize;
+                        style.setFontSize(fontSize * GRoot.uiScale);
+                    }
+                    else {
+                        component.setXY(component.x * sx - component.pivotX * component._width, component.y * sy - component.pivotY * component._height, false, true);
+                        component.setSize(_sx * component._width, _sy * component._height);
+                    }
                 }
                 // }
             }
@@ -15995,6 +16015,7 @@
     // @ts-ignore
     class TextStyle {
         constructor(text, style) {
+            this.numFontSize = 16;
             this.fontFamily = UIConfig.defaultFont;
             this.fontSize = "16px";
             this.fontStyle = "";
@@ -16164,6 +16185,7 @@
         }
         setFontSize(size) {
             if (typeof size === "number") {
+                this.numFontSize = size;
                 size *= GRoot.dpr; //Math.round((GRoot.inst.stageWidth / GRoot.dpr) / (GRoot.inst.designWidth / size));
                 size = size.toString() + "px";
             }

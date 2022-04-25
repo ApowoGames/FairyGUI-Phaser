@@ -231,7 +231,7 @@ export class RelationItem {
     private applyOnSizeChanged(info: RelationDef): void {
         var pos: number = 0, pivot: number = 0, delta: number = 0;
         var v: number, tmp: number;
-      
+
         if (info.axis == 0) {
             if (this._target != this._owner.parent) {
                 pos = this._target.x;
@@ -243,8 +243,10 @@ export class RelationItem {
                 if (this._targetWidth != 0)
                     delta = this._target._width / this._targetWidth;
             }
-            else
+            else {
                 delta = this._target._width - this._targetWidth;
+            }
+
         }
         else {
             if (this._target != this._owner.parent) {
@@ -257,27 +259,29 @@ export class RelationItem {
                 if (this._targetHeight != 0)
                     delta = this._target._height * this._targetHeight;
             }
-            else
+            else {
                 delta = this._target._height - this._targetHeight;
+            }
+
         }
         switch (info.type) {
             case RelationType.Left_Left:
                 if (info.percent)
                     this._owner.xMin = pos + (this._owner.xMin - pos) * delta;
-                else if (delta !== 0)
+                else
                     this._owner.x += delta * (-pivot);
                 break;
             case RelationType.Left_Center:
                 if (info.percent)
                     this._owner.xMin = pos + (this._owner.xMin - pos) * delta;
-                else if (delta !== 0) {
+                else {
                     this._owner.x += delta * (0.5 - pivot);
                 }
                 break;
             case RelationType.Left_Right:
                 if (info.percent)
                     this._owner.xMin = pos + (this._owner.xMin - pos) * delta;
-                else if (delta !== 0) {
+                else {
                     this._owner.x += delta * (1 - pivot);
                 }
 
@@ -285,8 +289,11 @@ export class RelationItem {
             case RelationType.Center_Center:
                 if (info.percent)
                     this._owner.xMin = pos + (this._owner.xMin + this._owner._rawWidth * 0.5 - pos) * delta - this._owner._rawWidth * 0.5;
-                else
-                    this._owner.x += delta * (0.5 - pivot);
+                else {
+                    if (delta < 0) this._owner.x = (this._target._width - this._owner._width * GRoot.uiScale) / 2
+                    else this._owner.x += delta * (0.5 - pivot);
+                }
+
                 break;
             case RelationType.Right_Left:
                 if (info.percent)
@@ -298,57 +305,60 @@ export class RelationItem {
             case RelationType.Right_Center:
                 if (info.percent)
                     this._owner.xMin = pos + (this._owner.xMin + this._owner._rawWidth - pos) * delta - this._owner._rawWidth;
-                else if (delta !== 0) {
+                else {
                     this._owner.x += delta * (0.5 - pivot);
                 }
                 break;
             case RelationType.Right_Right:
                 if (info.percent)
                     this._owner.xMin = pos + (this._owner.xMin + this._owner._rawWidth - pos) * delta - this._owner._rawWidth;
-                else if (delta !== 0) {
+                else {
                     this._owner.x += delta * (1 - pivot);
                 }
                 break;
             case RelationType.Top_Top:
                 if (info.percent)
                     this._owner.yMin = pos + (this._owner.yMin - pos) * delta;
-                else if (delta !== 0)
+                else
                     this._owner.y += delta * (-pivot);
                 break;
             case RelationType.Top_Middle:
                 if (info.percent)
                     this._owner.yMin = pos + (this._owner.yMin - pos) * delta;
-                else if (delta !== 0)
+                else
                     this._owner.y += delta * (0.5 - pivot);
                 break;
             case RelationType.Top_Bottom:
                 if (info.percent)
                     this._owner.yMin = pos + (this._owner.yMin - pos) * delta;
-                else if (delta !== 0)
+                else
                     this._owner.y += delta * (1 - pivot);
                 break;
             case RelationType.Middle_Middle:
                 if (info.percent)
                     this._owner.yMin = pos + (this._owner.yMin + this._owner._rawHeight * 0.5 - pos) * delta - this._owner._rawHeight * 0.5;
-                else
-                    this._owner.y += delta * (0.5 - pivot);
+                else {
+                    if (delta < 0) this._owner.y = (this._target._height - this._owner._height * GRoot.uiScale) / 2;
+                    else this._owner.y += delta * (0.5 - pivot);
+                }
+
                 break;
             case RelationType.Bottom_Top:
                 if (info.percent)
                     this._owner.yMin = pos + (this._owner.yMin + this._owner._rawHeight - pos) * delta - this._owner._rawHeight;
-                else if (delta !== 0)
+                else
                     this._owner.y += delta * (-pivot);
                 break;
             case RelationType.Bottom_Middle:
                 if (info.percent)
                     this._owner.yMin = pos + (this._owner.yMin + this._owner._rawHeight - pos) * delta - this._owner._rawHeight;
-                else if (delta !== 0)
+                else
                     this._owner.y += delta * (0.5 - pivot);
                 break;
             case RelationType.Bottom_Bottom:
                 if (info.percent)
                     this._owner.yMin = pos + (this._owner.yMin + this._owner._rawHeight - pos) * delta - this._owner._rawHeight;
-                else if (delta !== 0)
+                else
                     this._owner.y += delta * (1 - pivot);
                 break;
 
@@ -568,7 +578,7 @@ export class RelationItem {
             }
         }
 
-       this._owner.relations.handling = null;
+        this._owner.relations.handling = null;
     }
 
     private __targetSizeChanged(): void {

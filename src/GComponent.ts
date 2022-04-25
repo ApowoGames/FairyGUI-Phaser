@@ -798,8 +798,8 @@ export class GComponent extends GObject {
                 const len = this._children.length;
                 let scaleX: number = 1;
                 let scaleY: number = 1;
-                // const _sx = GRoot.uiScale * sx;
-                // const _sy = GRoot.uiScale * sy;
+                const _sx = GRoot.uiScale * sx;
+                const _sy = GRoot.uiScale * sy;
                 for (let i: number = 0; i < len; i++) {
                     const component = this._children[i];
                     if (component.name === "maskBG") {
@@ -821,11 +821,13 @@ export class GComponent extends GObject {
                         }
                         component.setScale(scaleX * sx, scaleY * sy);
                     } else {
-                        if (component.type === ObjectType.RichText) {
-                            // (<TextField>(<GBasicTextField>component).displayObject).setFontSize();
+                        if (component.type === ObjectType.RichText || component.type === ObjectType.Text) {
+                            const style = (<TextField>(<GBasicTextField>component).displayObject).style;
+                            const fontSize = style.numFontSize;
+                            style.setFontSize(fontSize * GRoot.uiScale);
                         } else {
+                            this.recursiveSize(sx, sy, screenType, <GComponent>component);
                             component.setXY(component.x * sx, component.y * sy, false, true);
-                            component.setScale(sx, sy);
                         }
                     }
                 };
@@ -834,7 +836,7 @@ export class GComponent extends GObject {
         }
     }
 
-    public recursiveScale(sx: number, sy: number, screenType: ScreenType, comp: GComponent) {
+    public recursiveSize(sx: number, sy: number, screenType: ScreenType, comp: GComponent) {
         const len = comp._children.length;
         let scaleX: number, scaleY: number = 1;
         const _sx = GRoot.uiScale * sx;
@@ -844,7 +846,7 @@ export class GComponent extends GObject {
             // if (component.type === ObjectType.Component) {
             //     // component.setXY(component.x * _sx, component.y * _sy);
             //     // component.setScale(_sx, _sy);
-            //     this.recursiveScale(sx, sy, screenType, <GComponent>component);
+            //     this.recursiveSize(sx, sy, screenType, <GComponent>component);
             // } else {
             if (component.name === "maskBG") {
                 switch (screenType) {
@@ -864,10 +866,15 @@ export class GComponent extends GObject {
                         break
                 }
                 component.setScale(scaleX * sx, scaleY * sy);
-            } else if (component.type === ObjectType.RichText) {
             } else {
-                component.setXY(component.x * sx - component.pivotX * component._width, component.y * sy - component.pivotY * component._height);
-                //component.setScale(_sx, _sy);
+                if (component.type === ObjectType.RichText || component.type === ObjectType.Text) {
+                    const style = (<TextField>(<GBasicTextField>component).displayObject).style;
+                    const fontSize = style.numFontSize;
+                    style.setFontSize(fontSize * GRoot.uiScale);
+                } else {
+                    component.setXY(component.x * sx - component.pivotX * component._width, component.y * sy - component.pivotY * component._height, false, true);
+                    component.setSize(_sx * component._width, _sy * component._height);
+                }
             }
             // }
         };
