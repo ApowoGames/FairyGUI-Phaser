@@ -257,7 +257,7 @@ export class RelationItem {
 
             if (info.percent) {
                 if (this._targetHeight != 0)
-                    delta = this._target._height * this._targetHeight;
+                    delta = this._target._height / this._targetHeight;
             }
             else {
                 delta = this._target._height - this._targetHeight;
@@ -290,8 +290,7 @@ export class RelationItem {
                 if (info.percent)
                     this._owner.xMin = pos + (this._owner.xMin + this._owner._rawWidth * 0.5 - pos) * delta - this._owner._rawWidth * 0.5;
                 else {
-                    if (delta < 0) this._owner.x = (this._target._width - this._owner._width * GRoot.uiScale) / 2
-                    else this._owner.x += delta * (0.5 - pivot);
+                    this._owner.x += delta * (0.5 - pivot);
                 }
 
                 break;
@@ -338,8 +337,7 @@ export class RelationItem {
                 if (info.percent)
                     this._owner.yMin = pos + (this._owner.yMin + this._owner._rawHeight * 0.5 - pos) * delta - this._owner._rawHeight * 0.5;
                 else {
-                    if (delta < 0) this._owner.y = (this._target._height - this._owner._height * GRoot.uiScale) / 2;
-                    else this._owner.y += delta * (0.5 - pivot);
+                    this._owner.y += delta * (0.5 - pivot);
                 }
 
                 break;
