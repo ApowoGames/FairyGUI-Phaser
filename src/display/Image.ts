@@ -282,7 +282,7 @@ export class Image extends Phaser.GameObjects.Container {
                     }
                 }
 
-                patchImg.setPosition(posx, posy);
+                patchImg.setPosition(posx * GRoot.dpr, posy * GRoot.dpr);
                 // const displayWidth = this.finalXs[xi + 1] - this.finalXs[xi] < 0 ? 0 : this.finalXs[xi + 1] - this.finalXs[xi]; //+ (xi < 2 ? this.mCorrection : 0);
                 // const displayHeight = this.finalYs[yi + 1] - this.finalYs[yi] < 0 ? 0 : this.finalYs[yi + 1] - this.finalYs[yi];
                 patchImg.displayWidth = this.finalXs[xi + 1] - this.finalXs[xi] < 0 ? 0 : this.finalXs[xi + 1] - this.finalXs[xi] + 1; //+ (xi < 2 ? this.mCorrection : 0);

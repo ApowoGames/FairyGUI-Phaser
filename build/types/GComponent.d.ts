@@ -88,8 +88,6 @@ export declare class GComponent extends GObject {
     get mask(): Graphics;
     set mask(value: Graphics);
     setMask(value: any, reversed: boolean): void;
-    externalSetScale(sx: number, sy: number, screenType: ScreenType, force?: boolean): void;
-    recursiveSize(sx: number, sy: number, screenType: ScreenType, comp: GComponent): void;
     get baseUserData(): string;
     protected updateHitArea(): void;
     protected updateMask(): void;
@@ -120,7 +118,7 @@ export declare class GComponent extends GObject {
     protected constructFromXML(xml: Object): void;
     setup_afterAdd(buffer: ByteBuffer, beginPos: number): void;
     checkMask(): void;
-    setXY(xv: number, yv: number, force?: boolean, noEmitter?: boolean): void;
+    setXY(xv: number, yv: number, force?: boolean): void;
     protected handleScaleChanged(): void;
     protected ___added(): void;
     protected ___removed(): void;

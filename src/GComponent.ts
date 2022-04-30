@@ -739,7 +739,7 @@ export class GComponent extends GObject {
     public set margin(value: Margin) {
         this._margin.copy(value);
         if (this.scrollRect) {
-            this.container.setPosition(this._margin.left + this._alignOffset.x, this._margin.top + this._alignOffset.y);
+            this.container.setPosition((this._margin.left + this._alignOffset.x) * GRoot.dpr, (this._margin.top + this._alignOffset.y) * GRoot.dpr);
         }
         this.handleSizeChanged();
     }
@@ -792,95 +792,6 @@ export class GComponent extends GObject {
         }
     }
 
-    public externalSetScale(sx: number, sy: number, screenType: ScreenType, force: boolean = false): void {
-        if (this._scaleX != sx || this._scaleY != sy || force) {
-            if (this._children) {
-                const len = this._children.length;
-                let scaleX: number = 1;
-                let scaleY: number = 1;
-                const _sx = GRoot.uiScale * sx;
-                const _sy = GRoot.uiScale * sy;
-                for (let i: number = 0; i < len; i++) {
-                    const component = this._children[i];
-                    if (component.name === "maskBG") {
-                        switch (screenType) {
-                            case ScreenType.FULL:
-                                scaleX = 1 / GRoot.uiScale;
-                                scaleY = 1 / GRoot.uiScale;
-                                break;
-                            case ScreenType.WIDTH:
-                                scaleX = 1 / GRoot.uiScale;
-                                break;
-                            case ScreenType.HEIGHT:
-                                scaleY = 1 / GRoot.uiScale;
-                                break;
-                            case ScreenType.NONE:
-                                scaleX = 1 / GRoot.uiScale;
-                                scaleY = 1 / GRoot.uiScale;
-                                break
-                        }
-                        component.setScale(scaleX * sx, scaleY * sy);
-                    } else {
-                        if (component.type === ObjectType.RichText || component.type === ObjectType.Text) {
-                            const style = (<TextField>(<GBasicTextField>component).displayObject).style;
-                            const fontSize = style.numFontSize;
-                            style.setFontSize(fontSize * GRoot.uiScale);
-                        } else {
-                            this.recursiveSize(sx, sy, screenType, <GComponent>component);
-                            component.setXY(component.x * sx, component.y * sy, false, true);
-                        }
-                    }
-                };
-            }
-            // this.setXY(this.x * sx, this.y * sy);
-        }
-    }
-
-    public recursiveSize(sx: number, sy: number, screenType: ScreenType, comp: GComponent) {
-        const len = comp._children.length;
-        let scaleX: number, scaleY: number = 1;
-        const _sx = GRoot.uiScale * sx;
-        const _sy = GRoot.uiScale * sy;
-        for (let i: number = 0; i < len; i++) {
-            const component = comp._children[i];
-            // if (component.type === ObjectType.Component) {
-            //     // component.setXY(component.x * _sx, component.y * _sy);
-            //     // component.setScale(_sx, _sy);
-            //     this.recursiveSize(sx, sy, screenType, <GComponent>component);
-            // } else {
-            if (component.name === "maskBG") {
-                switch (screenType) {
-                    case ScreenType.FULL:
-                        scaleX = 1 / GRoot.uiScale;
-                        scaleY = 1 / GRoot.uiScale;
-                        break;
-                    case ScreenType.WIDTH:
-                        scaleX = 1 / GRoot.uiScale;
-                        break;
-                    case ScreenType.HEIGHT:
-                        scaleY = 1 / GRoot.uiScale;
-                        break;
-                    case ScreenType.NONE:
-                        scaleX = 1 / GRoot.uiScale;
-                        scaleY = 1 / GRoot.uiScale;
-                        break
-                }
-                component.setScale(scaleX * sx, scaleY * sy);
-            } else {
-                if (component.type === ObjectType.RichText || component.type === ObjectType.Text) {
-                    const style = (<TextField>(<GBasicTextField>component).displayObject).style;
-                    const fontSize = style.numFontSize;
-                    style.setFontSize(fontSize * GRoot.uiScale);
-                } else {
-                    component.setXY(component.x * sx - component.pivotX * component._width, component.y * sy - component.pivotY * component._height, false, true);
-                    component.setSize(_sx * component._width, _sy * component._height);
-                }
-            }
-            // }
-        };
-    }
-
-
     public get baseUserData(): string {
         var buffer: ByteBuffer = this.packageItem.rawData;
         buffer.seek(0, 4);
@@ -929,14 +840,14 @@ export class GComponent extends GObject {
                 this._displayObject.add(this.container);
             }
             this.updateMask();
-            this.container.setPosition(this._margin.left, this._margin.top);
+            this.container.setPosition(this._margin.left * GRoot.dpr, this._margin.top * GRoot.dpr);
         }
         else if (this._margin.left != 0 || this._margin.top != 0) {
             if (this._displayObject == this.container) {
                 this.container = new Phaser.GameObjects.Container(this.scene);
                 this._displayObject.add(this.container);
             }
-            this.container.setPosition(this._margin.left, this._margin.top);
+            this.container.setPosition(this._margin.left * GRoot.dpr, this._margin.top * GRoot.dpr);
         }
     }
 
@@ -1558,7 +1469,7 @@ export class GComponent extends GObject {
                 }
                 const tx = !isGraphic ? mx.tx + this._maskDisplay.width / 2 : mx.tx;
                 const ty = !isGraphic ? mx.ty + this._maskDisplay.height / 2 : mx.ty;
-                this._maskDisplay.setPosition(tx, ty);
+                this._maskDisplay.setPosition(tx * GRoot.dpr, ty * GRoot.dpr);
                 if (this._maskReversed) {
                     if (isGraphic) {
                         this._displayObject.setMask(this._maskDisplay.createGeometryMask().setInvertAlpha(true));
@@ -1606,7 +1517,7 @@ export class GComponent extends GObject {
             }
             const tx = !isGraphic ? mx.tx + this._maskDisplay.width / 2 : mx.tx;
             const ty = !isGraphic ? mx.ty + this._maskDisplay.height / 2 : mx.ty;
-            this._maskDisplay.setPosition(tx, ty);
+            this._maskDisplay.setPosition(tx * GRoot.dpr, ty * GRoot.dpr);
         }
 
         if (this._maskDisplay.parentContainer) this._displayObject.remove(this._maskDisplay.parentContainer);
@@ -1614,7 +1525,7 @@ export class GComponent extends GObject {
     }
 
 
-    public setXY(xv: number, yv: number, force: boolean = false, noEmitter: boolean = false): void {
+    public setXY(xv: number, yv: number, force: boolean = false): void {
         // 只有owner发生移动才更新mask
         if (this._x != xv || this._y != yv || force) {
             var dx: number = xv - this._x;
@@ -1633,7 +1544,7 @@ export class GComponent extends GObject {
                 this._parent.setBoundsChangedFlag();
                 if (this._group)
                     this._group.setBoundsChangedFlag(true);
-                if (!noEmitter) this.displayObject.emit(DisplayObjectEvent.XY_CHANGED);
+                this.displayObject.emit(DisplayObjectEvent.XY_CHANGED);
             }
 
             if (GObject.draggingObject === this && !sUpdateInDragging)

@@ -10,6 +10,7 @@ import { GObject } from "./GObject";
 import { Events } from './Events';
 import { Handler } from './utils/Handler';
 import { Utils } from './utils/Utils';
+import { GRoot } from '.';
 export class GList extends GComponent {
     /**
      * this.itemRenderer(number index, GObject item);
@@ -2180,7 +2181,7 @@ export class GList extends GComponent {
             if (this._scrollPane)
                 this._scrollPane.adjustMaskContainer();
             else
-                this._container.setPosition(this._margin.left + this._alignOffset.x, this._margin.top + this._alignOffset.y);
+                this._container.setPosition((this._margin.left + this._alignOffset.x) * GRoot.dpr, (this._margin.top + this._alignOffset.y) * GRoot.dpr);
         }
     }
 

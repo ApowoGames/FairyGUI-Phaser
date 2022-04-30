@@ -113,7 +113,7 @@ export class GGraph extends GObject {
         }
         const _x = Math.round(this.initWidth * this._pivotX);
         const _y = Math.round(this.initHeight * this._pivotY);
-        this._displayObject.setPosition(xv - _x, yv - _y);
+        this._displayObject.setPosition((xv - _x) * GRoot.dpr, (yv - _y) * GRoot.dpr);
     }
 
     private updateGraph(): void {

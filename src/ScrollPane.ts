@@ -789,7 +789,7 @@ export class ScrollPane {
             my = this._owner.margin.top;
         }
 
-        this._maskContainer.setPosition(mx, my);
+        this._maskContainer.setPosition(mx * GRoot.dpr, my * GRoot.dpr);
 
         mx = this._owner._alignOffset.x;
         my = this._owner._alignOffset.y;
@@ -807,7 +807,7 @@ export class ScrollPane {
                 mx += this._owner.margin.left;
                 my += this._owner.margin.top;
             }
-            this._alignContainer.setPosition(mx, my);
+            this._alignContainer.setPosition(mx * GRoot.dpr, my * GRoot.dpr);
         }
     }
 
@@ -1004,12 +1004,12 @@ export class ScrollPane {
                 max += this._footerLockedSize;
 
             if (this._refreshBarAxis == "x") {
-                this._container.setPosition(ToolSet.clamp(this._container.x, -max, this._headerLockedSize),
-                    ToolSet.clamp(this._container.y, -this._overlapSize.y, 0));
+                this._container.setPosition(ToolSet.clamp(this._container.x, -max, this._headerLockedSize) * GRoot.dpr,
+                    ToolSet.clamp(this._container.y, -this._overlapSize.y, 0) * GRoot.dpr);
             }
             else {
-                this._container.setPosition(ToolSet.clamp(this._container.x, -this._overlapSize.x, 0),
-                    ToolSet.clamp(this._container.y, -max, this._headerLockedSize));
+                this._container.setPosition(ToolSet.clamp(this._container.x, -this._overlapSize.x, 0) * GRoot.dpr,
+                    ToolSet.clamp(this._container.y, -max, this._headerLockedSize) * GRoot.dpr);
             }
 
             if (this._header) {
@@ -1027,8 +1027,8 @@ export class ScrollPane {
             }
         }
         else {
-            this._container.setPosition(ToolSet.clamp(this._container.x, -this._overlapSize.x, 0),
-                ToolSet.clamp(this._container.y, -this._overlapSize.y, 0));
+            this._container.setPosition(ToolSet.clamp(this._container.x, -this._overlapSize.x, 0) * GRoot.dpr,
+                ToolSet.clamp(this._container.y, -this._overlapSize.y, 0) * GRoot.dpr);
         }
 
         this.updateScrollBarPos();
@@ -1125,7 +1125,7 @@ export class ScrollPane {
             if (this._tweening != 0)
                 this.killTween();
             // console.log("refresh ===>", this._xPos, this._yPos);
-            this._container.setPosition(Math.floor(-this._xPos), Math.floor(-this._yPos));
+            this._container.setPosition(Math.floor(-this._xPos) * GRoot.dpr, Math.floor(-this._yPos) * GRoot.dpr);
 
             this.loopCheckingCurrent();
         }
@@ -1608,7 +1608,7 @@ export class ScrollPane {
         }
 
         if (changed)
-            this._container.setPosition(Math.floor(-this._xPos), Math.floor(-this._yPos));
+            this._container.setPosition(Math.floor(-this._xPos) * GRoot.dpr, Math.floor(-this._yPos) * GRoot.dpr);
 
         return changed;
     }
@@ -1902,7 +1902,7 @@ export class ScrollPane {
         var nx: number = this.runTween("x");
         var ny: number = this.runTween("y");
         // console.log("scrollpane ===>", nx, ny);
-        this._container.setPosition(nx, ny);
+        this._container.setPosition(nx * GRoot.dpr, ny * GRoot.dpr);
         if (this._tweening == 2) {
             if (this._overlapSize.x > 0)
                 this._xPos = ToolSet.clamp(-nx, 0, this._overlapSize.x);

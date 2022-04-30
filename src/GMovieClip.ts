@@ -3,6 +3,7 @@ import { ObjectPropID } from './FieldTypes';
 import { MovieClip } from './display/MovieClip';
 import { GObject } from './GObject';
 import { ByteBuffer } from './utils/ByteBuffer';
+import { GRoot } from '.';
 export class GMovieClip extends GObject {
     private _movieClip: MovieClip;
     private _contentItem: PackageItem;
@@ -136,7 +137,7 @@ export class GMovieClip extends GObject {
     }
 
     protected handleSizeChanged(): void {
-        this._displayObject.setSize(this._width, this._height);
+        this._displayObject.setSize(this._width * GRoot.dpr, this._height * GRoot.dpr);
         // this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this._width, this._height), Phaser.Geom.Rectangle.Contains);
     }
 
@@ -164,6 +165,6 @@ export class GMovieClip extends GObject {
         }
         let tmpX = xv + this._pivotOffsetX //+ this._movieClip.frames[0].width >> 1;
         let tmpY = yv + this._pivotOffsetY //+ this._movieClip.frames[0].height >> 1;
-        this._displayObject.setPosition(tmpX, tmpY);
+        this._displayObject.setPosition(tmpX * GRoot.dpr, tmpY * GRoot.dpr);
     }
 }

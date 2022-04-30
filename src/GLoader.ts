@@ -405,7 +405,7 @@ export class GLoader extends GObject {
                     this._content2.setScale(1, 1);
                 }
                 else {
-                    this._content.setSize(cw, ch);
+                    this._content.setSize(cw * GRoot.dpr, ch * GRoot.dpr);
                     this._content.setPosition(0, 0);
                 }
                 return;
@@ -469,7 +469,7 @@ export class GLoader extends GObject {
         if (this._content2)
             this._content2.setXY(nx, ny);
         else
-            this._content.setPosition(nx, ny);
+            this._content.setPosition(nx * GRoot.dpr, ny * GRoot.dpr);
         // if (!this._content2 && !this._content.texture && !this._content.frames) {
         //     if (this._autoSize) {
         //         this._updatingLayout = true;

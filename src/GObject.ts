@@ -375,6 +375,7 @@ export class GObject {
         this.setSize(this._rawWidth, value);
     }
 
+
     public setSize(wv: number, hv: number, ignorePivot?: boolean): void {
         if (this._rawWidth != wv || this._rawHeight != hv) {
             this._rawWidth = wv;
@@ -412,54 +413,6 @@ export class GObject {
             this.displayObject.emit(DisplayObjectEvent.SIZE_CHANGED);
         }
     }
-
-    public externalSetSize(wv: number, hv: number, ignorePivot?: boolean): void {
-        if (this._rawWidth != wv || this._rawHeight != hv) {
-            this._rawWidth = wv;
-            this._rawHeight = hv;
-            if (wv < this.minWidth)
-                wv = this.minWidth;
-            if (hv < this.minHeight)
-                hv = this.minHeight;
-            if (this.maxWidth > 0 && wv > this.maxWidth)
-                wv = this.maxWidth;
-            if (this.maxHeight > 0 && hv > this.maxHeight)
-                hv = this.maxHeight;
-            var dWidth: number = wv - this._width;
-            var dHeight: number = hv - this._height;
-            this._width = wv;
-            this._height = hv;
-
-            this.handleSizeChanged();
-            if (this._pivotX != 0 || this._pivotY != 0) {
-                if (!this._pivotAsAnchor) {
-                    if (!ignorePivot)
-                        this.setXY(this.x - this._pivotX * dWidth, this.y - this._pivotY * dHeight);
-                    this.updatePivotOffset();
-                }
-                else {
-                    this.applyPivot();
-                }
-            }
-
-            if (this instanceof GGroup)
-                this.resizeChildren(dWidth, dHeight);
-
-            this.updateGear(2);
-
-            if (this._parent) {
-                this._relations.onOwnerSizeChanged(dWidth, dHeight, this._pivotAsAnchor || !ignorePivot);
-                this._parent.setBoundsChangedFlag();
-                if (this._group)
-                    this._group.setBoundsChangedFlag();
-            }
-
-            this.displayObject.emit(DisplayObjectEvent.SIZE_CHANGED);
-        }
-    }
-
-
-
 
     public ensureSizeCorrect(): void {
     }
@@ -1382,21 +1335,21 @@ export class GObject {
             // }
         }
 
-        if (this._pivotAsAnchor) {
-            if (this.type === ObjectType.Image) {
-                xv -= this._pivotX * this._width * GRoot.dpr * GRoot.uiScale;
-                yv -= this._pivotY * this._height * GRoot.dpr * GRoot.uiScale;
-            } else {
-                xv -= (this._pivotX - 0.5) * this._width;
-                yv -= (this._pivotY - 0.5) * this._height;
-            }
-        }
+        // if (this._pivotAsAnchor) {
+        //     if (this.type === ObjectType.Image) {
+        //         xv -= this._pivotX * this._width * GRoot.dpr * GRoot.uiScale;
+        //         yv -= this._pivotY * this._height * GRoot.dpr * GRoot.uiScale;
+        //     } else {
+        //         xv -= (this._pivotX - 0.5) * this._width;
+        //         yv -= (this._pivotY - 0.5) * this._height;
+        //     }
+        // }
 
         if (this._pixelSnapping) {
             xv = Math.round(xv);
             yv = Math.round(yv);
         }
-        this._displayObject.setPosition(xv, yv);
+        this._displayObject.setPosition(xv * GRoot.dpr, yv * GRoot.dpr);
 
 
         // var xv: number = this._x;
@@ -1415,7 +1368,7 @@ export class GObject {
 
     protected handleSizeChanged(): void {
         // (<Phaser.GameObjects.Container>this.displayObject).setDisplaySize(this._width, this._height);
-        this._displayObject.setSize(this._width, this._height);
+        this._displayObject.setSize(this._width * GRoot.dpr * GRoot.uiScale, this._height * GRoot.dpr * GRoot.uiScale);
         // this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this._width, this._height), Phaser.Geom.Rectangle.Contains);
     }
 
