@@ -3,7 +3,6 @@ import { FlipType, ObjectPropID } from './FieldTypes';
 import { PackageItem } from './PackageItem';
 import { Image } from './display/Image';
 import { GObject } from './GObject';
-import { GRoot } from '.';
 export class GImage extends GObject {
     private _image: Image;
     private _flip: number = 0;

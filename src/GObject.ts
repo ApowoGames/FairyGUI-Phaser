@@ -617,12 +617,22 @@ export class GObject {
 
         this.updatePivotOffset();
     }
-
+    private _g: Phaser.GameObjects.Graphics;
     public changeInteractive() {
         if (this._displayObject) {
             if (this._touchable) {
-                this._displayObject.setInteractive();
-                // if (this._displayObject.input) this.removeInteractive();
+                const realWid = this._width * GRoot.dpr;
+                const realHei = this._height * GRoot.dpr;
+                const rect: Phaser.Geom.Rectangle = new Phaser.Geom.Rectangle(this._pivotX * realWid, this._pivotY * realHei,
+                    realWid, realHei);
+                if (!this._displayObject.input) this._displayObject.setInteractive(rect, Phaser.Geom.Rectangle.Contains);
+                else this._displayObject.input.hitArea = rect; //.setSize(this._width * GRoot.dpr, this._height * GRoot.dpr)
+                if (this._g) (<Phaser.GameObjects.Container>this._displayObject).remove(this._g);
+                else this._g = this.scene.make.graphics(undefined, false);
+                this._g.clear();
+                this._g.fillStyle(0x66cc00, 0.5);
+                this._g.fillRoundedRect(0, 0, rect.width, rect.height, 5);//0, 0, this._width * GRoot.dpr, this._height * GRoot.dpr);
+                this._displayObject.addAt(this._g, 0);
                 // // 注册点不在中心需要重新调整交互区域
                 // if (this._pivotX !== 0 || this._pivotY !== 0) {
                 //     this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this.initWidth * GRoot.dpr / this.scaleX, this.initHeight * GRoot.dpr / this.scaleY), Phaser.Geom.Rectangle.Contains);
@@ -634,8 +644,8 @@ export class GObject {
     }
 
     protected removeInteractive() {
-        //  this._displayObject.disableInteractive();
-        this._displayObject.removeInteractive();
+        this._displayObject.disableInteractive();
+        // this._displayObject.removeInteractive();
     }
 
     public get grayed(): boolean {
@@ -1336,33 +1346,11 @@ export class GObject {
     protected handleXYChanged(): void {
         var xv: number = this._x + this._xOffset;
         var yv: number = this._y + this._yOffset;
-        // 加入由于缩放变小会产生偏移，所以计算时需要讲缩放比例计算在内
-        // const widScale = GRoot.contentScaleWid >= 1 ? 1 : GRoot.contentScaleWid;
-        // const heiScale = GRoot.contentScaleHei >= 1 ? 1 : GRoot.contentScaleHei;
-        // const widScaleOffsetX = this._width * this.pivotX * (1 - widScale);
-        // const heiScaleOffsetY = this._height * this.pivotY * (1 - heiScale);
-        // const widCenterScaleOffsetX = this._width * this.pivotX * (1 - widScale);
-        // const heiMidScaleOffsetY = this._height * this.pivotY * (1 - heiScale);
-        if (this.parent) {
-            if (this._relationPivot) {
-                xv += this.parent.pivotOffsetX;
-                yv += this.parent.pivotOffsetY;
-            }
-            // if (this._pivotAsAnchor) {
-            //     xv -= this.parent.initWidth * this.parent.pivotX;
-            //     yv -= this.parent.initHeight * this.parent.pivotY;
-            // }
+        if (this._pivotAsAnchor) {
+            xv -= this._pivotX * this.initWidth;
+            yv -= this._pivotY * this.initHeight;
         }
 
-        // if (this._pivotAsAnchor) {
-        //     if (this.type === ObjectType.Image) {
-        //         xv -= this._pivotX * this._width * GRoot.dpr * GRoot.uiScale;
-        //         yv -= this._pivotY * this._height * GRoot.dpr * GRoot.uiScale;
-        //     } else {
-        //         xv -= (this._pivotX - 0.5) * this._width;
-        //         yv -= (this._pivotY - 0.5) * this._height;
-        //     }
-        // }
 
         if (this._pixelSnapping) {
             xv = Math.round(xv);
@@ -1388,10 +1376,11 @@ export class GObject {
     protected handleSizeChanged(): void {
         if (this.name === "maskBG" || (this.parent && this.parent.name === "maskBG")) {
             this._displayObject.setSize(this._width * GRoot.dpr, this._height * GRoot.dpr);
-            return;
+        } else {
+            this._displayObject.setSize(this._width * GRoot.dpr * GRoot.uiScale, this._height * GRoot.dpr * GRoot.uiScale);
         }
+        this.changeInteractive();
         // (<Phaser.GameObjects.Container>this.displayObject).setDisplaySize(this._width, this._height);
-        this._displayObject.setSize(this._width * GRoot.dpr * GRoot.uiScale, this._height * GRoot.dpr * GRoot.uiScale);
         // this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this._width, this._height), Phaser.Geom.Rectangle.Contains);
     }
 
@@ -1517,7 +1506,7 @@ export class GObject {
             this.visible = false;
         // console.log("visible object ===>", this);
         const touchable = buffer.readBool();
-        if (this.type !== ObjectType.Text) {
+        if (this.type !== ObjectType.Text && this.type !== ObjectType.Image) {
             this.touchable = touchable;
         }
         // if (!buffer.readBool()) {

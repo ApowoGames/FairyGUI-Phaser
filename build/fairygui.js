@@ -3763,8 +3763,21 @@
         changeInteractive() {
             if (this._displayObject) {
                 if (this._touchable) {
-                    this._displayObject.setInteractive();
-                    // if (this._displayObject.input) this.removeInteractive();
+                    const realWid = this._width * GRoot.dpr;
+                    const realHei = this._height * GRoot.dpr;
+                    const rect = new Phaser.Geom.Rectangle(this._pivotX * realWid, this._pivotY * realHei, realWid, realHei);
+                    if (!this._displayObject.input)
+                        this._displayObject.setInteractive(rect, Phaser.Geom.Rectangle.Contains);
+                    else
+                        this._displayObject.input.hitArea = rect; //.setSize(this._width * GRoot.dpr, this._height * GRoot.dpr)
+                    if (this._g)
+                        this._displayObject.remove(this._g);
+                    else
+                        this._g = this.scene.make.graphics(undefined, false);
+                    this._g.clear();
+                    this._g.fillStyle(0x66cc00, 0.5);
+                    this._g.fillRoundedRect(0, 0, rect.width, rect.height, 5); //0, 0, this._width * GRoot.dpr, this._height * GRoot.dpr);
+                    this._displayObject.addAt(this._g, 0);
                     // // 注册点不在中心需要重新调整交互区域
                     // if (this._pivotX !== 0 || this._pivotY !== 0) {
                     //     this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this.initWidth * GRoot.dpr / this.scaleX, this.initHeight * GRoot.dpr / this.scaleY), Phaser.Geom.Rectangle.Contains);
@@ -3775,8 +3788,8 @@
             }
         }
         removeInteractive() {
-            //  this._displayObject.disableInteractive();
-            this._displayObject.removeInteractive();
+            this._displayObject.disableInteractive();
+            // this._displayObject.removeInteractive();
         }
         get grayed() {
             return this._grayed;
@@ -4365,32 +4378,10 @@
         handleXYChanged() {
             var xv = this._x + this._xOffset;
             var yv = this._y + this._yOffset;
-            // 加入由于缩放变小会产生偏移，所以计算时需要讲缩放比例计算在内
-            // const widScale = GRoot.contentScaleWid >= 1 ? 1 : GRoot.contentScaleWid;
-            // const heiScale = GRoot.contentScaleHei >= 1 ? 1 : GRoot.contentScaleHei;
-            // const widScaleOffsetX = this._width * this.pivotX * (1 - widScale);
-            // const heiScaleOffsetY = this._height * this.pivotY * (1 - heiScale);
-            // const widCenterScaleOffsetX = this._width * this.pivotX * (1 - widScale);
-            // const heiMidScaleOffsetY = this._height * this.pivotY * (1 - heiScale);
-            if (this.parent) {
-                if (this._relationPivot) {
-                    xv += this.parent.pivotOffsetX;
-                    yv += this.parent.pivotOffsetY;
-                }
-                // if (this._pivotAsAnchor) {
-                //     xv -= this.parent.initWidth * this.parent.pivotX;
-                //     yv -= this.parent.initHeight * this.parent.pivotY;
-                // }
+            if (this._pivotAsAnchor) {
+                xv -= this._pivotX * this.initWidth;
+                yv -= this._pivotY * this.initHeight;
             }
-            // if (this._pivotAsAnchor) {
-            //     if (this.type === ObjectType.Image) {
-            //         xv -= this._pivotX * this._width * GRoot.dpr * GRoot.uiScale;
-            //         yv -= this._pivotY * this._height * GRoot.dpr * GRoot.uiScale;
-            //     } else {
-            //         xv -= (this._pivotX - 0.5) * this._width;
-            //         yv -= (this._pivotY - 0.5) * this._height;
-            //     }
-            // }
             if (this._pixelSnapping) {
                 xv = Math.round(xv);
                 yv = Math.round(yv);
@@ -4411,10 +4402,12 @@
         handleSizeChanged() {
             if (this.name === "maskBG" || (this.parent && this.parent.name === "maskBG")) {
                 this._displayObject.setSize(this._width * GRoot.dpr, this._height * GRoot.dpr);
-                return;
             }
+            else {
+                this._displayObject.setSize(this._width * GRoot.dpr * GRoot.uiScale, this._height * GRoot.dpr * GRoot.uiScale);
+            }
+            this.changeInteractive();
             // (<Phaser.GameObjects.Container>this.displayObject).setDisplaySize(this._width, this._height);
-            this._displayObject.setSize(this._width * GRoot.dpr * GRoot.uiScale, this._height * GRoot.dpr * GRoot.uiScale);
             // this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this._width, this._height), Phaser.Geom.Rectangle.Contains);
         }
         handleScaleChanged() {
@@ -4522,7 +4515,7 @@
                 this.visible = false;
             // console.log("visible object ===>", this);
             const touchable = buffer.readBool();
-            if (this.type !== exports.ObjectType.Text) {
+            if (this.type !== exports.ObjectType.Text && this.type !== exports.ObjectType.Image) {
                 this.touchable = touchable;
             }
             // if (!buffer.readBool()) {
@@ -7791,7 +7784,7 @@
             _gestureFlag = 0;
             this._dragged = false;
             this._maskContainer.disableInteractive();
-            this._maskContainer.removeInteractive();
+            // this._maskContainer.removeInteractive();
         }
         lockHeader(size) {
             if (this._headerLockedSize == size)
@@ -8367,7 +8360,7 @@
             this._isHoldAreaDone = true;
             this._dragged = true;
             this._maskContainer.disableInteractive();
-            this._maskContainer.removeInteractive();
+            // this._maskContainer.removeInteractive();
             this.updateScrollBarPos();
             this.updateScrollBarVisible();
             if (this._pageMode)
@@ -11662,55 +11655,6 @@
                 }
             }
         }
-        // public externalSetSize(wv: number, hv: number, ignorePivot?: boolean): void {
-        //     if (this._rawWidth != wv || this._rawHeight != hv) {
-        //         this._rawWidth = wv;
-        //         this._rawHeight = hv;
-        //         if (wv < this.minWidth)
-        //             wv = this.minWidth;
-        //         if (hv < this.minHeight)
-        //             hv = this.minHeight;
-        //         if (this.maxWidth > 0 && wv > this.maxWidth)
-        //             wv = this.maxWidth;
-        //         if (this.maxHeight > 0 && hv > this.maxHeight)
-        //             hv = this.maxHeight;
-        //         var dWidth: number = wv - this._width;
-        //         var dHeight: number = hv - this._height;
-        //         this._width = wv;
-        //         this._height = hv;
-        //         this.handleSizeChanged();
-        //         if (this._pivotX != 0 || this._pivotY != 0) {
-        //             if (!this._pivotAsAnchor) {
-        //                 if (!ignorePivot)
-        //                     this.setXY(this.x - this._pivotX * dWidth, this.y - this._pivotY * dHeight);
-        //                 this.updatePivotOffset();
-        //             }
-        //             else {
-        //                 this.applyPivot();
-        //             }
-        //         }
-        //         if (this instanceof GGroup)
-        //             (<GGroup>this).resizeChildren(dWidth, dHeight);
-        //         this.updateGear(2);
-        //         this.displayObject.emit(DisplayObjectEvent.SIZE_CHANGED);
-        //         if (this._children) {
-        //             const len = this._children.length;
-        //             let scaleX: number = 1;
-        //             let scaleY: number = 1;
-        //             const _sx = GRoot.uiScale * GRoot.dpr;
-        //             const _sy = GRoot.uiScale * GRoot.dpr;
-        //             for (let i: number = 0; i < len; i++) {
-        //                 const component = this._children[i];
-        //                 if (component.name === "maskBG") {
-        //                     scaleX = 1 / GRoot.uiScale;
-        //                     scaleY = 1 / GRoot.uiScale;
-        //                     component.setScale(scaleX * GRoot.dpr, scaleY * GRoot.dpr);
-        //                     break;
-        //                 }
-        //             };
-        //         }
-        //     }
-        // }
         handleScaleChanged() {
             if (this._children) {
                 const len = this._children.length;
@@ -12287,7 +12231,8 @@
             this._displayObject.mouseEnabled = this.touchable;
             if (this._graphics)
                 this._graphics.clear();
-            this._graphics = new Graphics(this.scene);
+            else
+                this._graphics = new Graphics(this.scene);
             if (this._skewX != 0 || this._skewY != 0) {
                 this.setSkew(this._skewX, this._skewY);
             }
@@ -12518,7 +12463,6 @@
                 }
                 this.updateGraph();
             }
-            this._touchable = false;
         }
     }
 
@@ -18065,7 +18009,7 @@
             }
             // 由于canvas2D.measureText()获取的文本尺寸与fairygui编辑器中不同，这边手动调整下尺寸，便于编辑器控制
             const offsetWidthAuto = this._widthAutoSize && this.parent && this.parent.pivotX === 0 ? 3 : 0;
-            const offsetHeightAuto = this._heightAutoSize && this.parent && this.parent.pivotY === 0 ? 4 : 0;
+            const offsetHeightAuto = this._heightAutoSize && this.parent && this.parent.pivotY === 0 ? 5 : 0;
             const offsetParentWidth = 0; //this.parent ? this.parent._width * this.parent.pivotX : 0;
             const offsetParentHeight = 0; //this.parent ? this.parent._height * this.parent.pivotY : 0;
             const _x = 0; //Math.round(this.initWidth * this._pivotX);

@@ -119,7 +119,7 @@ export class GGraph extends GObject {
     private updateGraph(): void {
         this._displayObject.mouseEnabled = this.touchable;
         if (this._graphics) this._graphics.clear();
-        this._graphics = new Graphics(this.scene);
+        else this._graphics = new Graphics(this.scene);
         if (this._skewX != 0 || this._skewY != 0) {
             this.setSkew(this._skewX, this._skewY);
         }
@@ -375,6 +375,5 @@ export class GGraph extends GObject {
 
             this.updateGraph();
         }
-        this._touchable = false;
     }
 }
