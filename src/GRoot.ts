@@ -369,13 +369,16 @@ export class GRoot extends GComponent {
         const _widthScale = realWidth > this._stageOptions.designWidth ? 1 : GRoot.contentScaleWid;
         const _heightScale = realHeight > this._stageOptions.designHeight ? 1 : GRoot.contentScaleHei;
         GRoot.uiScale = _widthScale > _heightScale ? _heightScale : _widthScale;
+        // 取小数点后两位，保证精度
+        GRoot.uiScale = Number(GRoot.uiScale.toFixed(2));
 
         // const camera = this._scene.cameras.main;
         // camera.setScroll(-(this._width - this._stageOptions.designWidth) / 2, -(this._height - this._stageOptions.designHeight) / 2)
     }
 
     private updateContentDprLevel(): void {
-        GRoot.dpr = this._stageOptions.dpr;
+        // 取小数点后一位，保证精度（部分手机dpr配置为小数点1位）
+        GRoot.dpr = Number(this._stageOptions.dpr.toFixed(1));
         if (GRoot.dpr >= 3.5)
             GRoot.contentDprLevel = 3; //x4
         else if (GRoot.dpr >= 2.5)

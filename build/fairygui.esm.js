@@ -3300,6 +3300,8 @@ class GObject {
         this._x = 0;
         this._y = 0;
         this._alpha = 1;
+        this._basePosX = 0;
+        this._basePosY = 0;
         this._rotation = 0;
         this._visible = true;
         // 可交互默认false
@@ -3347,6 +3349,12 @@ class GObject {
         this._displayStyle = new DisplayStyle();
         this._relations = new Relations(this);
         this._gears = new Array(10);
+    }
+    get basePosX() {
+        return this._basePosX;
+    }
+    get basePosY() {
+        return this._basePosY;
     }
     get extenalScaleBoo() {
         return this._extenalScaleBoo;
@@ -3590,45 +3598,9 @@ class GObject {
             this.displayObject.emit(DisplayObjectEvent.SIZE_CHANGED);
         }
     }
-    externalSetSize(wv, hv, ignorePivot) {
-        if (this._rawWidth != wv || this._rawHeight != hv) {
-            this._rawWidth = wv;
-            this._rawHeight = hv;
-            if (wv < this.minWidth)
-                wv = this.minWidth;
-            if (hv < this.minHeight)
-                hv = this.minHeight;
-            if (this.maxWidth > 0 && wv > this.maxWidth)
-                wv = this.maxWidth;
-            if (this.maxHeight > 0 && hv > this.maxHeight)
-                hv = this.maxHeight;
-            var dWidth = wv - this._width;
-            var dHeight = hv - this._height;
-            this._width = wv;
-            this._height = hv;
-            this.handleSizeChanged();
-            if (this._pivotX != 0 || this._pivotY != 0) {
-                if (!this._pivotAsAnchor) {
-                    if (!ignorePivot)
-                        this.setXY(this.x - this._pivotX * dWidth, this.y - this._pivotY * dHeight);
-                    this.updatePivotOffset();
-                }
-                else {
-                    this.applyPivot();
-                }
-            }
-            if (this instanceof GGroup)
-                this.resizeChildren(dWidth, dHeight);
-            this.updateGear(2);
-            if (this._parent) {
-                this._relations.onOwnerSizeChanged(dWidth, dHeight, this._pivotAsAnchor || !ignorePivot);
-                this._parent.setBoundsChangedFlag();
-                if (this._group)
-                    this._group.setBoundsChangedFlag();
-            }
-            this.displayObject.emit(DisplayObjectEvent.SIZE_CHANGED);
-        }
-    }
+    // public extenalSetSize(wv: number, hv: number, ignorePivot?: boolean): void {
+    //     this.setSize();
+    // }
     ensureSizeCorrect() {
     }
     makeFullScreen() {
@@ -3781,25 +3753,25 @@ class GObject {
         //     || (this instanceof GTextField) && !(this instanceof GTextInput) && !(this instanceof GRichTextField))
         //     //Touch is not supported by GImage/GMovieClip/GTextField
         //     return;
-        if (this._displayObject) {
-            if (this._touchable) {
-                // 注册点不在中心需要重新调整交互区域
-                if (this._pivotX !== 0 || this._pivotY !== 0) {
-                    this.removeInteractive();
-                    this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, (this.initWidth / this.scaleX), (this.initHeight / this.scaleY)), Phaser.Geom.Rectangle.Contains);
-                }
-                else {
-                    this._displayObject.setInteractive(new Phaser.Geom.Rectangle(this.initWidth / 2, this.initWidth / 2, this.initWidth / this.scaleX, this.initHeight / this.scaleY), Phaser.Geom.Rectangle.Contains);
-                }
-            }
-            else {
-                this.removeInteractive();
-            }
-        }
+        this.changeInteractive();
         this.updatePivotOffset();
     }
+    changeInteractive() {
+        if (this._displayObject) {
+            if (this._touchable) {
+                this._displayObject.setInteractive();
+                // if (this._displayObject.input) this.removeInteractive();
+                // // 注册点不在中心需要重新调整交互区域
+                // if (this._pivotX !== 0 || this._pivotY !== 0) {
+                //     this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this.initWidth * GRoot.dpr / this.scaleX, this.initHeight * GRoot.dpr / this.scaleY), Phaser.Geom.Rectangle.Contains);
+                // } else {
+                //     this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this.initWidth * GRoot.dpr / this.scaleX, this.initHeight * GRoot.dpr / this.scaleY), Phaser.Geom.Rectangle.Contains);
+                // }
+            }
+        }
+    }
     removeInteractive() {
-        this._displayObject.disableInteractive();
+        //  this._displayObject.disableInteractive();
         this._displayObject.removeInteractive();
     }
     get grayed() {
@@ -4433,6 +4405,10 @@ class GObject {
         // this._displayObject.setPosition(xv + this._pivotOffsetX, yv + this._pivotOffsetY);
     }
     handleSizeChanged() {
+        if (this.name === "maskBG" || (this.parent && this.parent.name === "maskBG")) {
+            this._displayObject.setSize(this._width * GRoot.dpr, this._height * GRoot.dpr);
+            return;
+        }
         // (<Phaser.GameObjects.Container>this.displayObject).setDisplaySize(this._width, this._height);
         this._displayObject.setSize(this._width * GRoot.dpr * GRoot.uiScale, this._height * GRoot.dpr * GRoot.uiScale);
         // this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this._width, this._height), Phaser.Geom.Rectangle.Contains);
@@ -4590,6 +4566,8 @@ class GObject {
         this.setTouchable(this._touchable);
         this.adaptiveScaleX = this.initWidth / this.sourceWidth;
         this.adaptiveScaleY = this.initHeight / this.sourceHeight;
+        this._basePosX = this.x;
+        this._basePosY = this.y;
     }
     //drag support
     //-------------------------------------------------------------------
@@ -10923,7 +10901,7 @@ class GComponent extends GObject {
                 }
                 if (this.hitArea instanceof Phaser.Geom.Rectangle)
                     this.hitArea.setTo(this.initWidth >> 1, this.initHeight >> 1, this.initWidth, this.initHeight);
-                this._displayObject.setInteractive(this.hitArea, Phaser.Geom.Rectangle.Contains);
+                this._displayObject.setInteractive();
             }
             else {
                 if (this.hitArea instanceof Phaser.Geom.Rectangle)
@@ -11680,6 +11658,55 @@ class GComponent extends GObject {
             }
         }
     }
+    // public externalSetSize(wv: number, hv: number, ignorePivot?: boolean): void {
+    //     if (this._rawWidth != wv || this._rawHeight != hv) {
+    //         this._rawWidth = wv;
+    //         this._rawHeight = hv;
+    //         if (wv < this.minWidth)
+    //             wv = this.minWidth;
+    //         if (hv < this.minHeight)
+    //             hv = this.minHeight;
+    //         if (this.maxWidth > 0 && wv > this.maxWidth)
+    //             wv = this.maxWidth;
+    //         if (this.maxHeight > 0 && hv > this.maxHeight)
+    //             hv = this.maxHeight;
+    //         var dWidth: number = wv - this._width;
+    //         var dHeight: number = hv - this._height;
+    //         this._width = wv;
+    //         this._height = hv;
+    //         this.handleSizeChanged();
+    //         if (this._pivotX != 0 || this._pivotY != 0) {
+    //             if (!this._pivotAsAnchor) {
+    //                 if (!ignorePivot)
+    //                     this.setXY(this.x - this._pivotX * dWidth, this.y - this._pivotY * dHeight);
+    //                 this.updatePivotOffset();
+    //             }
+    //             else {
+    //                 this.applyPivot();
+    //             }
+    //         }
+    //         if (this instanceof GGroup)
+    //             (<GGroup>this).resizeChildren(dWidth, dHeight);
+    //         this.updateGear(2);
+    //         this.displayObject.emit(DisplayObjectEvent.SIZE_CHANGED);
+    //         if (this._children) {
+    //             const len = this._children.length;
+    //             let scaleX: number = 1;
+    //             let scaleY: number = 1;
+    //             const _sx = GRoot.uiScale * GRoot.dpr;
+    //             const _sy = GRoot.uiScale * GRoot.dpr;
+    //             for (let i: number = 0; i < len; i++) {
+    //                 const component = this._children[i];
+    //                 if (component.name === "maskBG") {
+    //                     scaleX = 1 / GRoot.uiScale;
+    //                     scaleY = 1 / GRoot.uiScale;
+    //                     component.setScale(scaleX * GRoot.dpr, scaleY * GRoot.dpr);
+    //                     break;
+    //                 }
+    //             };
+    //         }
+    //     }
+    // }
     handleScaleChanged() {
         if (this._children) {
             const len = this._children.length;
@@ -12013,11 +12040,14 @@ class GRoot extends GComponent {
         const _widthScale = realWidth > this._stageOptions.designWidth ? 1 : GRoot.contentScaleWid;
         const _heightScale = realHeight > this._stageOptions.designHeight ? 1 : GRoot.contentScaleHei;
         GRoot.uiScale = _widthScale > _heightScale ? _heightScale : _widthScale;
+        // 取小数点后两位，保证精度
+        GRoot.uiScale = Number(GRoot.uiScale.toFixed(2));
         // const camera = this._scene.cameras.main;
         // camera.setScroll(-(this._width - this._stageOptions.designWidth) / 2, -(this._height - this._stageOptions.designHeight) / 2)
     }
     updateContentDprLevel() {
-        GRoot.dpr = this._stageOptions.dpr;
+        // 取小数点后一位，保证精度（部分手机dpr配置为小数点1位）
+        GRoot.dpr = Number(this._stageOptions.dpr.toFixed(1));
         if (GRoot.dpr >= 3.5)
             GRoot.contentDprLevel = 3; //x4
         else if (GRoot.dpr >= 2.5)
@@ -12257,8 +12287,8 @@ class GGraph extends GObject {
         if (this._skewX != 0 || this._skewY != 0) {
             this.setSkew(this._skewX, this._skewY);
         }
-        var w = this.width;
-        var h = this.height;
+        var w = this.width * GRoot.dpr;
+        var h = this.height * GRoot.dpr;
         if (w == 0 || h == 0)
             return;
         let fillColor;
@@ -18032,11 +18062,14 @@ class GBasicTextField extends GTextField {
         // 由于canvas2D.measureText()获取的文本尺寸与fairygui编辑器中不同，这边手动调整下尺寸，便于编辑器控制
         const offsetWidthAuto = this._widthAutoSize && this.parent && this.parent.pivotX === 0 ? 3 : 0;
         const offsetHeightAuto = this._heightAutoSize && this.parent && this.parent.pivotY === 0 ? 4 : 0;
-        const offsetParentWidth = this.parent ? this.parent._width * this.parent.pivotX : 0;
-        const offsetParentHeight = this.parent ? this.parent._height * this.parent.pivotY : 0;
-        const _x = Math.round(this.initWidth * this._pivotX);
-        const _y = Math.round(this.initHeight * this._pivotY);
-        this._displayObject.setPosition(xv - offsetParentWidth + offsetWidthAuto - _x, yv - offsetParentHeight + offsetHeightAuto - _y);
+        const offsetParentWidth = 0; //this.parent ? this.parent._width * this.parent.pivotX : 0;
+        const offsetParentHeight = 0; //this.parent ? this.parent._height * this.parent.pivotY : 0;
+        const _x = 0; //Math.round(this.initWidth * this._pivotX);
+        const _y = 0; //Math.round(this.initHeight * this._pivotY);
+        const offset = GRoot.uiScale * GRoot.dpr;
+        const posX = offset * (xv - offsetParentWidth + offsetWidthAuto - _x);
+        const posY = offset * (yv - offsetParentHeight + offsetHeightAuto - _y);
+        this._displayObject.setPosition(posX, posY);
     }
 }
 const GUTTER_X = 2;

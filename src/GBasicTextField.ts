@@ -99,7 +99,7 @@ export class GBasicTextField extends GTextField {
             // if (this._ubbEnabled)
             //     this._textField.text = UBBParser.inst.parse(text2, true);
             // else
-                this._textField.text = text2;
+            this._textField.text = text2;
         }
         else {
             this._textField.text = "";
@@ -145,12 +145,12 @@ export class GBasicTextField extends GTextField {
                     this._textField.setFont(UIConfig.defaultFont)
                 }
             });
-        else{
+        else {
             delete this._bitmapFont;
         }
-            
-       
-       
+
+
+
         // this._font = value;
         // if (this._font) {
         //     this._textField.setFont(this._font);
@@ -669,11 +669,14 @@ export class GBasicTextField extends GTextField {
         // 由于canvas2D.measureText()获取的文本尺寸与fairygui编辑器中不同，这边手动调整下尺寸，便于编辑器控制
         const offsetWidthAuto = this._widthAutoSize && this.parent && this.parent.pivotX === 0 ? 3 : 0;
         const offsetHeightAuto = this._heightAutoSize && this.parent && this.parent.pivotY === 0 ? 4 : 0;
-        const offsetParentWidth = this.parent ? this.parent._width * this.parent.pivotX : 0;
-        const offsetParentHeight = this.parent ? this.parent._height * this.parent.pivotY : 0;
-        const _x = Math.round(this.initWidth * this._pivotX);
-        const _y = Math.round(this.initHeight * this._pivotY);
-        this._displayObject.setPosition(xv - offsetParentWidth + offsetWidthAuto - _x, yv - offsetParentHeight + offsetHeightAuto - _y);
+        const offsetParentWidth = 0//this.parent ? this.parent._width * this.parent.pivotX : 0;
+        const offsetParentHeight = 0//this.parent ? this.parent._height * this.parent.pivotY : 0;
+        const _x = 0//Math.round(this.initWidth * this._pivotX);
+        const _y = 0//Math.round(this.initHeight * this._pivotY);
+        const offset = GRoot.uiScale * GRoot.dpr;
+        const posX = offset * (xv - offsetParentWidth + offsetWidthAuto - _x);
+        const posY = offset * (yv - offsetParentHeight + offsetHeightAuto - _y);
+        this._displayObject.setPosition(posX, posY);
 
     }
 

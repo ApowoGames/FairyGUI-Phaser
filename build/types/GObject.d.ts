@@ -40,6 +40,8 @@ export declare class GObject {
     protected _x: number;
     protected _y: number;
     private _alpha;
+    private _basePosX;
+    private _basePosY;
     private _rotation;
     private _visible;
     protected _touchable: boolean;
@@ -99,6 +101,8 @@ export declare class GObject {
     _treeNode?: GTreeNode;
     protected _objectType: number;
     constructor(scene: Phaser.Scene, type: number);
+    get basePosX(): number;
+    get basePosY(): number;
     get extenalScaleBoo(): boolean;
     set exteanalScaleBoo(val: boolean);
     get adaptiveScaleX(): number;
@@ -139,7 +143,6 @@ export declare class GObject {
     get height(): number;
     set height(value: number);
     setSize(wv: number, hv: number, ignorePivot?: boolean): void;
-    externalSetSize(wv: number, hv: number, ignorePivot?: boolean): void;
     ensureSizeCorrect(): void;
     makeFullScreen(): void;
     get actualWidth(): number;
@@ -167,6 +170,7 @@ export declare class GObject {
     get touchable(): boolean;
     set touchable(value: boolean);
     setTouchable(value: boolean): void;
+    changeInteractive(): void;
     protected removeInteractive(): void;
     get grayed(): boolean;
     set grayed(value: boolean);

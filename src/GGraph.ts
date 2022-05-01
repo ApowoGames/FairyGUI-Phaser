@@ -123,8 +123,8 @@ export class GGraph extends GObject {
         if (this._skewX != 0 || this._skewY != 0) {
             this.setSkew(this._skewX, this._skewY);
         }
-        var w: number = this.width;
-        var h: number = this.height;
+        var w: number = this.width * GRoot.dpr;
+        var h: number = this.height * GRoot.dpr;
         if (w == 0 || h == 0)
             return;
 
@@ -318,7 +318,6 @@ export class GGraph extends GObject {
 
     protected handleSizeChanged(): void {
         super.handleSizeChanged();
-
         if (this._type != 0)
             this.updateGraph();
     }

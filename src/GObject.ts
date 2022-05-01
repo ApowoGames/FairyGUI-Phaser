@@ -49,6 +49,8 @@ export class GObject {
     protected _x: number = 0;
     protected _y: number = 0;
     private _alpha: number = 1;
+    private _basePosX: number = 0;
+    private _basePosY: number = 0;
     private _rotation: number = 0;
     private _visible: boolean = true;
     // 可交互默认false
@@ -129,6 +131,14 @@ export class GObject {
 
         this._relations = new Relations(this);
         this._gears = new Array<GearBase>(10);
+    }
+
+    get basePosX(): number {
+        return this._basePosX;
+    }
+
+    get basePosY(): number {
+        return this._basePosY;
     }
 
     get extenalScaleBoo(): boolean {
@@ -414,6 +424,13 @@ export class GObject {
         }
     }
 
+    // public extenalSetSize(wv: number, hv: number, ignorePivot?: boolean): void {
+    //     this.setSize();
+
+    // }
+
+
+
     public ensureSizeCorrect(): void {
     }
 
@@ -596,26 +613,28 @@ export class GObject {
         //     || (this instanceof GTextField) && !(this instanceof GTextInput) && !(this instanceof GRichTextField))
         //     //Touch is not supported by GImage/GMovieClip/GTextField
         //     return;
+        this.changeInteractive();
 
-        if (this._displayObject) {
-            if (this._touchable) {
-                // 注册点不在中心需要重新调整交互区域
-                if (this._pivotX !== 0 || this._pivotY !== 0) {
-                    this.removeInteractive();
-                    this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, (this.initWidth / this.scaleX), (this.initHeight / this.scaleY)), Phaser.Geom.Rectangle.Contains);
-                } else {
-                    this._displayObject.setInteractive(new Phaser.Geom.Rectangle(this.initWidth / 2, this.initWidth / 2, this.initWidth / this.scaleX, this.initHeight / this.scaleY), Phaser.Geom.Rectangle.Contains);
-                }
-
-            } else {
-                this.removeInteractive();
-            }
-        }
         this.updatePivotOffset();
     }
 
+    public changeInteractive() {
+        if (this._displayObject) {
+            if (this._touchable) {
+                this._displayObject.setInteractive();
+                // if (this._displayObject.input) this.removeInteractive();
+                // // 注册点不在中心需要重新调整交互区域
+                // if (this._pivotX !== 0 || this._pivotY !== 0) {
+                //     this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this.initWidth * GRoot.dpr / this.scaleX, this.initHeight * GRoot.dpr / this.scaleY), Phaser.Geom.Rectangle.Contains);
+                // } else {
+                //     this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this.initWidth * GRoot.dpr / this.scaleX, this.initHeight * GRoot.dpr / this.scaleY), Phaser.Geom.Rectangle.Contains);
+                // }
+            }
+        }
+    }
+
     protected removeInteractive() {
-        this._displayObject.disableInteractive();
+        //  this._displayObject.disableInteractive();
         this._displayObject.removeInteractive();
     }
 
@@ -1367,6 +1386,10 @@ export class GObject {
     }
 
     protected handleSizeChanged(): void {
+        if (this.name === "maskBG" || (this.parent && this.parent.name === "maskBG")) {
+            this._displayObject.setSize(this._width * GRoot.dpr, this._height * GRoot.dpr);
+            return;
+        }
         // (<Phaser.GameObjects.Container>this.displayObject).setDisplaySize(this._width, this._height);
         this._displayObject.setSize(this._width * GRoot.dpr * GRoot.uiScale, this._height * GRoot.dpr * GRoot.uiScale);
         // this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this._width, this._height), Phaser.Geom.Rectangle.Contains);
@@ -1552,7 +1575,8 @@ export class GObject {
         this.setTouchable(this._touchable);
         this.adaptiveScaleX = this.initWidth / this.sourceWidth;
         this.adaptiveScaleY = this.initHeight / this.sourceHeight;
-
+        this._basePosX = this.x;
+        this._basePosY = this.y;
     }
 
     //drag support

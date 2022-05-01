@@ -719,7 +719,7 @@ export class GComponent extends GObject {
 
                 if (this.hitArea instanceof Phaser.Geom.Rectangle)
                     this.hitArea.setTo(this.initWidth >> 1, this.initHeight >> 1, this.initWidth, this.initHeight);
-                this._displayObject.setInteractive(this.hitArea, Phaser.Geom.Rectangle.Contains);
+                this._displayObject.setInteractive();
             }
             else {
                 if (this.hitArea instanceof Phaser.Geom.Rectangle)
