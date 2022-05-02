@@ -2265,16 +2265,27 @@ class RelationItem {
             case RelationType.Right_Left:
             case RelationType.Right_Center:
             case RelationType.Right_Right:
-                this._owner.x += dx;
+                if (GRoot.contentScaleWid < 1 && dx !== 0)
+                    this._owner.x *= GRoot.contentScaleWid;
+                else
+                    this._owner.x += dx;
                 break;
             case RelationType.Top_Top:
             case RelationType.Top_Middle:
             case RelationType.Top_Bottom:
+            // if (GRoot.uiScale !== 1 && dy !== 0) this._owner.y = this._owner.y + this._target._height * (1 - GRoot.uiScale) + dy;
+            // else this._owner.y += dy;
+            // break;
             case RelationType.Middle_Middle:
+                this._owner.y += dy;
+                break;
             case RelationType.Bottom_Top:
             case RelationType.Bottom_Middle:
             case RelationType.Bottom_Bottom:
-                this._owner.y += dy;
+                if (GRoot.uiScale !== 1 && dy !== 0)
+                    this._owner.y = this._owner.y - this._target._height * (1 - GRoot.uiScale) + dy;
+                else
+                    this._owner.y += dy;
                 break;
             case RelationType.Width:
             case RelationType.Height:
@@ -2426,10 +2437,9 @@ class RelationItem {
                 if (info.percent)
                     this._owner.yMin = pos + (this._owner.yMin + this._owner._rawHeight * 0.5 - pos) * delta - this._owner._rawHeight * 0.5;
                 else {
-                    if (delta < 0)
-                        this._owner.y = this._target._height - this._owner._height * GRoot.uiScale >> 1;
-                    else
-                        this._owner.y += delta * (0.5 - pivot);
+                    this._owner.y = this._target._height - this._owner._height * GRoot.uiScale >> 1;
+                    // if (delta < 0) this._owner.y = this._target._height - this._owner._height * GRoot.uiScale >> 1;
+                    // else this._owner.y += delta * (0.5 - pivot);
                 }
                 break;
             case RelationType.Bottom_Top:
@@ -3604,7 +3614,7 @@ class GObject {
     ensureSizeCorrect() {
     }
     makeFullScreen() {
-        this.setSize(GRoot.inst.width, GRoot.inst.height);
+        this.setSize(GRoot.inst.width / GRoot.dpr, GRoot.inst.height / GRoot.dpr);
     }
     get actualWidth() {
         return this.width * Math.abs(this._scaleX);
@@ -3759,8 +3769,8 @@ class GObject {
     changeInteractive() {
         if (this._displayObject) {
             if (this._touchable) {
-                const realWid = this._width * GRoot.dpr;
-                const realHei = this._height * GRoot.dpr;
+                const realWid = this._width * GRoot.dpr * GRoot.uiScale;
+                const realHei = this._height * GRoot.dpr * GRoot.uiScale;
                 const rect = new Phaser.Geom.Rectangle(this._pivotX * realWid, this._pivotY * realHei, realWid, realHei);
                 if (!this._displayObject.input)
                     this._displayObject.setInteractive(rect, Phaser.Geom.Rectangle.Contains);
@@ -12943,7 +12953,9 @@ class Image extends Phaser.GameObjects.Container {
             this._curImg.setOrigin(0);
             this._curImg.displayWidth = this.finalXs[3]; //+ (xi < 2 ? this.mCorrection : 0);
             this._curImg.displayHeight = this.finalYs[3]; //+ (yi < 2 ? this.mCorrection : 0);
-            this._curImg.setPosition(this.finalXs[2], this.finalYs[2]);
+            const pivotX = this["$owner"] && this["$owner"].parnet ? this["$owner"].parnet.pivotX : 0;
+            const pivotY = this["$owner"] && this["$owner"].parnet ? this["$owner"].parnet.pivotY : 0;
+            this._curImg.setPosition(this.finalXs[2] - this._curImg.displayWidth * pivotX, this.finalYs[2] - this._curImg.displayHeight * pivotY);
             // if (owner.pivotX) owner.xOffset = -owner.pivotX*this.finalXs[3];
             // if(owner.pivotY)owner.yOffset=-owner.pivotY*this.finalYs[3];
             // console.log("drawImage ===>", this._curImg, this.finalXs, this.finalYs);
@@ -14218,8 +14230,8 @@ class DisplayObject extends Phaser.GameObjects.GameObject {
     setScale() {
     }
     setSize(w, h) {
-        this.width = w;
-        this.height = h;
+        this.width = w * GRoot.dpr * GRoot.uiScale;
+        this.height = h * GRoot.dpr * GRoot.uiScale;
         return this;
     }
     setPosition(x, y) {
@@ -16064,7 +16076,7 @@ class TextStyle {
     setFontSize(size) {
         if (typeof size === "number") {
             this.numFontSize = size;
-            size *= GRoot.dpr; //Math.round((GRoot.inst.stageWidth / GRoot.dpr) / (GRoot.inst.designWidth / size));
+            size *= GRoot.dpr * GRoot.uiScale; //Math.round((GRoot.inst.stageWidth / GRoot.dpr) / (GRoot.inst.designWidth / size));
             size = size.toString() + "px";
         }
         if (this.fontSize !== size) {

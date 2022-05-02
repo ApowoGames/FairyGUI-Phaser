@@ -435,7 +435,7 @@ export class GObject {
     }
 
     public makeFullScreen(): void {
-        this.setSize(GRoot.inst.width, GRoot.inst.height);
+        this.setSize(GRoot.inst.width / GRoot.dpr, GRoot.inst.height / GRoot.dpr);
     }
 
     public get actualWidth(): number {
@@ -621,8 +621,8 @@ export class GObject {
     public changeInteractive() {
         if (this._displayObject) {
             if (this._touchable) {
-                const realWid = this._width * GRoot.dpr;
-                const realHei = this._height * GRoot.dpr;
+                const realWid = this._width * GRoot.dpr * GRoot.uiScale;
+                const realHei = this._height * GRoot.dpr * GRoot.uiScale;
                 const rect: Phaser.Geom.Rectangle = new Phaser.Geom.Rectangle(this._pivotX * realWid, this._pivotY * realHei,
                     realWid, realHei);
                 if (!this._displayObject.input) this._displayObject.setInteractive(rect, Phaser.Geom.Rectangle.Contains);

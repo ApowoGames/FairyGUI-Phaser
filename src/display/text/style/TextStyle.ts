@@ -327,7 +327,7 @@ export class TextStyle implements ITextStyle {
     setFontSize(size: string | number) {
         if (typeof size === "number") {
             this.numFontSize = size;
-            size *= GRoot.dpr;//Math.round((GRoot.inst.stageWidth / GRoot.dpr) / (GRoot.inst.designWidth / size));
+            size *= GRoot.dpr * GRoot.uiScale;//Math.round((GRoot.inst.stageWidth / GRoot.dpr) / (GRoot.inst.designWidth / size));
             size = size.toString() + "px";
         }
         if (this.fontSize !== size) {

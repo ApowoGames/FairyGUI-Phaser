@@ -250,7 +250,9 @@ export class Image extends Phaser.GameObjects.Container {
             this._curImg.setOrigin(0);
             this._curImg.displayWidth = this.finalXs[3]; //+ (xi < 2 ? this.mCorrection : 0);
             this._curImg.displayHeight = this.finalYs[3]; //+ (yi < 2 ? this.mCorrection : 0);
-            this._curImg.setPosition(this.finalXs[2], this.finalYs[2]);
+            const pivotX = this["$owner"] && this["$owner"].parnet ? this["$owner"].parnet.pivotX : 0;
+            const pivotY = this["$owner"] && this["$owner"].parnet ? this["$owner"].parnet.pivotY : 0;
+            this._curImg.setPosition(this.finalXs[2] - this._curImg.displayWidth * pivotX, this.finalYs[2] - this._curImg.displayHeight * pivotY);
             // if (owner.pivotX) owner.xOffset = -owner.pivotX*this.finalXs[3];
             // if(owner.pivotY)owner.yOffset=-owner.pivotY*this.finalYs[3];
             // console.log("drawImage ===>", this._curImg, this.finalXs, this.finalYs);

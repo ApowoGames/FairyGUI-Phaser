@@ -165,17 +165,24 @@ export class RelationItem {
             case RelationType.Right_Left:
             case RelationType.Right_Center:
             case RelationType.Right_Right:
-                this._owner.x += dx;
+                if (GRoot.contentScaleWid < 1 && dx !== 0) this._owner.x *= GRoot.contentScaleWid;
+                else this._owner.x += dx;
                 break;
 
             case RelationType.Top_Top:
             case RelationType.Top_Middle:
             case RelationType.Top_Bottom:
+            // if (GRoot.uiScale !== 1 && dy !== 0) this._owner.y = this._owner.y + this._target._height * (1 - GRoot.uiScale) + dy;
+            // else this._owner.y += dy;
+            // break;
             case RelationType.Middle_Middle:
+                this._owner.y += dy;
+                break;
             case RelationType.Bottom_Top:
             case RelationType.Bottom_Middle:
             case RelationType.Bottom_Bottom:
-                this._owner.y += dy;
+                if (GRoot.uiScale !== 1 && dy !== 0) this._owner.y = this._owner.y - this._target._height * (1 - GRoot.uiScale) + dy;
+                else this._owner.y += dy;
                 break;
 
             case RelationType.Width:
@@ -338,8 +345,9 @@ export class RelationItem {
                 if (info.percent)
                     this._owner.yMin = pos + (this._owner.yMin + this._owner._rawHeight * 0.5 - pos) * delta - this._owner._rawHeight * 0.5;
                 else {
-                    if (delta < 0) this._owner.y = this._target._height - this._owner._height * GRoot.uiScale >> 1;
-                    else this._owner.y += delta * (0.5 - pivot);
+                    this._owner.y = this._target._height - this._owner._height * GRoot.uiScale >> 1;
+                    // if (delta < 0) this._owner.y = this._target._height - this._owner._height * GRoot.uiScale >> 1;
+                    // else this._owner.y += delta * (0.5 - pivot);
                 }
 
                 break;
