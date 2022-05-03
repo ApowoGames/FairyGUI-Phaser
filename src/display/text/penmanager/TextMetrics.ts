@@ -1,3 +1,5 @@
+import { GRoot } from "../../..";
+
 export function GetTextWidth(text: string, context: CanvasRenderingContext2D) {
     return context.measureText(text).width;
 }

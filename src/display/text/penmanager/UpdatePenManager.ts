@@ -1,3 +1,4 @@
+import { GRoot } from './../../../GRoot';
 import { UIPackage } from "../../..";
 import { CanvasText } from "../canvastext/CanvasText";
 import { SyncFont, SyncStyle } from "../canvastext/SyncContextMethods";
@@ -50,7 +51,7 @@ export function UpdatePenManager(penManager: PenManager, text: string, canvasTex
             let strokeThickness = curStyle.strokeThickness;
             let halfStrokeThickness = strokeThickness >> 1;
 
-            wrapLines = WrapText(plainText, GetTextWidth, context, wrapMode, wrapWidth, cursorX);
+            wrapLines = WrapText(plainText, GetTextWidth, context, wrapMode, wrapWidth * GRoot.dpr * GRoot.uiScale, cursorX);
 
             // Style of wrapped lines are the same, and has the same text height
             let textHeightResult = GetTextHeightMetrics('|MÉq', context);

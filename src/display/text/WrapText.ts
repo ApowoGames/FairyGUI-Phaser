@@ -1,3 +1,5 @@
+import { FreeLine, GetLine } from "./LinePool";
+
 export enum WrapMode {
     none = 0,
     word = 1,
@@ -52,7 +54,7 @@ export function WrapText(
 
         if (wrapMode === WrapMode.none) {
             result.push(
-                CreateLineInfo(line, getTextWidthCallback(line, context), newLineMode)
+                GetLine(line, getTextWidthCallback(line, context), newLineMode)
             );
             continue;
         }
@@ -68,76 +70,125 @@ export function WrapText(
             let textWidth = getTextWidthCallback(line, context);
             if (textWidth <= remainWidth) {
                 result.push(
-                    CreateLineInfo(line, textWidth, newLineMode)
+                    GetLine(line, textWidth, newLineMode)
                 );
                 continue;
             }
         }
 
         // Character mode
-        let tokenArray: string[] | string;
+        let tokenArray: string[] | string, isSpaceCharacterEnd;
         if (wrapMode === WrapMode.word) { // Word mode            
             tokenArray = line.split(' ');
+            isSpaceCharacterEnd = (tokenArray[tokenArray.length - 1] === '');
+            if (isSpaceCharacterEnd) {
+                tokenArray.length -= 1;
+            }
         } else {
             tokenArray = line;
         }
-        let curLineText = '',
-            lineText = '',
+        // let curLineText = '',
+        let lineText = '',
             lineWidth = 0;
+        let currLineWidth;
+        let token, tokenWidth, isLastToken;
+        let whiteSpaceWidth = (wrapMode === WrapMode.word) ? getTextWidthCallback(' ', context) : undefined;
         for (let j = 0, tokenLen = tokenArray.length; j < tokenLen; j++) {
-            let token = tokenArray[j];
-
-            if (wrapMode === WrapMode.word) {
-                curLineText += token;
-
-                if (j < (tokenLen - 1)) {
-                    curLineText += ' ';
-                }
-            } else {
-                curLineText += token;
+            token = tokenArray[j];
+            tokenWidth = getTextWidthCallback(token, context);
+            isLastToken = (j === (tokenLen - 1));
+            if (wrapMode === WrapMode.word && (!isLastToken || isSpaceCharacterEnd)) {
+                token += ' ';
+                tokenWidth += whiteSpaceWidth;
             }
 
-            let currLineWidth = getTextWidthCallback(curLineText, context);
+            if (wrapMode === WrapMode.word && (tokenWidth > wrapWidth)) {
+                if (lineText !== '') {
+                    // Has pending lineText, flush it out
+                    result.push(GetLine(lineText, lineWidth, NewLineMode.wrapped));
+                } else if ((j === 0) && (offset > 0)) {
+                    // No pending lineText, but has previous text. Append a newline
+                    result.push(GetLine('', 0, NewLineMode.wrapped));
+                }
+                // Word break
+                result.push(...WrapText(token, getTextWidthCallback, context, WrapMode.char, wrapWidth, 0));
+                // Continue at last-wordBreak-line
+                const lastwordBreakLine = result.pop();
+                lineText = lastwordBreakLine.text;
+                lineWidth = lastwordBreakLine.width;
+                // Free this line
+                FreeLine(lastwordBreakLine);
+                // Special case : Start at a space character, discard it
+                if (lineText === ' ') {
+                    lineText = '';
+                    lineWidth = 0;
+                }
+                continue;
+            }
+            currLineWidth = lineWidth + tokenWidth;
             if (currLineWidth > remainWidth) {
-                // new line
-                if (j === 0) {
-                    result.push(
-                        CreateLineInfo('', 0, NewLineMode.wrapped)
-                    );
-                } else {
-                    result.push(
-                        CreateLineInfo(lineText, lineWidth, NewLineMode.wrapped)
-                    );
-                    curLineText = token;
-                    if (wrapMode === WrapMode.word) {
-                        if (j < (tokenLen - 1)) {
-                            curLineText += ' ';
-                        }
-                    }
-                    currLineWidth = getTextWidthCallback(curLineText, context);
-                }
-
+                // New line
+                result.push(GetLine(lineText, lineWidth, NewLineMode.wrapped));
+                lineText = token;
+                lineWidth = tokenWidth;
                 remainWidth = wrapWidth;
+
+            } else {
+                // Append token, continue
+                lineText += token;
+                lineWidth = currLineWidth;
             }
 
-            lineText = curLineText;
-            lineWidth = currLineWidth;
+            if (isLastToken) {
+                // Flush remain text
+                result.push(GetLine(lineText, lineWidth, newLineMode));
+            }
+
+            // if (wrapMode === WrapMode.word) {
+            //     curLineText += token;
+
+            //     if (j < (tokenLen - 1)) {
+            //         curLineText += ' ';
+            //     }
+            // } else {
+            //     curLineText += token;
+            // }
+
+            // let currLineWidth = getTextWidthCallback(curLineText, context);
+            // if (currLineWidth > remainWidth) {
+            //     // new line
+            //     if (j === 0) {
+            //         result.push(
+            //             CreateLineInfo('', 0, NewLineMode.wrapped)
+            //         );
+            //     } else {
+            //         result.push(
+            //             CreateLineInfo(lineText, lineWidth, NewLineMode.wrapped)
+            //         );
+            //         curLineText = token;
+            //         if (wrapMode === WrapMode.word) {
+            //             if (j < (tokenLen - 1)) {
+            //                 curLineText += ' ';
+            //             }
+            //         }
+            //         currLineWidth = getTextWidthCallback(curLineText, context);
+            //     }
+
+            //     remainWidth = wrapWidth;
+            // }
+
+            // lineText = curLineText;
+            // lineWidth = currLineWidth;
         } // For token in tokenArray
-
-        // Flush remain text
-        result.push(
-            CreateLineInfo(lineText, lineWidth, newLineMode)
-        );
-
     } // For each line in lines
 
     return result;
 };
 
-let CreateLineInfo = function (
-    text: string,
-    width: number,
-    newLineMode: NewLineMode
-): LineInfo {
-    return { text: text, width: width, newLineMode: newLineMode }
-}
+// let CreateLineInfo = function (
+//     text: string,
+//     width: number,
+//     newLineMode: NewLineMode
+// ): LineInfo {
+//     return { text: text, width: width, newLineMode: newLineMode }
+// }

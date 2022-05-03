@@ -97,12 +97,12 @@ export class DisplayObject extends Phaser.GameObjects.GameObject {
     }
 
     setScale() {
-
+        
     }
 
     setSize(w: number, h: number) {
-        this.width = w * GRoot.dpr * GRoot.uiScale;
-        this.height = h * GRoot.dpr * GRoot.uiScale;
+        this.width = w;
+        this.height = h;
 
         return this;
     }

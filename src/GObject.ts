@@ -617,7 +617,7 @@ export class GObject {
 
         this.updatePivotOffset();
     }
-    private _g: Phaser.GameObjects.Graphics;
+    //private _g: Phaser.GameObjects.Graphics;
     public changeInteractive() {
         if (this._displayObject) {
             if (this._touchable) {
@@ -627,12 +627,12 @@ export class GObject {
                     realWid, realHei);
                 if (!this._displayObject.input) this._displayObject.setInteractive(rect, Phaser.Geom.Rectangle.Contains);
                 else this._displayObject.input.hitArea = rect; //.setSize(this._width * GRoot.dpr, this._height * GRoot.dpr)
-                if (this._g) (<Phaser.GameObjects.Container>this._displayObject).remove(this._g);
-                else this._g = this.scene.make.graphics(undefined, false);
-                this._g.clear();
-                this._g.fillStyle(0x66cc00, 0.5);
-                this._g.fillRoundedRect(0, 0, rect.width, rect.height, 5);//0, 0, this._width * GRoot.dpr, this._height * GRoot.dpr);
-                this._displayObject.addAt(this._g, 0);
+                // if (this._g) (<Phaser.GameObjects.Container>this._displayObject).remove(this._g);
+                // else this._g = this.scene.make.graphics(undefined, false);
+                // this._g.clear();
+                // this._g.fillStyle(0x66cc00, 0.5);
+                // this._g.fillRoundedRect(0, 0, rect.width, rect.height, 5);//0, 0, this._width * GRoot.dpr, this._height * GRoot.dpr);
+                // this._displayObject.addAt(this._g, 0);
                 // // 注册点不在中心需要重新调整交互区域
                 // if (this._pivotX !== 0 || this._pivotY !== 0) {
                 //     this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this.initWidth * GRoot.dpr / this.scaleX, this.initHeight * GRoot.dpr / this.scaleY), Phaser.Geom.Rectangle.Contains);

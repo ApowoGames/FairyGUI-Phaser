@@ -2392,10 +2392,17 @@
                     if (info.percent)
                         this._owner.xMin = pos + (this._owner.xMin + this._owner._rawWidth * 0.5 - pos) * delta - this._owner._rawWidth * 0.5;
                     else {
-                        if (delta < 0)
-                            this._owner.x = this._target._width - this._owner._width * GRoot.uiScale >> 1;
-                        else
+                        if (delta >= 0) {
                             this._owner.x += delta * (0.5 - pivot);
+                        }
+                        else {
+                            if (this._owner.type === exports.ObjectType.Text || this._owner.type === exports.ObjectType.RichText) {
+                                this._owner.x = this._target._width - this._owner.initWidth * GRoot.uiScale >> 1;
+                            }
+                            else {
+                                this._owner.x = this._target._width - this._owner._width * GRoot.uiScale >> 1;
+                            }
+                        }
                     }
                     break;
                 case exports.RelationType.Right_Left:
@@ -2441,9 +2448,12 @@
                     if (info.percent)
                         this._owner.yMin = pos + (this._owner.yMin + this._owner._rawHeight * 0.5 - pos) * delta - this._owner._rawHeight * 0.5;
                     else {
-                        this._owner.y = this._target._height - this._owner._height * GRoot.uiScale >> 1;
-                        // if (delta < 0) this._owner.y = this._target._height - this._owner._height * GRoot.uiScale >> 1;
-                        // else this._owner.y += delta * (0.5 - pivot);
+                        if (this._owner.type === exports.ObjectType.Text || this.owner.type === exports.ObjectType.RichText) {
+                            this._owner.y = this._target._height - this._owner.initHeight * GRoot.uiScale >> 1;
+                        }
+                        else {
+                            this._owner.y = this._target._height - this._owner._height * GRoot.uiScale >> 1;
+                        }
                     }
                     break;
                 case exports.RelationType.Bottom_Top:
@@ -3770,6 +3780,7 @@
             this.changeInteractive();
             this.updatePivotOffset();
         }
+        //private _g: Phaser.GameObjects.Graphics;
         changeInteractive() {
             if (this._displayObject) {
                 if (this._touchable) {
@@ -3780,14 +3791,12 @@
                         this._displayObject.setInteractive(rect, Phaser.Geom.Rectangle.Contains);
                     else
                         this._displayObject.input.hitArea = rect; //.setSize(this._width * GRoot.dpr, this._height * GRoot.dpr)
-                    if (this._g)
-                        this._displayObject.remove(this._g);
-                    else
-                        this._g = this.scene.make.graphics(undefined, false);
-                    this._g.clear();
-                    this._g.fillStyle(0x66cc00, 0.5);
-                    this._g.fillRoundedRect(0, 0, rect.width, rect.height, 5); //0, 0, this._width * GRoot.dpr, this._height * GRoot.dpr);
-                    this._displayObject.addAt(this._g, 0);
+                    // if (this._g) (<Phaser.GameObjects.Container>this._displayObject).remove(this._g);
+                    // else this._g = this.scene.make.graphics(undefined, false);
+                    // this._g.clear();
+                    // this._g.fillStyle(0x66cc00, 0.5);
+                    // this._g.fillRoundedRect(0, 0, rect.width, rect.height, 5);//0, 0, this._width * GRoot.dpr, this._height * GRoot.dpr);
+                    // this._displayObject.addAt(this._g, 0);
                     // // 注册点不在中心需要重新调整交互区域
                     // if (this._pivotX !== 0 || this._pivotY !== 0) {
                     //     this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this.initWidth * GRoot.dpr / this.scaleX, this.initHeight * GRoot.dpr / this.scaleY), Phaser.Geom.Rectangle.Contains);
@@ -14234,8 +14243,8 @@
         setScale() {
         }
         setSize(w, h) {
-            this.width = w * GRoot.dpr * GRoot.uiScale;
-            this.height = h * GRoot.dpr * GRoot.uiScale;
+            this.width = w;
+            this.height = h;
             return this;
         }
         setPosition(x, y) {
@@ -14842,6 +14851,24 @@
         }
     }
 
+    var LinesPool = new Pool();
+    function FreeLine(line) {
+        if (!line) {
+            return;
+        }
+        LinesPool.push(line);
+    }
+    function GetLine(text, width, newLineMode) {
+        var l = LinesPool.pop();
+        if (!l) {
+            l = { text: "", width: 0, newLineMode: 0 };
+        }
+        l.text = text;
+        l.width = width;
+        l.newLineMode = newLineMode;
+        return l;
+    }
+
     var WrapMode;
     (function (WrapMode) {
         WrapMode[WrapMode["none"] = 0] = "none";
@@ -14873,7 +14900,7 @@
             let line = lines[i];
             let newLineMode = (i === lastLineIdx) ? NewLineMode.none : NewLineMode.raw;
             if (wrapMode === WrapMode.none) {
-                result.push(CreateLineInfo(line, getTextWidthCallback(line, context), newLineMode));
+                result.push(GetLine(line, getTextWidthCallback(line, context), newLineMode));
                 continue;
             }
             if (i === 0) {
@@ -14886,59 +14913,118 @@
             if (line.length <= 100) {
                 let textWidth = getTextWidthCallback(line, context);
                 if (textWidth <= remainWidth) {
-                    result.push(CreateLineInfo(line, textWidth, newLineMode));
+                    result.push(GetLine(line, textWidth, newLineMode));
                     continue;
                 }
             }
             // Character mode
-            let tokenArray;
+            let tokenArray, isSpaceCharacterEnd;
             if (wrapMode === WrapMode.word) { // Word mode            
                 tokenArray = line.split(' ');
+                isSpaceCharacterEnd = (tokenArray[tokenArray.length - 1] === '');
+                if (isSpaceCharacterEnd) {
+                    tokenArray.length -= 1;
+                }
             }
             else {
                 tokenArray = line;
             }
-            let curLineText = '', lineText = '', lineWidth = 0;
+            // let curLineText = '',
+            let lineText = '', lineWidth = 0;
+            let currLineWidth;
+            let token, tokenWidth, isLastToken;
+            let whiteSpaceWidth = (wrapMode === WrapMode.word) ? getTextWidthCallback(' ', context) : undefined;
             for (let j = 0, tokenLen = tokenArray.length; j < tokenLen; j++) {
-                let token = tokenArray[j];
-                if (wrapMode === WrapMode.word) {
-                    curLineText += token;
-                    if (j < (tokenLen - 1)) {
-                        curLineText += ' ';
+                token = tokenArray[j];
+                tokenWidth = getTextWidthCallback(token, context);
+                isLastToken = (j === (tokenLen - 1));
+                if (wrapMode === WrapMode.word && (!isLastToken || isSpaceCharacterEnd)) {
+                    token += ' ';
+                    tokenWidth += whiteSpaceWidth;
+                }
+                if (wrapMode === WrapMode.word && (tokenWidth > wrapWidth)) {
+                    if (lineText !== '') {
+                        // Has pending lineText, flush it out
+                        result.push(GetLine(lineText, lineWidth, NewLineMode.wrapped));
                     }
+                    else if ((j === 0) && (offset > 0)) {
+                        // No pending lineText, but has previous text. Append a newline
+                        result.push(GetLine('', 0, NewLineMode.wrapped));
+                    }
+                    // Word break
+                    result.push(...WrapText(token, getTextWidthCallback, context, WrapMode.char, wrapWidth, 0));
+                    // Continue at last-wordBreak-line
+                    const lastwordBreakLine = result.pop();
+                    lineText = lastwordBreakLine.text;
+                    lineWidth = lastwordBreakLine.width;
+                    // Free this line
+                    FreeLine(lastwordBreakLine);
+                    // Special case : Start at a space character, discard it
+                    if (lineText === ' ') {
+                        lineText = '';
+                        lineWidth = 0;
+                    }
+                    continue;
                 }
-                else {
-                    curLineText += token;
-                }
-                let currLineWidth = getTextWidthCallback(curLineText, context);
+                currLineWidth = lineWidth + tokenWidth;
                 if (currLineWidth > remainWidth) {
-                    // new line
-                    if (j === 0) {
-                        result.push(CreateLineInfo('', 0, NewLineMode.wrapped));
-                    }
-                    else {
-                        result.push(CreateLineInfo(lineText, lineWidth, NewLineMode.wrapped));
-                        curLineText = token;
-                        if (wrapMode === WrapMode.word) {
-                            if (j < (tokenLen - 1)) {
-                                curLineText += ' ';
-                            }
-                        }
-                        currLineWidth = getTextWidthCallback(curLineText, context);
-                    }
+                    // New line
+                    result.push(GetLine(lineText, lineWidth, NewLineMode.wrapped));
+                    lineText = token;
+                    lineWidth = tokenWidth;
                     remainWidth = wrapWidth;
                 }
-                lineText = curLineText;
-                lineWidth = currLineWidth;
+                else {
+                    // Append token, continue
+                    lineText += token;
+                    lineWidth = currLineWidth;
+                }
+                if (isLastToken) {
+                    // Flush remain text
+                    result.push(GetLine(lineText, lineWidth, newLineMode));
+                }
+                // if (wrapMode === WrapMode.word) {
+                //     curLineText += token;
+                //     if (j < (tokenLen - 1)) {
+                //         curLineText += ' ';
+                //     }
+                // } else {
+                //     curLineText += token;
+                // }
+                // let currLineWidth = getTextWidthCallback(curLineText, context);
+                // if (currLineWidth > remainWidth) {
+                //     // new line
+                //     if (j === 0) {
+                //         result.push(
+                //             CreateLineInfo('', 0, NewLineMode.wrapped)
+                //         );
+                //     } else {
+                //         result.push(
+                //             CreateLineInfo(lineText, lineWidth, NewLineMode.wrapped)
+                //         );
+                //         curLineText = token;
+                //         if (wrapMode === WrapMode.word) {
+                //             if (j < (tokenLen - 1)) {
+                //                 curLineText += ' ';
+                //             }
+                //         }
+                //         currLineWidth = getTextWidthCallback(curLineText, context);
+                //     }
+                //     remainWidth = wrapWidth;
+                // }
+                // lineText = curLineText;
+                // lineWidth = currLineWidth;
             } // For token in tokenArray
-            // Flush remain text
-            result.push(CreateLineInfo(lineText, lineWidth, newLineMode));
         } // For each line in lines
         return result;
     }
-    let CreateLineInfo = function (text, width, newLineMode) {
-        return { text: text, width: width, newLineMode: newLineMode };
-    };
+    // let CreateLineInfo = function (
+    //     text: string,
+    //     width: number,
+    //     newLineMode: NewLineMode
+    // ): LineInfo {
+    //     return { text: text, width: width, newLineMode: newLineMode }
+    // }
 
     class Line {
         constructor() {
@@ -15292,7 +15378,7 @@
                 SyncStyle(context, curStyle);
                 let strokeThickness = curStyle.strokeThickness;
                 let halfStrokeThickness = strokeThickness >> 1;
-                wrapLines = WrapText(plainText, GetTextWidth, context, wrapMode, wrapWidth, cursorX);
+                wrapLines = WrapText(plainText, GetTextWidth, context, wrapMode, wrapWidth * GRoot.dpr * GRoot.uiScale, cursorX);
                 // Style of wrapped lines are the same, and has the same text height
                 let textHeightResult = GetTextHeightMetrics('|MÉq', context);
                 for (const n of wrapLines) {
@@ -18012,25 +18098,6 @@
         flushVars() {
             this.text = GRoot.inst.i18n ? this._baseText : this._text;
         }
-        handleXYChanged() {
-            var xv = this._x + this._xOffset;
-            var yv = this._y + this._yOffset;
-            if (this._pixelSnapping) {
-                xv = Math.round(xv);
-                yv = Math.round(yv);
-            }
-            // 由于canvas2D.measureText()获取的文本尺寸与fairygui编辑器中不同，这边手动调整下尺寸，便于编辑器控制
-            const offsetWidthAuto = this._widthAutoSize && this.parent && this.parent.pivotX === 0 ? 3 : 0;
-            const offsetHeightAuto = this._heightAutoSize && this.parent && this.parent.pivotY === 0 ? 5 : 0;
-            const offsetParentWidth = 0; //this.parent ? this.parent._width * this.parent.pivotX : 0;
-            const offsetParentHeight = 0; //this.parent ? this.parent._height * this.parent.pivotY : 0;
-            const _x = 0; //Math.round(this.initWidth * this._pivotX);
-            const _y = 0; //Math.round(this.initHeight * this._pivotY);
-            const offset = GRoot.uiScale * GRoot.dpr;
-            const posX = offset * (xv - offsetParentWidth + offsetWidthAuto - _x);
-            const posY = offset * (yv - offsetParentHeight + offsetHeightAuto - _y);
-            this._displayObject.setPosition(posX, posY);
-        }
     }
     const GUTTER_X = 2;
     const GUTTER_Y = 2;
@@ -18801,88 +18868,7 @@
             }
         }
         updateLayout() {
-            if (!this._content2 && !this._content.texture && !this._content.frames) {
-                if (this._autoSize) {
-                    this._updatingLayout = true;
-                    this.setSize(50, 30);
-                    this._updatingLayout = false;
-                }
-                return;
-            }
-            let cw = this.sourceWidth;
-            let ch = this.sourceHeight;
-            if (this._autoSize) {
-                this._updatingLayout = true;
-                if (cw == 0)
-                    cw = 50;
-                if (ch == 0)
-                    ch = 30;
-                this.setSize(cw, ch);
-                this._updatingLayout = false;
-                if (cw == this._width && ch == this._height) {
-                    if (this._content2) {
-                        this._content2.setXY(0, 0);
-                        this._content2.setScale(1, 1);
-                    }
-                    else {
-                        this._content.setSize(cw * GRoot.dpr, ch * GRoot.dpr);
-                        this._content.setPosition(0, 0);
-                    }
-                    return;
-                }
-            }
-            var sx = 1, sy = 1;
-            if (this._fill != exports.LoaderFillType.None) {
-                sx = this.width / this.sourceWidth;
-                sy = this.height / this.sourceHeight;
-                if (sx != 1 || sy != 1) {
-                    if (this._fill == exports.LoaderFillType.ScaleMatchHeight)
-                        sx = sy;
-                    else if (this._fill == exports.LoaderFillType.ScaleMatchWidth)
-                        sy = sx;
-                    else if (this._fill == exports.LoaderFillType.Scale) {
-                        if (sx > sy)
-                            sx = sy;
-                        else
-                            sy = sx;
-                    }
-                    else if (this._fill == exports.LoaderFillType.ScaleNoBorder) {
-                        if (sx > sy)
-                            sy = sx;
-                        else
-                            sx = sy;
-                    }
-                    if (this._shrinkOnly) {
-                        if (sx > 1)
-                            sx = 1;
-                        if (sy > 1)
-                            sy = 1;
-                    }
-                    cw = this.sourceWidth * sx;
-                    ch = this.sourceHeight * sy;
-                }
-            }
-            if (this._content2)
-                this._content2.setScale(sx, sy);
-            else
-                this._content.setSize(cw, ch);
-            var nx, ny;
-            if (this._align == "center")
-                nx = Math.floor((this.width - cw) / 2);
-            else if (this._align == "right")
-                nx = this.width - cw;
-            else
-                nx = 0;
-            if (this._valign == "middle")
-                ny = Math.floor((this.height - ch) / 2);
-            else if (this._valign == "bottom")
-                ny = this.height - ch;
-            else
-                ny = 0;
-            if (this._content2)
-                this._content2.setXY(nx, ny);
-            else
-                this._content.setPosition(nx * GRoot.dpr, ny * GRoot.dpr);
+            const offset = GRoot.dpr * GRoot.uiScale;
             // if (!this._content2 && !this._content.texture && !this._content.frames) {
             //     if (this._autoSize) {
             //         this._updatingLayout = true;
@@ -18891,31 +18877,8 @@
             //     }
             //     return;
             // }
-            // let cw;
-            // let ch;
-            // let pivotX = this.pivotX;
-            // let pivotY = this.pivotY;
-            // if (this.parent) {
-            //     if (this.parent.parent) {
-            //         if (this.parent.parent instanceof GRoot) {
-            //             cw = this.sourceWidth;
-            //             ch = this.sourceHeight;
-            //             pivotX = this.pivotX;
-            //             pivotY = this.pivotY;
-            //         } else {
-            //             cw = this.parent.initWidth;
-            //             ch = this.parent.initHeight;
-            //             pivotX = this.parent.pivotX;
-            //             pivotY = this.parent.pivotY;
-            //         }
-            //     } else {
-            //         cw = this.sourceWidth;
-            //         ch = this.sourceHeight;
-            //     }
-            // } else {
-            //     cw = this.sourceWidth;
-            //     ch = this.sourceHeight;
-            // }
+            // let cw = this.sourceWidth;
+            // let ch = this.sourceHeight;
             // if (this._autoSize) {
             //     this._updatingLayout = true;
             //     if (cw == 0)
@@ -18930,7 +18893,7 @@
             //             this._content2.setScale(1, 1);
             //         }
             //         else {
-            //             this._content.changeSize(cw, ch);
+            //             this._content.setSize(cw, ch);
             //             this._content.setPosition(0, 0);
             //         }
             //         return;
@@ -18938,8 +18901,8 @@
             // }
             // var sx: number = 1, sy: number = 1;
             // if (this._fill != LoaderFillType.None) {
-            //     sx = this.initWidth / this.sourceWidth;
-            //     sy = this.initHeight / this.sourceHeight;
+            //     sx = this.width / this.sourceWidth;
+            //     sy = this.height / this.sourceHeight;
             //     if (sx != 1 || sy != 1) {
             //         if (this._fill == LoaderFillType.ScaleMatchHeight)
             //             sx = sy;
@@ -18963,45 +18926,159 @@
             //             if (sy > 1)
             //                 sy = 1;
             //         }
-            //         cw = Math.round(this.sourceWidth * sx);
-            //         ch = Math.round(this.sourceHeight * sy);
+            //         cw = this.sourceWidth * sx;
+            //         ch = this.sourceHeight * sy;
             //     }
             // }
-            // this.adaptiveScaleX = sx;
-            // this.adaptiveScaleY = sy;
             // if (this._content2)
             //     this._content2.setScale(sx, sy);
-            // else {
-            //     // 通过编辑器获取的高清资源
-            //     if (this._contentItem && this._contentItem.isHighRes) this._content.setSize(cw, ch);
-            //     else this._content.setScale(sx, sy);
-            //     // if (this._content.frames) {
-            //     //     this._content.setSize(cw, ch, this._content.frames[0]);
-            //     // } else {
-            //     //     this._content.setSize(cw, ch);
-            //     // }
-            // }
+            // else
+            //     this._content.setSize(cw, ch);
             // var nx: number, ny: number;
             // if (this._align == "center")
-            //     nx = (0.5 - pivotX) * cw + Math.floor((this.width - cw) / 2);
+            //     nx = Math.floor((this.width - cw) / 2);
             // else if (this._align == "right")
-            //     nx = (0.5 - pivotX) * cw + (this.width - cw);
+            //     nx = this.width - cw;
             // else
-            //     nx = (0.5 - pivotX) * cw;
+            //     nx = 0;
             // if (this._valign == "middle")
-            //     ny = (0.5 - pivotY) * ch + Math.floor((this.height - ch) / 2);
+            //     ny = Math.floor((this.height - ch) / 2);
             // else if (this._valign == "bottom")
-            //     ny = (0.5 - pivotY) * ch + (this.height - ch);
+            //     ny = this.height - ch;
             // else
-            //     ny = (0.5 - pivotY) * ch;
-            // // 需要将位置除以缩放值进行计算，因为缩放后位置会产生偏移
+            //     ny = 0;
             // if (this._content2)
-            //     this._content2.setXY(nx / sx, ny / sy);
-            // else {
-            //     // 通过编辑器获取的高清资源
-            //     if (this._contentItem && this._contentItem.isHighRes) this._content.setPosition(nx / sx, ny / sy);
-            //     else this._content.setPosition(nx, ny);
-            // }
+            //     this._content2.setXY(nx, ny);
+            // else
+            //     this._content.setPosition(nx * GRoot.dpr + cw / 2, ny * GRoot.dpr + ch / 2);
+            if (!this._content2 && !this._content.texture && !this._content.frames) {
+                if (this._autoSize) {
+                    this._updatingLayout = true;
+                    this.setSize(50, 30);
+                    this._updatingLayout = false;
+                }
+                return;
+            }
+            let cw;
+            let ch;
+            let pivotX = this.pivotX;
+            let pivotY = this.pivotY;
+            if (this.parent) {
+                if (this.parent.parent) {
+                    if (this.parent.parent instanceof GRoot) {
+                        cw = this.sourceWidth;
+                        ch = this.sourceHeight;
+                        pivotX = this.pivotX;
+                        pivotY = this.pivotY;
+                    }
+                    else {
+                        cw = this.parent.initWidth;
+                        ch = this.parent.initHeight;
+                        pivotX = this.parent.pivotX;
+                        pivotY = this.parent.pivotY;
+                    }
+                }
+                else {
+                    cw = this.sourceWidth;
+                    ch = this.sourceHeight;
+                }
+            }
+            else {
+                cw = this.sourceWidth;
+                ch = this.sourceHeight;
+            }
+            // cw *= offset;
+            // ch *= offset;
+            if (this._autoSize) {
+                this._updatingLayout = true;
+                if (cw == 0)
+                    cw = 50;
+                if (ch == 0)
+                    ch = 30;
+                this.setSize(cw, ch);
+                this._updatingLayout = false;
+                if (cw == this._width && ch == this._height) {
+                    if (this._content2) {
+                        this._content2.setXY(0, 0);
+                        this._content2.setScale(1, 1);
+                    }
+                    else {
+                        this._content.changeSize(cw, ch);
+                        this._content.setPosition(0, 0);
+                    }
+                    return;
+                }
+            }
+            var sx = 1, sy = 1;
+            if (this._fill != exports.LoaderFillType.None) {
+                sx = this.initWidth / this.sourceWidth;
+                sy = this.initHeight / this.sourceHeight;
+                if (sx != 1 || sy != 1) {
+                    if (this._fill == exports.LoaderFillType.ScaleMatchHeight)
+                        sx = sy;
+                    else if (this._fill == exports.LoaderFillType.ScaleMatchWidth)
+                        sy = sx;
+                    else if (this._fill == exports.LoaderFillType.Scale) {
+                        if (sx > sy)
+                            sx = sy;
+                        else
+                            sy = sx;
+                    }
+                    else if (this._fill == exports.LoaderFillType.ScaleNoBorder) {
+                        if (sx > sy)
+                            sy = sx;
+                        else
+                            sx = sy;
+                    }
+                    if (this._shrinkOnly) {
+                        if (sx > 1)
+                            sx = 1;
+                        if (sy > 1)
+                            sy = 1;
+                    }
+                    cw = Math.round(this.sourceWidth * sx) * offset;
+                    ch = Math.round(this.sourceHeight * sy) * offset;
+                }
+            }
+            this.adaptiveScaleX = sx;
+            this.adaptiveScaleY = sy;
+            if (this._content2)
+                this._content2.setScale(sx * offset, sy * offset);
+            else {
+                // 通过编辑器获取的高清资源
+                if (this._contentItem && this._contentItem.isHighRes)
+                    this._content.setSize(cw, ch);
+                else
+                    this._content.setScale(sx * offset, sy * offset);
+                // if (this._content.frames) {
+                //     this._content.setSize(cw, ch, this._content.frames[0]);
+                // } else {
+                //     this._content.setSize(cw, ch);
+                // }
+            }
+            var nx, ny;
+            if (this._align == "center")
+                nx = (0.5 - pivotX) * cw + Math.floor((this.width * offset - cw) / 2);
+            else if (this._align == "right")
+                nx = (0.5 - pivotX) * cw + (this.width * offset - cw);
+            else
+                nx = (0.5 - pivotX) * cw;
+            if (this._valign == "middle")
+                ny = (0.5 - pivotY) * ch + Math.floor((this.height * offset - ch) / 2);
+            else if (this._valign == "bottom")
+                ny = (0.5 - pivotY) * ch + (this.height * offset - ch);
+            else
+                ny = (0.5 - pivotY) * ch;
+            // 需要将位置除以缩放值进行计算，因为缩放后位置会产生偏移
+            if (this._content2)
+                this._content2.setXY(nx / sx, ny / sy);
+            else {
+                // 通过编辑器获取的高清资源
+                if (this._contentItem && this._contentItem.isHighRes)
+                    this._content.setPosition(nx / sx, ny / sy);
+                else
+                    this._content.setPosition(nx, ny);
+            }
         }
         clearContent() {
             // 异步导致清除contentItem时还未加载成功
