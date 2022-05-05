@@ -2269,8 +2269,8 @@
                 case exports.RelationType.Right_Left:
                 case exports.RelationType.Right_Center:
                 case exports.RelationType.Right_Right:
-                    if (GRoot.contentScaleWid < 1 && dx !== 0)
-                        this._owner.x *= GRoot.contentScaleWid;
+                    if (GRoot.uiScale !== 1 && dx !== 0)
+                        this._owner.x = this._owner.x - this._target._width * (1 - GRoot.uiScale) + dx;
                     else
                         this._owner.x += dx;
                     break;
@@ -3587,7 +3587,7 @@
             this.setSize(this._rawWidth, value);
         }
         setSize(wv, hv, ignorePivot) {
-            if (this._rawWidth != wv || this._rawHeight != hv) {
+            if (this._rawWidth != wv || this._rawHeight != hv || GRoot.uiScale !== 1) {
                 this._rawWidth = wv;
                 this._rawHeight = hv;
                 if (wv < this.minWidth)
@@ -18047,8 +18047,6 @@
             //     this._textField.color = this._color;
         }
         doAlign() {
-            GRoot.dpr;
-            GRoot.dpr;
             // 横向
             if (this.align === "left" || this._textWidth === 0) {
                 this._xOffset = GUTTER_X;
@@ -18058,11 +18056,9 @@
                 if (dx < 0)
                     dx = 0;
                 if (this.align === "center") {
-                    // dx = this.width - this._textWidth / offsetHeiParam;
                     this._xOffset = Math.floor(dx / 2) * GRoot.uiScale;
                 }
                 else {
-                    // dx: number = this.width * GRoot.uiScale - this._textWidth / offsetHeiParam;
                     this._xOffset = Math.floor(GRoot.uiScale * dx);
                 }
             }
@@ -18385,10 +18381,10 @@
                 tmpX += worldMatrix.tx;
                 tmpY += worldMatrix.ty;
             }
-            const left = this.x * GRoot.dpr * GRoot.uiScale + tmpX;
-            const right = this.x * GRoot.dpr * GRoot.uiScale + this._width * GRoot.dpr * GRoot.uiScale + tmpX;
-            const top = this.y * GRoot.dpr * GRoot.uiScale + tmpY;
-            const bottom = this.y * GRoot.dpr * GRoot.uiScale + this._height * GRoot.dpr * GRoot.uiScale + tmpY;
+            const left = this.x + tmpX;
+            const right = this.x + this._width + tmpX;
+            const top = this.y + tmpY;
+            const bottom = this.y + this._height + tmpY;
             if (px < left || px > right || py < top || py > bottom)
                 return false;
             return true;

@@ -165,7 +165,7 @@ export class RelationItem {
             case RelationType.Right_Left:
             case RelationType.Right_Center:
             case RelationType.Right_Right:
-                if (GRoot.contentScaleWid < 1 && dx !== 0) this._owner.x *= GRoot.contentScaleWid;
+                if (GRoot.uiScale !== 1 && dx !== 0) this._owner.x = this._owner.x - this._target._width * (1 - GRoot.uiScale) + dx;
                 else this._owner.x += dx;
                 break;
             case RelationType.Top_Top:

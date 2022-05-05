@@ -344,10 +344,10 @@ export class InputTextField extends TextField {
             tmpX += worldMatrix.tx;
             tmpY += worldMatrix.ty;
         }
-        const left = this.x * GRoot.dpr * GRoot.uiScale + tmpX;
-        const right = this.x * GRoot.dpr * GRoot.uiScale + this._width * GRoot.dpr * GRoot.uiScale + tmpX;
-        const top = this.y * GRoot.dpr * GRoot.uiScale + tmpY;
-        const bottom = this.y * GRoot.dpr * GRoot.uiScale + this._height * GRoot.dpr * GRoot.uiScale + tmpY;
+        const left = this.x + tmpX;
+        const right = this.x + this._width + tmpX;
+        const top = this.y + tmpY;
+        const bottom = this.y + this._height + tmpY;
         if (px < left || px > right || py < top || py > bottom) return false;
         return true;
     }
