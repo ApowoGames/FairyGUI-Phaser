@@ -113,16 +113,16 @@ export function WrapText(
                 // Word break
                 result.push(...WrapText(token, getTextWidthCallback, context, WrapMode.char, wrapWidth, 0));
                 // Continue at last-wordBreak-line
-                const lastwordBreakLine = result.pop();
-                lineText = lastwordBreakLine.text;
-                lineWidth = lastwordBreakLine.width;
-                // Free this line
-                FreeLine(lastwordBreakLine);
-                // Special case : Start at a space character, discard it
-                if (lineText === ' ') {
-                    lineText = '';
-                    lineWidth = 0;
-                }
+                // const lastwordBreakLine = result.pop();
+                // lineText = lastwordBreakLine.text;
+                // lineWidth = lastwordBreakLine.width;
+                // // Free this line 导致最后一行不见
+                // FreeLine(lastwordBreakLine);
+                // // Special case : Start at a space character, discard it
+                // if (lineText === ' ') {
+                //     lineText = '';
+                //     lineWidth = 0;
+                // }
                 continue;
             }
             currLineWidth = lineWidth + tokenWidth;

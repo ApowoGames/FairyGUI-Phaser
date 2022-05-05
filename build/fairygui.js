@@ -2277,9 +2277,6 @@
                 case exports.RelationType.Top_Top:
                 case exports.RelationType.Top_Middle:
                 case exports.RelationType.Top_Bottom:
-                // if (GRoot.uiScale !== 1 && dy !== 0) this._owner.y = this._owner.y + this._target._height * (1 - GRoot.uiScale) + dy;
-                // else this._owner.y += dy;
-                // break;
                 case exports.RelationType.Middle_Middle:
                     this._owner.y += dy;
                     break;
@@ -14852,12 +14849,6 @@
     }
 
     var LinesPool = new Pool();
-    function FreeLine(line) {
-        if (!line) {
-            return;
-        }
-        LinesPool.push(line);
-    }
     function GetLine(text, width, newLineMode) {
         var l = LinesPool.pop();
         if (!l) {
@@ -14954,16 +14945,16 @@
                     // Word break
                     result.push(...WrapText(token, getTextWidthCallback, context, WrapMode.char, wrapWidth, 0));
                     // Continue at last-wordBreak-line
-                    const lastwordBreakLine = result.pop();
-                    lineText = lastwordBreakLine.text;
-                    lineWidth = lastwordBreakLine.width;
-                    // Free this line
-                    FreeLine(lastwordBreakLine);
-                    // Special case : Start at a space character, discard it
-                    if (lineText === ' ') {
-                        lineText = '';
-                        lineWidth = 0;
-                    }
+                    // const lastwordBreakLine = result.pop();
+                    // lineText = lastwordBreakLine.text;
+                    // lineWidth = lastwordBreakLine.width;
+                    // // Free this line 导致最后一行不见
+                    // FreeLine(lastwordBreakLine);
+                    // // Special case : Start at a space character, discard it
+                    // if (lineText === ' ') {
+                    //     lineText = '';
+                    //     lineWidth = 0;
+                    // }
                     continue;
                 }
                 currLineWidth = lineWidth + tokenWidth;
@@ -17561,11 +17552,11 @@
         }
         set adaptiveScaleX(val) {
             this._adaptiveScaleX = val;
-            this.doAlign();
+            //this.doAlign();
         }
         set adaptiveScaleY(val) {
             this._adaptiveScaleY = val;
-            this.doAlign();
+            //this.doAlign();
         }
         createDisplayObject() {
             this._displayObject = this._textField = new TextField(this.scene);
@@ -17623,16 +17614,6 @@
             // this._textField.typeset();
             this.updateSize();
             this.doAlign();
-            // // 由于canvas2D.measureText()获取的文本尺寸与fairygui编辑器中不同，这边手动调整下尺寸，便于编辑器控制
-            // const offsetWidthAuto = 0//this._widthAutoSize && this.parent.pivotX === 0 ? 3 : 0;
-            // const offsetHeightAuto = 0//this._heightAutoSize && this.parent.pivotY === 0 ? 4 : 0;
-            // const offsetParentWidth = this.parent._width * this.parent.pivotX;
-            // const offsetParentHeight = this.parent._height * this.parent.pivotY;
-            // const _x = this.initWidth - this._rawWidth >> 1;
-            // const _y = this.initHeight - this._rawHeight >> 1;
-            // this.setXY(this.x + _x, this.y + _y);
-            //}
-            //this.setSize(this._textWidth, this._textHeight);
         }
         get text() {
             return this._text;
@@ -17824,7 +17805,8 @@
             else {
                 h = this.height;
                 if (this._textHeight > h)
-                    this._textHeight = h;
+                    // this._textHeight = h;不是自动高度且小于设计尺寸，不改变文本渲染高度，否则文本会变形
+                    h = this._textHeight;
                 if (this._textField.displayHeight != this._textHeight)
                     this._textField.displayHeight = this._textHeight;
             }
@@ -18065,19 +18047,23 @@
             //     this._textField.color = this._color;
         }
         doAlign() {
+            const offsetWidParam = GRoot.dpr;
+            const offsetHeiParam = GRoot.dpr;
             // 横向
             if (this.align === "left" || this._textWidth === 0) {
                 this._xOffset = GUTTER_X;
             }
             else {
-                let dx = this.width - this._textWidth;
+                let dx = this.width - this._textWidth / offsetWidParam;
                 if (dx < 0)
                     dx = 0;
                 if (this.align === "center") {
-                    this._xOffset = Math.floor(dx / 2);
+                    // dx = this.width - this._textWidth / offsetHeiParam;
+                    this._xOffset = Math.floor(dx / 2) * GRoot.uiScale;
                 }
                 else {
-                    this._xOffset = Math.floor(dx);
+                    // dx: number = this.width * GRoot.uiScale - this._textWidth / offsetHeiParam;
+                    this._xOffset = Math.floor(GRoot.uiScale * dx);
                 }
             }
             // 纵向
@@ -18085,22 +18071,41 @@
                 this._yOffset = GUTTER_Y;
             }
             else {
-                var dh = this.height - this._textHeight;
+                var dh = this.height - this._textHeight / offsetHeiParam;
                 if (dh < 0)
                     dh = 0;
                 if (this.valign == "center")
-                    this._yOffset = Math.floor(dh / 2);
+                    this._yOffset = Math.floor(GRoot.uiScale * dh / 2);
                 else
-                    this._yOffset = Math.floor(dh);
+                    this._yOffset = Math.floor(GRoot.uiScale * dh);
             }
             this.handleXYChanged();
+        }
+        handleXYChanged() {
+            var xv = this._x + this._xOffset;
+            var yv = this._y + this._yOffset;
+            if (this._pixelSnapping) {
+                xv = Math.round(xv);
+                yv = Math.round(yv);
+            }
+            // 由于canvas2D.measureText()获取的文本尺寸与fairygui编辑器中不同，这边手动调整下尺寸，便于编辑器控制
+            const offsetWidthAuto = this._widthAutoSize && this.parent && this.parent.pivotX === 0 ? 3 : 0;
+            const offsetHeightAuto = this._heightAutoSize && this.parent && this.parent.pivotY === 0 ? 5 : 0;
+            const offsetParentWidth = this.parent ? this.parent._width * this.parent.pivotX : 0;
+            const offsetParentHeight = this.parent ? this.parent._height * this.parent.pivotY : 0;
+            const _x = Math.round(this.initWidth * this._pivotX);
+            const _y = Math.round(this.initHeight * this._pivotY);
+            const offset = GRoot.uiScale * GRoot.dpr;
+            const posX = this._widthAutoSize ? offset * (xv - offsetParentWidth + offsetWidthAuto - this._width / GRoot.dpr / 2) : offset * (xv - offsetParentWidth + offsetWidthAuto - _x);
+            const posY = this._heightAutoSize ? offset * (yv - offsetParentHeight + offsetHeightAuto - this._height / GRoot.dpr / 2) : offset * (yv - offsetParentHeight + offsetHeightAuto - _y);
+            this._displayObject.setPosition(posX, posY);
         }
         flushVars() {
             this.text = GRoot.inst.i18n ? this._baseText : this._text;
         }
     }
     const GUTTER_X = 2;
-    const GUTTER_Y = 2;
+    const GUTTER_Y = 4;
 
     class GRichTextField extends GBasicTextField {
         constructor(scene, type) {

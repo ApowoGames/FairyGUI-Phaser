@@ -42,12 +42,12 @@ export class GBasicTextField extends GTextField {
 
     set adaptiveScaleX(val) {
         this._adaptiveScaleX = val;
-        this.doAlign();
+        //this.doAlign();
     }
 
     set adaptiveScaleY(val) {
         this._adaptiveScaleY = val;
-        this.doAlign();
+        //this.doAlign();
     }
 
     public createDisplayObject(): void {
@@ -110,17 +110,6 @@ export class GBasicTextField extends GTextField {
         // this._textField.typeset();
         this.updateSize();
         this.doAlign();
-        // // 由于canvas2D.measureText()获取的文本尺寸与fairygui编辑器中不同，这边手动调整下尺寸，便于编辑器控制
-        // const offsetWidthAuto = 0//this._widthAutoSize && this.parent.pivotX === 0 ? 3 : 0;
-        // const offsetHeightAuto = 0//this._heightAutoSize && this.parent.pivotY === 0 ? 4 : 0;
-        // const offsetParentWidth = this.parent._width * this.parent.pivotX;
-        // const offsetParentHeight = this.parent._height * this.parent.pivotY;
-
-        // const _x = this.initWidth - this._rawWidth >> 1;
-        // const _y = this.initHeight - this._rawHeight >> 1;
-        // this.setXY(this.x + _x, this.y + _y);
-        //}
-        //this.setSize(this._textWidth, this._textHeight);
     }
 
     public get text(): any {
@@ -352,7 +341,8 @@ export class GBasicTextField extends GTextField {
         else {
             h = this.height;
             if (this._textHeight > h)
-                this._textHeight = h;
+                // this._textHeight = h;不是自动高度且小于设计尺寸，不改变文本渲染高度，否则文本会变形
+                h = this._textHeight;
             if (this._textField.displayHeight != this._textHeight)
                 this._textField.displayHeight = this._textHeight;
         }
@@ -625,16 +615,20 @@ export class GBasicTextField extends GTextField {
     }
 
     protected doAlign(): void {
+        const offsetWidParam = GRoot.dpr;
+        const offsetHeiParam = GRoot.dpr;
         // 横向
         if (this.align === "left" || this._textWidth === 0) {
             this._xOffset = GUTTER_X;
         } else {
-            let dx: number = this.width - this._textWidth;
+            let dx: number = this.width - this._textWidth / offsetWidParam;
             if (dx < 0) dx = 0;
             if (this.align === "center") {
-                this._xOffset = Math.floor(dx / 2);
+                // dx = this.width - this._textWidth / offsetHeiParam;
+                this._xOffset = Math.floor(dx / 2) * GRoot.uiScale;
             } else {
-                this._xOffset = Math.floor(dx);
+                // dx: number = this.width * GRoot.uiScale - this._textWidth / offsetHeiParam;
+                this._xOffset = Math.floor(GRoot.uiScale * dx);
             }
         }
         // 纵向
@@ -642,15 +636,39 @@ export class GBasicTextField extends GTextField {
             this._yOffset = GUTTER_Y;
         }
         else {
-            var dh: number = this.height - this._textHeight;
+            var dh: number = this.height - this._textHeight / offsetHeiParam;
             if (dh < 0)
                 dh = 0;
             if (this.valign == "center")
-                this._yOffset = Math.floor(dh / 2);
+                this._yOffset = Math.floor(GRoot.uiScale * dh / 2);
             else
-                this._yOffset = Math.floor(dh);
+                this._yOffset = Math.floor(GRoot.uiScale * dh);
         }
         this.handleXYChanged();
+    }
+
+
+    protected handleXYChanged(): void {
+        var xv: number = this._x + this._xOffset;
+        var yv: number = this._y + this._yOffset;
+
+        if (this._pixelSnapping) {
+            xv = Math.round(xv);
+            yv = Math.round(yv);
+        }
+
+        // 由于canvas2D.measureText()获取的文本尺寸与fairygui编辑器中不同，这边手动调整下尺寸，便于编辑器控制
+        const offsetWidthAuto = this._widthAutoSize && this.parent && this.parent.pivotX === 0 ? 3 : 0;
+        const offsetHeightAuto = this._heightAutoSize && this.parent && this.parent.pivotY === 0 ? 5 : 0;
+        const offsetParentWidth = this.parent ? this.parent._width * this.parent.pivotX : 0;
+        const offsetParentHeight = this.parent ? this.parent._height * this.parent.pivotY : 0;
+        const _x = Math.round(this.initWidth * this._pivotX);
+        const _y = Math.round(this.initHeight * this._pivotY);
+        const offset = GRoot.uiScale * GRoot.dpr;
+        const posX = this._widthAutoSize ? offset * (xv - offsetParentWidth + offsetWidthAuto - this._width / GRoot.dpr / 2) : offset * (xv - offsetParentWidth + offsetWidthAuto - _x);
+        const posY = this._heightAutoSize ? offset * (yv - offsetParentHeight + offsetHeightAuto - this._height / GRoot.dpr / 2) : offset * (yv - offsetParentHeight + offsetHeightAuto - _y);
+        this._displayObject.setPosition(posX, posY);
+
     }
 
     public flushVars(): void {
@@ -691,4 +709,4 @@ export interface LineInfo {
 }
 
 const GUTTER_X: number = 2;
-const GUTTER_Y: number = 2;
+const GUTTER_Y: number = 4;

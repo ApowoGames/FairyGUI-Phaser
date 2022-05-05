@@ -168,13 +168,9 @@ export class RelationItem {
                 if (GRoot.contentScaleWid < 1 && dx !== 0) this._owner.x *= GRoot.contentScaleWid;
                 else this._owner.x += dx;
                 break;
-
             case RelationType.Top_Top:
             case RelationType.Top_Middle:
             case RelationType.Top_Bottom:
-            // if (GRoot.uiScale !== 1 && dy !== 0) this._owner.y = this._owner.y + this._target._height * (1 - GRoot.uiScale) + dy;
-            // else this._owner.y += dy;
-            // break;
             case RelationType.Middle_Middle:
                 this._owner.y += dy;
                 break;
