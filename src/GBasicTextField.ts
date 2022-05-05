@@ -615,19 +615,15 @@ export class GBasicTextField extends GTextField {
     }
 
     protected doAlign(): void {
-        const offsetWidParam = GRoot.dpr;
-        const offsetHeiParam = GRoot.dpr;
         // 横向
         if (this.align === "left" || this._textWidth === 0) {
             this._xOffset = GUTTER_X;
         } else {
-            let dx: number = this.width - this._textWidth / offsetWidParam;
+            let dx: number = this.width - this._textWidth;
             if (dx < 0) dx = 0;
             if (this.align === "center") {
-                // dx = this.width - this._textWidth / offsetHeiParam;
                 this._xOffset = Math.floor(dx / 2) * GRoot.uiScale;
             } else {
-                // dx: number = this.width * GRoot.uiScale - this._textWidth / offsetHeiParam;
                 this._xOffset = Math.floor(GRoot.uiScale * dx);
             }
         }
@@ -636,7 +632,7 @@ export class GBasicTextField extends GTextField {
             this._yOffset = GUTTER_Y;
         }
         else {
-            var dh: number = this.height - this._textHeight / offsetHeiParam;
+            var dh: number = this.height - this._textHeight;
             if (dh < 0)
                 dh = 0;
             if (this.valign == "center")
@@ -644,11 +640,11 @@ export class GBasicTextField extends GTextField {
             else
                 this._yOffset = Math.floor(GRoot.uiScale * dh);
         }
-        this.handleXYChanged();
+        this.handleXYChanged1();
     }
 
 
-    protected handleXYChanged(): void {
+    protected handleXYChanged1(): void {
         var xv: number = this._x + this._xOffset;
         var yv: number = this._y + this._yOffset;
 
@@ -665,39 +661,14 @@ export class GBasicTextField extends GTextField {
         const _x = Math.round(this.initWidth * this._pivotX);
         const _y = Math.round(this.initHeight * this._pivotY);
         const offset = GRoot.uiScale * GRoot.dpr;
-        const posX = this._widthAutoSize ? offset * (xv - offsetParentWidth + offsetWidthAuto - this._width / GRoot.dpr / 2) : offset * (xv - offsetParentWidth + offsetWidthAuto - _x);
-        const posY = this._heightAutoSize ? offset * (yv - offsetParentHeight + offsetHeightAuto - this._height / GRoot.dpr / 2) : offset * (yv - offsetParentHeight + offsetHeightAuto - _y);
+        const posX = this._widthAutoSize ? offset * xv : offset * (xv - offsetParentWidth + offsetWidthAuto - _x);
+        const posY = this._heightAutoSize ? offset * yv : offset * (yv - offsetParentHeight + offsetHeightAuto - _y);
         this._displayObject.setPosition(posX, posY);
-
     }
 
     public flushVars(): void {
         this.text = GRoot.inst.i18n ? this._baseText : this._text;
     }
-
-    // protected handleXYChanged(): void {
-    //     var xv: number = this._x + this._xOffset;
-    //     var yv: number = this._y + this._yOffset;
-
-    //     if (this._pixelSnapping) {
-    //         xv = Math.round(xv);
-    //         yv = Math.round(yv);
-    //     }
-
-    //     // 由于canvas2D.measureText()获取的文本尺寸与fairygui编辑器中不同，这边手动调整下尺寸，便于编辑器控制
-    //     const offsetWidthAuto = this._widthAutoSize && this.parent && this.parent.pivotX === 0 ? 3 : 0;
-    //     const offsetHeightAuto = this._heightAutoSize && this.parent && this.parent.pivotY === 0 ? 5 : 0;
-    //     const offsetParentWidth = 0//this.parent ? this.parent._width * this.parent.pivotX : 0;
-    //     const offsetParentHeight = 0//this.parent ? this.parent._height * this.parent.pivotY : 0;
-    //     const _x = 0//Math.round(this.initWidth * this._pivotX);
-    //     const _y = 0//Math.round(this.initHeight * this._pivotY);
-    //     const offset = GRoot.uiScale * GRoot.dpr;
-    //     const posX = offset * (xv - offsetParentWidth + offsetWidthAuto - _x);
-    //     const posY = offset * (yv - offsetParentHeight + offsetHeightAuto - _y);
-    //     this._displayObject.setPosition(posX, posY);
-
-    // }
-
 }
 
 export interface LineInfo {

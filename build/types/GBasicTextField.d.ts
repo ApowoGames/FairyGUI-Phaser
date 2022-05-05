@@ -59,7 +59,7 @@ export declare class GBasicTextField extends GTextField {
     private renderWithBitmapFont;
     protected handleGrayedChanged(): void;
     protected doAlign(): void;
-    protected handleXYChanged(): void;
+    protected handleXYChanged1(): void;
     flushVars(): void;
 }
 export interface LineInfo {
