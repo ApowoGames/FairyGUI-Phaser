@@ -2257,6 +2257,8 @@ class RelationItem {
     }
     applyOnXYChanged(info, dx, dy) {
         var tmp;
+        const isWidScale = GRoot.uiScale === GRoot.contentScaleWid;
+        const isHeiScale = GRoot.uiScale === GRoot.contentScaleHei;
         switch (info.type) {
             case RelationType.Left_Left:
             case RelationType.Left_Center:
@@ -2265,8 +2267,9 @@ class RelationItem {
             case RelationType.Right_Left:
             case RelationType.Right_Center:
             case RelationType.Right_Right:
-                if (GRoot.uiScale !== 1 && dx !== 0)
-                    this._owner.x = this._owner.x - this._target._width * (1 - GRoot.uiScale) + dx;
+                if (GRoot.uiScale !== 1 && dx !== 0) {
+                    this._owner.x = isWidScale ? (this._owner.x + dx) * GRoot.uiScale : (1 - GRoot.uiScale + this._owner.pivotX) * this._owner.initWidth + (this._owner.x + dx) * GRoot.uiScale;
+                }
                 else
                     this._owner.x += dx;
                 break;
@@ -2279,8 +2282,9 @@ class RelationItem {
             case RelationType.Bottom_Top:
             case RelationType.Bottom_Middle:
             case RelationType.Bottom_Bottom:
-                if (GRoot.uiScale !== 1 && dy !== 0)
-                    this._owner.y = this._owner.y - this._target._height * (1 - GRoot.uiScale) + dy;
+                if (GRoot.uiScale !== 1 && dy !== 0) {
+                    this._owner.y = isHeiScale ? (this._owner.y + dy) * GRoot.uiScale : (1 - GRoot.uiScale + this._owner.pivotY) * this._owner.initHeight + (this._owner.y + dy) * GRoot.uiScale;
+                }
                 else
                     this._owner.y += dy;
                 break;
@@ -3583,7 +3587,7 @@ class GObject {
         this.setSize(this._rawWidth, value);
     }
     setSize(wv, hv, ignorePivot) {
-        if (this._rawWidth != wv || this._rawHeight != hv || GRoot.uiScale !== 1) {
+        if (this._rawWidth != wv || this._rawHeight != hv) {
             this._rawWidth = wv;
             this._rawHeight = hv;
             if (wv < this.minWidth)
@@ -3779,29 +3783,16 @@ class GObject {
             if (this._touchable) {
                 const realWid = this._width * GRoot.dpr * GRoot.uiScale;
                 const realHei = this._height * GRoot.dpr * GRoot.uiScale;
-                const rect = new Phaser.Geom.Rectangle(this._pivotX * realWid, this._pivotY * realHei, realWid, realHei);
+                const rect = new Phaser.Geom.Rectangle(0, 0, realWid, realHei);
                 if (!this._displayObject.input)
                     this._displayObject.setInteractive(rect, Phaser.Geom.Rectangle.Contains);
                 else
-                    this._displayObject.input.hitArea = rect; //.setSize(this._width * GRoot.dpr, this._height * GRoot.dpr)
-                // if (this._g) (<Phaser.GameObjects.Container>this._displayObject).remove(this._g);
-                // else this._g = this.scene.make.graphics(undefined, false);
-                // this._g.clear();
-                // this._g.fillStyle(0x66cc00, 0.5);
-                // this._g.fillRoundedRect(0, 0, rect.width, rect.height, 5);//0, 0, this._width * GRoot.dpr, this._height * GRoot.dpr);
-                // this._displayObject.addAt(this._g, 0);
-                // // 注册点不在中心需要重新调整交互区域
-                // if (this._pivotX !== 0 || this._pivotY !== 0) {
-                //     this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this.initWidth * GRoot.dpr / this.scaleX, this.initHeight * GRoot.dpr / this.scaleY), Phaser.Geom.Rectangle.Contains);
-                // } else {
-                //     this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this.initWidth * GRoot.dpr / this.scaleX, this.initHeight * GRoot.dpr / this.scaleY), Phaser.Geom.Rectangle.Contains);
-                // }
+                    this._displayObject.input.hitArea = rect;
             }
         }
     }
     removeInteractive() {
         this._displayObject.disableInteractive();
-        // this._displayObject.removeInteractive();
     }
     get grayed() {
         return this._grayed;
@@ -4390,15 +4381,17 @@ class GObject {
     handleXYChanged() {
         var xv = this._x + this._xOffset;
         var yv = this._y + this._yOffset;
-        if (this._pivotAsAnchor) {
-            xv -= this._pivotX * this.initWidth;
-            yv -= this._pivotY * this.initHeight;
+        let offsetXParam = GRoot.dpr * GRoot.uiScale;
+        let offsetYParam = GRoot.dpr * GRoot.uiScale;
+        if (this.parent && this.parent.name === "") {
+            offsetXParam = GRoot.dpr;
+            offsetYParam = GRoot.dpr;
         }
         if (this._pixelSnapping) {
             xv = Math.round(xv);
             yv = Math.round(yv);
         }
-        this._displayObject.setPosition(xv * GRoot.dpr, yv * GRoot.dpr);
+        this._displayObject.setPosition(xv * offsetXParam, yv * offsetYParam);
         // var xv: number = this._x;
         // var yv: number = this._y + this._yOffset;
         // if (this._pivotAsAnchor) {
@@ -11995,8 +11988,8 @@ class GRoot extends GComponent {
         GRoot.contentScaleLevel = GRoot.inst.designWidth / (GRoot.inst.stageWidth / GRoot.dpr) > 1 ? 1 : GRoot.inst.designWidth / (GRoot.inst.stageWidth / GRoot.dpr);
         const realWidth = this._width / this._stageOptions.dpr;
         const realHeight = this._height / this._stageOptions.dpr;
-        GRoot.contentScaleWid = realWidth / this._stageOptions.designWidth;
-        GRoot.contentScaleHei = realHeight / this._stageOptions.designHeight;
+        GRoot.contentScaleWid = Number((realWidth / this._stageOptions.designWidth).toFixed(2));
+        GRoot.contentScaleHei = Number((realHeight / this._stageOptions.designHeight).toFixed(2));
         const _widthScale = realWidth > this._stageOptions.designWidth ? 1 : GRoot.contentScaleWid;
         const _heightScale = realHeight > this._stageOptions.designHeight ? 1 : GRoot.contentScaleHei;
         GRoot.uiScale = _widthScale > _heightScale ? _heightScale : _widthScale;
@@ -13411,10 +13404,6 @@ class GImage extends GObject {
                 this.image.y += this._height;
         }
     }
-    handleSizeChanged() {
-        super.handleSizeChanged();
-        this.handleXYChanged();
-    }
     getProp(index) {
         if (index == ObjectPropID.Color)
             return this.color;
@@ -13443,20 +13432,6 @@ class GImage extends GObject {
             this._touchable = false;
             resolve();
         });
-    }
-    setup_afterAdd(buffer, beginPos) {
-        super.setup_afterAdd(buffer, beginPos);
-        // this.handleXYChanged();
-        // this.setXY(this.x , this.y );
-        // if (this.parent && this._pivotAsAnchor && (this.parent.pivotX !== 0 || this.parent.pivotY !== 0)) {
-        //     const targetScale = this["_contentItem"] && this["_contentItem"].isHighRes ? 1 : GRoot.dpr;
-        //     const ownerScale = this["_contentItem"] && this["_contentItem"].isHighRes ? 1 : GRoot.dpr;
-        //     const _tmpX = this.x * GRoot.dpr - this.parent.initWidth * this.parent.pivotX;
-        //     // this.pivotX === 0 ? this.x : this.pivotX * this.initWidth * targetScale / this.adaptiveScaleX - this.parent.pivotX * this.parent.initWidth * ownerScale / this.parent.adaptiveScaleX;
-        //     const _tmpY = this.y * GRoot.dpr - this.parent.initHeight * (this.parent.pivotY);
-        //     // const _tmpY = this.pivotY === 0 ? this.y : this.pivotY * this.initHeight * targetScale / this.adaptiveScaleY - this.parent.pivotY * this.parent.initHeight * ownerScale / this.parent.adaptiveScaleY;
-        //     this.setXY(_tmpX, _tmpY);
-        // }
     }
 }
 
@@ -19404,6 +19379,27 @@ class GButton extends GComponent {
             }
         }
     }
+    changeInteractive() {
+        if (this._displayObject) {
+            if (this._touchable) {
+                const realWid = this._width * GRoot.dpr * GRoot.uiScale;
+                const realHei = this._height * GRoot.dpr * GRoot.uiScale;
+                const rect = new Phaser.Geom.Rectangle(0 * realWid, 0 * realHei, realWid, realHei);
+                if (!this._displayObject.input)
+                    this._displayObject.setInteractive(rect, Phaser.Geom.Rectangle.Contains);
+                else
+                    this._displayObject.input.hitArea = rect;
+                if (this._g)
+                    this._displayObject.remove(this._g);
+                else
+                    this._g = this.scene.make.graphics(undefined, false);
+                this._g.clear();
+                this._g.fillStyle(0x66cc00, 1);
+                this._g.fillRoundedRect(0, 0, rect.width, rect.height, 5); //0, 0, this._width * GRoot.dpr, this._height * GRoot.dpr);
+                this._displayObject.addAt(this._g, 0);
+            }
+        }
+    }
     handleControllerChanged(c) {
         super.handleControllerChanged(c);
         if (this._relatedController == c)
@@ -20919,6 +20915,7 @@ class GList extends GComponent {
         this._align = "left";
         this._verticalAlign = "top";
         this._tempItemList = [];
+        this.name = "stage";
         this._container = scene.make.container(undefined, false);
         this._displayObject.add(this._container);
         // todo click 优先添加监听，防止scrollpane的pointerup将参数修改，影响glist _clickItem逻辑

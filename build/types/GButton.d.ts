@@ -64,6 +64,8 @@ export declare class GButton extends GComponent {
     set linkedPopup(value: GObject);
     getTextField(): GTextField;
     protected setState(val: string): void;
+    private _g;
+    changeInteractive(): void;
     handleControllerChanged(c: Controller): void;
     protected handleGrayedChanged(): void;
     getProp(index: number): any;

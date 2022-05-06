@@ -75,6 +75,7 @@ export class GList extends GComponent {
         this._align = "left";
         this._verticalAlign = "top";
         this._tempItemList = [];
+        this.name = "stage";
 
         this._container = scene.make.container(undefined, false);
         this._displayObject.add(this._container);

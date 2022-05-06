@@ -26,9 +26,7 @@ export declare class GImage extends GObject {
     createDisplayObject(): void;
     constructFromResource(): Promise<void>;
     protected handleXYChanged(): void;
-    protected handleSizeChanged(): void;
     getProp(index: number): any;
     setProp(index: number, value: any): void;
     setup_beforeAdd(buffer: ByteBuffer, beginPos: number): Promise<void>;
-    setup_afterAdd(buffer: ByteBuffer, beginPos: number): void;
 }

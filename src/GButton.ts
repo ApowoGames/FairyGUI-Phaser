@@ -312,6 +312,38 @@ export class GButton extends GComponent {
         }
     }
 
+    // protected handleXYChanged(): void {
+    //     var xv: number = this._x + this._xOffset;
+    //     var yv: number = this._y + this._yOffset;
+
+    //     if (this._pixelSnapping) {
+    //         xv = Math.round(xv);
+    //         yv = Math.round(yv);
+    //     }
+    //     this._displayObject.setPosition(xv * GRoot.dpr * GRoot.uiScale, yv * GRoot.dpr * GRoot.uiScale);
+    // }
+
+    private _g;
+    public changeInteractive() {
+        if (this._displayObject) {
+            if (this._touchable) {
+                const realWid = this._width * GRoot.dpr * GRoot.uiScale;
+                const realHei = this._height * GRoot.dpr * GRoot.uiScale;
+                const rect: Phaser.Geom.Rectangle = new Phaser.Geom.Rectangle(0 * realWid, 0 * realHei,
+                    realWid, realHei);
+                if (!this._displayObject.input) this._displayObject.setInteractive(rect, Phaser.Geom.Rectangle.Contains);
+                else this._displayObject.input.hitArea = rect;
+
+                if (this._g) (<Phaser.GameObjects.Container>this._displayObject).remove(this._g);
+                else this._g = this.scene.make.graphics(undefined, false);
+                this._g.clear();
+                this._g.fillStyle(0x66cc00, 1);
+                this._g.fillRoundedRect(0, 0, rect.width, rect.height, 5);//0, 0, this._width * GRoot.dpr, this._height * GRoot.dpr);
+                this._displayObject.addAt(this._g, 0);
+            }
+        }
+    }
+
     public handleControllerChanged(c: Controller): void {
         super.handleControllerChanged(c);
 

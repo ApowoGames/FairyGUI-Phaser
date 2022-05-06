@@ -623,29 +623,16 @@ export class GObject {
             if (this._touchable) {
                 const realWid = this._width * GRoot.dpr * GRoot.uiScale;
                 const realHei = this._height * GRoot.dpr * GRoot.uiScale;
-                const rect: Phaser.Geom.Rectangle = new Phaser.Geom.Rectangle(this._pivotX * realWid, this._pivotY * realHei,
+                const rect: Phaser.Geom.Rectangle = new Phaser.Geom.Rectangle(0, 0,
                     realWid, realHei);
                 if (!this._displayObject.input) this._displayObject.setInteractive(rect, Phaser.Geom.Rectangle.Contains);
-                else this._displayObject.input.hitArea = rect; //.setSize(this._width * GRoot.dpr, this._height * GRoot.dpr)
-                // if (this._g) (<Phaser.GameObjects.Container>this._displayObject).remove(this._g);
-                // else this._g = this.scene.make.graphics(undefined, false);
-                // this._g.clear();
-                // this._g.fillStyle(0x66cc00, 0.5);
-                // this._g.fillRoundedRect(0, 0, rect.width, rect.height, 5);//0, 0, this._width * GRoot.dpr, this._height * GRoot.dpr);
-                // this._displayObject.addAt(this._g, 0);
-                // // 注册点不在中心需要重新调整交互区域
-                // if (this._pivotX !== 0 || this._pivotY !== 0) {
-                //     this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this.initWidth * GRoot.dpr / this.scaleX, this.initHeight * GRoot.dpr / this.scaleY), Phaser.Geom.Rectangle.Contains);
-                // } else {
-                //     this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this.initWidth * GRoot.dpr / this.scaleX, this.initHeight * GRoot.dpr / this.scaleY), Phaser.Geom.Rectangle.Contains);
-                // }
+                else this._displayObject.input.hitArea = rect;
             }
         }
     }
 
     protected removeInteractive() {
         this._displayObject.disableInteractive();
-        // this._displayObject.removeInteractive();
     }
 
     public get grayed(): boolean {
@@ -1346,17 +1333,18 @@ export class GObject {
     protected handleXYChanged(): void {
         var xv: number = this._x + this._xOffset;
         var yv: number = this._y + this._yOffset;
-        if (this._pivotAsAnchor) {
-            xv -= this._pivotX * this.initWidth;
-            yv -= this._pivotY * this.initHeight;
+        let offsetXParam: number = GRoot.dpr * GRoot.uiScale;
+        let offsetYParam: number = GRoot.dpr * GRoot.uiScale;
+        if (this.parent && this.parent.name === "") {
+            offsetXParam = GRoot.dpr;
+            offsetYParam = GRoot.dpr;
         }
-
 
         if (this._pixelSnapping) {
             xv = Math.round(xv);
             yv = Math.round(yv);
         }
-        this._displayObject.setPosition(xv * GRoot.dpr, yv * GRoot.dpr);
+        this._displayObject.setPosition(xv * offsetXParam, yv * offsetYParam);
 
 
         // var xv: number = this._x;

@@ -157,6 +157,8 @@ export class RelationItem {
 
     private applyOnXYChanged(info: RelationDef, dx: number, dy: number): void {
         var tmp: number;
+        const isWidScale = GRoot.uiScale === GRoot.contentScaleWid;
+        const isHeiScale = GRoot.uiScale === GRoot.contentScaleHei;
         switch (info.type) {
             case RelationType.Left_Left:
             case RelationType.Left_Center:
@@ -165,7 +167,9 @@ export class RelationItem {
             case RelationType.Right_Left:
             case RelationType.Right_Center:
             case RelationType.Right_Right:
-                if (GRoot.uiScale !== 1 && dx !== 0) this._owner.x = this._owner.x - this._target._width * (1 - GRoot.uiScale) + dx;
+                if (GRoot.uiScale !== 1 && dx !== 0) {
+                    this._owner.x = isWidScale ? (this._owner.x + dx) * GRoot.uiScale : (1 - GRoot.uiScale + this._owner.pivotX) * this._owner.initWidth + (this._owner.x + dx) * GRoot.uiScale;
+                }
                 else this._owner.x += dx;
                 break;
             case RelationType.Top_Top:
@@ -177,7 +181,9 @@ export class RelationItem {
             case RelationType.Bottom_Top:
             case RelationType.Bottom_Middle:
             case RelationType.Bottom_Bottom:
-                if (GRoot.uiScale !== 1 && dy !== 0) this._owner.y = this._owner.y - this._target._height * (1 - GRoot.uiScale) + dy;
+                if (GRoot.uiScale !== 1 && dy !== 0) {
+                    this._owner.y = isHeiScale ? (this._owner.y + dy) * GRoot.uiScale : (1 - GRoot.uiScale + this._owner.pivotY) * this._owner.initHeight + (this._owner.y + dy) * GRoot.uiScale;
+                }
                 else this._owner.y += dy;
                 break;
 

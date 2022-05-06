@@ -364,8 +364,8 @@ export class GRoot extends GComponent {
         GRoot.contentScaleLevel = GRoot.inst.designWidth / (GRoot.inst.stageWidth / GRoot.dpr) > 1 ? 1 : GRoot.inst.designWidth / (GRoot.inst.stageWidth / GRoot.dpr);
         const realWidth = this._width / this._stageOptions.dpr;
         const realHeight = this._height / this._stageOptions.dpr;
-        GRoot.contentScaleWid = realWidth / this._stageOptions.designWidth;
-        GRoot.contentScaleHei = realHeight / this._stageOptions.designHeight;
+        GRoot.contentScaleWid = Number((realWidth / this._stageOptions.designWidth).toFixed(2));
+        GRoot.contentScaleHei = Number((realHeight / this._stageOptions.designHeight).toFixed(2));
         const _widthScale = realWidth > this._stageOptions.designWidth ? 1 : GRoot.contentScaleWid;
         const _heightScale = realHeight > this._stageOptions.designHeight ? 1 : GRoot.contentScaleHei;
         GRoot.uiScale = _widthScale > _heightScale ? _heightScale : _widthScale;
