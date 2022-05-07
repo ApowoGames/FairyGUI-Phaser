@@ -2281,8 +2281,8 @@
                 case exports.RelationType.Top_Middle:
                 case exports.RelationType.Top_Bottom:
                 case exports.RelationType.Middle_Middle:
-                    this._owner.y += dy;
-                    break;
+                // this._owner.y += dy;
+                // break;
                 case exports.RelationType.Bottom_Top:
                 case exports.RelationType.Bottom_Middle:
                 case exports.RelationType.Bottom_Bottom:

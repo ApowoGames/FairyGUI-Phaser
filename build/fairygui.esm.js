@@ -2277,8 +2277,8 @@ class RelationItem {
             case RelationType.Top_Middle:
             case RelationType.Top_Bottom:
             case RelationType.Middle_Middle:
-                this._owner.y += dy;
-                break;
+            // this._owner.y += dy;
+            // break;
             case RelationType.Bottom_Top:
             case RelationType.Bottom_Middle:
             case RelationType.Bottom_Bottom:
