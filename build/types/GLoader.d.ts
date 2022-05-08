@@ -21,6 +21,9 @@ export declare class GLoader extends GObject {
     createDisplayObject(): void;
     dispose(): void;
     get url(): string;
+    get touchable(): boolean;
+    set touchable(value: boolean);
+    changeInteractive(): void;
     set url(value: string);
     get icon(): string;
     set icon(value: string);

@@ -69,6 +69,7 @@ export declare class ScrollPane {
      * 用来判断当前是否有拖拽元素
      */
     private mRectangle;
+    private _offsetParam;
     constructor(owner: GComponent);
     setup(buffer: ByteBuffer): Promise<void>;
     dispose(): void;

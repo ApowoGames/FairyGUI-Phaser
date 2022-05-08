@@ -62,6 +62,21 @@ export class GLoader extends GObject {
         return this._url;
     }
 
+    public get touchable(): boolean {
+        return this._touchable;
+    }
+
+    public set touchable(value: boolean) {
+        if (this._touchable != value) {
+            this.setTouchable(value);
+        }
+    }
+
+
+    public changeInteractive() {
+        super.changeInteractive();
+    }
+
     public set url(value: string) {
         if (this._url == value)
             return;

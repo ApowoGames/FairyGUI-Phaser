@@ -617,16 +617,23 @@ export class GObject {
 
         this.updatePivotOffset();
     }
-    //private _g: Phaser.GameObjects.Graphics;
+    // private _g: Phaser.GameObjects.Graphics;
     public changeInteractive() {
         if (this._displayObject) {
             if (this._touchable) {
                 const realWid = this._width * GRoot.dpr * GRoot.uiScale;
                 const realHei = this._height * GRoot.dpr * GRoot.uiScale;
-                const rect: Phaser.Geom.Rectangle = new Phaser.Geom.Rectangle(0, 0,
+                const rect: Phaser.Geom.Rectangle = new Phaser.Geom.Rectangle((0.5 - this._pivotX) * realWid, (0.5 - this._pivotY) * realHei,
                     realWid, realHei);
                 if (!this._displayObject.input) this._displayObject.setInteractive(rect, Phaser.Geom.Rectangle.Contains);
                 else this._displayObject.input.hitArea = rect;
+
+                // if (this._g) (<Phaser.GameObjects.Container>this._displayObject).remove(this._g);
+                // else this._g = this.scene.make.graphics(undefined, false);
+                // this._g.clear();
+                // this._g.fillStyle(0x66cc00, 0.5);
+                // this._g.fillRoundedRect(0, 0, rect.width, rect.height, 5);//0, 0, this._width * GRoot.dpr, this._height * GRoot.dpr);
+                // this._displayObject.addAt(this._g, 0);
             }
         }
     }

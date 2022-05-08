@@ -93,6 +93,8 @@ export class ScrollPane {
     // === 用于检查点击是否在区域的矩形
     private mRectangle: Phaser.Geom.Rectangle;
 
+    private _offsetParam: number = GRoot.dpr * GRoot.uiScale;
+
     constructor(owner: GComponent) {
         this._owner = owner;
         this._refreshTimeEvent = { delay: this._timeDelta, callback: this.refresh, callbackScope: this };
@@ -789,7 +791,7 @@ export class ScrollPane {
             my = this._owner.margin.top;
         }
 
-        this._maskContainer.setPosition(mx * GRoot.dpr, my * GRoot.dpr);
+        this._maskContainer.setPosition(mx * this._offsetParam, my * this._offsetParam);
 
         mx = this._owner._alignOffset.x;
         my = this._owner._alignOffset.y;
@@ -807,7 +809,7 @@ export class ScrollPane {
                 mx += this._owner.margin.left;
                 my += this._owner.margin.top;
             }
-            this._alignContainer.setPosition(mx * GRoot.dpr, my * GRoot.dpr);
+            this._alignContainer.setPosition(mx, my);
         }
     }
 
@@ -968,10 +970,13 @@ export class ScrollPane {
             this._maskContainer.clearMask();
             this._mask.clear();
             this._mask.fillStyle(0x00ff00, .4);
-            this._mask.fillRect(0, 0, this.maskScrollRect.width * GRoot.dpr, this.maskScrollRect.height * GRoot.dpr);
-            this._maskContainer.setInteractive(this.maskScrollRect, Phaser.Geom.Rectangle.Contains);
+            this._mask.fillRect(0, 0, this.maskScrollRect.width * this._offsetParam, this.maskScrollRect.height * this._offsetParam);
+            if (this.maskScrollRect && this._maskContainer.scene) {
+                if (!this._maskContainer.input) this._maskContainer.setInteractive(this.maskScrollRect, Phaser.Geom.Rectangle.Contains);
+                else this._maskContainer.input.hitArea = this.maskScrollRect;
+            }
             // 查看mask实际位置
-            // GRoot.inst.addToStage(this._mask);
+            GRoot.inst.addToStage(this._mask);
             this._maskContainer.setMask(this._mask.createGeometryMask());
             const worldMatrix = this._owner.parent && <Phaser.GameObjects.Container>this._owner.parent.displayObject ?
                 (<Phaser.GameObjects.Container>this._owner.parent.displayObject).getWorldTransformMatrix()
@@ -985,11 +990,11 @@ export class ScrollPane {
 
 
         if (this._scrollType == ScrollType.Horizontal || this._scrollType == ScrollType.Both)
-            this._overlapSize.x = Math.ceil(Math.max(0, this._contentSize.x - this._viewSize.x));
+            this._overlapSize.x = Math.ceil(Math.max(0, this._contentSize.x - this._viewSize.x)) * this._offsetParam;
         else
             this._overlapSize.x = 0;
         if (this._scrollType == ScrollType.Vertical || this._scrollType == ScrollType.Both)
-            this._overlapSize.y = Math.ceil(Math.max(0, this._contentSize.y - this._viewSize.y));
+            this._overlapSize.y = Math.ceil(Math.max(0, this._contentSize.y - this._viewSize.y)) * this._offsetParam;
         else
             this._overlapSize.y = 0;
 
@@ -1004,12 +1009,12 @@ export class ScrollPane {
                 max += this._footerLockedSize;
 
             if (this._refreshBarAxis == "x") {
-                this._container.setPosition(ToolSet.clamp(this._container.x, -max, this._headerLockedSize) * GRoot.dpr,
-                    ToolSet.clamp(this._container.y, -this._overlapSize.y, 0) * GRoot.dpr);
+                this._container.setPosition(ToolSet.clamp(this._container.x, -max, this._headerLockedSize),
+                    ToolSet.clamp(this._container.y, -this._overlapSize.y, 0));
             }
             else {
-                this._container.setPosition(ToolSet.clamp(this._container.x, -this._overlapSize.x, 0) * GRoot.dpr,
-                    ToolSet.clamp(this._container.y, -max, this._headerLockedSize) * GRoot.dpr);
+                this._container.setPosition(ToolSet.clamp(this._container.x, -this._overlapSize.x, 0),
+                    ToolSet.clamp(this._container.y, -max, this._headerLockedSize));
             }
 
             if (this._header) {
@@ -1027,8 +1032,8 @@ export class ScrollPane {
             }
         }
         else {
-            this._container.setPosition(ToolSet.clamp(this._container.x, -this._overlapSize.x, 0) * GRoot.dpr,
-                ToolSet.clamp(this._container.y, -this._overlapSize.y, 0) * GRoot.dpr);
+            this._container.setPosition(ToolSet.clamp(this._container.x, -this._overlapSize.x, 0),
+                ToolSet.clamp(this._container.y, -this._overlapSize.y, 0));
         }
 
         this.updateScrollBarPos();
@@ -1125,7 +1130,7 @@ export class ScrollPane {
             if (this._tweening != 0)
                 this.killTween();
             // console.log("refresh ===>", this._xPos, this._yPos);
-            this._container.setPosition(Math.floor(-this._xPos) * GRoot.dpr, Math.floor(-this._yPos) * GRoot.dpr);
+            this._container.setPosition(Math.floor(-this._xPos), Math.floor(-this._yPos));
 
             this.loopCheckingCurrent();
         }
@@ -1170,6 +1175,7 @@ export class ScrollPane {
 
     }
 
+    // 实际像素尺寸检测(加入了dpr和scale)
     private checkInBounds(pointer: Phaser.Input.Pointer, gameObject: Phaser.GameObjects.Container): boolean {
         if (!this.mRectangle) {
             this.mRectangle = new Phaser.Geom.Rectangle(0, 0, 0, 0);
@@ -1328,7 +1334,7 @@ export class ScrollPane {
             }
             this._velocity.x = ToolSet.lerp(this._velocity.x, deltaPositionX * 60 / frameRate / deltaTime, deltaTime * 10);
             this._velocity.y = ToolSet.lerp(this._velocity.y, deltaPositionY * 60 / frameRate / deltaTime, deltaTime * 10);
-            // console.log("velocity ===>", this._velocity);
+            console.log("velocity ===>", this._velocity.y);
         }
 
         /*速度计算使用的是本地位移，但在后续的惯性滚动判断中需要用到屏幕位移，所以这里要记录一个位移的比例。
@@ -1391,12 +1397,18 @@ export class ScrollPane {
 
         if (!this._dragged || !this._touchEffect) {
             this._dragged = false;
-            if (this.maskScrollRect && this._maskContainer.scene) this._maskContainer.setInteractive(this.maskScrollRect, Phaser.Geom.Rectangle.Contains);
+            if (this.maskScrollRect && this._maskContainer.scene) {
+                if (!this._maskContainer.input) this._maskContainer.setInteractive(this.maskScrollRect, Phaser.Geom.Rectangle.Contains);
+                else this._maskContainer.input.hitArea = this.maskScrollRect;
+            }
             return;
         }
 
         this._dragged = false;
-        if (this.maskScrollRect) this._maskContainer.setInteractive(this.maskScrollRect, Phaser.Geom.Rectangle.Contains);
+        if (this.maskScrollRect && this._maskContainer.scene) {
+            if (!this._maskContainer.input) this._maskContainer.setInteractive(this.maskScrollRect, Phaser.Geom.Rectangle.Contains);
+            else this._maskContainer.input.hitArea = this.maskScrollRect;
+        }
 
         this._tweenStart.setTo(this._container.x, this._container.y);
 
@@ -1505,7 +1517,7 @@ export class ScrollPane {
             //     }
             // this.maskScrollRect = rect;
             if (this._mask) {
-                this._mask.setPosition(x * GRoot.dpr, y * GRoot.dpr);
+                this._mask.setPosition(x * this._offsetParam, y * this._offsetParam);
             }
         }
     }
@@ -1608,7 +1620,7 @@ export class ScrollPane {
         }
 
         if (changed)
-            this._container.setPosition(Math.floor(-this._xPos) * GRoot.dpr, Math.floor(-this._yPos) * GRoot.dpr);
+            this._container.setPosition(Math.floor(-this._xPos), Math.floor(-this._yPos));
 
         return changed;
     }
@@ -1770,9 +1782,7 @@ export class ScrollPane {
             var v2: number = Math.abs(v) * this._velocityScale;
             //在移动设备上，需要对不同分辨率做一个适配，我们的速度判断以1136分辨率为基准
             const isMobile = this._owner.scene.game.device.os.desktop;
-            if (!isMobile)
-                this._owner.scene.game.config.width
-            v2 *= 1136 / Math.max(Number(this._owner.scene.game.config.width), Number(this._owner.scene.game.config.height)); // Math.max(Laya.stage.width, Laya.stage.height);
+            if (isMobile) v2 *= 1136 / Math.max(Number(this._owner.scene.game.config.width), Number(this._owner.scene.game.config.height)); // Math.max(Laya.stage.width, Laya.stage.height);
             //这里有一些阈值的处理，因为在低速内，不希望产生较大的滚动（甚至不滚动）
             var ratio: number = 0;
             if (this._pageMode || !isMobile) {
@@ -1792,7 +1802,7 @@ export class ScrollPane {
                 this._velocity[axis] = v;
 
                 //算法：v*（_decelerationRate的n次幂）= 60，即在n帧后速度降为60（假设每秒60帧）。
-                duration = Math.log(60 / v2) / Math.log(this._decelerationRate) / 60;
+                duration = Math.log(60 / v2) / Math.log(this._decelerationRate) / 60 / this._offsetParam;
 
                 //计算距离要使用本地速度
                 //理论公式貌似滚动的距离不够，改为经验公式
@@ -1902,7 +1912,7 @@ export class ScrollPane {
         var nx: number = this.runTween("x");
         var ny: number = this.runTween("y");
         // console.log("scrollpane ===>", nx, ny);
-        this._container.setPosition(nx * GRoot.dpr, ny * GRoot.dpr);
+        this._container.setPosition(nx, ny);
         if (this._tweening == 2) {
             if (this._overlapSize.x > 0)
                 this._xPos = ToolSet.clamp(-nx, 0, this._overlapSize.x);

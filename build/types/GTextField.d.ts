@@ -44,6 +44,7 @@ export declare class GTextField extends GObject {
     set align(value: HAlignModeString);
     get valign(): VAlignModeString;
     set valign(value: VAlignModeString);
+    changeInteractive(): void;
     get leading(): number;
     set leading(value: number);
     get letterSpacing(): number;

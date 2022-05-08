@@ -81,6 +81,10 @@ export class GTextField extends GObject {
         this.doAlign();
     }
 
+    public changeInteractive() {
+        super.changeInteractive();
+    }
+
     public get leading(): number {
         return this._lead;
     }
