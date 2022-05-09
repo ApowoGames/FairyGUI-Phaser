@@ -93,10 +93,17 @@ export class ScrollPane {
     // === 用于检查点击是否在区域的矩形
     private mRectangle: Phaser.Geom.Rectangle;
 
-    private _offsetParam: number = GRoot.dpr * GRoot.uiScale;
+    private _offsetParamWid: number = 1;
 
+    private _offsetParamHei: number = 1;
     constructor(owner: GComponent) {
         this._owner = owner;
+        if (GRoot.contentScaleWid !== GRoot.uiScale) this._offsetParamWid = GRoot.dpr;
+        else this._offsetParamWid = GRoot.uiScale * GRoot.dpr;
+
+        if (GRoot.contentScaleHei !== GRoot.uiScale) this._offsetParamHei = GRoot.dpr;
+        else this._offsetParamHei = GRoot.uiScale * GRoot.dpr;
+
         this._refreshTimeEvent = { delay: this._timeDelta, callback: this.refresh, callbackScope: this };
         const _tweenUp = this._timeDelta;//  / owner.scene.game.config.fps.target;
         this._tweenUpdateTimeEvent = { delay: _tweenUp, callback: this.tweenUpdate, callbackScope: this, loop: true };
@@ -791,7 +798,7 @@ export class ScrollPane {
             my = this._owner.margin.top;
         }
 
-        this._maskContainer.setPosition(mx * this._offsetParam, my * this._offsetParam);
+        this._maskContainer.setPosition(mx * this._offsetParamWid, my * this._offsetParamHei);
 
         mx = this._owner._alignOffset.x;
         my = this._owner._alignOffset.y;
@@ -955,9 +962,9 @@ export class ScrollPane {
         const viewSizeX = this._viewSize.x;
         const viewSizeY = this._viewSize.y;
         if (this.maskScrollRect && (this.maskScrollRect.width !== viewSizeX || this.maskScrollRect.height !== viewSizeY)) {
-            var rect: Phaser.Geom.Rectangle = new Phaser.Geom.Rectangle()//this._maskContainer["scrollRect"];
-            rect.width = viewSizeX;
-            rect.height = viewSizeY;
+            var rect: Phaser.Geom.Rectangle = new Phaser.Geom.Rectangle();
+            rect.width = viewSizeX * this._offsetParamWid;
+            rect.height = viewSizeY * this._offsetParamHei;
             if (this._vScrollNone && this._vtScrollBar)
                 rect.width += this._vtScrollBar.width;
             if (this._hScrollNone && this._hzScrollBar)
@@ -970,7 +977,7 @@ export class ScrollPane {
             this._maskContainer.clearMask();
             this._mask.clear();
             this._mask.fillStyle(0x00ff00, .4);
-            this._mask.fillRect(0, 0, this.maskScrollRect.width * this._offsetParam, this.maskScrollRect.height * this._offsetParam);
+            this._mask.fillRect(0, 0, this.maskScrollRect.width, this.maskScrollRect.height);
             if (this.maskScrollRect && this._maskContainer.scene) {
                 if (!this._maskContainer.input) this._maskContainer.setInteractive(this.maskScrollRect, Phaser.Geom.Rectangle.Contains);
                 else this._maskContainer.input.hitArea = this.maskScrollRect;
@@ -988,13 +995,14 @@ export class ScrollPane {
             this.maskPosChange(posX, posY);
         }
 
+        const offsetParam: number = GRoot.uiScale * GRoot.dpr;
 
         if (this._scrollType == ScrollType.Horizontal || this._scrollType == ScrollType.Both)
-            this._overlapSize.x = Math.ceil(Math.max(0, this._contentSize.x - this._viewSize.x)) * this._offsetParam;
+            this._overlapSize.x = Math.ceil(Math.max(0, this._contentSize.x - this._viewSize.x / GRoot.uiScale)) * offsetParam;
         else
             this._overlapSize.x = 0;
         if (this._scrollType == ScrollType.Vertical || this._scrollType == ScrollType.Both)
-            this._overlapSize.y = Math.ceil(Math.max(0, this._contentSize.y - this._viewSize.y)) * this._offsetParam;
+            this._overlapSize.y = Math.ceil(Math.max(0, this._contentSize.y - this._viewSize.y / GRoot.uiScale)) * offsetParam;
         else
             this._overlapSize.y = 0;
 
@@ -1183,9 +1191,9 @@ export class ScrollPane {
         const worldMatrix = gameObject.getWorldTransformMatrix();
         const zoom = worldMatrix.scaleX ? worldMatrix.scaleX : 1;
         this.mRectangle.left = 0;
-        this.mRectangle.right = gameObject.width;
+        this.mRectangle.right = gameObject.width / GRoot.uiScale;
         this.mRectangle.top = 0;
-        this.mRectangle.bottom = gameObject.height;
+        this.mRectangle.bottom = gameObject.height / GRoot.uiScale;
         const x = (pointer.x - worldMatrix.tx) / zoom;
         const y = (pointer.y - worldMatrix.ty) / zoom;
         // 点击在范围内
@@ -1517,7 +1525,7 @@ export class ScrollPane {
             //     }
             // this.maskScrollRect = rect;
             if (this._mask) {
-                this._mask.setPosition(x * this._offsetParam, y * this._offsetParam);
+                this._mask.setPosition(x * this._offsetParamWid, y * this._offsetParamHei);
             }
         }
     }
@@ -1802,7 +1810,7 @@ export class ScrollPane {
                 this._velocity[axis] = v;
 
                 //算法：v*（_decelerationRate的n次幂）= 60，即在n帧后速度降为60（假设每秒60帧）。
-                duration = Math.log(60 / v2) / Math.log(this._decelerationRate) / 60 / this._offsetParam;
+                duration = Math.log(60 / v2) / Math.log(this._decelerationRate) / 60;
 
                 //计算距离要使用本地速度
                 //理论公式貌似滚动的距离不够，改为经验公式

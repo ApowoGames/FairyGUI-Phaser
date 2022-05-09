@@ -4416,6 +4416,11 @@
             if (this.name === "maskBG" || (this.parent && this.parent.name === "maskBG")) {
                 this._displayObject.setSize(this._width * GRoot.dpr, this._height * GRoot.dpr);
             }
+            else if (this.type === exports.ObjectType.List) {
+                const contentScaleWid = GRoot.contentScaleWid > 1 ? GRoot.contentScaleWid : GRoot.uiScale;
+                const contentScaleHei = GRoot.contentScaleHei > 1 ? GRoot.contentScaleHei : GRoot.uiScale;
+                this._displayObject.setSize(this._width * GRoot.dpr * contentScaleWid, this._height * GRoot.dpr * contentScaleHei);
+            }
             else {
                 this._displayObject.setSize(this._width * GRoot.dpr * GRoot.uiScale, this._height * GRoot.dpr * GRoot.uiScale);
             }
@@ -7269,8 +7274,17 @@
     class ScrollPane {
         constructor(owner) {
             this._timeDelta = 0.08;
-            this._offsetParam = GRoot.dpr * GRoot.uiScale;
+            this._offsetParamWid = 1;
+            this._offsetParamHei = 1;
             this._owner = owner;
+            if (GRoot.contentScaleWid !== GRoot.uiScale)
+                this._offsetParamWid = GRoot.dpr;
+            else
+                this._offsetParamWid = GRoot.uiScale * GRoot.dpr;
+            if (GRoot.contentScaleHei !== GRoot.uiScale)
+                this._offsetParamHei = GRoot.dpr;
+            else
+                this._offsetParamHei = GRoot.uiScale * GRoot.dpr;
             this._refreshTimeEvent = { delay: this._timeDelta, callback: this.refresh, callbackScope: this };
             const _tweenUp = this._timeDelta; //  / owner.scene.game.config.fps.target;
             this._tweenUpdateTimeEvent = { delay: _tweenUp, callback: this.tweenUpdate, callbackScope: this, loop: true };
@@ -7869,7 +7883,7 @@
                     mx = this._owner.margin.left;
                 my = this._owner.margin.top;
             }
-            this._maskContainer.setPosition(mx * this._offsetParam, my * this._offsetParam);
+            this._maskContainer.setPosition(mx * this._offsetParamWid, my * this._offsetParamHei);
             mx = this._owner._alignOffset.x;
             my = this._owner._alignOffset.y;
             if (mx != 0 || my != 0 || this._dontClipMargin) {
@@ -8012,9 +8026,9 @@
             const viewSizeX = this._viewSize.x;
             const viewSizeY = this._viewSize.y;
             if (this.maskScrollRect && (this.maskScrollRect.width !== viewSizeX || this.maskScrollRect.height !== viewSizeY)) {
-                var rect = new Phaser.Geom.Rectangle(); //this._maskContainer["scrollRect"];
-                rect.width = viewSizeX;
-                rect.height = viewSizeY;
+                var rect = new Phaser.Geom.Rectangle();
+                rect.width = viewSizeX * this._offsetParamWid;
+                rect.height = viewSizeY * this._offsetParamHei;
                 if (this._vScrollNone && this._vtScrollBar)
                     rect.width += this._vtScrollBar.width;
                 if (this._hScrollNone && this._hzScrollBar)
@@ -8027,7 +8041,7 @@
                 this._maskContainer.clearMask();
                 this._mask.clear();
                 this._mask.fillStyle(0x00ff00, .4);
-                this._mask.fillRect(0, 0, this.maskScrollRect.width * this._offsetParam, this.maskScrollRect.height * this._offsetParam);
+                this._mask.fillRect(0, 0, this.maskScrollRect.width, this.maskScrollRect.height);
                 if (this.maskScrollRect && this._maskContainer.scene) {
                     if (!this._maskContainer.input)
                         this._maskContainer.setInteractive(this.maskScrollRect, Phaser.Geom.Rectangle.Contains);
@@ -8046,12 +8060,13 @@
                 const posY = worldMatrix ? worldMatrix.ty + yv : yv;
                 this.maskPosChange(posX, posY);
             }
+            const offsetParam = GRoot.uiScale * GRoot.dpr;
             if (this._scrollType == exports.ScrollType.Horizontal || this._scrollType == exports.ScrollType.Both)
-                this._overlapSize.x = Math.ceil(Math.max(0, this._contentSize.x - this._viewSize.x)) * this._offsetParam;
+                this._overlapSize.x = Math.ceil(Math.max(0, this._contentSize.x - this._viewSize.x / GRoot.uiScale)) * offsetParam;
             else
                 this._overlapSize.x = 0;
             if (this._scrollType == exports.ScrollType.Vertical || this._scrollType == exports.ScrollType.Both)
-                this._overlapSize.y = Math.ceil(Math.max(0, this._contentSize.y - this._viewSize.y)) * this._offsetParam;
+                this._overlapSize.y = Math.ceil(Math.max(0, this._contentSize.y - this._viewSize.y / GRoot.uiScale)) * offsetParam;
             else
                 this._overlapSize.y = 0;
             //边界检查
@@ -8212,9 +8227,9 @@
             const worldMatrix = gameObject.getWorldTransformMatrix();
             const zoom = worldMatrix.scaleX ? worldMatrix.scaleX : 1;
             this.mRectangle.left = 0;
-            this.mRectangle.right = gameObject.width;
+            this.mRectangle.right = gameObject.width / GRoot.uiScale;
             this.mRectangle.top = 0;
-            this.mRectangle.bottom = gameObject.height;
+            this.mRectangle.bottom = gameObject.height / GRoot.uiScale;
             const x = (pointer.x - worldMatrix.tx) / zoom;
             const y = (pointer.y - worldMatrix.ty) / zoom;
             // 点击在范围内
@@ -8512,7 +8527,7 @@
                 //     }
                 // this.maskScrollRect = rect;
                 if (this._mask) {
-                    this._mask.setPosition(x * this._offsetParam, y * this._offsetParam);
+                    this._mask.setPosition(x * this._offsetParamWid, y * this._offsetParamHei);
                 }
             }
         }
@@ -8764,7 +8779,7 @@
                     v *= ratio;
                     this._velocity[axis] = v;
                     //算法：v*（_decelerationRate的n次幂）= 60，即在n帧后速度降为60（假设每秒60帧）。
-                    duration = Math.log(60 / v2) / Math.log(this._decelerationRate) / 60 / this._offsetParam;
+                    duration = Math.log(60 / v2) / Math.log(this._decelerationRate) / 60;
                     //计算距离要使用本地速度
                     //理论公式貌似滚动的距离不够，改为经验公式
                     //var change:number = (v/ 60 - 1) / (1 - this._decelerationRate);
@@ -12014,13 +12029,15 @@
             GRoot.contentScaleLevel = GRoot.inst.designWidth / (GRoot.inst.stageWidth / GRoot.dpr) > 1 ? 1 : GRoot.inst.designWidth / (GRoot.inst.stageWidth / GRoot.dpr);
             const realWidth = this._width / this._stageOptions.dpr;
             const realHeight = this._height / this._stageOptions.dpr;
-            GRoot.contentScaleWid = Number((realWidth / this._stageOptions.designWidth).toFixed(2));
-            GRoot.contentScaleHei = Number((realHeight / this._stageOptions.designHeight).toFixed(2));
+            GRoot.isHorizontal = this._stageOptions.designWidth > this._stageOptions.designHeight ? true : false;
+            GRoot.contentScaleWid = Number((realWidth / this._stageOptions.designWidth).toFixed(4));
+            GRoot.contentScaleHei = Number((realHeight / this._stageOptions.designHeight).toFixed(4));
             const _widthScale = realWidth > this._stageOptions.designWidth ? 1 : GRoot.contentScaleWid;
             const _heightScale = realHeight > this._stageOptions.designHeight ? 1 : GRoot.contentScaleHei;
-            GRoot.uiScale = _widthScale > _heightScale ? _heightScale : _widthScale;
-            // 取小数点后两位，保证精度
-            GRoot.uiScale = Number(GRoot.uiScale.toFixed(2));
+            // 某些分辨率下，竖屏的高度缩放会大于横屏，所以加入横竖屏判断
+            GRoot.uiScale = _widthScale < _heightScale ? _widthScale : GRoot.isHorizontal ? _heightScale : _widthScale;
+            // 取小数点后四位，保证精度，部分手机分辨率宽高缩放可能相同到小数点后两位
+            GRoot.uiScale = Number(GRoot.uiScale.toFixed(4));
             // const camera = this._scene.cameras.main;
             // camera.setScroll(-(this._width - this._stageOptions.designWidth) / 2, -(this._height - this._stageOptions.designHeight) / 2)
         }
@@ -12167,6 +12184,7 @@
     }
     GRoot.dpr = 1;
     GRoot.uiScale = 1;
+    GRoot.isHorizontal = false;
     GRoot.contentDprLevel = 0;
     GRoot.contentScaleLevel = 0;
     GRoot.contentScaleWid = 0;

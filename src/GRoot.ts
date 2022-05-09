@@ -39,6 +39,7 @@ export class GRoot extends GComponent {
     private static _inst: GRoot;
     public static dpr: number = 1;
     public static uiScale: number = 1;
+    public static isHorizontal: boolean = false;
     public static contentDprLevel: number = 0;
     public static contentScaleLevel: number = 0;
     public static contentScaleWid: number = 0;
@@ -364,13 +365,15 @@ export class GRoot extends GComponent {
         GRoot.contentScaleLevel = GRoot.inst.designWidth / (GRoot.inst.stageWidth / GRoot.dpr) > 1 ? 1 : GRoot.inst.designWidth / (GRoot.inst.stageWidth / GRoot.dpr);
         const realWidth = this._width / this._stageOptions.dpr;
         const realHeight = this._height / this._stageOptions.dpr;
-        GRoot.contentScaleWid = Number((realWidth / this._stageOptions.designWidth).toFixed(2));
-        GRoot.contentScaleHei = Number((realHeight / this._stageOptions.designHeight).toFixed(2));
+        GRoot.isHorizontal = this._stageOptions.designWidth > this._stageOptions.designHeight ? true : false;
+        GRoot.contentScaleWid = Number((realWidth / this._stageOptions.designWidth).toFixed(4));
+        GRoot.contentScaleHei = Number((realHeight / this._stageOptions.designHeight).toFixed(4));
         const _widthScale = realWidth > this._stageOptions.designWidth ? 1 : GRoot.contentScaleWid;
         const _heightScale = realHeight > this._stageOptions.designHeight ? 1 : GRoot.contentScaleHei;
-        GRoot.uiScale = _widthScale > _heightScale ? _heightScale : _widthScale;
-        // 取小数点后两位，保证精度
-        GRoot.uiScale = Number(GRoot.uiScale.toFixed(2));
+        // 某些分辨率下，竖屏的高度缩放会大于横屏，所以加入横竖屏判断
+        GRoot.uiScale = _widthScale < _heightScale ? _widthScale : GRoot.isHorizontal ? _heightScale : _widthScale;
+        // 取小数点后四位，保证精度，部分手机分辨率宽高缩放可能相同到小数点后两位
+        GRoot.uiScale = Number(GRoot.uiScale.toFixed(4));
 
         // const camera = this._scene.cameras.main;
         // camera.setScroll(-(this._width - this._stageOptions.designWidth) / 2, -(this._height - this._stageOptions.designHeight) / 2)

@@ -1371,6 +1371,10 @@ export class GObject {
     protected handleSizeChanged(): void {
         if (this.name === "maskBG" || (this.parent && this.parent.name === "maskBG")) {
             this._displayObject.setSize(this._width * GRoot.dpr, this._height * GRoot.dpr);
+        } else if (this.type === ObjectType.List) {
+            const contentScaleWid = GRoot.contentScaleWid > 1 ? GRoot.contentScaleWid : GRoot.uiScale;
+            const contentScaleHei = GRoot.contentScaleHei > 1 ? GRoot.contentScaleHei : GRoot.uiScale;
+            this._displayObject.setSize(this._width * GRoot.dpr * contentScaleWid, this._height * GRoot.dpr * contentScaleHei);
         } else {
             this._displayObject.setSize(this._width * GRoot.dpr * GRoot.uiScale, this._height * GRoot.dpr * GRoot.uiScale);
         }
