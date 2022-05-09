@@ -8523,7 +8523,7 @@ class ScrollPane {
             //     }
             // this.maskScrollRect = rect;
             if (this._mask) {
-                this._mask.setPosition(x * this._offsetParamWid, y * this._offsetParamHei);
+                this._mask.setPosition(x * GRoot.dpr, y * GRoot.dpr);
             }
         }
     }
