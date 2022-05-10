@@ -1342,7 +1342,7 @@ export class ScrollPane {
             }
             this._velocity.x = ToolSet.lerp(this._velocity.x, deltaPositionX * 60 / frameRate / deltaTime, deltaTime * 10);
             this._velocity.y = ToolSet.lerp(this._velocity.y, deltaPositionY * 60 / frameRate / deltaTime, deltaTime * 10);
-            console.log("velocity ===>", this._velocity.y);
+            // console.log("velocity ===>", this._velocity.y);
         }
 
         /*速度计算使用的是本地位移，但在后续的惯性滚动判断中需要用到屏幕位移，所以这里要记录一个位移的比例。

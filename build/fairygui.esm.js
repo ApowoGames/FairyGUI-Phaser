@@ -8356,7 +8356,7 @@ class ScrollPane {
             }
             this._velocity.x = ToolSet.lerp(this._velocity.x, deltaPositionX * 60 / frameRate / deltaTime, deltaTime * 10);
             this._velocity.y = ToolSet.lerp(this._velocity.y, deltaPositionY * 60 / frameRate / deltaTime, deltaTime * 10);
-            console.log("velocity ===>", this._velocity.y);
+            // console.log("velocity ===>", this._velocity.y);
         }
         /*速度计算使用的是本地位移，但在后续的惯性滚动判断中需要用到屏幕位移，所以这里要记录一个位移的比例。
         */
@@ -13024,7 +13024,7 @@ class Image extends Phaser.GameObjects.Container {
                         posx = _left;
                     }
                 }
-                patchImg.setPosition(posx * GRoot.dpr, posy * GRoot.dpr);
+                patchImg.setPosition(posx, posy);
                 // const displayWidth = this.finalXs[xi + 1] - this.finalXs[xi] < 0 ? 0 : this.finalXs[xi + 1] - this.finalXs[xi]; //+ (xi < 2 ? this.mCorrection : 0);
                 // const displayHeight = this.finalYs[yi + 1] - this.finalYs[yi] < 0 ? 0 : this.finalYs[yi + 1] - this.finalYs[yi];
                 patchImg.displayWidth = this.finalXs[xi + 1] - this.finalXs[xi] < 0 ? 0 : this.finalXs[xi + 1] - this.finalXs[xi] + 1; //+ (xi < 2 ? this.mCorrection : 0);
@@ -20961,6 +20961,8 @@ class GList extends GComponent {
         this._firstIndex = 0; //the top left index
         this._curLineItemCount = 0; //item count in one line
         this._virtualListChanged = 0; //1-content changed, 2-size changed
+        this._virtualWidth = 0;
+        this._virtualHeight = 0;
         this.itemInfoVer = 0; //用来标志item是否在本次处理中已经被重用了
         this._timeDelta = 500;
         this.shiftKey = false;
@@ -22003,7 +22005,8 @@ class GList extends GComponent {
             }
             if (this._virtualListChanged != 0) {
                 if (this._refreshListTime) {
-                    this._refreshListTime.remove(false);
+                    this.scene.time.removeEvent(this._refreshListEvent);
+                    // this._refreshListTime.remove(false);
                     this._refreshListTime = null;
                 }
                 //Laya.timer.clear(this, this._refreshVirtualList);
@@ -22037,7 +22040,8 @@ class GList extends GComponent {
         if (this._virtualListChanged != 0) {
             this._refreshVirtualList();
             if (this._refreshListTime) {
-                this._refreshListTime.remove(false);
+                this.scene.time.removeEvent(this._refreshListEvent);
+                // this._refreshListTime.remove(false);
                 this._refreshListTime = null;
             }
             // Laya.timer.clear(this, this._refreshVirtualList);
@@ -22136,6 +22140,8 @@ class GList extends GComponent {
                 ch = this.viewHeight;
             }
         }
+        this._virtualWidth = cw;
+        this._virtualHeight = ch;
         this.handleAlign(cw, ch);
         this._scrollPane.setContentSize(cw, ch);
         this._eventLocked = false;
@@ -22334,6 +22340,7 @@ class GList extends GComponent {
             var pos = this._scrollPane.scrollingPosY;
             var max = pos + this._scrollPane.viewHeight;
             var end = max == this._scrollPane.contentHeight; //这个标志表示当前需要滚动到最末，无论内容变化大小
+            // console.log("scrollPosY", pos);
             //寻找当前位置的第一条项目
             s_n = pos;
             // const singleHei = this._virtualItems[0].height * this._virtualItems.length + this._lineGap * (this._virtualItems.length - 1);
@@ -22345,6 +22352,7 @@ class GList extends GComponent {
                 reslove(false);
                 return;
             }
+            console.log("index:", this._firstIndex);
             var oldFirstIndex = this._firstIndex;
             // console.log("newFirstIndex ===>", newFirstIndex);
             // console.log("oldFirstIndex ===>", oldFirstIndex);
@@ -23161,6 +23169,10 @@ class GList extends GComponent {
             }
             ch = page > 0 ? viewHeight : curY + Math.ceil(maxHeight);
             cw = (page + 1) * viewWidth;
+        }
+        if (this._virtual) {
+            cw = cw > this._virtualWidth ? cw : this._virtualWidth;
+            ch = ch > this._virtualHeight ? ch : this._virtualHeight;
         }
         this.handleAlign(cw, ch);
         this.setBounds(0, 0, cw, ch);

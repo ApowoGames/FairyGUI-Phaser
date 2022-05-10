@@ -38,6 +38,8 @@ export declare class GList extends GComponent {
     protected _itemSize?: Phaser.Geom.Point;
     protected _virtualListChanged: number;
     protected _virtualItems?: Array<ItemInfo>;
+    protected _virtualWidth: number;
+    protected _virtualHeight: number;
     protected _eventLocked?: boolean;
     protected itemInfoVer: number;
     protected _timeDelta: number;

@@ -50,6 +50,8 @@ export class GList extends GComponent {
     protected _itemSize?: Phaser.Geom.Point;
     protected _virtualListChanged: number = 0; //1-content changed, 2-size changed
     protected _virtualItems?: Array<ItemInfo>;
+    protected _virtualWidth: number = 0;
+    protected _virtualHeight: number = 0;
     protected _eventLocked?: boolean;
     protected itemInfoVer: number = 0; //用来标志item是否在本次处理中已经被重用了
     protected _timeDelta: number = 500;
@@ -1226,12 +1228,12 @@ export class GList extends GComponent {
 
             if (this._virtualListChanged != 0) {
                 if (this._refreshListTime) {
-                    this._refreshListTime.remove(false);
+                    this.scene.time.removeEvent(this._refreshListEvent);
+                    // this._refreshListTime.remove(false);
                     this._refreshListTime = null;
                 }
                 //Laya.timer.clear(this, this._refreshVirtualList);
             }
-
             //立即刷新
             this._refreshVirtualList();
         }
@@ -1264,7 +1266,8 @@ export class GList extends GComponent {
         if (this._virtualListChanged != 0) {
             this._refreshVirtualList();
             if (this._refreshListTime) {
-                this._refreshListTime.remove(false);
+                this.scene.time.removeEvent(this._refreshListEvent);
+                // this._refreshListTime.remove(false);
                 this._refreshListTime = null;
             }
             // Laya.timer.clear(this, this._refreshVirtualList);
@@ -1370,6 +1373,9 @@ export class GList extends GComponent {
                 ch = this.viewHeight;
             }
         }
+
+        this._virtualWidth = cw;
+        this._virtualHeight = ch;
 
         this.handleAlign(cw, ch);
         this._scrollPane.setContentSize(cw, ch);
@@ -1589,7 +1595,7 @@ export class GList extends GComponent {
             var pos: number = this._scrollPane.scrollingPosY;
             var max: number = pos + this._scrollPane.viewHeight;
             var end: boolean = max == this._scrollPane.contentHeight;//这个标志表示当前需要滚动到最末，无论内容变化大小
-
+            // console.log("scrollPosY", pos);
             //寻找当前位置的第一条项目
             s_n = pos;
             // const singleHei = this._virtualItems[0].height * this._virtualItems.length + this._lineGap * (this._virtualItems.length - 1);
@@ -1602,7 +1608,7 @@ export class GList extends GComponent {
                 return;
             }
 
-
+            console.log("index:", this._firstIndex);
             var oldFirstIndex: number = this._firstIndex;
             // console.log("newFirstIndex ===>", newFirstIndex);
             // console.log("oldFirstIndex ===>", oldFirstIndex);
@@ -1793,7 +1799,6 @@ export class GList extends GComponent {
 
         if (!this._boundsChanged) {
             this._boundsChanged = true;
-
             if (!this._renderTime) this.scene.time.addEvent(this._renderEvent);
             //Laya.timer.callLater(this, this.__render);
         }
@@ -2504,6 +2509,11 @@ export class GList extends GComponent {
             }
             ch = page > 0 ? viewHeight : curY + Math.ceil(maxHeight);
             cw = (page + 1) * viewWidth;
+        }
+
+        if (this._virtual) {
+            cw = cw > this._virtualWidth ? cw : this._virtualWidth;
+            ch = ch > this._virtualHeight ? ch : this._virtualHeight;
         }
 
         this.handleAlign(cw, ch);
