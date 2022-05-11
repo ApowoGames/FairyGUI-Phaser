@@ -12864,6 +12864,10 @@ class Image extends Phaser.GameObjects.Container {
             this.finalXs = [0, 0, 0, width];
             this.finalYs = [0, 0, 0, height];
         }
+        if (this.width !== width)
+            this.width = width * this._dprOffset;
+        if (this.height !== height)
+            this.height = height * this._dprOffset;
         // 有texture资源后再创建九宫图片
         if (!this.originFrame)
             this.originFrame = originFrame;
@@ -12872,7 +12876,7 @@ class Image extends Phaser.GameObjects.Container {
             this.drawPatches();
         }
         this.markChanged(1);
-        return super.setSize(width * this._dprOffset, height * this._dprOffset);
+        return this;
     }
     changeSize(width, height, initBoo, originFrame) {
         if (initBoo === undefined)
@@ -12881,8 +12885,6 @@ class Image extends Phaser.GameObjects.Container {
             const key = this.valueName;
             //  if (this.width !== width || this.height !== height) {
             if (initBoo) {
-                this.width = width * this._dprOffset;
-                this.height = height * this._dprOffset;
                 const originWidth = this["$owner"].sourceWidth;
                 const originHeight = this["$owner"].sourceHeight;
                 if (this._scale9Grid) {
@@ -12905,6 +12907,10 @@ class Image extends Phaser.GameObjects.Container {
                     this.finalXs = [0, 0, 0, width];
                     this.finalYs = [0, 0, 0, height];
                 }
+                if (this.width !== width)
+                    this.width = width * this._dprOffset;
+                if (this.height !== height)
+                    this.height = height * this._dprOffset;
                 // 有texture资源后再创建九宫图片
                 if (!this.originFrame)
                     this.originFrame = originFrame;
@@ -12997,7 +13003,7 @@ class Image extends Phaser.GameObjects.Container {
             this._curImg = this.scene.make.image({ key: patch.texture.key, frame: name }, false);
             // new Phaser.GameObjects.Image(this.scene, 0, 0, patch.texture.key, name);
             this._curImg.setOrigin(0);
-            this._curImg.setDisplaySize(this.finalXs[3], this.finalYs[3]);
+            this._curImg.setDisplaySize(this.finalXs[3] * this._dprOffset, this.finalYs[3] * this._dprOffset);
             const pivotX = this["$owner"] && this["$owner"].parnet ? this["$owner"].parnet.pivotX : 0;
             const pivotY = this["$owner"] && this["$owner"].parnet ? this["$owner"].parnet.pivotY : 0;
             this._curImg.setPosition(this.finalXs[2] - this._curImg.displayWidth * pivotX, this.finalYs[2] - this._curImg.displayHeight * pivotY);
@@ -13012,7 +13018,7 @@ class Image extends Phaser.GameObjects.Container {
         }
         let patchIndex = 0;
         this["$owner"].sourceHeight;
-        const _left = this._scale9Grid.left * this._dprOffset;
+        const _left = this._scale9Grid.left;
         for (let yi = 0; yi < 3; yi++) {
             for (let xi = 0; xi < 3; xi++) {
                 // 九宫逻辑中如果宽高为0，则不做后续处理
@@ -13024,19 +13030,19 @@ class Image extends Phaser.GameObjects.Container {
                 const patchImg = this.scene.make.image({ key: patch.texture.key, frame: patch.name }, false);
                 // new Phaser.GameObjects.Image(this.scene, 0, 0, patch.texture.key, patch.name);
                 patchImg.setOrigin(0);
-                let posx = this.finalXs[xi];
-                let posy = this.finalYs[yi];
+                let posx = this.finalXs[xi] * this._dprOffset;
+                let posy = this.finalYs[yi] * this._dprOffset;
                 if (xi === 2) {
                     if (this.finalXs[2] < _left) {
-                        posx = _left;
+                        posx = _left * this._dprOffset;
                     }
                 }
-                patchImg.setPosition(posx, posy);
                 // const displayWidth = this.finalXs[xi + 1] - this.finalXs[xi] < 0 ? 0 : this.finalXs[xi + 1] - this.finalXs[xi]; //+ (xi < 2 ? this.mCorrection : 0);
                 // const displayHeight = this.finalYs[yi + 1] - this.finalYs[yi] < 0 ? 0 : this.finalYs[yi + 1] - this.finalYs[yi];
                 const _displayWid = this.finalXs[xi + 1] - this.finalXs[xi] < 0 ? 0 : (this.finalXs[xi + 1] - this.finalXs[xi]) + 1; //+ (xi < 2 ? this.mCorrection : 0);
                 const _displayHei = this.finalYs[yi + 1] - this.finalYs[yi] < 0 ? 0 : (this.finalYs[yi + 1] - this.finalYs[yi]) + 1; //+ (yi < 2 ? this.mCorrection : 0);    
-                patchImg.setDisplaySize(_displayWid, _displayHei);
+                patchImg.setDisplaySize(_displayWid * this._dprOffset, _displayHei * this._dprOffset);
+                patchImg.setPosition(posx, posy);
                 // patchImg.setScale(
                 //     displayWidth / patch.width,
                 //     displayHeight / patch.height
