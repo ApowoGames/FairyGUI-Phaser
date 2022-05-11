@@ -38,6 +38,7 @@ export class GRoot extends GComponent {
 
     private static _inst: GRoot;
     public static dpr: number = 1;
+    public static defaultDpr: number = 1;
     public static uiScale: number = 1;
     public static isHorizontal: boolean = false;
     public static contentDprLevel: number = 0;

@@ -80,6 +80,7 @@ export declare class GObject {
     protected _worldMatrix: Phaser.GameObjects.Components.TransformMatrix;
     protected _worldTx: number;
     protected _worldTy: number;
+    protected _dprOffset: number;
     minWidth: number;
     minHeight: number;
     maxWidth: number;

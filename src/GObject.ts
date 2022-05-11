@@ -96,6 +96,7 @@ export class GObject {
     protected _worldMatrix: Phaser.GameObjects.Components.TransformMatrix;
     protected _worldTx: number = 0;
     protected _worldTy: number = 0;
+    protected _dprOffset: number = GRoot.dpr * GRoot.uiScale;
 
     public minWidth: number = 0;
     public minHeight: number = 0;
@@ -387,7 +388,7 @@ export class GObject {
 
 
     public setSize(wv: number, hv: number, ignorePivot?: boolean): void {
-        if (this._rawWidth != wv || this._rawHeight != hv) {
+        if (this._rawWidth !== wv || this._rawHeight !== hv) {
             this._rawWidth = wv;
             this._rawHeight = hv;
             if (wv < this.minWidth)
@@ -621,8 +622,8 @@ export class GObject {
     public changeInteractive() {
         if (this._displayObject) {
             if (this._touchable) {
-                const realWid = this._width * GRoot.dpr * GRoot.uiScale;
-                const realHei = this._height * GRoot.dpr * GRoot.uiScale;
+                const realWid = this._width * this._dprOffset;
+                const realHei = this._height * this._dprOffset;
                 const rect: Phaser.Geom.Rectangle = new Phaser.Geom.Rectangle((0.5 - this._pivotX) * realWid, (0.5 - this._pivotY) * realHei,
                     realWid, realHei);
                 if (!this._displayObject.input) this._displayObject.setInteractive(rect, Phaser.Geom.Rectangle.Contains);

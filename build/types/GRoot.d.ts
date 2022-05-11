@@ -25,6 +25,7 @@ export declare enum UISceneDisplay {
 export declare class GRoot extends GComponent {
     private static _inst;
     static dpr: number;
+    static defaultDpr: number;
     static uiScale: number;
     static isHorizontal: boolean;
     static contentDprLevel: number;
