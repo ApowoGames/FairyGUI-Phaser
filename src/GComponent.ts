@@ -68,6 +68,7 @@ export class GComponent extends GObject {
     }
 
     public createDisplayObject(): void {
+        if (!this._scene) this.scene = GRoot.inst.scene;
         this._displayObject = this.scene.make.container(undefined, false);
         this._displayObject["$owner"] = this;
         this.container = this._displayObject;
