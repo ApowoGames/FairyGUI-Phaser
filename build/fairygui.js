@@ -12885,8 +12885,6 @@
                 const key = this.valueName;
                 //  if (this.width !== width || this.height !== height) {
                 if (initBoo) {
-                    this.width = width * this._dprOffset;
-                    this.height = height * this._dprOffset;
                     const originWidth = this["$owner"].sourceWidth;
                     const originHeight = this["$owner"].sourceHeight;
                     if (this._scale9Grid) {
@@ -12909,6 +12907,10 @@
                         this.finalXs = [0, 0, 0, width];
                         this.finalYs = [0, 0, 0, height];
                     }
+                    if (this.width !== width)
+                        this.width = width * this._dprOffset;
+                    if (this.height !== height)
+                        this.height = height * this._dprOffset;
                     // 有texture资源后再创建九宫图片
                     if (!this.originFrame)
                         this.originFrame = originFrame;
@@ -13001,7 +13003,7 @@
                 this._curImg = this.scene.make.image({ key: patch.texture.key, frame: name }, false);
                 // new Phaser.GameObjects.Image(this.scene, 0, 0, patch.texture.key, name);
                 this._curImg.setOrigin(0);
-                this._curImg.setDisplaySize(this.finalXs[3] * this._dprOffset, this.finalYs[3] * this._dprOffset);
+                this._curImg.setDisplaySize(this.finalXs[3] * GRoot.dpr, this.finalYs[3] * GRoot.dpr);
                 const pivotX = this["$owner"] && this["$owner"].parnet ? this["$owner"].parnet.pivotX : 0;
                 const pivotY = this["$owner"] && this["$owner"].parnet ? this["$owner"].parnet.pivotY : 0;
                 this._curImg.setPosition(this.finalXs[2] - this._curImg.displayWidth * pivotX, this.finalYs[2] - this._curImg.displayHeight * pivotY);
@@ -13015,7 +13017,6 @@
                 return;
             }
             let patchIndex = 0;
-            // const originHeight = this["$owner"].sourceHeight;
             const _left = this._scale9Grid.left * this._dprOffset;
             for (let yi = 0; yi < 3; yi++) {
                 for (let xi = 0; xi < 3; xi++) {
@@ -13030,19 +13031,6 @@
                     patchImg.setOrigin(0);
                     let _displayWid = this.finalXs[xi + 1] - this.finalXs[xi] < 0 ? 0 : (this.finalXs[xi + 1] - this.finalXs[xi]) * GRoot.dpr; //+ (xi < 2 ? this.mCorrection : 0);
                     let _displayHei = this.finalYs[yi + 1] - this.finalYs[yi] < 0 ? 0 : (this.finalYs[yi + 1] - this.finalYs[yi]) * GRoot.dpr; //+ (yi < 2 ? this.mCorrection : 0);    
-                    // if (GRoot.uiScale < 1) {
-                    //     if (xi === 1) {
-                    //         // _displayWid /= GRoot.uiScale;
-                    //         _curPosX = _displayWid;
-                    //     }
-                    //     if (yi === 1) {
-                    //         // _displayHei /= GRoot.uiScale;
-                    //         _curPosY = _displayHei;
-                    //     }
-                    // } else {
-                    //     _curPosX = this.finalXs[xi] * this._dprOffset;
-                    //     _curPosY = this.finalYs[yi] * this._dprOffset;
-                    // }
                     patchImg.setDisplaySize(_displayWid, _displayHei);
                     let posx = this.finalXs[xi] * GRoot.dpr;
                     let posy = this.finalYs[yi] * GRoot.dpr;
