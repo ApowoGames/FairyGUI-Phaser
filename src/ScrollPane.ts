@@ -983,7 +983,7 @@ export class ScrollPane {
                 else this._maskContainer.input.hitArea = this.maskScrollRect;
             }
             // 查看mask实际位置
-            GRoot.inst.addToStage(this._mask);
+            // GRoot.inst.addToStage(this._mask);
             this._maskContainer.setMask(this._mask.createGeometryMask());
             const worldMatrix = this._owner.parent && <Phaser.GameObjects.Container>this._owner.parent.displayObject ?
                 (<Phaser.GameObjects.Container>this._owner.parent.displayObject).getWorldTransformMatrix()
