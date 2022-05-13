@@ -12918,7 +12918,7 @@
                         this.createPatches();
                         // 当_curImg存在时，说明9宫切图已经保存了一份基础合图，无须再用renderTexture绘制
                         if (!this._renderTexture && this._scale9Grid && !this._curImg) {
-                            this._renderTexture = this.scene.make.renderTexture({ x: 0, y: 0, width, height }, false);
+                            this._renderTexture = this.scene.make.renderTexture({ x: 0, y: 0, width: this.width, height: this.height }, false);
                         }
                         else if (this._curImg) {
                             this._renderTexture = null;
@@ -12986,7 +12986,7 @@
         }
         drawPatches() {
             const tintFill = this.tintFill;
-            this["$owner"];
+            // const owner: GObject = this["$owner"];
             //如果是平铺，可以不移除tilesprite，只有9宫和正常贴图才需要
             if (!this._scaleByTile)
                 this.removeAll(true);
@@ -13001,7 +13001,7 @@
                 this._curImg = this.scene.make.image({ key: patch.texture.key, frame: name }, false);
                 // new Phaser.GameObjects.Image(this.scene, 0, 0, patch.texture.key, name);
                 this._curImg.setOrigin(0);
-                this._curImg.setDisplaySize(this.finalXs[3], this.finalYs[3]);
+                this._curImg.setDisplaySize(this.finalXs[3] * this._dprOffset, this.finalYs[3] * this._dprOffset);
                 const pivotX = this["$owner"] && this["$owner"].parnet ? this["$owner"].parnet.pivotX : 0;
                 const pivotY = this["$owner"] && this["$owner"].parnet ? this["$owner"].parnet.pivotY : 0;
                 this._curImg.setPosition(this.finalXs[2] - this._curImg.displayWidth * pivotX, this.finalYs[2] - this._curImg.displayHeight * pivotY);
@@ -13015,7 +13015,7 @@
                 return;
             }
             let patchIndex = 0;
-            this["$owner"].sourceHeight;
+            // const originHeight = this["$owner"].sourceHeight;
             const _left = this._scale9Grid.left * this._dprOffset;
             for (let yi = 0; yi < 3; yi++) {
                 for (let xi = 0; xi < 3; xi++) {
@@ -13028,23 +13028,30 @@
                     const patchImg = this.scene.make.image({ key: patch.texture.key, frame: patch.name }, false);
                     // new Phaser.GameObjects.Image(this.scene, 0, 0, patch.texture.key, patch.name);
                     patchImg.setOrigin(0);
-                    let posx = this.finalXs[xi];
-                    let posy = this.finalYs[yi];
+                    let _displayWid = this.finalXs[xi + 1] - this.finalXs[xi] < 0 ? 0 : (this.finalXs[xi + 1] - this.finalXs[xi]) * GRoot.dpr; //+ (xi < 2 ? this.mCorrection : 0);
+                    let _displayHei = this.finalYs[yi + 1] - this.finalYs[yi] < 0 ? 0 : (this.finalYs[yi + 1] - this.finalYs[yi]) * GRoot.dpr; //+ (yi < 2 ? this.mCorrection : 0);    
+                    // if (GRoot.uiScale < 1) {
+                    //     if (xi === 1) {
+                    //         // _displayWid /= GRoot.uiScale;
+                    //         _curPosX = _displayWid;
+                    //     }
+                    //     if (yi === 1) {
+                    //         // _displayHei /= GRoot.uiScale;
+                    //         _curPosY = _displayHei;
+                    //     }
+                    // } else {
+                    //     _curPosX = this.finalXs[xi] * this._dprOffset;
+                    //     _curPosY = this.finalYs[yi] * this._dprOffset;
+                    // }
+                    patchImg.setDisplaySize(_displayWid, _displayHei);
+                    let posx = this.finalXs[xi] * GRoot.dpr;
+                    let posy = this.finalYs[yi] * GRoot.dpr;
                     if (xi === 2) {
-                        if (this.finalXs[2] < _left) {
+                        if (posx < _left) {
                             posx = _left;
                         }
                     }
                     patchImg.setPosition(posx, posy);
-                    // const displayWidth = this.finalXs[xi + 1] - this.finalXs[xi] < 0 ? 0 : this.finalXs[xi + 1] - this.finalXs[xi]; //+ (xi < 2 ? this.mCorrection : 0);
-                    // const displayHeight = this.finalYs[yi + 1] - this.finalYs[yi] < 0 ? 0 : this.finalYs[yi + 1] - this.finalYs[yi];
-                    const _displayWid = this.finalXs[xi + 1] - this.finalXs[xi] < 0 ? 0 : (this.finalXs[xi + 1] - this.finalXs[xi]) + 1; //+ (xi < 2 ? this.mCorrection : 0);
-                    const _displayHei = this.finalYs[yi + 1] - this.finalYs[yi] < 0 ? 0 : (this.finalYs[yi + 1] - this.finalYs[yi]) + 1; //+ (yi < 2 ? this.mCorrection : 0);    
-                    patchImg.setDisplaySize(_displayWid, _displayHei);
-                    // patchImg.setScale(
-                    //     displayWidth / patch.width,
-                    //     displayHeight / patch.height
-                    // );
                     // console.log("drawImage ===>", patchImg, this.finalXs, this.finalYs);
                     if (this._renderTexture && this._renderTexture.active)
                         this._renderTexture.draw(patchImg, patchImg.x, patchImg.y);
@@ -13087,7 +13094,7 @@
             if (this._sourceTexture != value) {
                 this._sourceTexture = value;
                 if (this._sourceTexture)
-                    this.changeSize(this.width, this.height, true);
+                    this.changeSize(this.width / this._dprOffset, this.height / this._dprOffset, true);
                 else
                     this.changeSize(0, 0, true);
                 // todo 重绘
@@ -13447,6 +13454,12 @@
                     // this.setSize(this.sourceWidth, this.sourceHeight);
                 });
             });
+        }
+        handleSizeChanged() {
+            this._displayObject.setSize(this._width, this._height);
+            this.changeInteractive();
+            // (<Phaser.GameObjects.Container>this.displayObject).setDisplaySize(this._width, this._height);
+            // this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this._width, this._height), Phaser.Geom.Rectangle.Contains);
         }
         handleXYChanged() {
             super.handleXYChanged();
