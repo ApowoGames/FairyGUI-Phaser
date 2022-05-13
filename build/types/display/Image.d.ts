@@ -50,7 +50,6 @@ export declare class Image extends Phaser.GameObjects.Container {
      * 是否对九宫图片只做缩放，eg：当left，middle为0，则对原始图片进行缩放
      */
     private _scale9GridBool;
-    private _dprOffset;
     constructor(scene: Phaser.Scene);
     get curImage(): Phaser.GameObjects.Image;
     /**

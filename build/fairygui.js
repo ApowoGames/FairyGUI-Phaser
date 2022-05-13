@@ -12819,7 +12819,6 @@
              * 是否对九宫图片只做缩放，eg：当left，middle为0，则对原始图片进行缩放
              */
             this._scale9GridBool = false;
-            this._dprOffset = GRoot.dpr * GRoot.uiScale;
             // this._renderTexture = this.scene.make.renderTexture(undefined, false);
             // this._renderTexture.setPosition(0, 0);
             // this.add(this._renderTexture);
@@ -12876,7 +12875,7 @@
                 this.drawPatches();
             }
             this.markChanged(1);
-            return super.setSize(width * this._dprOffset, height * this._dprOffset);
+            return super.setSize(width * GRoot.dpr, height * GRoot.dpr);
         }
         changeSize(width, height, initBoo, originFrame) {
             if (initBoo === undefined)
@@ -12908,9 +12907,9 @@
                         this.finalYs = [0, 0, 0, height];
                     }
                     if (this.width !== width)
-                        this.width = width * this._dprOffset;
+                        this.width = width * GRoot.dpr;
                     if (this.height !== height)
-                        this.height = height * this._dprOffset;
+                        this.height = height * GRoot.dpr;
                     // 有texture资源后再创建九宫图片
                     if (!this.originFrame)
                         this.originFrame = originFrame;
@@ -12988,7 +12987,6 @@
         }
         drawPatches() {
             const tintFill = this.tintFill;
-            // const owner: GObject = this["$owner"];
             //如果是平铺，可以不移除tilesprite，只有9宫和正常贴图才需要
             if (!this._scaleByTile)
                 this.removeAll(true);
@@ -13017,7 +13015,7 @@
                 return;
             }
             let patchIndex = 0;
-            const _left = this._scale9Grid.left * this._dprOffset;
+            const _left = this._scale9Grid.left * GRoot.dpr;
             for (let yi = 0; yi < 3; yi++) {
                 for (let xi = 0; xi < 3; xi++) {
                     // 九宫逻辑中如果宽高为0，则不做后续处理
@@ -13025,7 +13023,6 @@
                     //     continue;
                     // }
                     const patch = this._sourceTexture.frames[this.getPatchNameByIndex(patchIndex)];
-                    // if (!patch) continue;
                     const patchImg = this.scene.make.image({ key: patch.texture.key, frame: patch.name }, false);
                     // new Phaser.GameObjects.Image(this.scene, 0, 0, patch.texture.key, patch.name);
                     patchImg.setOrigin(0);
@@ -13082,7 +13079,7 @@
             if (this._sourceTexture != value) {
                 this._sourceTexture = value;
                 if (this._sourceTexture)
-                    this.changeSize(this.width / this._dprOffset, this.height / this._dprOffset, true);
+                    this.changeSize(this.width / GRoot.dpr, this.height / GRoot.dpr, true);
                 else
                     this.changeSize(0, 0, true);
                 // todo 重绘
@@ -20909,19 +20906,19 @@
             this.scene.input.on(InteractiveEvent.GAMEOBJECT_MOVE, this.__gripMouseMove, this);
             this.scene.input.on(InteractiveEvent.GAMEOBJECT_UP, this.__gripMouseUp, this);
             // this.globalToLocal(pointer.x, pointer.y, this._dragOffset);
-            this._dragOffset.x = pointer.worldX - this._grip.x;
-            this._dragOffset.y = pointer.worldY - this._grip.y;
+            this._dragOffset.x = pointer.worldX / this._dprOffset - this._grip.x;
+            this._dragOffset.y = pointer.worldY / this._dprOffset - this._grip.y;
         }
         __gripMouseMove(pointer) {
             if (!this.onStage)
                 return;
             // var pt: Phaser.Geom.Point = this.globalToLocal(pointer.x, pointer.y, s_vec2);
             if (this._vertical) {
-                var curY = pointer.worldY - this._dragOffset.y;
+                var curY = pointer.worldY / this._dprOffset - this._dragOffset.y;
                 this._target.setPercY((curY) / (this._bar.height - this._grip.height), false);
             }
             else {
-                var curX = pointer.worldX - this._dragOffset.x;
+                var curX = pointer.worldX / this._dprOffset - this._dragOffset.x;
                 this._target.setPercX((curX) / (this._bar.width - this._grip.width), false);
             }
         }

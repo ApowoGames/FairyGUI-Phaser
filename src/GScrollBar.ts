@@ -110,8 +110,8 @@ export class GScrollBar extends GComponent {
         this.scene.input.on(InteractiveEvent.GAMEOBJECT_UP, this.__gripMouseUp, this);
 
         // this.globalToLocal(pointer.x, pointer.y, this._dragOffset);
-        this._dragOffset.x = pointer.worldX - this._grip.x;
-        this._dragOffset.y = pointer.worldY - this._grip.y;
+        this._dragOffset.x = pointer.worldX / this._dprOffset - this._grip.x;
+        this._dragOffset.y = pointer.worldY / this._dprOffset - this._grip.y;
     }
 
     private __gripMouseMove(pointer: Phaser.Input.Pointer): void {
@@ -120,11 +120,11 @@ export class GScrollBar extends GComponent {
 
         // var pt: Phaser.Geom.Point = this.globalToLocal(pointer.x, pointer.y, s_vec2);
         if (this._vertical) {
-            var curY: number = pointer.worldY - this._dragOffset.y;
+            var curY: number = pointer.worldY / this._dprOffset - this._dragOffset.y;
             this._target.setPercY((curY) / (this._bar.height - this._grip.height), false);
         }
         else {
-            var curX: number = pointer.worldX - this._dragOffset.x;
+            var curX: number = pointer.worldX / this._dprOffset - this._dragOffset.x;
             this._target.setPercX((curX) / (this._bar.width - this._grip.width), false);
         }
     }

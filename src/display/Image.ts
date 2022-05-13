@@ -1,4 +1,3 @@
-import { GObject } from '..';
 import { GRoot } from '..';
 import { PackageItem } from '../PackageItem';
 import { Utils } from '../utils/Utils';
@@ -68,8 +67,6 @@ export class Image extends Phaser.GameObjects.Container {
      */
     private _scale9GridBool: boolean = false;
 
-    private _dprOffset: number = GRoot.dpr * GRoot.uiScale;
-
     constructor(scene: Phaser.Scene) {
         super(scene);
         // this._renderTexture = this.scene.make.renderTexture(undefined, false);
@@ -131,7 +128,7 @@ export class Image extends Phaser.GameObjects.Container {
             this.drawPatches();
         }
         this.markChanged(1);
-        return super.setSize(width * this._dprOffset, height * this._dprOffset);
+        return super.setSize(width * GRoot.dpr, height * GRoot.dpr);
     }
 
     public changeSize(width: number, height: number, initBoo?: boolean, originFrame?: Phaser.Textures.Frame): Promise<Phaser.GameObjects.Container> {
@@ -162,8 +159,8 @@ export class Image extends Phaser.GameObjects.Container {
                     this.finalXs = [0, 0, 0, width];
                     this.finalYs = [0, 0, 0, height];
                 }
-                if (this.width !== width) this.width = width * this._dprOffset;
-                if (this.height !== height) this.height = height * this._dprOffset;
+                if (this.width !== width) this.width = width * GRoot.dpr;
+                if (this.height !== height) this.height = height * GRoot.dpr;
                 // 有texture资源后再创建九宫图片
                 if (!this.originFrame) this.originFrame = originFrame;
             }
@@ -238,7 +235,6 @@ export class Image extends Phaser.GameObjects.Container {
 
     drawPatches() {
         const tintFill = this.tintFill;
-        // const owner: GObject = this["$owner"];
         //如果是平铺，可以不移除tilesprite，只有9宫和正常贴图才需要
         if (!this._scaleByTile) this.removeAll(true);
         // 非九宫直接画texture
@@ -267,7 +263,7 @@ export class Image extends Phaser.GameObjects.Container {
         }
 
         let patchIndex = 0;
-        const _left = this._scale9Grid.left * this._dprOffset;
+        const _left = this._scale9Grid.left * GRoot.dpr;
         for (let yi = 0; yi < 3; yi++) {
             for (let xi = 0; xi < 3; xi++) {
                 // 九宫逻辑中如果宽高为0，则不做后续处理
@@ -275,7 +271,6 @@ export class Image extends Phaser.GameObjects.Container {
                 //     continue;
                 // }
                 const patch = this._sourceTexture.frames[this.getPatchNameByIndex(patchIndex)];
-                // if (!patch) continue;
                 const patchImg = this.scene.make.image({ key: patch.texture.key, frame: patch.name }, false);
                 // new Phaser.GameObjects.Image(this.scene, 0, 0, patch.texture.key, patch.name);
                 patchImg.setOrigin(0);
@@ -338,7 +333,7 @@ export class Image extends Phaser.GameObjects.Container {
         if (this._sourceTexture != value) {
             this._sourceTexture = value;
             if (this._sourceTexture)
-                this.changeSize(this.width / this._dprOffset, this.height / this._dprOffset, true);
+                this.changeSize(this.width / GRoot.dpr, this.height / GRoot.dpr, true);
             else
                 this.changeSize(0, 0, true);
             // todo 重绘
