@@ -18139,8 +18139,8 @@ class GBasicTextField extends GTextField {
         this.text = GRoot.inst.i18n ? this._baseText : this._text;
     }
 }
-const GUTTER_X = 2;
-const GUTTER_Y = 4;
+const GUTTER_X = 0;
+const GUTTER_Y = 0;
 
 class GRichTextField extends GBasicTextField {
     constructor(scene, type) {

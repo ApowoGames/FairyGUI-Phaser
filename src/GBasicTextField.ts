@@ -678,5 +678,5 @@ export interface LineInfo {
     y: number;
 }
 
-const GUTTER_X: number = 2;
-const GUTTER_Y: number = 4;
+const GUTTER_X: number = 0;
+const GUTTER_Y: number = 0;
