@@ -18,6 +18,7 @@ export function UpdatePenManager(penManager: PenManager, text: string, canvasTex
     let curProp: any;
     let wrapLines: LineInfo[];
     let cursorX = 0;
+    const dprOffset = GRoot.dpr * GRoot.uiScale;
     for (const match of matchs) {
         const result = canvasText.parser.tagTextToProp(match, curProp);
         let plainText = result.text;
@@ -38,11 +39,11 @@ export function UpdatePenManager(penManager: PenManager, text: string, canvasTex
             penManager.addImagePen(
                 cursorX,
                 0,
-                imgWidth,
-                imgHeight,
+                imgWidth * dprOffset,
+                imgHeight * dprOffset,
                 Phaser.Utils.Objects.Clone(curProp)
             );
-            cursorX += imgWidth
+            cursorX += imgWidth * dprOffset;
         } else if (plainText !== "") {
             context.save();
             const curStyle = canvasText.parser.propToContextStyle(parent.style, curProp);

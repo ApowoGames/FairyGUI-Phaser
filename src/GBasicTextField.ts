@@ -5,8 +5,7 @@ import { GTextField } from './GTextField';
 import { TextField } from './display/text/TextField';
 import { ByteBuffer, GRoot, UIConfig } from '.';
 import { HAlignModeString, VAlignModeString } from './display/text/Types';
-import { i18nStr } from './GRoot';
-import { ToolSet, UBBParser } from './utils';
+import { ToolSet } from './utils';
 import { UIPackage } from './UIPackage';
 export class GBasicTextField extends GTextField {
     protected _textField: TextField;

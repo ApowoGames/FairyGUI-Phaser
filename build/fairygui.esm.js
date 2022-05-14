@@ -8046,7 +8046,7 @@ class ScrollPane {
                     this._maskContainer.input.hitArea = this.maskScrollRect;
             }
             // 查看mask实际位置
-            GRoot.inst.addToStage(this._mask);
+            // GRoot.inst.addToStage(this._mask);
             this._maskContainer.setMask(this._mask.createGeometryMask());
             const worldMatrix = this._owner.parent && this._owner.parent.displayObject ?
                 this._owner.parent.displayObject.getWorldTransformMatrix()
@@ -10364,6 +10364,8 @@ class GComponent extends GObject {
         this._apexIndex = 0;
     }
     createDisplayObject() {
+        if (!this._scene)
+            this.scene = GRoot.inst.scene;
         this._displayObject = this.scene.make.container(undefined, false);
         this._displayObject["$owner"] = this;
         this.container = this._displayObject;
@@ -13979,8 +13981,22 @@ class GTextField extends GObject {
         this._valign = value;
         this.doAlign();
     }
+    handleSizeChanged() {
+        this._displayObject.setSize(this._width * this._dprOffset, this._height);
+        this.changeInteractive();
+    }
     changeInteractive() {
-        super.changeInteractive();
+        if (this._displayObject) {
+            if (this._touchable) {
+                const realWid = this._width * this._dprOffset;
+                const realHei = this._height;
+                const rect = new Phaser.Geom.Rectangle(0, 0, realWid, realHei);
+                if (!this._displayObject.input)
+                    this._displayObject.setInteractive(rect, Phaser.Geom.Rectangle.Contains);
+                else
+                    this._displayObject.input.hitArea = rect;
+            }
+        }
     }
     get leading() {
         return this._lead;
@@ -15364,6 +15380,7 @@ function UpdatePenManager(penManager, text, canvasText, wrapMode, wrapWidth) {
     let curProp;
     let wrapLines;
     let cursorX = 0;
+    const dprOffset = GRoot.dpr * GRoot.uiScale;
     for (const match of matchs) {
         const result = canvasText.parser.tagTextToProp(match, curProp);
         let plainText = result.text;
@@ -15380,8 +15397,8 @@ function UpdatePenManager(penManager, text, canvasText, wrapMode, wrapWidth) {
                 imgWidth = 0;
                 imgHeight = 0;
             }
-            penManager.addImagePen(cursorX, 0, imgWidth, imgHeight, Phaser.Utils.Objects.Clone(curProp));
-            cursorX += imgWidth;
+            penManager.addImagePen(cursorX, 0, imgWidth * dprOffset, imgHeight * dprOffset, Phaser.Utils.Objects.Clone(curProp));
+            cursorX += imgWidth * dprOffset;
         }
         else if (plainText !== "") {
             context.save();
@@ -15627,7 +15644,8 @@ function DrawImage(canvasText, x, y, imgKey, style) {
             const key = obj.texture.key + "_" + obj.name + "_" + obj.width + "_" + obj.height;
             const context = canvasText.context;
             const frame = texture.get(key);
-            context.drawImage(frame.source.image, frame.cutX, frame.cutY, frame.cutWidth, frame.cutHeight, x, y - frame.cutHeight, frame.cutWidth, frame.cutHeight);
+            const dprOffset = GRoot.dpr * GRoot.uiScale;
+            context.drawImage(frame.source.image, frame.cutX, frame.cutY, frame.cutWidth, frame.cutHeight, x, y - frame.cutHeight * dprOffset, frame.cutWidth * dprOffset, frame.cutHeight * dprOffset);
             resolve();
         });
     });
@@ -17328,7 +17346,7 @@ class UBBParser {
             if (!src)
                 return null;
             if (this.defaultImgWidth)
-                return "<img src=\"" + src + "\" width=\"" + this.defaultImgWidth + "\" height=\"" + this.defaultImgHeight + "\"/>";
+                return "<img src=\"" + src + "\" width=\"" + this.defaultImgWidth * GRoot.dpr * GRoot.uiScale + "\" height=\"" + this.defaultImgHeight * GRoot.dpr * GRoot.uiScale + "\"/>";
             else
                 return "<img src=\"" + src + "\"/>";
         }
