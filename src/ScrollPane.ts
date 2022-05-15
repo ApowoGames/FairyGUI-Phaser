@@ -13,8 +13,10 @@ import { GList } from './GList';
 import { GTween } from './tween/GTween';
 import { Events } from './Events';
 import { Utils } from './utils/Utils';
-import { GRoot } from '.';
+import { GRoot, ObjectType } from '.';
 export class ScrollPane {
+    // 用于查看滚动页面实际交互位置
+    private _showMask:boolean=false;
     private _owner: GComponent;
     private _container: Phaser.GameObjects.Container;
     private _mask: Phaser.GameObjects.Graphics;
@@ -755,6 +757,8 @@ export class ScrollPane {
     }
 
     public onOwnerSizeChanged(): void {
+        this._offsetParamWid = GRoot.dpr;
+        this._offsetParamHei = GRoot.dpr;
         this.setSize(this._owner.width, this._owner.height);
         this.posChanged(false);
     }
@@ -983,7 +987,7 @@ export class ScrollPane {
                 else this._maskContainer.input.hitArea = this.maskScrollRect;
             }
             // 查看mask实际位置
-            // GRoot.inst.addToStage(this._mask);
+            if(this._showMask)GRoot.inst.addToStage(this._mask);
             this._maskContainer.setMask(this._mask.createGeometryMask());
             const worldMatrix = this._owner.parent && <Phaser.GameObjects.Container>this._owner.parent.displayObject ?
                 (<Phaser.GameObjects.Container>this._owner.parent.displayObject).getWorldTransformMatrix()

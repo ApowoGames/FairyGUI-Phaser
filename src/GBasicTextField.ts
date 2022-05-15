@@ -52,7 +52,6 @@ export class GBasicTextField extends GTextField {
     public createDisplayObject(): void {
         this._displayObject = this._textField = new TextField(this.scene);
         this._displayObject.mouseEnabled = false;
-        this._displayObject.texture.setFilter(Phaser.Textures.FilterMode.LINEAR);
     }
 
     public setup_afterAdd(buffer: ByteBuffer, beginPos: number): void {

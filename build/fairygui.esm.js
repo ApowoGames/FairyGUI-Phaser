@@ -3344,7 +3344,7 @@ class GObject {
         this._yOffset = 0;
         this._worldTx = 0;
         this._worldTy = 0;
-        this._dprOffset = GRoot.dpr * GRoot.uiScale;
+        this._dprOffset = 1;
         this.minWidth = 0;
         this.minHeight = 0;
         this.maxWidth = 0;
@@ -3362,6 +3362,7 @@ class GObject {
         this._id = "" + _gInstanceCounter++;
         this.type = type;
         this._name = "";
+        this._dprOffset = GRoot.dpr * GRoot.uiScale;
         // todo 优先传入scene在创建display
         this.scene = scene;
         if (this.scene)
@@ -3618,9 +3619,6 @@ class GObject {
             this.displayObject.emit(DisplayObjectEvent.SIZE_CHANGED);
         }
     }
-    // public extenalSetSize(wv: number, hv: number, ignorePivot?: boolean): void {
-    //     this.setSize();
-    // }
     ensureSizeCorrect() {
     }
     makeFullScreen() {
@@ -4220,7 +4218,7 @@ class GObject {
         //     if (!ele.parentContainer) break;
         //     ele = ele.parentContainer;
         // }
-        return new Phaser.Geom.Point(worldMatrix.tx, worldMatrix.ty);
+        return new Phaser.Geom.Point(worldMatrix.tx / GRoot.dpr, worldMatrix.ty / GRoot.dpr);
     }
     globalToLocal(ax, ay, result) {
         ax = ax || 0;
@@ -4641,8 +4639,8 @@ class GObject {
         if (GObject.draggingObject == this) {
             // 若存在嵌套层级，实际位置会有偏差，所以引入世界坐标，做补正
             this.worldMatrix;
-            const worldTx = this._worldTx;
-            const worldTy = this._worldTy;
+            const worldTx = this._worldTx / this._dprOffset;
+            const worldTy = this._worldTy / this._dprOffset;
             var xx = this.scene.input.activePointer.x - sGlobalDragStart.x - worldTx + sGlobalRect.x;
             var yy = this.scene.input.activePointer.y - sGlobalDragStart.y - worldTy + sGlobalRect.y;
             if (this._dragBounds) {
@@ -7841,6 +7839,8 @@ class ScrollPane {
         }
     }
     onOwnerSizeChanged() {
+        this._offsetParamWid = GRoot.dpr;
+        this._offsetParamHei = GRoot.dpr;
         this.setSize(this._owner.width, this._owner.height);
         this.posChanged(false);
     }
@@ -8046,7 +8046,7 @@ class ScrollPane {
                     this._maskContainer.input.hitArea = this.maskScrollRect;
             }
             // 查看mask实际位置
-            // GRoot.inst.addToStage(this._mask);
+            GRoot.inst.addToStage(this._mask);
             this._maskContainer.setMask(this._mask.createGeometryMask());
             const worldMatrix = this._owner.parent && this._owner.parent.displayObject ?
                 this._owner.parent.displayObject.getWorldTransformMatrix()
@@ -17600,7 +17600,6 @@ class GBasicTextField extends GTextField {
     createDisplayObject() {
         this._displayObject = this._textField = new TextField(this.scene);
         this._displayObject.mouseEnabled = false;
-        this._displayObject.texture.setFilter(Phaser.Textures.FilterMode.LINEAR);
     }
     setup_afterAdd(buffer, beginPos) {
         super.setup_afterAdd(buffer, beginPos);

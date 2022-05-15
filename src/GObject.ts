@@ -96,7 +96,7 @@ export class GObject {
     protected _worldMatrix: Phaser.GameObjects.Components.TransformMatrix;
     protected _worldTx: number = 0;
     protected _worldTy: number = 0;
-    protected _dprOffset: number = GRoot.dpr * GRoot.uiScale;
+    protected _dprOffset: number = 1;
 
     public minWidth: number = 0;
     public minHeight: number = 0;
@@ -125,6 +125,7 @@ export class GObject {
         this._id = "" + _gInstanceCounter++;
         this.type = type;
         this._name = "";
+        this._dprOffset = GRoot.dpr * GRoot.uiScale;
         // todo 优先传入scene在创建display
         this.scene = scene;
         if (this.scene) this.createDisplayObject();
@@ -424,13 +425,6 @@ export class GObject {
             this.displayObject.emit(DisplayObjectEvent.SIZE_CHANGED);
         }
     }
-
-    // public extenalSetSize(wv: number, hv: number, ignorePivot?: boolean): void {
-    //     this.setSize();
-
-    // }
-
-
 
     public ensureSizeCorrect(): void {
     }
@@ -1163,7 +1157,7 @@ export class GObject {
         //     if (!ele.parentContainer) break;
         //     ele = ele.parentContainer;
         // }
-        return new Phaser.Geom.Point(worldMatrix.tx, worldMatrix.ty);
+        return new Phaser.Geom.Point(worldMatrix.tx / GRoot.dpr, worldMatrix.ty / GRoot.dpr);
     }
 
     public globalToLocal(ax?: number, ay?: number, result?: Phaser.Geom.Point): Phaser.Geom.Point {
@@ -1642,8 +1636,8 @@ export class GObject {
         if (GObject.draggingObject == this) {
             // 若存在嵌套层级，实际位置会有偏差，所以引入世界坐标，做补正
             this.worldMatrix;
-            const worldTx = this._worldTx;
-            const worldTy = this._worldTy;
+            const worldTx = this._worldTx / this._dprOffset;
+            const worldTy = this._worldTy / this._dprOffset;
             var xx: number = this.scene.input.activePointer.x - sGlobalDragStart.x - worldTx + sGlobalRect.x;
             var yy: number = this.scene.input.activePointer.y - sGlobalDragStart.y - worldTy + sGlobalRect.y;
 
