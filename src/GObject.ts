@@ -1337,7 +1337,7 @@ export class GObject {
         var yv: number = this._y + this._yOffset;
         let offsetXParam: number = GRoot.dpr * GRoot.uiScale;
         let offsetYParam: number = GRoot.dpr * GRoot.uiScale;
-        if (this.parent && this.parent.name === "") {
+        if (this.parent && (this.parent.name === "")) {
             offsetXParam = GRoot.dpr;
             offsetYParam = GRoot.dpr;
         }
@@ -1364,7 +1364,7 @@ export class GObject {
     }
 
     protected handleSizeChanged(): void {
-        if (this.name === "maskBG" || (this.parent && this.parent.name === "maskBG")) {
+        if (this.name === "maskBG" || (this.parent && this.parent.name === "maskBG") || (this._parent && this._parent.type === ObjectType.List)) {
             this._displayObject.setSize(this._width * GRoot.dpr, this._height * GRoot.dpr);
         } else if (this.type === ObjectType.List) {
             const contentScaleWid = GRoot.contentScaleWid > 1 ? GRoot.contentScaleWid : GRoot.uiScale;

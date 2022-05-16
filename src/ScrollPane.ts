@@ -16,7 +16,7 @@ import { Utils } from './utils/Utils';
 import { GRoot, ObjectType } from '.';
 export class ScrollPane {
     // 用于查看滚动页面实际交互位置
-    private _showMask:boolean=false;
+    private _showMask: boolean = false;
     private _owner: GComponent;
     private _container: Phaser.GameObjects.Container;
     private _mask: Phaser.GameObjects.Graphics;
@@ -801,6 +801,13 @@ export class ScrollPane {
                 mx = this._owner.margin.left;
             my = this._owner.margin.top;
         }
+        // let _offsetParamWid = 1;
+        // let _offsetParamHei = 1;
+        // if (GRoot.contentScaleWid !== GRoot.uiScale) _offsetParamWid = GRoot.dpr;
+        // else _offsetParamWid = GRoot.uiScale * GRoot.dpr;
+
+        // if (GRoot.contentScaleHei !== GRoot.uiScale) _offsetParamHei = GRoot.dpr;
+        // else _offsetParamHei = GRoot.uiScale * GRoot.dpr;
 
         this._maskContainer.setPosition(mx * this._offsetParamWid, my * this._offsetParamHei);
 
@@ -986,8 +993,7 @@ export class ScrollPane {
                 if (!this._maskContainer.input) this._maskContainer.setInteractive(this.maskScrollRect, Phaser.Geom.Rectangle.Contains);
                 else this._maskContainer.input.hitArea = this.maskScrollRect;
             }
-            // 查看mask实际位置
-            if(this._showMask)GRoot.inst.addToStage(this._mask);
+            
             this._maskContainer.setMask(this._mask.createGeometryMask());
             const worldMatrix = this._owner.parent && <Phaser.GameObjects.Container>this._owner.parent.displayObject ?
                 (<Phaser.GameObjects.Container>this._owner.parent.displayObject).getWorldTransformMatrix()
@@ -1515,22 +1521,12 @@ export class ScrollPane {
 
     public maskPosChange(x: number, y: number) {
         if (this.maskScrollRect) {
-            // var rect: Phaser.Geom.Rectangle = new Phaser.Geom.Rectangle()//this._maskContainer["scrollRect"];
-            // if (rect) {
-            //     rect.width = this._viewSize.x;
-            //     rect.height = this._viewSize.y;
-            //     if (this._vScrollNone && this._vtScrollBar)
-            //         rect.width += this._vtScrollBar.width;
-            //     if (this._hScrollNone && this._hzScrollBar)
-            //         rect.height += this._hzScrollBar.height;
-            //     if (this._dontClipMargin) {
-            //         rect.width += (this._owner.margin.left + this._owner.margin.right);
-            //         rect.height += (this._owner.margin.top + this._owner.margin.bottom);
-            //     }
-            // this.maskScrollRect = rect;
-            if (this._mask) {
-                this._mask.setPosition(x * GRoot.dpr, y * GRoot.dpr);
-            }
+            this.maskScrollRect.setPosition(x * GRoot.dpr, y * GRoot.dpr);
+        }
+        if (this._mask) {
+            this._mask.setPosition(x * GRoot.dpr, y * GRoot.dpr);
+            // 查看mask实际位置
+            if (this._showMask) GRoot.inst.addToStage(this._mask);
         }
     }
 

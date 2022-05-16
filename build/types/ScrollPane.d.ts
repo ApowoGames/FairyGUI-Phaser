@@ -4,6 +4,7 @@ import { Controller } from './Controller';
 import { GScrollBar } from './GScrollBar';
 import { GComponent } from "./GComponent";
 export declare class ScrollPane {
+    private _showMask;
     private _owner;
     private _container;
     private _mask;

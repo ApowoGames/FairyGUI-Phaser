@@ -198,7 +198,7 @@ export class GList extends GComponent {
 
     public set lineGap(value: number) {
         if (this._lineGap != value) {
-            this._lineGap = value;
+            this._lineGap = value * GRoot.dpr;
             this.setBoundsChangedFlag();
             if (this._virtual)
                 this.setVirtualListChangedFlag(true);
@@ -211,7 +211,7 @@ export class GList extends GComponent {
 
     public set columnGap(value: number) {
         if (this._columnGap != value) {
-            this._columnGap = value;
+            this._columnGap = value * GRoot.dpr;
             this.setBoundsChangedFlag();
             if (this._virtual)
                 this.setVirtualListChangedFlag(true);
@@ -2216,6 +2216,7 @@ export class GList extends GComponent {
         if (this._layout == ListLayoutType.SingleColumn) {
             for (i = 0; i < cnt; i++) {
                 child = this.getChildAt(i);
+                const baseHei = child.height;
                 if (this.foldInvisibleItems && !child.visible)
                     continue;
 
@@ -2224,8 +2225,8 @@ export class GList extends GComponent {
                 // console.log("curY 0===>", curY, i);
                 child.y = curY;
                 if (this._autoResizeItem)
-                    child.setSize(viewWidth, child.height, true);
-                curY += Math.ceil(child.height);
+                    child.setSize(viewWidth, child.height * GRoot.uiScale, true);
+                curY += Math.ceil(baseHei);
                 if (child.width > maxWidth)
                     maxWidth = child.width;
             }
@@ -2249,6 +2250,7 @@ export class GList extends GComponent {
         else if (this._layout == ListLayoutType.SingleRow) {
             for (i = 0; i < cnt; i++) {
                 child = this.getChildAt(i);
+                const baseWid = child.width;
                 if (this.foldInvisibleItems && !child.visible)
                     continue;
 
@@ -2256,8 +2258,8 @@ export class GList extends GComponent {
                     curX += this._columnGap;
                 child.x = curX;
                 if (this._autoResizeItem)
-                    child.setSize(child.width, viewHeight, true);
-                curX += Math.ceil(child.width);
+                    child.setSize(child.width * GRoot.uiScale, viewHeight, true);
+                curX += Math.ceil(baseWid);
                 if (child.height > maxHeight)
                     maxHeight = child.height;
             }
@@ -2282,6 +2284,7 @@ export class GList extends GComponent {
             if (this._autoResizeItem && this._columnCount > 0) {
                 for (i = 0; i < cnt; i++) {
                     child = this.getChildAt(i);
+                    const baseHei = child.height;
                     if (this.foldInvisibleItems && !child.visible)
                         continue;
 
@@ -2298,14 +2301,14 @@ export class GList extends GComponent {
                             child.setXY(curX, curY);
 
                             if (j < i) {
-                                child.setSize(child.sourceWidth + Math.round(child.sourceWidth * ratio), child.height, true);
+                                child.setSize(child.sourceWidth + Math.round(child.sourceWidth * ratio), child.height * GRoot.uiScale, true);
                                 curX += Math.ceil(child.width) + this._columnGap;
                             }
                             else {
-                                child.setSize(viewWidth - curX, child.height, true);
+                                child.setSize(viewWidth - curX, child.height * GRoot.uiScale, true);
                             }
-                            if (child.height > maxHeight)
-                                maxHeight = child.height;
+                            if (baseHei > maxHeight)
+                                maxHeight = baseHei;
                         }
                         //new line
                         curY += Math.ceil(maxHeight) + this._lineGap;
@@ -2339,7 +2342,7 @@ export class GList extends GComponent {
                     curX += Math.ceil(child.width);
                     if (curX > maxWidth)
                         maxWidth = curX;
-                    if (child.height > maxHeight)
+                    if (child.width > maxHeight)
                         maxHeight = child.height;
                     j++;
                 }
@@ -2351,6 +2354,7 @@ export class GList extends GComponent {
             if (this._autoResizeItem && this._lineCount > 0) {
                 for (i = 0; i < cnt; i++) {
                     child = this.getChildAt(i);
+                    const baseWid = child.width;
                     if (this.foldInvisibleItems && !child.visible)
                         continue;
 
@@ -2367,14 +2371,14 @@ export class GList extends GComponent {
                             child.setXY(curX, curY);
 
                             if (j < i) {
-                                child.setSize(child.width, child.sourceHeight + Math.round(child.sourceHeight * ratio), true);
+                                child.setSize(child.width * GRoot.uiScale, child.sourceHeight + Math.round(child.sourceHeight * ratio), true);
                                 curY += Math.ceil(child.height) + this._lineGap;
                             }
                             else {
-                                child.setSize(child.width, viewHeight - curY, true);
+                                child.setSize(child.width * GRoot.uiScale, viewHeight - curY, true);
                             }
-                            if (child.width > maxWidth)
-                                maxWidth = child.width;
+                            if (baseWid > maxWidth)
+                                maxWidth = baseWid;
                         }
                         //new line
                         curX += Math.ceil(maxWidth) + this._columnGap;
@@ -2424,11 +2428,12 @@ export class GList extends GComponent {
             if (this._autoResizeItem && this._columnCount > 0) {
                 for (i = 0; i < cnt; i++) {
                     child = this.getChildAt(i);
+                    const baseHei = child.height;
                     if (this.foldInvisibleItems && !child.visible)
                         continue;
 
                     if (j == 0 && (this._lineCount != 0 && k >= this._lineCount
-                        || this._lineCount == 0 && curY + child.height > viewHeight)) {
+                        || this._lineCount == 0 && curY + baseHei > viewHeight)) {
                         //new page
                         page++;
                         curY = 0;
@@ -2442,6 +2447,7 @@ export class GList extends GComponent {
                         curX = 0;
                         for (j = lineStart; j <= i; j++) {
                             child = this.getChildAt(j);
+                            const baseWid = child.width;
                             if (this.foldInvisibleItems && !child.visible)
                                 continue;
 
@@ -2449,14 +2455,14 @@ export class GList extends GComponent {
 
                             if (j < i) {
                                 child.setSize(child.sourceWidth + Math.round(child.sourceWidth * ratio),
-                                    this._lineCount > 0 ? eachHeight : child.height, true);
-                                curX += Math.ceil(child.width) + this._columnGap;
+                                    this._lineCount > 0 ? eachHeight : baseHei, true);
+                                curX += Math.ceil(baseWid) + this._columnGap;
                             }
                             else {
-                                child.setSize(viewWidth - curX, this._lineCount > 0 ? eachHeight : child.height, true);
+                                child.setSize(viewWidth - curX, this._lineCount > 0 ? eachHeight : child.height * GRoot.uiScale, true);
                             }
-                            if (child.height > maxHeight)
-                                maxHeight = child.height;
+                            if (baseHei > maxHeight)
+                                maxHeight = baseHei;
                         }
                         //new line
                         curY += Math.ceil(maxHeight) + this._lineGap;
@@ -2479,7 +2485,7 @@ export class GList extends GComponent {
                         curX += this._columnGap;
 
                     if (this._autoResizeItem && this._lineCount > 0)
-                        child.setSize(child.width, eachHeight, true);
+                        child.setSize(child.width * GRoot.uiScale, eachHeight, true);
 
                     if (this._columnCount != 0 && j >= this._columnCount
                         || this._columnCount == 0 && curX + child.width > viewWidth && maxHeight != 0) {
@@ -2534,8 +2540,8 @@ export class GList extends GComponent {
             this._align = i1 == 0 ? "left" : (i1 == 1 ? "center" : "right");
             i1 = buffer.readByte();
             this._verticalAlign = i1 == 0 ? "top" : (i1 == 1 ? "middle" : "bottom");
-            this._lineGap = buffer.readShort();
-            this._columnGap = buffer.readShort();
+            this._lineGap = buffer.readShort() * GRoot.dpr;
+            this._columnGap = buffer.readShort() * GRoot.dpr;
             this._lineCount = buffer.readShort();
             this._columnCount = buffer.readShort();
             this._autoResizeItem = buffer.readBool();
@@ -2589,6 +2595,19 @@ export class GList extends GComponent {
             }
         });
 
+    }
+
+    protected handleXYChanged(): void {
+        var xv: number = this._x + this._xOffset;
+        var yv: number = this._y + this._yOffset;
+        let offsetXParam: number = GRoot.dpr;
+        let offsetYParam: number = GRoot.dpr;
+
+        if (this._pixelSnapping) {
+            xv = Math.round(xv);
+            yv = Math.round(yv);
+        }
+        this._displayObject.setPosition(xv * offsetXParam, yv * offsetYParam);
     }
 
     protected readItems(buffer: ByteBuffer): Promise<void> {
