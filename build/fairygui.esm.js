@@ -7269,7 +7269,7 @@ class Margin {
 class ScrollPane {
     constructor(owner) {
         // 用于查看滚动页面实际交互位置
-        this._showMask = true;
+        this._showMask = false;
         this._timeDelta = 0.08;
         this._offsetParamWid = 1;
         this._offsetParamHei = 1;
