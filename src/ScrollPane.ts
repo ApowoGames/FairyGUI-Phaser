@@ -1306,7 +1306,7 @@ export class ScrollPane {
             }
             else
                 this._container.y = newPosY;
-            // console.log("containerY:====>", this._container.y);
+            console.log("containerY:====>", this._container.y);
         }
 
         if (sh) {

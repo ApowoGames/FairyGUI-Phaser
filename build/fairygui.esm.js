@@ -8320,7 +8320,7 @@ class ScrollPane {
             }
             else
                 this._container.y = newPosY;
-            // console.log("containerY:====>", this._container.y);
+            console.log("containerY:====>", this._container.y);
         }
         if (sh) {
             if (newPosX > 0) {
@@ -22128,8 +22128,10 @@ class GList extends GComponent {
             var len = Math.ceil(this._realNumItems / this._curLineItemCount) * this._curLineItemCount;
             var len2 = Math.min(this._curLineItemCount, this._realNumItems);
             if (this._layout == ListLayoutType.SingleColumn || this._layout == ListLayoutType.FlowHorizontal) {
-                for (i = 0; i < len; i += this._curLineItemCount)
-                    ch += this._virtualItems[i].height + this._lineGap;
+                for (i = 0; i < len; i += this._curLineItemCount) {
+                    const obj = this._virtualItems[i].obj;
+                    ch += obj && obj.initHeight > this._virtualItems[i].height ? obj.initHeight + this._lineGap : this._virtualItems[i].height + this._lineGap;
+                }
                 if (ch > 0)
                     ch -= this._lineGap;
                 if (this._autoResizeItem)
@@ -22142,8 +22144,10 @@ class GList extends GComponent {
                 }
             }
             else if (this._layout == ListLayoutType.SingleRow || this._layout == ListLayoutType.FlowVertical) {
-                for (i = 0; i < len; i += this._curLineItemCount)
-                    cw += this._virtualItems[i].width + this._columnGap;
+                for (i = 0; i < len; i += this._curLineItemCount) {
+                    const obj = this._virtualItems[i].obj;
+                    cw += obj && obj.initWidth > this._virtualItems[i].width ? obj.initWidth + this._columnGap : this._virtualItems[i].width + this._columnGap;
+                }
                 if (cw > 0)
                     cw -= this._columnGap;
                 if (this._autoResizeItem)
@@ -22358,7 +22362,7 @@ class GList extends GComponent {
     }
     handleScroll1(forceUpdate) {
         return new Promise((reslove, reject) => {
-            var pos = this._scrollPane.scrollingPosY;
+            var pos = this._scrollPane.scrollingPosY / this._dprOffset;
             var max = pos + this._scrollPane.viewHeight;
             var end = max == this._scrollPane.contentHeight; //这个标志表示当前需要滚动到最末，无论内容变化大小
             // console.log("scrollPosY", pos);
@@ -22429,7 +22433,7 @@ class GList extends GComponent {
             const fun1 = () => {
                 if (needRender) {
                     if (this._autoResizeItem && (this._layout == ListLayoutType.SingleColumn || this._columnCount > 0))
-                        ii.obj.setSize(partSize, ii.obj.height, true);
+                        ii.obj.setSize(partSize, ii.obj.initHeight * GRoot.uiScale, true);
                     this.itemRenderer.runWith([curIndex % this._numItems, ii.obj]);
                     // console.log("handle1 ===>", curIndex);
                     if (curIndex % this._curLineItemCount == 0) {
@@ -22445,11 +22449,11 @@ class GList extends GComponent {
                 ii.updateFlag = this.itemInfoVer;
                 ii.obj.setXY(curX, curY);
                 if (curIndex == newFirstIndex) //要显示多1条才不会穿帮
-                    max += ii.height;
+                    max += ii.obj.initHeight;
                 curX += ii.width + this._columnGap;
                 if (curIndex % this._curLineItemCount == this._curLineItemCount - 1) {
                     curX = 0;
-                    curY += ii.height + this._lineGap;
+                    curY += ii.obj.initHeight + this._lineGap;
                 }
                 curIndex++;
                 if (curIndex < this._realNumItems && (end || curY < max)) {
@@ -22561,7 +22565,7 @@ class GList extends GComponent {
     }
     handleScroll2(forceUpdate) {
         return __awaiter(this, void 0, void 0, function* () {
-            var pos = this._scrollPane.scrollingPosX;
+            var pos = this._scrollPane.scrollingPosX / this._dprOffset;
             var max = pos + this._scrollPane.viewWidth;
             var end = pos == this._scrollPane.contentWidth; //这个标志表示当前需要滚动到最末，无论内容变化大小
             //寻找当前位置的第一条项目
@@ -22651,7 +22655,7 @@ class GList extends GComponent {
                 }
                 if (needRender) {
                     if (this._autoResizeItem && (this._layout == ListLayoutType.SingleRow || this._lineCount > 0))
-                        ii.obj.setSize(ii.obj.width, partSize, true);
+                        ii.obj.setSize(ii.obj.initWidth * GRoot.uiScale, partSize, true);
                     this.itemRenderer.runWith([curIndex % this._numItems, ii.obj]);
                     if (curIndex % this._curLineItemCount == 0) {
                         deltaSize += Math.ceil(ii.obj.width) - ii.width;
@@ -22666,12 +22670,12 @@ class GList extends GComponent {
                 ii.updateFlag = this.itemInfoVer;
                 ii.obj.setXY(curX, curY);
                 if (curIndex == newFirstIndex) //要显示多一条才不会穿帮
-                    max += ii.width;
+                    max += ii.obj.initWidth;
                 curY += ii.height + this._lineGap;
                 // console.log("curY ===>", curY);
                 if (curIndex % this._curLineItemCount == this._curLineItemCount - 1) {
                     curY = 0;
-                    curX += ii.width + this._columnGap;
+                    curX += ii.obj.initWidth + this._columnGap;
                 }
                 curIndex++;
             }
@@ -22700,7 +22704,7 @@ class GList extends GComponent {
     }
     handleScroll3(forceUpdate) {
         return __awaiter(this, void 0, void 0, function* () {
-            var pos = this._scrollPane.scrollingPosX;
+            var pos = this._scrollPane.scrollingPosX / this._dprOffset;
             //寻找当前位置的第一条项目
             s_n = pos;
             var newFirstIndex = this.getIndexOnPos3(forceUpdate);
@@ -22793,9 +22797,9 @@ class GList extends GComponent {
                         if (this._curLineItemCount == this._columnCount && this._curLineItemCount2 == this._lineCount)
                             ii.obj.setSize(partWidth, partHeight, true);
                         else if (this._curLineItemCount == this._columnCount)
-                            ii.obj.setSize(partWidth, ii.obj.height, true);
+                            ii.obj.setSize(partWidth, ii.obj.initHeight * GRoot.uiScale, true);
                         else if (this._curLineItemCount2 == this._lineCount)
-                            ii.obj.setSize(ii.obj.width, partHeight, true);
+                            ii.obj.setSize(ii.obj.initWidth * GRoot.uiScale, partHeight, true);
                     }
                     this.itemRenderer.runWith([i % this._numItems, ii.obj]);
                     ii.width = Math.ceil(ii.obj.width);
@@ -22885,22 +22889,22 @@ class GList extends GComponent {
         var newOffsetY = 0;
         if (contentHeight < this.viewHeight) {
             if (this._verticalAlign == "middle")
-                newOffsetY = Math.floor((this.viewHeight - contentHeight) / 2);
+                newOffsetY = Math.floor((this.viewHeight - contentHeight) / 2) * this._dprOffset;
             else if (this._verticalAlign == "bottom")
-                newOffsetY = this.viewHeight - contentHeight;
+                newOffsetY = (this.viewHeight - contentHeight) * this._dprOffset;
         }
         if (contentWidth < this.viewWidth) {
             if (this._align == "center")
-                newOffsetX = Math.floor((this.viewWidth - contentWidth) / 2);
+                newOffsetX = Math.floor((this.viewWidth - contentWidth) / 2) * this._dprOffset;
             else if (this._align == "right")
-                newOffsetX = this.viewWidth - contentWidth;
+                newOffsetX = (this.viewWidth - contentWidth) * this._dprOffset;
         }
-        if (newOffsetX != this._alignOffset.x || newOffsetY != this._alignOffset.y) {
+        if (newOffsetX != this._alignOffset.x * this._dprOffset || newOffsetY != this._alignOffset.y * this._dprOffset) {
             this._alignOffset.setTo(newOffsetX, newOffsetY);
             if (this._scrollPane)
                 this._scrollPane.adjustMaskContainer();
             else
-                this._container.setPosition((this._margin.left + this._alignOffset.x) * GRoot.dpr * GRoot.uiScale, (this._margin.top + this._alignOffset.y) * GRoot.dpr * GRoot.uiScale);
+                this._container.setPosition((this._margin.left + this._alignOffset.x) * this._dprOffset, (this._margin.top + this._alignOffset.y) * this._dprOffset);
         }
     }
     updateBounds() {
@@ -22946,7 +22950,7 @@ class GList extends GComponent {
                     child = this.getChildAt(i);
                     if (this.foldInvisibleItems && !child.visible)
                         continue;
-                    child.setSize(viewWidth, child.height, true);
+                    child.setSize(viewWidth, child.height * GRoot.uiScale, true);
                     if (child.width > maxWidth)
                         maxWidth = child.width;
                 }
@@ -22975,7 +22979,7 @@ class GList extends GComponent {
                     child = this.getChildAt(i);
                     if (this.foldInvisibleItems && !child.visible)
                         continue;
-                    child.setSize(child.width, viewHeight, true);
+                    child.setSize(child.width * GRoot.uiScale, viewHeight, true);
                     if (child.height > maxHeight)
                         maxHeight = child.height;
                 }
