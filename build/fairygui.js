@@ -43,7 +43,7 @@
         ListLayoutType[ListLayoutType["SingleRow"] = 1] = "SingleRow";
         ListLayoutType[ListLayoutType["FlowHorizontal"] = 2] = "FlowHorizontal";
         ListLayoutType[ListLayoutType["FlowVertical"] = 3] = "FlowVertical";
-        ListLayoutType[ListLayoutType["Pagination"] = 4] = "Pagination";
+        ListLayoutType[ListLayoutType["Pagination"] = 4] = "Pagination"; // 分页
     })(exports.ListLayoutType || (exports.ListLayoutType = {}));
     exports.ListSelectionMode = void 0;
     (function (ListSelectionMode) {
@@ -7281,11 +7281,11 @@
             if (GRoot.contentScaleWid !== GRoot.uiScale)
                 this._offsetParamWid = GRoot.dpr;
             else
-                this._offsetParamWid = GRoot.uiScale * GRoot.dpr;
+                this._offsetParamWid = GRoot.contentScaleWid * GRoot.dpr;
             if (GRoot.contentScaleHei !== GRoot.uiScale)
                 this._offsetParamHei = GRoot.dpr;
             else
-                this._offsetParamHei = GRoot.uiScale * GRoot.dpr;
+                this._offsetParamHei = GRoot.contentScaleHei * GRoot.dpr;
             this._refreshTimeEvent = { delay: this._timeDelta, callback: this.refresh, callbackScope: this };
             const _tweenUp = this._timeDelta; //  / owner.scene.game.config.fps.target;
             this._tweenUpdateTimeEvent = { delay: _tweenUp, callback: this.tweenUpdate, callbackScope: this, loop: true };
@@ -8069,11 +8069,11 @@
             }
             const offsetParam = GRoot.uiScale * GRoot.dpr;
             if (this._scrollType == exports.ScrollType.Horizontal || this._scrollType == exports.ScrollType.Both)
-                this._overlapSize.x = Math.ceil(Math.max(0, this._contentSize.x - this._viewSize.x / GRoot.uiScale)) * offsetParam;
+                this._overlapSize.x = Math.ceil(Math.max(0, this._contentSize.x - this._viewSize.x / GRoot.contentScaleWid)) * offsetParam;
             else
                 this._overlapSize.x = 0;
             if (this._scrollType == exports.ScrollType.Vertical || this._scrollType == exports.ScrollType.Both)
-                this._overlapSize.y = Math.ceil(Math.max(0, this._contentSize.y - this._viewSize.y / GRoot.uiScale)) * offsetParam;
+                this._overlapSize.y = Math.ceil(Math.max(0, this._contentSize.y - this._viewSize.y / GRoot.contentScaleHei)) * offsetParam;
             else
                 this._overlapSize.y = 0;
             //边界检查
@@ -12032,10 +12032,11 @@
             GRoot.isHorizontal = this._stageOptions.designWidth > this._stageOptions.designHeight ? true : false;
             GRoot.contentScaleWid = Number((realWidth / this._stageOptions.designWidth).toFixed(4));
             GRoot.contentScaleHei = Number((realHeight / this._stageOptions.designHeight).toFixed(4));
-            const _widthScale = realWidth > this._stageOptions.designWidth ? 1 : GRoot.contentScaleWid;
-            const _heightScale = realHeight > this._stageOptions.designHeight ? 1 : GRoot.contentScaleHei;
+            const _widthScale = GRoot.contentScaleWid; // realWidth > this._stageOptions.designWidth ? 1 : GRoot.contentScaleWid;
+            const _heightScale = GRoot.contentScaleHei; // realHeight > this._stageOptions.designHeight ? 1 : GRoot.contentScaleHei;
             // 某些分辨率下，竖屏的高度缩放会大于横屏，所以加入横竖屏判断
             GRoot.uiScale = _widthScale < _heightScale ? _widthScale : GRoot.isHorizontal ? _heightScale : _widthScale;
+            GRoot.uiScale = GRoot.uiScale > 1 ? 1 : GRoot.uiScale;
             // 取小数点后四位，保证精度，部分手机分辨率宽高缩放可能相同到小数点后两位
             GRoot.uiScale = Number(GRoot.uiScale.toFixed(4));
             // const camera = this._scene.cameras.main;
@@ -22436,8 +22437,14 @@
                 };
                 const fun1 = () => {
                     if (needRender) {
-                        if (this._autoResizeItem && (this._layout == exports.ListLayoutType.SingleColumn || this._columnCount > 0))
-                            ii.obj.setSize(partSize, ii.obj.initHeight * GRoot.uiScale, true);
+                        if (this._autoResizeItem) {
+                            if (this._layout == exports.ListLayoutType.SingleColumn || this._columnCount > 0) {
+                                ii.obj.setSize(partSize, ii.obj.initHeight * GRoot.uiScale, true);
+                            }
+                            else if (this._layout == exports.ListLayoutType.FlowHorizontal && GRoot.uiScale < 1) {
+                                ii.obj.setSize(ii.obj.initWidth * GRoot.uiScale, ii.obj.initHeight * GRoot.uiScale, true);
+                            }
+                        }
                         this.itemRenderer.runWith([curIndex % this._numItems, ii.obj]);
                         // console.log("handle1 ===>", curIndex);
                         if (curIndex % this._curLineItemCount == 0) {
@@ -22451,7 +22458,7 @@
                         ii.height = Math.ceil(ii.obj.height);
                     }
                     ii.updateFlag = this.itemInfoVer;
-                    ii.obj.setXY(curX, curY);
+                    ii.obj.setXY(curX / GRoot.uiScale, curY);
                     if (curIndex == newFirstIndex) //要显示多1条才不会穿帮
                         max += ii.obj.initHeight;
                     curX += ii.width + this._columnGap;
@@ -23227,7 +23234,7 @@
                 this._columnGap = buffer.readShort() * GRoot.dpr;
                 this._lineCount = buffer.readShort();
                 this._columnCount = buffer.readShort();
-                this._autoResizeItem = buffer.readBool();
+                this._autoResizeItem = buffer.readBool() ? buffer.readBool() : GRoot.uiScale < 1;
                 this._childrenRenderOrder = buffer.readByte();
                 this._apexIndex = buffer.readShort();
                 if (buffer.readBool()) {

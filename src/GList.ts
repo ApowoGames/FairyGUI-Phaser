@@ -1670,8 +1670,15 @@ export class GList extends GComponent {
             }
             const fun1 = () => {
                 if (needRender) {
-                    if (this._autoResizeItem && (this._layout == ListLayoutType.SingleColumn || this._columnCount > 0))
-                        ii.obj.setSize(partSize, ii.obj.initHeight * GRoot.uiScale, true);
+                    if (this._autoResizeItem) {
+                        if (this._layout == ListLayoutType.SingleColumn || this._columnCount > 0) {
+                            ii.obj.setSize(partSize, ii.obj.initHeight * GRoot.uiScale, true);
+                        } else if (this._layout == ListLayoutType.FlowHorizontal && GRoot.uiScale < 1) {
+                            ii.obj.setSize(ii.obj.initWidth * GRoot.uiScale, ii.obj.initHeight * GRoot.uiScale, true);
+                        }
+                    }
+
+
                     this.itemRenderer.runWith([curIndex % this._numItems, ii.obj]);
                     // console.log("handle1 ===>", curIndex);
                     if (curIndex % this._curLineItemCount == 0) {
@@ -1686,7 +1693,7 @@ export class GList extends GComponent {
                 }
 
                 ii.updateFlag = this.itemInfoVer;
-                ii.obj.setXY(curX, curY);
+                ii.obj.setXY(curX / GRoot.uiScale, curY);
                 if (curIndex == newFirstIndex) //要显示多1条才不会穿帮
                     max += ii.obj.initHeight;
 
@@ -2548,7 +2555,7 @@ export class GList extends GComponent {
             this._columnGap = buffer.readShort() * GRoot.dpr;
             this._lineCount = buffer.readShort();
             this._columnCount = buffer.readShort();
-            this._autoResizeItem = buffer.readBool();
+            this._autoResizeItem = buffer.readBool() ? buffer.readBool() : GRoot.uiScale < 1;
             this._childrenRenderOrder = buffer.readByte();
             this._apexIndex = buffer.readShort();
 

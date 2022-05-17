@@ -101,10 +101,10 @@ export class ScrollPane {
     constructor(owner: GComponent) {
         this._owner = owner;
         if (GRoot.contentScaleWid !== GRoot.uiScale) this._offsetParamWid = GRoot.dpr;
-        else this._offsetParamWid = GRoot.uiScale * GRoot.dpr;
+        else this._offsetParamWid = GRoot.contentScaleWid * GRoot.dpr;
 
         if (GRoot.contentScaleHei !== GRoot.uiScale) this._offsetParamHei = GRoot.dpr;
-        else this._offsetParamHei = GRoot.uiScale * GRoot.dpr;
+        else this._offsetParamHei = GRoot.contentScaleHei * GRoot.dpr;
 
         this._refreshTimeEvent = { delay: this._timeDelta, callback: this.refresh, callbackScope: this };
         const _tweenUp = this._timeDelta;//  / owner.scene.game.config.fps.target;
@@ -993,7 +993,7 @@ export class ScrollPane {
                 if (!this._maskContainer.input) this._maskContainer.setInteractive(this.maskScrollRect, Phaser.Geom.Rectangle.Contains);
                 else this._maskContainer.input.hitArea = this.maskScrollRect;
             }
-            
+
             this._maskContainer.setMask(this._mask.createGeometryMask());
             const worldMatrix = this._owner.parent && <Phaser.GameObjects.Container>this._owner.parent.displayObject ?
                 (<Phaser.GameObjects.Container>this._owner.parent.displayObject).getWorldTransformMatrix()
@@ -1008,11 +1008,11 @@ export class ScrollPane {
         const offsetParam: number = GRoot.uiScale * GRoot.dpr;
 
         if (this._scrollType == ScrollType.Horizontal || this._scrollType == ScrollType.Both)
-            this._overlapSize.x = Math.ceil(Math.max(0, this._contentSize.x - this._viewSize.x / GRoot.uiScale)) * offsetParam;
+            this._overlapSize.x = Math.ceil(Math.max(0, this._contentSize.x - this._viewSize.x / GRoot.contentScaleWid)) * offsetParam;
         else
             this._overlapSize.x = 0;
         if (this._scrollType == ScrollType.Vertical || this._scrollType == ScrollType.Both)
-            this._overlapSize.y = Math.ceil(Math.max(0, this._contentSize.y - this._viewSize.y / GRoot.uiScale)) * offsetParam;
+            this._overlapSize.y = Math.ceil(Math.max(0, this._contentSize.y - this._viewSize.y / GRoot.contentScaleHei)) * offsetParam;
         else
             this._overlapSize.y = 0;
 

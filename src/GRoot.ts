@@ -369,10 +369,11 @@ export class GRoot extends GComponent {
         GRoot.isHorizontal = this._stageOptions.designWidth > this._stageOptions.designHeight ? true : false;
         GRoot.contentScaleWid = Number((realWidth / this._stageOptions.designWidth).toFixed(4));
         GRoot.contentScaleHei = Number((realHeight / this._stageOptions.designHeight).toFixed(4));
-        const _widthScale = realWidth > this._stageOptions.designWidth ? 1 : GRoot.contentScaleWid;
-        const _heightScale = realHeight > this._stageOptions.designHeight ? 1 : GRoot.contentScaleHei;
+        const _widthScale = GRoot.contentScaleWid; // realWidth > this._stageOptions.designWidth ? 1 : GRoot.contentScaleWid;
+        const _heightScale = GRoot.contentScaleHei; // realHeight > this._stageOptions.designHeight ? 1 : GRoot.contentScaleHei;
         // 某些分辨率下，竖屏的高度缩放会大于横屏，所以加入横竖屏判断
         GRoot.uiScale = _widthScale < _heightScale ? _widthScale : GRoot.isHorizontal ? _heightScale : _widthScale;
+        GRoot.uiScale = GRoot.uiScale > 1 ? 1 : GRoot.uiScale;
         // 取小数点后四位，保证精度，部分手机分辨率宽高缩放可能相同到小数点后两位
         GRoot.uiScale = Number(GRoot.uiScale.toFixed(4));
 

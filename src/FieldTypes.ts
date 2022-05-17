@@ -27,11 +27,11 @@ export enum LoaderFillType {
     ScaleNoBorder
 }
 export enum ListLayoutType {
-    SingleColumn,
-    SingleRow,
-    FlowHorizontal,
-    FlowVertical,
-    Pagination
+    SingleColumn, // 上下
+    SingleRow, // 左右
+    FlowHorizontal, // 水平流动
+    FlowVertical, // 垂直流动
+    Pagination // 分页
 }
 export enum ListSelectionMode {
     Single,
