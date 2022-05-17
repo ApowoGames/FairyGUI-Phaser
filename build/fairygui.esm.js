@@ -7277,11 +7277,11 @@ class ScrollPane {
         if (GRoot.contentScaleWid !== GRoot.uiScale)
             this._offsetParamWid = GRoot.dpr;
         else
-            this._offsetParamWid = GRoot.contentScaleWid * GRoot.dpr;
+            this._offsetParamWid = GRoot.uiScale * GRoot.dpr;
         if (GRoot.contentScaleHei !== GRoot.uiScale)
             this._offsetParamHei = GRoot.dpr;
         else
-            this._offsetParamHei = GRoot.contentScaleHei * GRoot.dpr;
+            this._offsetParamHei = GRoot.uiScale * GRoot.dpr;
         this._refreshTimeEvent = { delay: this._timeDelta, callback: this.refresh, callbackScope: this };
         const _tweenUp = this._timeDelta; //  / owner.scene.game.config.fps.target;
         this._tweenUpdateTimeEvent = { delay: _tweenUp, callback: this.tweenUpdate, callbackScope: this, loop: true };
@@ -8063,13 +8063,15 @@ class ScrollPane {
             const posY = worldMatrix ? worldMatrix.ty + yv : yv;
             this.maskPosChange(posX, posY);
         }
-        const offsetParam = GRoot.uiScale * GRoot.dpr;
+        const _widthScale = GRoot.contentScaleWid < 1 ? GRoot.uiScale : GRoot.contentScaleWid;
+        const _heightScale = GRoot.contentScaleHei < 1 ? GRoot.uiScale : GRoot.contentScaleHei;
+        const offsetParam = GRoot.dpr;
         if (this._scrollType == ScrollType.Horizontal || this._scrollType == ScrollType.Both)
-            this._overlapSize.x = Math.ceil(Math.max(0, this._contentSize.x - this._viewSize.x / GRoot.contentScaleWid)) * offsetParam;
+            this._overlapSize.x = Math.ceil(Math.max(0, this._contentSize.x - this._viewSize.x)) * offsetParam * _widthScale;
         else
             this._overlapSize.x = 0;
         if (this._scrollType == ScrollType.Vertical || this._scrollType == ScrollType.Both)
-            this._overlapSize.y = Math.ceil(Math.max(0, this._contentSize.y - this._viewSize.y / GRoot.contentScaleHei)) * offsetParam;
+            this._overlapSize.y = Math.ceil(Math.max(0, this._contentSize.y - this._viewSize.y)) * offsetParam * _heightScale;
         else
             this._overlapSize.y = 0;
         //边界检查
@@ -12031,7 +12033,7 @@ class GRoot extends GComponent {
         const _widthScale = GRoot.contentScaleWid; // realWidth > this._stageOptions.designWidth ? 1 : GRoot.contentScaleWid;
         const _heightScale = GRoot.contentScaleHei; // realHeight > this._stageOptions.designHeight ? 1 : GRoot.contentScaleHei;
         // 某些分辨率下，竖屏的高度缩放会大于横屏，所以加入横竖屏判断
-        GRoot.uiScale = _widthScale < _heightScale ? _widthScale : GRoot.isHorizontal ? _heightScale : _widthScale;
+        GRoot.uiScale = _widthScale < _heightScale ? _widthScale : GRoot.isHorizontal ? _widthScale : _heightScale;
         GRoot.uiScale = GRoot.uiScale > 1 ? 1 : GRoot.uiScale;
         // 取小数点后四位，保证精度，部分手机分辨率宽高缩放可能相同到小数点后两位
         GRoot.uiScale = Number(GRoot.uiScale.toFixed(4));
@@ -22129,9 +22131,21 @@ class GList extends GComponent {
             var len = Math.ceil(this._realNumItems / this._curLineItemCount) * this._curLineItemCount;
             var len2 = Math.min(this._curLineItemCount, this._realNumItems);
             if (this._layout == ListLayoutType.SingleColumn || this._layout == ListLayoutType.FlowHorizontal) {
+                let maxHei = 0;
                 for (i = 0; i < len; i += this._curLineItemCount) {
                     const obj = this._virtualItems[i].obj;
-                    ch += obj && obj.initHeight > this._virtualItems[i].height ? obj.initHeight + this._lineGap : this._virtualItems[i].height + this._lineGap;
+                    if (obj && this._virtualItems[i].height < obj.initHeight) {
+                        if (maxHei < this._virtualItems[i].height)
+                            maxHei = this._virtualItems[i].height;
+                        ch += maxHei + this._lineGap * GRoot.uiScale;
+                    }
+                    else {
+                        if (maxHei < this._virtualItems[i].height)
+                            ch += !maxHei ? (this._virtualItems[i].height + this._lineGap) * GRoot.uiScale : maxHei + this._lineGap * GRoot.uiScale;
+                        else
+                            ch += (maxHei + this._lineGap) * GRoot.uiScale;
+                    }
+                    console.log("setSize:", i, ch, len);
                 }
                 if (ch > 0)
                     ch -= this._lineGap;
@@ -22147,7 +22161,7 @@ class GList extends GComponent {
             else if (this._layout == ListLayoutType.SingleRow || this._layout == ListLayoutType.FlowVertical) {
                 for (i = 0; i < len; i += this._curLineItemCount) {
                     const obj = this._virtualItems[i].obj;
-                    cw += obj && obj.initWidth > this._virtualItems[i].width ? obj.initWidth + this._columnGap : this._virtualItems[i].width + this._columnGap;
+                    cw += obj && obj.initWidth > this._virtualItems[i].width ? obj.initWidth * GRoot.uiScale + this._columnGap : this._virtualItems[i].width + this._columnGap;
                 }
                 if (cw > 0)
                     cw -= this._columnGap;
@@ -22444,7 +22458,12 @@ class GList extends GComponent {
                     this.itemRenderer.runWith([curIndex % this._numItems, ii.obj]);
                     // console.log("handle1 ===>", curIndex);
                     if (curIndex % this._curLineItemCount == 0) {
-                        deltaSize += Math.ceil(ii.obj.height) - ii.height;
+                        let delayHei = 0;
+                        if (ii.obj.height !== ii.height)
+                            delayHei = ii.obj.initHeight * GRoot.uiScale;
+                        else
+                            delayHei = ii.height;
+                        deltaSize += Math.ceil(ii.obj.height) - Math.ceil(delayHei);
                         if (curIndex == newFirstIndex && oldFirstIndex > newFirstIndex) {
                             //当内容向下滚动时，如果新出现的项目大小发生变化，需要做一个位置补偿，才不会导致滚动跳动
                             firstItemDeltaSize = Math.ceil(ii.obj.height) - ii.height;

@@ -1338,9 +1338,17 @@ export class GList extends GComponent {
             var len: number = Math.ceil(this._realNumItems / this._curLineItemCount) * this._curLineItemCount;
             var len2: number = Math.min(this._curLineItemCount, this._realNumItems);
             if (this._layout == ListLayoutType.SingleColumn || this._layout == ListLayoutType.FlowHorizontal) {
+                let maxHei: number = 0;
                 for (i = 0; i < len; i += this._curLineItemCount) {
                     const obj = this._virtualItems[i].obj;
-                    ch += obj && obj.initHeight > this._virtualItems[i].height ? obj.initHeight + this._lineGap : this._virtualItems[i].height + this._lineGap;
+                    if (obj && this._virtualItems[i].height < obj.initHeight) {
+                        if (maxHei < this._virtualItems[i].height) maxHei = this._virtualItems[i].height;
+                        ch += maxHei + this._lineGap * GRoot.uiScale;
+                    } else {
+                        if (maxHei < this._virtualItems[i].height) ch += !maxHei ? (this._virtualItems[i].height + this._lineGap) * GRoot.uiScale : maxHei + this._lineGap * GRoot.uiScale;
+                        else ch += (maxHei + this._lineGap) * GRoot.uiScale;
+                    }
+                    // console.log("setSize:", i, ch, len);
                 }
 
                 if (ch > 0)
@@ -1358,7 +1366,7 @@ export class GList extends GComponent {
             else if (this._layout == ListLayoutType.SingleRow || this._layout == ListLayoutType.FlowVertical) {
                 for (i = 0; i < len; i += this._curLineItemCount) {
                     const obj = this._virtualItems[i].obj;
-                    cw += obj && obj.initWidth > this._virtualItems[i].width ? obj.initWidth + this._columnGap : this._virtualItems[i].width + this._columnGap;
+                    cw += obj && obj.initWidth > this._virtualItems[i].width ? obj.initWidth * GRoot.uiScale + this._columnGap : this._virtualItems[i].width + this._columnGap;
                 }
 
                 if (cw > 0)
@@ -1614,7 +1622,7 @@ export class GList extends GComponent {
                 return;
             }
 
-            console.log("index:", this._firstIndex);
+            // console.log("index:", this._firstIndex);
             var oldFirstIndex: number = this._firstIndex;
             // console.log("newFirstIndex ===>", newFirstIndex);
             // console.log("oldFirstIndex ===>", oldFirstIndex);
@@ -1682,7 +1690,10 @@ export class GList extends GComponent {
                     this.itemRenderer.runWith([curIndex % this._numItems, ii.obj]);
                     // console.log("handle1 ===>", curIndex);
                     if (curIndex % this._curLineItemCount == 0) {
-                        deltaSize += Math.ceil(ii.obj.height) - ii.height;
+                        let delayHei = 0;
+                        if (ii.obj.height !== ii.height) delayHei = ii.obj.initHeight * GRoot.uiScale;
+                        else delayHei = ii.height;
+                        deltaSize += Math.ceil(ii.obj.height) - Math.ceil(delayHei);
                         if (curIndex == newFirstIndex && oldFirstIndex > newFirstIndex) {
                             //当内容向下滚动时，如果新出现的项目大小发生变化，需要做一个位置补偿，才不会导致滚动跳动
                             firstItemDeltaSize = Math.ceil(ii.obj.height) - ii.height;
