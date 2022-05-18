@@ -809,7 +809,7 @@ export class ScrollPane {
         // if (GRoot.contentScaleHei !== GRoot.uiScale) _offsetParamHei = GRoot.dpr;
         // else _offsetParamHei = GRoot.uiScale * GRoot.dpr;
 
-        this._maskContainer.setPosition(mx * this._offsetParamWid, my * this._offsetParamHei);
+        this._maskContainer.setPosition(mx * GRoot.dpr, my * GRoot.dpr);
 
         mx = this._owner._alignOffset.x;
         my = this._owner._alignOffset.y;
@@ -974,8 +974,8 @@ export class ScrollPane {
         const viewSizeY = this._viewSize.y;
         if (this.maskScrollRect && (this.maskScrollRect.width !== viewSizeX || this.maskScrollRect.height !== viewSizeY)) {
             var rect: Phaser.Geom.Rectangle = new Phaser.Geom.Rectangle();
-            rect.width = viewSizeX * this._offsetParamWid;
-            rect.height = viewSizeY * this._offsetParamHei;
+            rect.width = viewSizeX * GRoot.dpr;
+            rect.height = viewSizeY *  GRoot.dpr;
             if (this._vScrollNone && this._vtScrollBar)
                 rect.width += this._vtScrollBar.width;
             if (this._hScrollNone && this._hzScrollBar)

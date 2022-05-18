@@ -7892,7 +7892,7 @@
             // else _offsetParamWid = GRoot.uiScale * GRoot.dpr;
             // if (GRoot.contentScaleHei !== GRoot.uiScale) _offsetParamHei = GRoot.dpr;
             // else _offsetParamHei = GRoot.uiScale * GRoot.dpr;
-            this._maskContainer.setPosition(mx * this._offsetParamWid, my * this._offsetParamHei);
+            this._maskContainer.setPosition(mx * GRoot.dpr, my * GRoot.dpr);
             mx = this._owner._alignOffset.x;
             my = this._owner._alignOffset.y;
             if (mx != 0 || my != 0 || this._dontClipMargin) {
@@ -8036,8 +8036,8 @@
             const viewSizeY = this._viewSize.y;
             if (this.maskScrollRect && (this.maskScrollRect.width !== viewSizeX || this.maskScrollRect.height !== viewSizeY)) {
                 var rect = new Phaser.Geom.Rectangle();
-                rect.width = viewSizeX * this._offsetParamWid;
-                rect.height = viewSizeY * this._offsetParamHei;
+                rect.width = viewSizeX * GRoot.dpr;
+                rect.height = viewSizeY * GRoot.dpr;
                 if (this._vScrollNone && this._vtScrollBar)
                     rect.width += this._vtScrollBar.width;
                 if (this._hScrollNone && this._hzScrollBar)
@@ -22149,7 +22149,7 @@
                             else
                                 ch += (maxHei + this._lineGap) * GRoot.uiScale;
                         }
-                        console.log("setSize:", i, ch, len);
+                        // console.log("setSize:", i, ch, len);
                     }
                     if (ch > 0)
                         ch -= this._lineGap;
@@ -22163,9 +22163,21 @@
                     }
                 }
                 else if (this._layout == exports.ListLayoutType.SingleRow || this._layout == exports.ListLayoutType.FlowVertical) {
+                    let maxWid = 0;
                     for (i = 0; i < len; i += this._curLineItemCount) {
                         const obj = this._virtualItems[i].obj;
-                        cw += obj && obj.initWidth > this._virtualItems[i].width ? obj.initWidth * GRoot.uiScale + this._columnGap : this._virtualItems[i].width + this._columnGap;
+                        if (obj && this._virtualItems[i].width < obj.initWidth) {
+                            if (maxWid < this._virtualItems[i].width)
+                                maxWid = this._virtualItems[i].width;
+                            cw += maxWid + this._columnGap * GRoot.uiScale;
+                        }
+                        else {
+                            if (maxWid < this._virtualItems[i].width)
+                                cw += !maxWid ? (this._virtualItems[i].width + this._columnGap) * GRoot.uiScale : maxWid + this._columnGap * GRoot.uiScale;
+                            else
+                                cw += (maxWid + this._columnGap) * GRoot.uiScale;
+                        }
+                        // console.log("setSize:", i, cw, len);
                     }
                     if (cw > 0)
                         cw -= this._columnGap;
@@ -22396,7 +22408,7 @@
                     reslove(false);
                     return;
                 }
-                console.log("index:", this._firstIndex);
+                // console.log("index:", this._firstIndex);
                 var oldFirstIndex = this._firstIndex;
                 // console.log("newFirstIndex ===>", newFirstIndex);
                 // console.log("oldFirstIndex ===>", oldFirstIndex);
@@ -22684,13 +22696,24 @@
                         needRender = forceUpdate;
                     }
                     if (needRender) {
-                        if (this._autoResizeItem && (this._layout == exports.ListLayoutType.SingleRow || this._lineCount > 0))
-                            ii.obj.setSize(ii.obj.initWidth * GRoot.uiScale, partSize, true);
+                        if (this._autoResizeItem) {
+                            if (this._layout == exports.ListLayoutType.SingleRow || this._lineCount > 0) {
+                                ii.obj.setSize(ii.obj.initWidth * GRoot.uiScale, partSize, true);
+                            }
+                            else if (this._layout == exports.ListLayoutType.FlowVertical && GRoot.uiScale < 1) {
+                                ii.obj.setSize(ii.obj.initWidth * GRoot.uiScale, ii.obj.initHeight * GRoot.uiScale, true);
+                            }
+                        }
                         this.itemRenderer.runWith([curIndex % this._numItems, ii.obj]);
                         if (curIndex % this._curLineItemCount == 0) {
-                            deltaSize += Math.ceil(ii.obj.width) - ii.width;
+                            let delayWid = 0;
+                            if (ii.obj.width !== ii.width)
+                                delayWid = ii.obj.initWidth * GRoot.uiScale;
+                            else
+                                delayWid = ii.width;
+                            deltaSize += Math.ceil(ii.obj.width) - Math.ceil(delayWid);
                             if (curIndex == newFirstIndex && oldFirstIndex > newFirstIndex) {
-                                //当内容向下滚动时，如果新出现的一个项目大小发生变化，需要做一个位置补偿，才不会导致滚动跳动
+                                //当内容向下滚动时，如果新出现的项目大小发生变化，需要做一个位置补偿，才不会导致滚动跳动
                                 firstItemDeltaSize = Math.ceil(ii.obj.width) - ii.width;
                             }
                         }
@@ -22698,7 +22721,7 @@
                         ii.height = Math.ceil(ii.obj.height);
                     }
                     ii.updateFlag = this.itemInfoVer;
-                    ii.obj.setXY(curX, curY);
+                    ii.obj.setXY(curX, curY / GRoot.uiScale);
                     if (curIndex == newFirstIndex) //要显示多一条才不会穿帮
                         max += ii.obj.initWidth;
                     curY += ii.height + this._lineGap;
