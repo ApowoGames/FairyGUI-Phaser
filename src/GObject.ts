@@ -616,8 +616,8 @@ export class GObject {
     public changeInteractive() {
         if (this._displayObject) {
             if (this._touchable) {
-                const realWid = this._width * this._dprOffset;
-                const realHei = this._height * this._dprOffset;
+                const realWid = this.initWidth * this._dprOffset;
+                const realHei = this.initHeight * this._dprOffset;
                 const rect: Phaser.Geom.Rectangle = new Phaser.Geom.Rectangle((0.5 - this._pivotX) * realWid, (0.5 - this._pivotY) * realHei,
                     realWid, realHei);
                 if (!this._displayObject.input) this._displayObject.setInteractive(rect, Phaser.Geom.Rectangle.Contains);
