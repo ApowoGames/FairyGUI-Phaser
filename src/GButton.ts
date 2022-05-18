@@ -327,8 +327,8 @@ export class GButton extends GComponent {
     public changeInteractive() {
         if (this._displayObject) {
             if (this._touchable) {
-                const realWid = this._width * GRoot.dpr * GRoot.uiScale;
-                const realHei = this._height * GRoot.dpr * GRoot.uiScale;
+                const realWid = this.initWidth * GRoot.dpr * GRoot.uiScale;
+                const realHei = this.initHeight * GRoot.dpr * GRoot.uiScale;
                 const rect: Phaser.Geom.Rectangle = new Phaser.Geom.Rectangle((0.5 - this._pivotX) * realWid, (0.5 - this._pivotY) * realHei,
                     realWid, realHei);
                 if (!this._displayObject.input) this._displayObject.setInteractive(rect, Phaser.Geom.Rectangle.Contains);
