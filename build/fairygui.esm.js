@@ -23230,7 +23230,8 @@ class GList extends GComponent {
             this._columnGap = buffer.readShort() * GRoot.dpr;
             this._lineCount = buffer.readShort();
             this._columnCount = buffer.readShort();
-            this._autoResizeItem = buffer.readBool() ? buffer.readBool() : GRoot.uiScale < 1;
+            const _autoResize = buffer.readBool();
+            this._autoResizeItem = _autoResize ? _autoResize : GRoot.uiScale < 1;
             this._childrenRenderOrder = buffer.readByte();
             this._apexIndex = buffer.readShort();
             if (buffer.readBool()) {
