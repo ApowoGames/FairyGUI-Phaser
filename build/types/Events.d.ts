@@ -14,6 +14,7 @@ export declare class Events {
     static PULL_DOWN_RELEASE: string;
     static PULL_UP_RELEASE: string;
     static GEAR_STOP: string;
+    static LOADER_COMPLETE: string;
     static $event: InteractiveEvent;
     static createEvent(type: string, target: Phaser.GameObjects.GameObject, source?: {
         target?: Phaser.GameObjects.GameObject;

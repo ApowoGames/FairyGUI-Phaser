@@ -2134,6 +2134,7 @@ Events.DRAG_END = "fui_drag_end";
 Events.PULL_DOWN_RELEASE = "fui_pull_down_release";
 Events.PULL_UP_RELEASE = "fui_pull_up_release";
 Events.GEAR_STOP = "fui_gear_stop";
+Events.LOADER_COMPLETE = "fui_loader_complete";
 Events.$event = new InteractiveEvent();
 
 class RelationItem {
@@ -18652,6 +18653,8 @@ class GLoader extends GObject {
             return;
         this._url = value;
         this.loadContent().then(() => {
+            // 加载完成事件
+            Events.dispatch(Events.LOADER_COMPLETE, this.displayObject, { target: this.displayObject });
         });
         this.updateGear(7);
     }
