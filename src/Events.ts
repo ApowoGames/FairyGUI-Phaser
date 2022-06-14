@@ -16,6 +16,7 @@ export class Events {
     public static PULL_DOWN_RELEASE: string = "fui_pull_down_release";
     public static PULL_UP_RELEASE: string = "fui_pull_up_release";
     public static GEAR_STOP: string = "fui_gear_stop";
+    public static LOADER_COMPLETE: string = "fui_loader_complete";
 
     public static $event: InteractiveEvent = new InteractiveEvent();
 

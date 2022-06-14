@@ -2134,6 +2134,7 @@ Events.DRAG_END = "fui_drag_end";
 Events.PULL_DOWN_RELEASE = "fui_pull_down_release";
 Events.PULL_UP_RELEASE = "fui_pull_up_release";
 Events.GEAR_STOP = "fui_gear_stop";
+Events.LOADER_COMPLETE = "fui_loader_complete";
 Events.$event = new InteractiveEvent();
 
 class RelationItem {
@@ -3556,18 +3557,25 @@ class GObject {
             this.handleXYChanged();
         }
     }
-    center(restraint) {
-        let r;
-        if (this._parent)
-            r = this.parent;
-        else
-            r = this.root;
-        this.setXY((r.width - this._width) / 2, (r.height - this._height) / 2);
-        if (restraint) {
-            this.addRelation(r, RelationType.Center_Center);
-            this.addRelation(r, RelationType.Middle_Middle);
-        }
+    center() {
+        const width = this._width;
+        const height = this._height;
+        const stageWidth = GRoot.inst.width;
+        const stageHeight = GRoot.inst.height;
+        this.setXY(stageWidth - width >> 1, stageHeight - height >> 1);
     }
+    // public center(restraint?: boolean): void {
+    //     let r: GComponent;
+    //     if (this._parent)
+    //         r = this.parent;
+    //     else
+    //         r = this.root;
+    //     this.setXY((r.width - this._width) / 2, (r.height - this._height) / 2);
+    //     if (restraint) {
+    //         this.addRelation(r, RelationType.Center_Center);
+    //         this.addRelation(r, RelationType.Middle_Middle);
+    //     }
+    // }
     get width() {
         this.ensureSizeCorrect();
         if (this._relations.sizeDirty)
@@ -5469,7 +5477,8 @@ class UIStage extends Phaser.Events.EventEmitter {
                 this.scene.sys.displayList.list[sortIndex] : this.scene.add.container(0, 0);
             con = this.scene.make.container(undefined, false);
             const len = parentContainer && parentContainer.list && parentContainer.list.length ? parentContainer.list.length : 0;
-            parentContainer.addAt(con, len);
+            if (parentContainer)
+                parentContainer.addAt(con, len);
             this.containerMap.set(sortIndex, con);
         }
         return con;
@@ -11674,7 +11683,7 @@ class GComponent extends GObject {
                 if (obj && obj instanceof GComponent) {
                     const component = obj;
                     if (component._scrollPane) {
-                        component._scrollPane.maskPosChange(posX, posY);
+                        component._scrollPane.maskPosChange(posX + component.x, posY + component.y);
                     }
                     const list = component._children;
                     list.forEach((obj) => {
@@ -18652,6 +18661,8 @@ class GLoader extends GObject {
             return;
         this._url = value;
         this.loadContent().then(() => {
+            // 加载完成事件
+            Events.dispatch(Events.LOADER_COMPLETE, this.displayObject, { target: this.displayObject });
         });
         this.updateGear(7);
     }
