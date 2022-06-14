@@ -1562,7 +1562,7 @@ export class GComponent extends GObject {
                 if (obj && obj instanceof GComponent) {
                     const component = (<GComponent>obj);
                     if (component._scrollPane) {
-                        component._scrollPane.maskPosChange(posX, posY);
+                        component._scrollPane.maskPosChange(posX + component.x, posY + component.y);
                     }
                     const list = component._children;
                     list.forEach((obj) => {
