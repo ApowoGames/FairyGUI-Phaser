@@ -351,19 +351,26 @@ export class GObject {
         }
     }
 
-    public center(restraint?: boolean): void {
-        let r: GComponent;
-        if (this._parent)
-            r = this.parent;
-        else
-            r = this.root;
-
-        this.setXY((r.width - this._width) / 2, (r.height - this._height) / 2);
-        if (restraint) {
-            this.addRelation(r, RelationType.Center_Center);
-            this.addRelation(r, RelationType.Middle_Middle);
-        }
+    public center(): void {
+        const width = this._width;
+        const height = this._height;
+        const stageWidth = GRoot.inst.width;
+        const stageHeight = GRoot.inst.height;
+        this.setXY(stageWidth - width >> 1, stageHeight - height >> 1);
     }
+    // public center(restraint?: boolean): void {
+    //     let r: GComponent;
+    //     if (this._parent)
+    //         r = this.parent;
+    //     else
+    //         r = this.root;
+
+    //     this.setXY((r.width - this._width) / 2, (r.height - this._height) / 2);
+    //     if (restraint) {
+    //         this.addRelation(r, RelationType.Center_Center);
+    //         this.addRelation(r, RelationType.Middle_Middle);
+    //     }
+    // }
 
     public get width(): number {
         this.ensureSizeCorrect();
