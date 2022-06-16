@@ -138,7 +138,7 @@ export declare class GObject {
     set yMin(value: number);
     get pixelSnapping(): boolean;
     set pixelSnapping(value: boolean);
-    center(): void;
+    center(restraint?: boolean): void;
     get width(): number;
     set width(value: number);
     get height(): number;

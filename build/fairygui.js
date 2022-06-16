@@ -3561,25 +3561,32 @@
                 this.handleXYChanged();
             }
         }
-        center() {
-            const width = this._width;
-            const height = this._height;
-            const stageWidth = GRoot.inst.width;
-            const stageHeight = GRoot.inst.height;
-            this.setXY(stageWidth - width >> 1, stageHeight - height >> 1);
+        center(restraint) {
+            let r;
+            let parentWid = 0;
+            let parentHei = 0;
+            if (this._parent) {
+                r = this.parent;
+                if (this.parent instanceof GRoot) {
+                    parentWid = r.stageWidth;
+                    parentHei = r.stageHeight;
+                }
+                else {
+                    parentWid = r.width;
+                    parentHei = r.height;
+                }
+            }
+            else {
+                r = this.root;
+                parentWid = r.stageWidth;
+                parentHei = r.stageHeight;
+            }
+            this.setXY((parentWid - this._width) / 2, (parentHei - this._height) / 2);
+            if (restraint) {
+                this.addRelation(r, exports.RelationType.Center_Center);
+                this.addRelation(r, exports.RelationType.Middle_Middle);
+            }
         }
-        // public center(restraint?: boolean): void {
-        //     let r: GComponent;
-        //     if (this._parent)
-        //         r = this.parent;
-        //     else
-        //         r = this.root;
-        //     this.setXY((r.width - this._width) / 2, (r.height - this._height) / 2);
-        //     if (restraint) {
-        //         this.addRelation(r, RelationType.Center_Center);
-        //         this.addRelation(r, RelationType.Middle_Middle);
-        //     }
-        // }
         get width() {
             this.ensureSizeCorrect();
             if (this._relations.sizeDirty)
@@ -3634,7 +3641,7 @@
         ensureSizeCorrect() {
         }
         makeFullScreen() {
-            this.setSize(GRoot.inst.width / GRoot.dpr, GRoot.inst.height / GRoot.dpr);
+            this.setSize(GRoot.inst.stageWidth, GRoot.inst.stageHeight);
         }
         get actualWidth() {
             return this.width * Math.abs(this._scaleX);
@@ -5401,6 +5408,7 @@
             this.orientation = exports.StageOrientation.AUTO;
             this.dpr = 1;
             // 默认竖屏
+            this.isDesk = false; // 默认手机ui
             this.designWidth = 360;
             this.designHeight = 640;
             this.width = 480;
@@ -7282,7 +7290,7 @@
     class ScrollPane {
         constructor(owner) {
             // 用于查看滚动页面实际交互位置
-            this._showMask = false;
+            this._showMask = true;
             this._timeDelta = 0.08;
             this._offsetParamWid = 1;
             this._offsetParamHei = 1;
@@ -8072,8 +8080,8 @@
                     : undefined;
                 const xv = this._owner.x;
                 const yv = this._owner.y;
-                const posX = worldMatrix ? worldMatrix.tx + xv : xv;
-                const posY = worldMatrix ? worldMatrix.ty + yv : yv;
+                const posX = worldMatrix ? worldMatrix.tx / GRoot.dpr + xv : xv;
+                const posY = worldMatrix ? worldMatrix.ty / GRoot.dpr + yv : yv;
                 this.maskPosChange(posX, posY);
             }
             const offsetParam = GRoot.uiScale * GRoot.dpr;
@@ -11862,10 +11870,10 @@
             this.addListen();
         }
         get stageWidth() {
-            return this._width;
+            return this._width / GRoot.dpr;
         }
         get stageHeight() {
-            return this._height;
+            return this._height / GRoot.dpr;
         }
         get designWidth() {
             return this._stageOptions.designWidth;
