@@ -30,6 +30,7 @@ export interface UIStageOptions {
     osd: string;
     res: string;
     resUI: string;
+    isDesk: boolean;
     scaleMode?: StageScaleMode;
     orientation?: StageOrientation;
     dpr: number;
@@ -52,6 +53,7 @@ export class DefaultUIStageOptions implements UIStageOptions {
     public orientation?: StageOrientation = StageOrientation.AUTO;
     public dpr: number = 1;
     // 默认竖屏
+    public isDesk: boolean = false; // 默认手机ui
     public designWidth: number = 360;
     public designHeight: number = 640;
     public width: number = 480;
