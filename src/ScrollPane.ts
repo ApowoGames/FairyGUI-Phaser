@@ -1000,8 +1000,8 @@ export class ScrollPane {
                 : undefined;
             const xv = this._owner.x;
             const yv = this._owner.y;
-            const posX = worldMatrix ? worldMatrix.tx + xv : xv;
-            const posY = worldMatrix ? worldMatrix.ty + yv : yv;
+            const posX = worldMatrix ? worldMatrix.tx / GRoot.dpr + xv : xv;
+            const posY = worldMatrix ? worldMatrix.ty / GRoot.dpr + yv : yv;
             this.maskPosChange(posX, posY);
         }
 

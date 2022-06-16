@@ -8076,8 +8076,8 @@ class ScrollPane {
                 : undefined;
             const xv = this._owner.x;
             const yv = this._owner.y;
-            const posX = worldMatrix ? worldMatrix.tx + xv : xv;
-            const posY = worldMatrix ? worldMatrix.ty + yv : yv;
+            const posX = worldMatrix ? worldMatrix.tx / GRoot.dpr + xv : xv;
+            const posY = worldMatrix ? worldMatrix.ty / GRoot.dpr + yv : yv;
             this.maskPosChange(posX, posY);
         }
         const offsetParam = GRoot.uiScale * GRoot.dpr;
@@ -11691,7 +11691,7 @@ class GComponent extends GObject {
                 if (obj && obj instanceof GComponent) {
                     const component = obj;
                     if (component._scrollPane) {
-                        component._scrollPane.maskPosChange(posX + component.x / GRoot.dpr, posY + component.y / GRoot.dpr);
+                        component._scrollPane.maskPosChange(posX + component.x, posY + component.y);
                     }
                     const list = component._children;
                     list.forEach((obj) => {
