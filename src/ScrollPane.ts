@@ -16,7 +16,7 @@ import { Utils } from './utils/Utils';
 import { GRoot, ObjectType } from '.';
 export class ScrollPane {
     // 用于查看滚动页面实际交互位置
-    private _showMask: boolean = false;
+    private _showMask: boolean = true;
     private _owner: GComponent;
     private _container: Phaser.GameObjects.Container;
     private _mask: Phaser.GameObjects.Graphics;
@@ -1000,8 +1000,8 @@ export class ScrollPane {
                 : undefined;
             const xv = this._owner.x;
             const yv = this._owner.y;
-            const posX = worldMatrix ? worldMatrix.tx + xv : xv;
-            const posY = worldMatrix ? worldMatrix.ty + yv : yv;
+            const posX = worldMatrix ? worldMatrix.tx / GRoot.dpr + xv : xv;
+            const posY = worldMatrix ? worldMatrix.ty / GRoot.dpr + yv : yv;
             this.maskPosChange(posX, posY);
         }
 

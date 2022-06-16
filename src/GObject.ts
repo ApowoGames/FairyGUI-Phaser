@@ -351,26 +351,32 @@ export class GObject {
         }
     }
 
-    public center(): void {
-        const width = this._width;
-        const height = this._height;
-        const stageWidth = GRoot.inst.width;
-        const stageHeight = GRoot.inst.height;
-        this.setXY(stageWidth - width >> 1, stageHeight - height >> 1);
-    }
-    // public center(restraint?: boolean): void {
-    //     let r: GComponent;
-    //     if (this._parent)
-    //         r = this.parent;
-    //     else
-    //         r = this.root;
+    public center(restraint?: boolean): void {
+        let r: GComponent;
+        let parentWid: number = 0;
+        let parentHei: number = 0;
+        if (this._parent) {
+            r = this.parent;
+            if (this.parent instanceof GRoot) {
+                parentWid = (<GRoot>r).stageWidth;
+                parentHei = (<GRoot>r).stageHeight;
+            } else {
+                parentWid = r.width;
+                parentHei = r.height;
+            }
+        }
+        else {
+            r = this.root;
+            parentWid = (<GRoot>r).stageWidth;
+            parentHei = (<GRoot>r).stageHeight;
+        }
 
-    //     this.setXY((r.width - this._width) / 2, (r.height - this._height) / 2);
-    //     if (restraint) {
-    //         this.addRelation(r, RelationType.Center_Center);
-    //         this.addRelation(r, RelationType.Middle_Middle);
-    //     }
-    // }
+        this.setXY((parentWid - this._width) / 2, (parentHei - this._height) / 2);
+        if (restraint) {
+            this.addRelation(r, RelationType.Center_Center);
+            this.addRelation(r, RelationType.Middle_Middle);
+        }
+    }
 
     public get width(): number {
         this.ensureSizeCorrect();
@@ -437,7 +443,7 @@ export class GObject {
     }
 
     public makeFullScreen(): void {
-        this.setSize(GRoot.inst.width / GRoot.dpr, GRoot.inst.height / GRoot.dpr);
+        this.setSize(GRoot.inst.stageWidth, GRoot.inst.stageHeight);
     }
 
     public get actualWidth(): number {
