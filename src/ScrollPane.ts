@@ -16,7 +16,7 @@ import { Utils } from './utils/Utils';
 import { GRoot, ObjectType } from '.';
 export class ScrollPane {
     // 用于查看滚动页面实际交互位置
-    private _showMask: boolean = true;
+    private _showMask: boolean = false;
     private _owner: GComponent;
     private _container: Phaser.GameObjects.Container;
     private _mask: Phaser.GameObjects.Graphics;
