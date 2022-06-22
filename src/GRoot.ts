@@ -148,7 +148,6 @@ export class GRoot extends GComponent {
         (<any>this._scene).stage = this._uiStage;
         this._width = stageOptions.width;
         this._height = stageOptions.height;
-
         if (!this._stageOptions.designWidth)
             this._stageOptions.designWidth = this._width > this._height ? this._uiStage.stageOption.designHeight : this._uiStage.stageOption.designWidth;
         if (!this._stageOptions.designHeight)
@@ -163,11 +162,11 @@ export class GRoot extends GComponent {
     }
 
     get stageWidth(): number {
-        return this._width;
+        return this._width / GRoot.dpr;
     }
 
     get stageHeight(): number {
-        return this._height;
+        return this._height / GRoot.dpr;
     }
 
     get designWidth(): number {

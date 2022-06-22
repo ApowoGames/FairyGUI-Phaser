@@ -25,6 +25,7 @@ export interface UIStageOptions {
     osd: string;
     res: string;
     resUI: string;
+    isDesk: boolean;
     scaleMode?: StageScaleMode;
     orientation?: StageOrientation;
     dpr: number;
@@ -43,6 +44,7 @@ export declare class DefaultUIStageOptions implements UIStageOptions {
     scaleMode?: StageScaleMode;
     orientation?: StageOrientation;
     dpr: number;
+    isDesk: boolean;
     designWidth: number;
     designHeight: number;
     width: number;

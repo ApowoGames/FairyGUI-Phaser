@@ -30,6 +30,7 @@ export interface UIStageOptions {
     osd: string;
     res: string;
     resUI: string;
+    isDesk: boolean;
     scaleMode?: StageScaleMode;
     orientation?: StageOrientation;
     dpr: number;
@@ -52,6 +53,7 @@ export class DefaultUIStageOptions implements UIStageOptions {
     public orientation?: StageOrientation = StageOrientation.AUTO;
     public dpr: number = 1;
     // 默认竖屏
+    public isDesk: boolean = false; // 默认手机ui
     public designWidth: number = 360;
     public designHeight: number = 640;
     public width: number = 480;
@@ -148,11 +150,11 @@ export class UIStage extends Phaser.Events.EventEmitter {
         if (!this.containerMap) this.containerMap = new Map();
         let con = this.containerMap.get(sortIndex);
         if (!con) {
-            const parentContainer = <Phaser.GameObjects.Container>this.scene.sys.displayList.list[sortIndex] ? 
-            <Phaser.GameObjects.Container>this.scene.sys.displayList.list[sortIndex] : this.scene.add.container(0, 0);
+            const parentContainer = <Phaser.GameObjects.Container>this.scene.sys.displayList.list[sortIndex] ?
+                <Phaser.GameObjects.Container>this.scene.sys.displayList.list[sortIndex] : this.scene.add.container(0, 0);
             con = this.scene.make.container(undefined, false);
             const len = parentContainer && parentContainer.list && parentContainer.list.length ? parentContainer.list.length : 0
-            parentContainer.addAt(con, len);
+            if (parentContainer) parentContainer.addAt(con, len);
             this.containerMap.set(sortIndex, con);
         }
         return con;

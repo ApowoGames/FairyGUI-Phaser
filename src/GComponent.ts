@@ -893,7 +893,9 @@ export class GComponent extends GObject {
         if (!this._boundsChanged) {
             this._boundsChanged = true;
 
-            if (!this._renderTime) this.scene.time.addEvent(this._renderEvent);
+            // if (!this._renderTime) 
+            this.scene.time.delayedCall(200, this.__render, undefined, this);
+            //addEvent(this._renderEvent);
             //Laya.timer.callLater(this, this.__render);
         }
     }
@@ -1562,7 +1564,7 @@ export class GComponent extends GObject {
                 if (obj && obj instanceof GComponent) {
                     const component = (<GComponent>obj);
                     if (component._scrollPane) {
-                        component._scrollPane.maskPosChange(posX, posY);
+                        component._scrollPane.maskPosChange(posX + component.x, posY + component.y);
                     }
                     const list = component._children;
                     list.forEach((obj) => {

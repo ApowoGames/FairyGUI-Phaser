@@ -2134,6 +2134,7 @@ Events.DRAG_END = "fui_drag_end";
 Events.PULL_DOWN_RELEASE = "fui_pull_down_release";
 Events.PULL_UP_RELEASE = "fui_pull_up_release";
 Events.GEAR_STOP = "fui_gear_stop";
+Events.LOADER_COMPLETE = "fui_loader_complete";
 Events.$event = new InteractiveEvent();
 
 class RelationItem {
@@ -3558,11 +3559,25 @@ class GObject {
     }
     center(restraint) {
         let r;
-        if (this._parent)
+        let parentWid = 0;
+        let parentHei = 0;
+        if (this._parent) {
             r = this.parent;
-        else
+            if (this.parent instanceof GRoot) {
+                parentWid = r.stageWidth;
+                parentHei = r.stageHeight;
+            }
+            else {
+                parentWid = r.width;
+                parentHei = r.height;
+            }
+        }
+        else {
             r = this.root;
-        this.setXY((r.width - this._width) / 2, (r.height - this._height) / 2);
+            parentWid = r.stageWidth;
+            parentHei = r.stageHeight;
+        }
+        this.setXY((parentWid - this._width) / 2, (parentHei - this._height) / 2);
         if (restraint) {
             this.addRelation(r, RelationType.Center_Center);
             this.addRelation(r, RelationType.Middle_Middle);
@@ -3622,7 +3637,7 @@ class GObject {
     ensureSizeCorrect() {
     }
     makeFullScreen() {
-        this.setSize(GRoot.inst.width / GRoot.dpr, GRoot.inst.height / GRoot.dpr);
+        this.setSize(GRoot.inst.stageWidth, GRoot.inst.stageHeight);
     }
     get actualWidth() {
         return this.width * Math.abs(this._scaleX);
@@ -5389,6 +5404,7 @@ class DefaultUIStageOptions {
         this.orientation = StageOrientation.AUTO;
         this.dpr = 1;
         // 默认竖屏
+        this.isDesk = false; // 默认手机ui
         this.designWidth = 360;
         this.designHeight = 640;
         this.width = 480;
@@ -5469,7 +5485,8 @@ class UIStage extends Phaser.Events.EventEmitter {
                 this.scene.sys.displayList.list[sortIndex] : this.scene.add.container(0, 0);
             con = this.scene.make.container(undefined, false);
             const len = parentContainer && parentContainer.list && parentContainer.list.length ? parentContainer.list.length : 0;
-            parentContainer.addAt(con, len);
+            if (parentContainer)
+                parentContainer.addAt(con, len);
             this.containerMap.set(sortIndex, con);
         }
         return con;
@@ -8059,8 +8076,8 @@ class ScrollPane {
                 : undefined;
             const xv = this._owner.x;
             const yv = this._owner.y;
-            const posX = worldMatrix ? worldMatrix.tx + xv : xv;
-            const posY = worldMatrix ? worldMatrix.ty + yv : yv;
+            const posX = worldMatrix ? worldMatrix.tx / GRoot.dpr + xv : xv;
+            const posY = worldMatrix ? worldMatrix.ty / GRoot.dpr + yv : yv;
             this.maskPosChange(posX, posY);
         }
         const offsetParam = GRoot.uiScale * GRoot.dpr;
@@ -11080,8 +11097,9 @@ class GComponent extends GObject {
             return;
         if (!this._boundsChanged) {
             this._boundsChanged = true;
-            if (!this._renderTime)
-                this.scene.time.addEvent(this._renderEvent);
+            // if (!this._renderTime) 
+            this.scene.time.delayedCall(200, this.__render, undefined, this);
+            //addEvent(this._renderEvent);
             //Laya.timer.callLater(this, this.__render);
         }
     }
@@ -11674,7 +11692,7 @@ class GComponent extends GObject {
                 if (obj && obj instanceof GComponent) {
                     const component = obj;
                     if (component._scrollPane) {
-                        component._scrollPane.maskPosChange(posX, posY);
+                        component._scrollPane.maskPosChange(posX + component.x, posY + component.y);
                     }
                     const list = component._children;
                     list.forEach((obj) => {
@@ -11849,10 +11867,10 @@ class GRoot extends GComponent {
         this.addListen();
     }
     get stageWidth() {
-        return this._width;
+        return this._width / GRoot.dpr;
     }
     get stageHeight() {
-        return this._height;
+        return this._height / GRoot.dpr;
     }
     get designWidth() {
         return this._stageOptions.designWidth;
@@ -18652,6 +18670,8 @@ class GLoader extends GObject {
             return;
         this._url = value;
         this.loadContent().then(() => {
+            // 加载完成事件
+            Events.dispatch(Events.LOADER_COMPLETE, this.displayObject, { target: this.displayObject });
         });
         this.updateGear(7);
     }

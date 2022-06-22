@@ -10,6 +10,7 @@ import { PackageItem } from './PackageItem';
 import { GObject } from './GObject';
 import { GComponent } from './GComponent';
 import { AssetProxy, LoaderType } from './AssetProxy';
+import { Events } from './Events';
 export class GLoader extends GObject {
     private _url: string;
     private _align: string;
@@ -83,7 +84,8 @@ export class GLoader extends GObject {
 
         this._url = value;
         this.loadContent().then(() => {
-
+            // 加载完成事件
+            Events.dispatch(Events.LOADER_COMPLETE, this.displayObject,{target:this.displayObject});
         });
         this.updateGear(7);
     }
