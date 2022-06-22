@@ -1,3 +1,5 @@
+import { GRoot } from "..";
+
 export class UBBParser {
     private _text: string;
     private _readPos: number = 0;
@@ -45,7 +47,7 @@ export class UBBParser {
                 return null;
 
             if (this.defaultImgWidth)
-                return "<img src=\"" + src + "\" width=\"" + this.defaultImgWidth + "\" height=\"" + this.defaultImgHeight + "\"/>";
+                return "<img src=\"" + src + "\" width=\"" + this.defaultImgWidth * GRoot.dpr * GRoot.uiScale + "\" height=\"" + this.defaultImgHeight * GRoot.dpr * GRoot.uiScale + "\"/>";
             else
                 return "<img src=\"" + src + "\"/>";
         }

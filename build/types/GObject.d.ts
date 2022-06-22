@@ -40,6 +40,8 @@ export declare class GObject {
     protected _x: number;
     protected _y: number;
     private _alpha;
+    private _basePosX;
+    private _basePosY;
     private _rotation;
     private _visible;
     protected _touchable: boolean;
@@ -68,6 +70,7 @@ export declare class GObject {
     private _dragBounds?;
     private _dragTesting?;
     private _dragStartPos?;
+    private _extenalScaleBoo;
     protected _displayStyle: DisplayStyle;
     private _timeEvent;
     protected _displayObject: any;
@@ -77,6 +80,7 @@ export declare class GObject {
     protected _worldMatrix: Phaser.GameObjects.Components.TransformMatrix;
     protected _worldTx: number;
     protected _worldTy: number;
+    protected _dprOffset: number;
     minWidth: number;
     minHeight: number;
     maxWidth: number;
@@ -98,6 +102,10 @@ export declare class GObject {
     _treeNode?: GTreeNode;
     protected _objectType: number;
     constructor(scene: Phaser.Scene, type: number);
+    get basePosX(): number;
+    get basePosY(): number;
+    get extenalScaleBoo(): boolean;
+    set exteanalScaleBoo(val: boolean);
     get adaptiveScaleX(): number;
     set adaptiveScaleX(val: number);
     get adaptiveScaleY(): number;
@@ -123,7 +131,7 @@ export declare class GObject {
     get worldMatrix(): Phaser.GameObjects.Components.TransformMatrix;
     get timeEvent(): Phaser.Time.TimerEvent;
     set timeEvent(value: Phaser.Time.TimerEvent);
-    setXY(xv: number, yv: number, force?: boolean): void;
+    setXY(xv: number, yv: number, force?: boolean, noEmitter?: boolean): void;
     get xMin(): number;
     set xMin(value: number);
     get yMin(): number;
@@ -136,7 +144,6 @@ export declare class GObject {
     get height(): number;
     set height(value: number);
     setSize(wv: number, hv: number, ignorePivot?: boolean): void;
-    externalSetSize(wv: number, hv: number, ignorePivot?: boolean): void;
     ensureSizeCorrect(): void;
     makeFullScreen(): void;
     get actualWidth(): number;
@@ -164,6 +171,7 @@ export declare class GObject {
     get touchable(): boolean;
     set touchable(value: boolean);
     setTouchable(value: boolean): void;
+    changeInteractive(): void;
     protected removeInteractive(): void;
     get grayed(): boolean;
     set grayed(value: boolean);
@@ -313,6 +321,10 @@ export declare class GObject {
     private __begin;
     private __moving;
     private __end;
+    get xOffset(): number;
+    set xOffset(val: number);
+    set yOffset(val: number);
+    get yOffset(): number;
     static cast(sprite: Phaser.GameObjects.GameObject): GObject;
 }
 export declare const BlendMode: {

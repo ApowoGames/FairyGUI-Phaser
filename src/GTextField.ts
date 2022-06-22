@@ -81,6 +81,23 @@ export class GTextField extends GObject {
         this.doAlign();
     }
 
+    protected handleSizeChanged(): void {
+        this._displayObject.setSize(this._width * this._dprOffset, this._height);
+        this.changeInteractive();
+    }
+
+    public changeInteractive() {
+        if (this._displayObject) {
+            if (this._touchable) {
+                const realWid = this._width * this._dprOffset;
+                const realHei = this._height;
+                const rect: Phaser.Geom.Rectangle = new Phaser.Geom.Rectangle(0, 0,
+                    realWid, realHei);
+                if (!this._displayObject.input) this._displayObject.setInteractive(rect, Phaser.Geom.Rectangle.Contains);
+                else this._displayObject.input.hitArea = rect;
+            }
+        }
+    }
     public get leading(): number {
         return this._lead;
     }

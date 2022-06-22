@@ -49,6 +49,8 @@ export class GObject {
     protected _x: number = 0;
     protected _y: number = 0;
     private _alpha: number = 1;
+    private _basePosX: number = 0;
+    private _basePosY: number = 0;
     private _rotation: number = 0;
     private _visible: boolean = true;
     // 可交互默认false
@@ -80,6 +82,10 @@ export class GObject {
     private _dragTesting?: boolean;
     private _dragStartPos?: Phaser.Geom.Point;
 
+    // 记录是否已经调整过对象适配时而调整的缩放比例
+    private _extenalScaleBoo: boolean = false;
+
+
     protected _displayStyle: DisplayStyle;
     private _timeEvent: Phaser.Time.TimerEvent;
 
@@ -90,6 +96,7 @@ export class GObject {
     protected _worldMatrix: Phaser.GameObjects.Components.TransformMatrix;
     protected _worldTx: number = 0;
     protected _worldTy: number = 0;
+    protected _dprOffset: number = 1;
 
     public minWidth: number = 0;
     public minHeight: number = 0;
@@ -118,6 +125,7 @@ export class GObject {
         this._id = "" + _gInstanceCounter++;
         this.type = type;
         this._name = "";
+        this._dprOffset = GRoot.dpr * GRoot.uiScale;
         // todo 优先传入scene在创建display
         this.scene = scene;
         if (this.scene) this.createDisplayObject();
@@ -125,6 +133,22 @@ export class GObject {
 
         this._relations = new Relations(this);
         this._gears = new Array<GearBase>(10);
+    }
+
+    get basePosX(): number {
+        return this._basePosX;
+    }
+
+    get basePosY(): number {
+        return this._basePosY;
+    }
+
+    get extenalScaleBoo(): boolean {
+        return this._extenalScaleBoo;
+    }
+
+    set exteanalScaleBoo(val: boolean) {
+        this._extenalScaleBoo = val;
     }
 
     get adaptiveScaleX(): number {
@@ -268,7 +292,7 @@ export class GObject {
         this._timeEvent = value;
     }
 
-    public setXY(xv: number, yv: number, force: boolean = false): void {
+    public setXY(xv: number, yv: number, force: boolean = false, noEmitter: boolean = false): void {
         if (this._x != xv || this._y != yv || force) {
             var dx: number = xv - this._x;
             var dy: number = yv - this._y;
@@ -286,7 +310,7 @@ export class GObject {
                 this._parent.setBoundsChangedFlag();
                 if (this._group)
                     this._group.setBoundsChangedFlag(true);
-                this.displayObject.emit(DisplayObjectEvent.XY_CHANGED);
+                if (!noEmitter) this.displayObject.emit(DisplayObjectEvent.XY_CHANGED);
             }
 
             if (GObject.draggingObject == this && !sUpdateInDragging)
@@ -329,12 +353,25 @@ export class GObject {
 
     public center(restraint?: boolean): void {
         let r: GComponent;
-        if (this._parent)
+        let parentWid: number = 0;
+        let parentHei: number = 0;
+        if (this._parent) {
             r = this.parent;
-        else
+            if (this.parent instanceof GRoot) {
+                parentWid = (<GRoot>r).stageWidth;
+                parentHei = (<GRoot>r).stageHeight;
+            } else {
+                parentWid = r.width;
+                parentHei = r.height;
+            }
+        }
+        else {
             r = this.root;
+            parentWid = (<GRoot>r).stageWidth;
+            parentHei = (<GRoot>r).stageHeight;
+        }
 
-        this.setXY((r.width - this._width) / 2, (r.height - this._height) / 2);
+        this.setXY((parentWid - this._width) / 2, (parentHei - this._height) / 2);
         if (restraint) {
             this.addRelation(r, RelationType.Center_Center);
             this.addRelation(r, RelationType.Middle_Middle);
@@ -363,8 +400,9 @@ export class GObject {
         this.setSize(this._rawWidth, value);
     }
 
+
     public setSize(wv: number, hv: number, ignorePivot?: boolean): void {
-        if (this._rawWidth != wv || this._rawHeight != hv) {
+        if (this._rawWidth !== wv || this._rawHeight !== hv) {
             this._rawWidth = wv;
             this._rawHeight = hv;
             if (wv < this.minWidth)
@@ -397,70 +435,15 @@ export class GObject {
 
             this.updateGear(2);
 
-            // if (this._parent) {
-            //     this._relations.onOwnerSizeChanged(dWidth, dHeight, this._pivotAsAnchor || !ignorePivot);
-            //     this._parent.setBoundsChangedFlag();
-            //     if (this._group)
-            //         this._group.setBoundsChangedFlag();
-            // }
-
             this.displayObject.emit(DisplayObjectEvent.SIZE_CHANGED);
         }
     }
-
-    public externalSetSize(wv: number, hv: number, ignorePivot?: boolean): void {
-        if (this._rawWidth != wv || this._rawHeight != hv) {
-            this._rawWidth = wv;
-            this._rawHeight = hv;
-            if (wv < this.minWidth)
-                wv = this.minWidth;
-            if (hv < this.minHeight)
-                hv = this.minHeight;
-            if (this.maxWidth > 0 && wv > this.maxWidth)
-                wv = this.maxWidth;
-            if (this.maxHeight > 0 && hv > this.maxHeight)
-                hv = this.maxHeight;
-            var dWidth: number = wv - this._width;
-            var dHeight: number = hv - this._height;
-            this._width = wv;
-            this._height = hv;
-
-            this.handleSizeChanged();
-            if (this._pivotX != 0 || this._pivotY != 0) {
-                if (!this._pivotAsAnchor) {
-                    if (!ignorePivot)
-                        this.setXY(this.x - this._pivotX * dWidth, this.y - this._pivotY * dHeight);
-                    this.updatePivotOffset();
-                }
-                else {
-                    this.applyPivot();
-                }
-            }
-
-            if (this instanceof GGroup)
-                this.resizeChildren(dWidth, dHeight);
-
-            this.updateGear(2);
-
-            if (this._parent) {
-                this._relations.onOwnerSizeChanged(dWidth, dHeight, this._pivotAsAnchor || !ignorePivot);
-                this._parent.setBoundsChangedFlag();
-                if (this._group)
-                    this._group.setBoundsChangedFlag();
-            }
-
-            this.displayObject.emit(DisplayObjectEvent.SIZE_CHANGED);
-        }
-    }
-
-
-
 
     public ensureSizeCorrect(): void {
     }
 
     public makeFullScreen(): void {
-        this.setSize(GRoot.inst.width, GRoot.inst.height);
+        this.setSize(GRoot.inst.stageWidth, GRoot.inst.stageHeight);
     }
 
     public get actualWidth(): number {
@@ -586,6 +569,23 @@ export class GObject {
                 this._pivotOffsetY = 0;
             }
         }
+
+        // if (this._displayObject) {
+        //     const transform = this._displayObject.getLocalTransformMatrix();
+        //     if (transform && (this._pivotX != 0 || this._pivotY != 0)) {
+        //         sHelperPoint.x = this._pivotX * this._width;
+        //         sHelperPoint.y = this._pivotY * this._height;
+        //         const pt: Phaser.Geom.Point = new Phaser.Geom.Point();
+        //         (<Phaser.Geom.Point>transform.transformPoint(this._pivotX * this.initWidth,
+        //             this._pivotY * this.initHeight, pt));
+        //         this._pivotOffsetX = this._pivotX * this._width - pt.x;
+        //         this._pivotOffsetY = this._pivotY * this._height - pt.y;
+        //     }
+        //     else {
+        //         this._pivotOffsetX = 0;
+        //         this._pivotOffsetY = 0;
+        //     }
+        // }
     }
 
     protected applyPivot(): void {
@@ -621,27 +621,33 @@ export class GObject {
         //     || (this instanceof GTextField) && !(this instanceof GTextInput) && !(this instanceof GRichTextField))
         //     //Touch is not supported by GImage/GMovieClip/GTextField
         //     return;
+        this.changeInteractive();
 
+        this.updatePivotOffset();
+    }
+    // private _g: Phaser.GameObjects.Graphics;
+    public changeInteractive() {
         if (this._displayObject) {
             if (this._touchable) {
-                // 注册点不在中心需要重新调整交互区域
-                if (this._pivotX !== 0 || this._pivotY !== 0) {
-                    this.removeInteractive();
-                    this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, (this.initWidth / this.scaleX), (this.initHeight / this.scaleY)), Phaser.Geom.Rectangle.Contains);
-                } else {
-                    this._displayObject.setInteractive(new Phaser.Geom.Rectangle(this.initWidth / 2, this.initWidth / 2, this.initWidth / this.scaleX, this.initHeight / this.scaleY), Phaser.Geom.Rectangle.Contains);
-                }
+                const realWid = this.initWidth * this._dprOffset;
+                const realHei = this.initHeight * this._dprOffset;
+                const rect: Phaser.Geom.Rectangle = new Phaser.Geom.Rectangle((0.5 - this._pivotX) * realWid, (0.5 - this._pivotY) * realHei,
+                    realWid, realHei);
+                if (!this._displayObject.input) this._displayObject.setInteractive(rect, Phaser.Geom.Rectangle.Contains);
+                else this._displayObject.input.hitArea = rect;
 
-            } else {
-                this.removeInteractive();
+                // if (this._g) (<Phaser.GameObjects.Container>this._displayObject).remove(this._g);
+                // else this._g = this.scene.make.graphics(undefined, false);
+                // this._g.clear();
+                // this._g.fillStyle(0x66cc00, 0.5);
+                // this._g.fillRoundedRect(0, 0, rect.width, rect.height, 5);//0, 0, this._width * GRoot.dpr, this._height * GRoot.dpr);
+                // this._displayObject.addAt(this._g, 0);
             }
         }
-        this.updatePivotOffset();
     }
 
     protected removeInteractive() {
         this._displayObject.disableInteractive();
-        this._displayObject.removeInteractive();
     }
 
     public get grayed(): boolean {
@@ -1044,6 +1050,7 @@ export class GObject {
     }
 
     public dispose(): void {
+        this._extenalScaleBoo = false;
         this.removeFromParent();
         if (this._relations) {
             this._relations.dispose();
@@ -1163,7 +1170,7 @@ export class GObject {
         //     if (!ele.parentContainer) break;
         //     ele = ele.parentContainer;
         // }
-        return new Phaser.Geom.Point(worldMatrix.tx, worldMatrix.ty);
+        return new Phaser.Geom.Point(worldMatrix.tx / GRoot.dpr, worldMatrix.ty / GRoot.dpr);
     }
 
     public globalToLocal(ax?: number, ay?: number, result?: Phaser.Geom.Point): Phaser.Geom.Point {
@@ -1341,28 +1348,46 @@ export class GObject {
     protected handleXYChanged(): void {
         var xv: number = this._x + this._xOffset;
         var yv: number = this._y + this._yOffset;
-
-        if (this.parent) {
-            if (this._relationPivot) {
-                xv += this.parent.pivotOffsetX;
-                yv += this.parent.pivotOffsetY;
-            }
-            if (this._pivotAsAnchor) {
-                xv -= this.parent.initWidth * this.parent.pivotX;
-                yv -= this.parent.initHeight * this.parent.pivotY;
-            }
+        let offsetXParam: number = GRoot.dpr * GRoot.uiScale;
+        let offsetYParam: number = GRoot.dpr * GRoot.uiScale;
+        if (this.parent && (this.parent.name === "")) {
+            offsetXParam = GRoot.dpr;
+            offsetYParam = GRoot.dpr;
         }
 
         if (this._pixelSnapping) {
             xv = Math.round(xv);
             yv = Math.round(yv);
         }
-        this._displayObject.setPosition(xv, yv);
+        this._displayObject.setPosition(xv * offsetXParam, yv * offsetYParam);
+
+
+        // var xv: number = this._x;
+        // var yv: number = this._y + this._yOffset;
+        // if (this._pivotAsAnchor) {
+        //     xv -= this._pivotX * this._width;
+        //     yv -= this._pivotY * this._height;
+        // }
+        // if (this._pixelSnapping) {
+        //     xv = Math.round(xv);
+        //     yv = Math.round(yv);
+        // }
+
+        // this._displayObject.setPosition(xv + this._pivotOffsetX, yv + this._pivotOffsetY);
     }
 
     protected handleSizeChanged(): void {
+        if (this.name === "maskBG" || (this.parent && this.parent.name === "maskBG") || (this._parent && this._parent.type === ObjectType.List)) {
+            this._displayObject.setSize(this._width * GRoot.dpr, this._height * GRoot.dpr);
+        } else if (this.type === ObjectType.List) {
+            const contentScaleWid = GRoot.contentScaleWid > 1 ? GRoot.contentScaleWid : GRoot.uiScale;
+            const contentScaleHei = GRoot.contentScaleHei > 1 ? GRoot.contentScaleHei : GRoot.uiScale;
+            this._displayObject.setSize(this._width * GRoot.dpr * contentScaleWid, this._height * GRoot.dpr * contentScaleHei);
+        } else {
+            this._displayObject.setSize(this._width * GRoot.dpr * GRoot.uiScale, this._height * GRoot.dpr * GRoot.uiScale);
+        }
+        this.changeInteractive();
         // (<Phaser.GameObjects.Container>this.displayObject).setDisplaySize(this._width, this._height);
-        this._displayObject.setSize(this._width, this._height);
         // this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this._width, this._height), Phaser.Geom.Rectangle.Contains);
     }
 
@@ -1443,6 +1468,7 @@ export class GObject {
         if (buffer.readBool()) {
             this.initWidth = buffer.readInt();
             this.initHeight = buffer.readInt();
+            this.setSize(this.initWidth, this.initHeight, true);
             // if (this.type === ObjectType.Image) {
             //     (<Image>this.displayObject).changeSize(this.initWidth, this.initHeight);
             // }
@@ -1487,7 +1513,7 @@ export class GObject {
             this.visible = false;
         // console.log("visible object ===>", this);
         const touchable = buffer.readBool();
-        if (this.type !== ObjectType.Text) {
+        if (this.type !== ObjectType.Text && this.type !== ObjectType.Image) {
             this.touchable = touchable;
         }
         // if (!buffer.readBool()) {
@@ -1545,7 +1571,8 @@ export class GObject {
         this.setTouchable(this._touchable);
         this.adaptiveScaleX = this.initWidth / this.sourceWidth;
         this.adaptiveScaleY = this.initHeight / this.sourceHeight;
-
+        this._basePosX = this.x;
+        this._basePosY = this.y;
     }
 
     //drag support
@@ -1622,8 +1649,8 @@ export class GObject {
         if (GObject.draggingObject == this) {
             // 若存在嵌套层级，实际位置会有偏差，所以引入世界坐标，做补正
             this.worldMatrix;
-            const worldTx = this._worldTx;
-            const worldTy = this._worldTy;
+            const worldTx = this._worldTx / this._dprOffset;
+            const worldTy = this._worldTy / this._dprOffset;
             var xx: number = this.scene.input.activePointer.x - sGlobalDragStart.x - worldTx + sGlobalRect.x;
             var yy: number = this.scene.input.activePointer.y - sGlobalDragStart.y - worldTy + sGlobalRect.y;
 
@@ -1666,6 +1693,22 @@ export class GObject {
             this._dragTesting = false;
             this.reset();
         }
+    }
+
+    get xOffset(): number {
+        return this._xOffset
+    }
+
+    set xOffset(val: number) {
+        this._xOffset = val;
+    }
+
+    set yOffset(val: number) {
+        this._yOffset = val;
+    }
+
+    get yOffset(): number {
+        return this._yOffset;
     }
     //-------------------------------------------------------------------
 

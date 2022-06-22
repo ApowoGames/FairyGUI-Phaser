@@ -38,6 +38,8 @@ export declare class GList extends GComponent {
     protected _itemSize?: Phaser.Geom.Point;
     protected _virtualListChanged: number;
     protected _virtualItems?: Array<ItemInfo>;
+    protected _virtualWidth: number;
+    protected _virtualHeight: number;
     protected _eventLocked?: boolean;
     protected itemInfoVer: number;
     protected _timeDelta: number;
@@ -152,6 +154,7 @@ export declare class GList extends GComponent {
     protected handleAlign(contentWidth: number, contentHeight: number): void;
     protected updateBounds(): void;
     setup_beforeAdd(buffer: ByteBuffer, beginPos: number): Promise<void>;
+    protected handleXYChanged(): void;
     protected readItems(buffer: ByteBuffer): Promise<void>;
     protected setupItem(buffer: ByteBuffer, obj: GObject): void;
     setup_afterAdd(buffer: ByteBuffer, beginPos: number): void;

@@ -21,7 +21,6 @@ export class Image extends Phaser.GameObjects.Container {
     protected _times: number = 0;
     protected _endAt: number = 0;
     protected _status: number = 0; //0-none, 1-next loop, 2-ending, 3-ended
-
     protected _frameImgs: Map<string, Phaser.GameObjects.Image> = new Map();
     /**
      * 无论九宫还是非九宫的，基础贴图
@@ -101,19 +100,17 @@ export class Image extends Phaser.GameObjects.Container {
     }
 
     public setSize(width: number, height: number, originFrame?: Phaser.Textures.Frame): this {
-        this.width = width;
-        this.height = height;
         const originWidth = this["$owner"].sourceWidth;
         const originHeight = this["$owner"].sourceHeight;
         if (this._scale9Grid) {
             const _left = this._scale9Grid.left;
-            const _right = originWidth - this._scale9Grid.right;
+            const _right = (originWidth - this._scale9Grid.right);
             const _top = this._scale9Grid.top;
-            const _bottom = originHeight - this._scale9Grid.bottom;
+            const _bottom = (originHeight - this._scale9Grid.bottom);
 
             if (width < _left || width < _right || width < (_left + _right) || height < _top || height < _bottom || height < (_top + _bottom)) {
-                this.finalXs = [0, 0, 0, this.width];
-                this.finalYs = [0, 0, 0, this.height];
+                this.finalXs = [0, 0, 0, width];
+                this.finalYs = [0, 0, 0, height];
                 this._scale9GridBool = true;
             } else {
                 this.finalXs = [0, _left, width - _left - _right, width];
@@ -121,8 +118,8 @@ export class Image extends Phaser.GameObjects.Container {
                 this._scale9GridBool = false;
             }
         } else {
-            this.finalXs = [0, 0, 0, this.width];
-            this.finalYs = [0, 0, 0, this.height];
+            this.finalXs = [0, 0, 0, width];
+            this.finalYs = [0, 0, 0, height];
         }
         // 有texture资源后再创建九宫图片
         if (!this.originFrame) this.originFrame = originFrame;
@@ -131,16 +128,16 @@ export class Image extends Phaser.GameObjects.Container {
             this.drawPatches();
         }
         this.markChanged(1);
-        return this;
+        return super.setSize(width * GRoot.dpr, height * GRoot.dpr);
     }
 
     public changeSize(width: number, height: number, initBoo?: boolean, originFrame?: Phaser.Textures.Frame): Promise<Phaser.GameObjects.Container> {
         if (initBoo === undefined) initBoo = false;
         return new Promise((resolve, reject) => {
             const key = this.valueName;
+            //  if (this.width !== width || this.height !== height) {
             if (initBoo) {
-                this.width = width;
-                this.height = height;
+
                 const originWidth = this["$owner"].sourceWidth;
                 const originHeight = this["$owner"].sourceHeight;
                 if (this._scale9Grid) {
@@ -150,8 +147,8 @@ export class Image extends Phaser.GameObjects.Container {
                     const _bottom = originHeight - this._scale9Grid.bottom;
 
                     if (width < _left || width < _right || width < (_left + _right) || height < _top || height < _bottom || height < (_top + _bottom)) {
-                        this.finalXs = [0, 0, 0, this.width];
-                        this.finalYs = [0, 0, 0, this.height];
+                        this.finalXs = [0, 0, 0, width];
+                        this.finalYs = [0, 0, 0, height];
                         this._scale9GridBool = true;
                     } else {
                         this.finalXs = [0, _left, width - _left - _right, width];
@@ -159,14 +156,14 @@ export class Image extends Phaser.GameObjects.Container {
                         this._scale9GridBool = false;
                     }
                 } else {
-                    this.finalXs = [0, 0, 0, this.width];
-                    this.finalYs = [0, 0, 0, this.height];
+                    this.finalXs = [0, 0, 0, width];
+                    this.finalYs = [0, 0, 0, height];
                 }
+                if (this.width !== width) this.width = width * GRoot.dpr;
+                if (this.height !== height) this.height = height * GRoot.dpr;
                 // 有texture资源后再创建九宫图片
                 if (!this.originFrame) this.originFrame = originFrame;
             }
-
-
             if (this.originFrame) {
                 if (initBoo) {
                     this.createPatches();
@@ -205,11 +202,15 @@ export class Image extends Phaser.GameObjects.Container {
                                 fun(this.patchKey);
                             }
                             this._renderTexture.destroy();
+                            this._renderTexture = null;
                         });
                     }
                 } else {
                     resolve(this);
                 }
+                //  }
+            } else {
+                resolve(this);
             }
         });
     }
@@ -224,8 +225,8 @@ export class Image extends Phaser.GameObjects.Container {
             for (let xi = 0; xi < 3; xi++) {
                 this.createPatchFrame(this.getPatchNameByIndex(patchIndex), textureXs[xi], // x
                     textureYs[yi], // y
-                    textureXs[xi + 1] - textureXs[xi], // width
-                    textureYs[yi + 1] - textureYs[yi] // height
+                    (textureXs[xi + 1] - textureXs[xi]), // width
+                    (textureYs[yi + 1] - textureYs[yi]) // height
                 );
                 ++patchIndex;
             }
@@ -247,9 +248,12 @@ export class Image extends Phaser.GameObjects.Container {
             (<Phaser.GameObjects.Image>this._curImg) = this.scene.make.image({ key: patch.texture.key, frame: name }, false);
             // new Phaser.GameObjects.Image(this.scene, 0, 0, patch.texture.key, name);
             this._curImg.setOrigin(0);
-            this._curImg.displayWidth = this.finalXs[3]; //+ (xi < 2 ? this.mCorrection : 0);
-            this._curImg.displayHeight = this.finalYs[3]; //+ (yi < 2 ? this.mCorrection : 0);
-            this._curImg.setPosition(this.finalXs[2], this.finalYs[2]);
+            this._curImg.setDisplaySize(this.finalXs[3] * GRoot.dpr, this.finalYs[3] * GRoot.dpr);
+            const pivotX = this["$owner"] && this["$owner"].parnet ? this["$owner"].parnet.pivotX : 0;
+            const pivotY = this["$owner"] && this["$owner"].parnet ? this["$owner"].parnet.pivotY : 0;
+            this._curImg.setPosition(this.finalXs[2] - this._curImg.displayWidth * pivotX, this.finalYs[2] - this._curImg.displayHeight * pivotY);
+            // if (owner.pivotX) owner.xOffset = -owner.pivotX*this.finalXs[3];
+            // if(owner.pivotY)owner.yOffset=-owner.pivotY*this.finalYs[3];
             // console.log("drawImage ===>", this._curImg, this.finalXs, this.finalYs);
             this.add(this._curImg);
             if (this.internalTint)
@@ -259,8 +263,7 @@ export class Image extends Phaser.GameObjects.Container {
         }
 
         let patchIndex = 0;
-        const originHeight = this["$owner"].sourceHeight;
-        const _left = this._scale9Grid.left;
+        const _left = this._scale9Grid.left * GRoot.dpr;
         for (let yi = 0; yi < 3; yi++) {
             for (let xi = 0; xi < 3; xi++) {
                 // 九宫逻辑中如果宽高为0，则不做后续处理
@@ -271,26 +274,22 @@ export class Image extends Phaser.GameObjects.Container {
                 const patchImg = this.scene.make.image({ key: patch.texture.key, frame: patch.name }, false);
                 // new Phaser.GameObjects.Image(this.scene, 0, 0, patch.texture.key, patch.name);
                 patchImg.setOrigin(0);
-                let posx = this.finalXs[xi];
-                let posy = this.finalYs[yi];
+
+
+                let _displayWid = this.finalXs[xi + 1] - this.finalXs[xi] < 0 ? 0 : (this.finalXs[xi + 1] - this.finalXs[xi]) * GRoot.dpr; //+ (xi < 2 ? this.mCorrection : 0);
+                let _displayHei = this.finalYs[yi + 1] - this.finalYs[yi] < 0 ? 0 : (this.finalYs[yi + 1] - this.finalYs[yi]) * GRoot.dpr; //+ (yi < 2 ? this.mCorrection : 0);    
+
+                patchImg.setDisplaySize(_displayWid, _displayHei);
+                let posx = this.finalXs[xi] * GRoot.dpr;
+                let posy = this.finalYs[yi] * GRoot.dpr;
                 if (xi === 2) {
-                    if (this.finalXs[2] < _left) {
+                    if (posx < _left) {
                         posx = _left;
                     }
                 }
-
                 patchImg.setPosition(posx, posy);
-                // const displayWidth = this.finalXs[xi + 1] - this.finalXs[xi] < 0 ? 0 : this.finalXs[xi + 1] - this.finalXs[xi]; //+ (xi < 2 ? this.mCorrection : 0);
-                // const displayHeight = this.finalYs[yi + 1] - this.finalYs[yi] < 0 ? 0 : this.finalYs[yi + 1] - this.finalYs[yi];
-                patchImg.displayWidth = this.finalXs[xi + 1] - this.finalXs[xi] < 0 ? 0 : this.finalXs[xi + 1] - this.finalXs[xi] + 1; //+ (xi < 2 ? this.mCorrection : 0);
-                patchImg.displayHeight = this.finalYs[yi + 1] - this.finalYs[yi] < 0 ? 0 : this.finalYs[yi + 1] - this.finalYs[yi] + 1; //+ (yi < 2 ? this.mCorrection : 0);    
-                // patchImg.setScale(
-                //     displayWidth / patch.width,
-                //     displayHeight / patch.height
-                // );
-
                 // console.log("drawImage ===>", patchImg, this.finalXs, this.finalYs);
-                if (this._renderTexture && !this._renderTexture.dirty) this._renderTexture.draw(patchImg, patchImg.x, patchImg.y);
+                if (this._renderTexture && this._renderTexture.active) this._renderTexture.draw(patchImg, patchImg.x, patchImg.y);
                 this.add(patchImg);
                 if (this.internalTint)
                     patchImg.setTint(this.internalTint);
@@ -308,6 +307,7 @@ export class Image extends Phaser.GameObjects.Container {
     }
 
     createPatchFrame(patch, x, y, width, height) {
+        // if (!width || !height) return;
         if (this.originFrame && !this._sourceTexture) this._sourceTexture = this.originFrame.texture;
         if (this._sourceTexture.frames.hasOwnProperty(patch)) {
             // console.log("patch cf", patch);
@@ -333,7 +333,7 @@ export class Image extends Phaser.GameObjects.Container {
         if (this._sourceTexture != value) {
             this._sourceTexture = value;
             if (this._sourceTexture)
-                this.changeSize(this.width, this.height, true);
+                this.changeSize(this.width / GRoot.dpr, this.height / GRoot.dpr, true);
             else
                 this.changeSize(0, 0, true);
             // todo 重绘

@@ -10,6 +10,7 @@ import { GObject } from "./GObject";
 import { Events } from './Events';
 import { Handler } from './utils/Handler';
 import { Utils } from './utils/Utils';
+import { GRoot } from '.';
 export class GList extends GComponent {
     /**
      * this.itemRenderer(number index, GObject item);
@@ -49,6 +50,8 @@ export class GList extends GComponent {
     protected _itemSize?: Phaser.Geom.Point;
     protected _virtualListChanged: number = 0; //1-content changed, 2-size changed
     protected _virtualItems?: Array<ItemInfo>;
+    protected _virtualWidth: number = 0;
+    protected _virtualHeight: number = 0;
     protected _eventLocked?: boolean;
     protected itemInfoVer: number = 0; //用来标志item是否在本次处理中已经被重用了
     protected _timeDelta: number = 500;
@@ -74,6 +77,7 @@ export class GList extends GComponent {
         this._align = "left";
         this._verticalAlign = "top";
         this._tempItemList = [];
+        this.name = "stage";
 
         this._container = scene.make.container(undefined, false);
         this._displayObject.add(this._container);
@@ -194,7 +198,7 @@ export class GList extends GComponent {
 
     public set lineGap(value: number) {
         if (this._lineGap != value) {
-            this._lineGap = value;
+            this._lineGap = value * GRoot.dpr;
             this.setBoundsChangedFlag();
             if (this._virtual)
                 this.setVirtualListChangedFlag(true);
@@ -207,7 +211,7 @@ export class GList extends GComponent {
 
     public set columnGap(value: number) {
         if (this._columnGap != value) {
-            this._columnGap = value;
+            this._columnGap = value * GRoot.dpr;
             this.setBoundsChangedFlag();
             if (this._virtual)
                 this.setVirtualListChangedFlag(true);
@@ -1224,12 +1228,12 @@ export class GList extends GComponent {
 
             if (this._virtualListChanged != 0) {
                 if (this._refreshListTime) {
-                    this._refreshListTime.remove(false);
+                    this.scene.time.removeEvent(this._refreshListEvent);
+                    // this._refreshListTime.remove(false);
                     this._refreshListTime = null;
                 }
                 //Laya.timer.clear(this, this._refreshVirtualList);
             }
-
             //立即刷新
             this._refreshVirtualList();
         }
@@ -1262,7 +1266,8 @@ export class GList extends GComponent {
         if (this._virtualListChanged != 0) {
             this._refreshVirtualList();
             if (this._refreshListTime) {
-                this._refreshListTime.remove(false);
+                this.scene.time.removeEvent(this._refreshListEvent);
+                // this._refreshListTime.remove(false);
                 this._refreshListTime = null;
             }
             // Laya.timer.clear(this, this._refreshVirtualList);
@@ -1333,8 +1338,11 @@ export class GList extends GComponent {
             var len: number = Math.ceil(this._realNumItems / this._curLineItemCount) * this._curLineItemCount;
             var len2: number = Math.min(this._curLineItemCount, this._realNumItems);
             if (this._layout == ListLayoutType.SingleColumn || this._layout == ListLayoutType.FlowHorizontal) {
-                for (i = 0; i < len; i += this._curLineItemCount)
-                    ch += this._virtualItems[i].height + this._lineGap;
+                for (i = 0; i < len; i += this._curLineItemCount) {
+                    const obj = this._virtualItems[i].obj;
+                    ch += obj && obj.initHeight > this._virtualItems[i].height ? obj.initHeight + this._lineGap : this._virtualItems[i].height + this._lineGap;
+                }
+
                 if (ch > 0)
                     ch -= this._lineGap;
 
@@ -1348,8 +1356,11 @@ export class GList extends GComponent {
                 }
             }
             else if (this._layout == ListLayoutType.SingleRow || this._layout == ListLayoutType.FlowVertical) {
-                for (i = 0; i < len; i += this._curLineItemCount)
-                    cw += this._virtualItems[i].width + this._columnGap;
+                for (i = 0; i < len; i += this._curLineItemCount) {
+                    const obj = this._virtualItems[i].obj;
+                    cw += obj && obj.initWidth > this._virtualItems[i].width ? obj.initWidth + this._columnGap : this._virtualItems[i].width + this._columnGap;
+                }
+
                 if (cw > 0)
                     cw -= this._columnGap;
 
@@ -1368,6 +1379,9 @@ export class GList extends GComponent {
                 ch = this.viewHeight;
             }
         }
+
+        this._virtualWidth = cw;
+        this._virtualHeight = ch;
 
         this.handleAlign(cw, ch);
         this._scrollPane.setContentSize(cw, ch);
@@ -1584,10 +1598,10 @@ export class GList extends GComponent {
 
     protected handleScroll1(forceUpdate: boolean): Promise<boolean> {
         return new Promise((reslove, reject) => {
-            var pos: number = this._scrollPane.scrollingPosY;
+            var pos: number = this._scrollPane.scrollingPosY / this._dprOffset;
             var max: number = pos + this._scrollPane.viewHeight;
             var end: boolean = max == this._scrollPane.contentHeight;//这个标志表示当前需要滚动到最末，无论内容变化大小
-
+            // console.log("scrollPosY", pos);
             //寻找当前位置的第一条项目
             s_n = pos;
             // const singleHei = this._virtualItems[0].height * this._virtualItems.length + this._lineGap * (this._virtualItems.length - 1);
@@ -1600,7 +1614,7 @@ export class GList extends GComponent {
                 return;
             }
 
-
+            console.log("index:", this._firstIndex);
             var oldFirstIndex: number = this._firstIndex;
             // console.log("newFirstIndex ===>", newFirstIndex);
             // console.log("oldFirstIndex ===>", oldFirstIndex);
@@ -1656,8 +1670,14 @@ export class GList extends GComponent {
             }
             const fun1 = () => {
                 if (needRender) {
-                    if (this._autoResizeItem && (this._layout == ListLayoutType.SingleColumn || this._columnCount > 0))
-                        ii.obj.setSize(partSize, ii.obj.height, true);
+                    if (this._autoResizeItem) {
+                        if (this._layout == ListLayoutType.SingleColumn || this._columnCount > 0) {
+                            ii.obj.setSize(partSize, ii.obj.initHeight * GRoot.uiScale, true);
+                        } else if (this._layout == ListLayoutType.FlowHorizontal && GRoot.uiScale < 1) {
+                            ii.obj.setSize(ii.obj.initWidth * GRoot.uiScale, ii.obj.initHeight * GRoot.uiScale, true);
+                        }
+                    }
+
 
                     this.itemRenderer.runWith([curIndex % this._numItems, ii.obj]);
                     // console.log("handle1 ===>", curIndex);
@@ -1673,15 +1693,15 @@ export class GList extends GComponent {
                 }
 
                 ii.updateFlag = this.itemInfoVer;
-                ii.obj.setXY(curX, curY);
+                ii.obj.setXY(curX / GRoot.uiScale, curY);
                 if (curIndex == newFirstIndex) //要显示多1条才不会穿帮
-                    max += ii.height;
+                    max += ii.obj.initHeight;
 
                 curX += ii.width + this._columnGap;
 
                 if (curIndex % this._curLineItemCount == this._curLineItemCount - 1) {
                     curX = 0;
-                    curY += ii.height + this._lineGap;
+                    curY += ii.obj.initHeight + this._lineGap;
                 }
                 curIndex++;
                 if (curIndex < this._realNumItems && (end || curY < max)) {
@@ -1791,14 +1811,13 @@ export class GList extends GComponent {
 
         if (!this._boundsChanged) {
             this._boundsChanged = true;
-
             if (!this._renderTime) this.scene.time.addEvent(this._renderEvent);
             //Laya.timer.callLater(this, this.__render);
         }
     }
 
     protected async handleScroll2(forceUpdate: boolean): Promise<boolean> {
-        var pos: number = this._scrollPane.scrollingPosX;
+        var pos: number = this._scrollPane.scrollingPosX / this._dprOffset;
         var max: number = pos + this._scrollPane.viewWidth;
         var end: boolean = pos == this._scrollPane.contentWidth;//这个标志表示当前需要滚动到最末，无论内容变化大小
 
@@ -1898,7 +1917,7 @@ export class GList extends GComponent {
             }
             if (needRender) {
                 if (this._autoResizeItem && (this._layout == ListLayoutType.SingleRow || this._lineCount > 0))
-                    ii.obj.setSize(ii.obj.width, partSize, true);
+                    ii.obj.setSize(ii.obj.initWidth * GRoot.uiScale, partSize, true);
 
                 this.itemRenderer.runWith([curIndex % this._numItems, ii.obj]);
                 if (curIndex % this._curLineItemCount == 0) {
@@ -1915,13 +1934,12 @@ export class GList extends GComponent {
             ii.updateFlag = this.itemInfoVer;
             ii.obj.setXY(curX, curY);
             if (curIndex == newFirstIndex) //要显示多一条才不会穿帮
-                max += ii.width;
-
+                max += ii.obj.initWidth;
             curY += ii.height + this._lineGap;
             // console.log("curY ===>", curY);
             if (curIndex % this._curLineItemCount == this._curLineItemCount - 1) {
                 curY = 0;
-                curX += ii.width + this._columnGap;
+                curX += ii.obj.initWidth + this._columnGap;
             }
             curIndex++;
         }
@@ -1953,7 +1971,7 @@ export class GList extends GComponent {
     }
 
     protected async handleScroll3(forceUpdate: boolean): Promise<void> {
-        var pos: number = this._scrollPane.scrollingPosX;
+        var pos: number = this._scrollPane.scrollingPosX / this._dprOffset;
 
         //寻找当前位置的第一条项目
         s_n = pos;
@@ -2062,9 +2080,9 @@ export class GList extends GComponent {
                     if (this._curLineItemCount == this._columnCount && this._curLineItemCount2 == this._lineCount)
                         ii.obj.setSize(partWidth, partHeight, true);
                     else if (this._curLineItemCount == this._columnCount)
-                        ii.obj.setSize(partWidth, ii.obj.height, true);
+                        ii.obj.setSize(partWidth, ii.obj.initHeight * GRoot.uiScale, true);
                     else if (this._curLineItemCount2 == this._lineCount)
-                        ii.obj.setSize(ii.obj.width, partHeight, true);
+                        ii.obj.setSize(ii.obj.initWidth * GRoot.uiScale, partHeight, true);
                 }
 
                 this.itemRenderer.runWith([i % this._numItems, ii.obj]);
@@ -2163,24 +2181,24 @@ export class GList extends GComponent {
 
         if (contentHeight < this.viewHeight) {
             if (this._verticalAlign == "middle")
-                newOffsetY = Math.floor((this.viewHeight - contentHeight) / 2);
+                newOffsetY = Math.floor((this.viewHeight - contentHeight) / 2) * this._dprOffset;
             else if (this._verticalAlign == "bottom")
-                newOffsetY = this.viewHeight - contentHeight;
+                newOffsetY = (this.viewHeight - contentHeight) * this._dprOffset;
         }
 
         if (contentWidth < this.viewWidth) {
             if (this._align == "center")
-                newOffsetX = Math.floor((this.viewWidth - contentWidth) / 2);
+                newOffsetX = Math.floor((this.viewWidth - contentWidth) / 2) * this._dprOffset;
             else if (this._align == "right")
-                newOffsetX = this.viewWidth - contentWidth;
+                newOffsetX = (this.viewWidth - contentWidth) * this._dprOffset;
         }
 
-        if (newOffsetX != this._alignOffset.x || newOffsetY != this._alignOffset.y) {
+        if (newOffsetX != this._alignOffset.x * this._dprOffset || newOffsetY != this._alignOffset.y * this._dprOffset) {
             this._alignOffset.setTo(newOffsetX, newOffsetY);
             if (this._scrollPane)
                 this._scrollPane.adjustMaskContainer();
             else
-                this._container.setPosition(this._margin.left + this._alignOffset.x, this._margin.top + this._alignOffset.y);
+                this._container.setPosition((this._margin.left + this._alignOffset.x) * this._dprOffset, (this._margin.top + this._alignOffset.y) * this._dprOffset);
         }
     }
 
@@ -2209,6 +2227,7 @@ export class GList extends GComponent {
         if (this._layout == ListLayoutType.SingleColumn) {
             for (i = 0; i < cnt; i++) {
                 child = this.getChildAt(i);
+                const baseHei = child.height;
                 if (this.foldInvisibleItems && !child.visible)
                     continue;
 
@@ -2217,8 +2236,8 @@ export class GList extends GComponent {
                 // console.log("curY 0===>", curY, i);
                 child.y = curY;
                 if (this._autoResizeItem)
-                    child.setSize(viewWidth, child.height, true);
-                curY += Math.ceil(child.height);
+                    child.setSize(viewWidth, child.height * GRoot.uiScale, true);
+                curY += Math.ceil(baseHei);
                 if (child.width > maxWidth)
                     maxWidth = child.width;
             }
@@ -2231,7 +2250,7 @@ export class GList extends GComponent {
                     if (this.foldInvisibleItems && !child.visible)
                         continue;
 
-                    child.setSize(viewWidth, child.height, true);
+                    child.setSize(viewWidth, child.height * GRoot.uiScale, true);
                     if (child.width > maxWidth)
                         maxWidth = child.width;
                 }
@@ -2242,6 +2261,7 @@ export class GList extends GComponent {
         else if (this._layout == ListLayoutType.SingleRow) {
             for (i = 0; i < cnt; i++) {
                 child = this.getChildAt(i);
+                const baseWid = child.width;
                 if (this.foldInvisibleItems && !child.visible)
                     continue;
 
@@ -2249,8 +2269,8 @@ export class GList extends GComponent {
                     curX += this._columnGap;
                 child.x = curX;
                 if (this._autoResizeItem)
-                    child.setSize(child.width, viewHeight, true);
-                curX += Math.ceil(child.width);
+                    child.setSize(child.width * GRoot.uiScale, viewHeight, true);
+                curX += Math.ceil(baseWid);
                 if (child.height > maxHeight)
                     maxHeight = child.height;
             }
@@ -2263,7 +2283,7 @@ export class GList extends GComponent {
                     if (this.foldInvisibleItems && !child.visible)
                         continue;
 
-                    child.setSize(child.width, viewHeight, true);
+                    child.setSize(child.width * GRoot.uiScale, viewHeight, true);
                     if (child.height > maxHeight)
                         maxHeight = child.height;
                 }
@@ -2275,6 +2295,7 @@ export class GList extends GComponent {
             if (this._autoResizeItem && this._columnCount > 0) {
                 for (i = 0; i < cnt; i++) {
                     child = this.getChildAt(i);
+                    const baseHei = child.height;
                     if (this.foldInvisibleItems && !child.visible)
                         continue;
 
@@ -2291,14 +2312,14 @@ export class GList extends GComponent {
                             child.setXY(curX, curY);
 
                             if (j < i) {
-                                child.setSize(child.sourceWidth + Math.round(child.sourceWidth * ratio), child.height, true);
+                                child.setSize(child.sourceWidth + Math.round(child.sourceWidth * ratio), child.height * GRoot.uiScale, true);
                                 curX += Math.ceil(child.width) + this._columnGap;
                             }
                             else {
-                                child.setSize(viewWidth - curX, child.height, true);
+                                child.setSize(viewWidth - curX, child.height * GRoot.uiScale, true);
                             }
-                            if (child.height > maxHeight)
-                                maxHeight = child.height;
+                            if (baseHei > maxHeight)
+                                maxHeight = baseHei;
                         }
                         //new line
                         curY += Math.ceil(maxHeight) + this._lineGap;
@@ -2332,7 +2353,7 @@ export class GList extends GComponent {
                     curX += Math.ceil(child.width);
                     if (curX > maxWidth)
                         maxWidth = curX;
-                    if (child.height > maxHeight)
+                    if (child.width > maxHeight)
                         maxHeight = child.height;
                     j++;
                 }
@@ -2344,6 +2365,7 @@ export class GList extends GComponent {
             if (this._autoResizeItem && this._lineCount > 0) {
                 for (i = 0; i < cnt; i++) {
                     child = this.getChildAt(i);
+                    const baseWid = child.width;
                     if (this.foldInvisibleItems && !child.visible)
                         continue;
 
@@ -2360,14 +2382,14 @@ export class GList extends GComponent {
                             child.setXY(curX, curY);
 
                             if (j < i) {
-                                child.setSize(child.width, child.sourceHeight + Math.round(child.sourceHeight * ratio), true);
+                                child.setSize(child.width * GRoot.uiScale, child.sourceHeight + Math.round(child.sourceHeight * ratio), true);
                                 curY += Math.ceil(child.height) + this._lineGap;
                             }
                             else {
-                                child.setSize(child.width, viewHeight - curY, true);
+                                child.setSize(child.width * GRoot.uiScale, viewHeight - curY, true);
                             }
-                            if (child.width > maxWidth)
-                                maxWidth = child.width;
+                            if (baseWid > maxWidth)
+                                maxWidth = baseWid;
                         }
                         //new line
                         curX += Math.ceil(maxWidth) + this._columnGap;
@@ -2417,11 +2439,12 @@ export class GList extends GComponent {
             if (this._autoResizeItem && this._columnCount > 0) {
                 for (i = 0; i < cnt; i++) {
                     child = this.getChildAt(i);
+                    const baseHei = child.height;
                     if (this.foldInvisibleItems && !child.visible)
                         continue;
 
                     if (j == 0 && (this._lineCount != 0 && k >= this._lineCount
-                        || this._lineCount == 0 && curY + child.height > viewHeight)) {
+                        || this._lineCount == 0 && curY + baseHei > viewHeight)) {
                         //new page
                         page++;
                         curY = 0;
@@ -2435,6 +2458,7 @@ export class GList extends GComponent {
                         curX = 0;
                         for (j = lineStart; j <= i; j++) {
                             child = this.getChildAt(j);
+                            const baseWid = child.width;
                             if (this.foldInvisibleItems && !child.visible)
                                 continue;
 
@@ -2442,14 +2466,14 @@ export class GList extends GComponent {
 
                             if (j < i) {
                                 child.setSize(child.sourceWidth + Math.round(child.sourceWidth * ratio),
-                                    this._lineCount > 0 ? eachHeight : child.height, true);
-                                curX += Math.ceil(child.width) + this._columnGap;
+                                    this._lineCount > 0 ? eachHeight : baseHei, true);
+                                curX += Math.ceil(baseWid) + this._columnGap;
                             }
                             else {
-                                child.setSize(viewWidth - curX, this._lineCount > 0 ? eachHeight : child.height, true);
+                                child.setSize(viewWidth - curX, this._lineCount > 0 ? eachHeight : child.height * GRoot.uiScale, true);
                             }
-                            if (child.height > maxHeight)
-                                maxHeight = child.height;
+                            if (baseHei > maxHeight)
+                                maxHeight = baseHei;
                         }
                         //new line
                         curY += Math.ceil(maxHeight) + this._lineGap;
@@ -2472,7 +2496,7 @@ export class GList extends GComponent {
                         curX += this._columnGap;
 
                     if (this._autoResizeItem && this._lineCount > 0)
-                        child.setSize(child.width, eachHeight, true);
+                        child.setSize(child.width * GRoot.uiScale, eachHeight, true);
 
                     if (this._columnCount != 0 && j >= this._columnCount
                         || this._columnCount == 0 && curX + child.width > viewWidth && maxHeight != 0) {
@@ -2504,6 +2528,11 @@ export class GList extends GComponent {
             cw = (page + 1) * viewWidth;
         }
 
+        if (this._virtual) {
+            cw = cw > this._virtualWidth ? cw : this._virtualWidth;
+            ch = ch > this._virtualHeight ? ch : this._virtualHeight;
+        }
+
         this.handleAlign(cw, ch);
         this.setBounds(0, 0, cw, ch);
     }
@@ -2522,11 +2551,12 @@ export class GList extends GComponent {
             this._align = i1 == 0 ? "left" : (i1 == 1 ? "center" : "right");
             i1 = buffer.readByte();
             this._verticalAlign = i1 == 0 ? "top" : (i1 == 1 ? "middle" : "bottom");
-            this._lineGap = buffer.readShort();
-            this._columnGap = buffer.readShort();
+            this._lineGap = buffer.readShort() * GRoot.dpr;
+            this._columnGap = buffer.readShort() * GRoot.dpr;
             this._lineCount = buffer.readShort();
             this._columnCount = buffer.readShort();
-            this._autoResizeItem = buffer.readBool();
+            const _autoResize = buffer.readBool();
+            this._autoResizeItem = _autoResize ? _autoResize : GRoot.uiScale < 1;
             this._childrenRenderOrder = buffer.readByte();
             this._apexIndex = buffer.readShort();
 
@@ -2577,6 +2607,19 @@ export class GList extends GComponent {
             }
         });
 
+    }
+
+    protected handleXYChanged(): void {
+        var xv: number = this._x + this._xOffset;
+        var yv: number = this._y + this._yOffset;
+        let offsetXParam: number = GRoot.dpr;
+        let offsetYParam: number = GRoot.dpr;
+
+        if (this._pixelSnapping) {
+            xv = Math.round(xv);
+            yv = Math.round(yv);
+        }
+        this._displayObject.setPosition(xv * offsetXParam, yv * offsetYParam);
     }
 
     protected readItems(buffer: ByteBuffer): Promise<void> {

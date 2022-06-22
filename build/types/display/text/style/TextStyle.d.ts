@@ -45,6 +45,7 @@ export interface ITextStyle {
     antialias?: boolean;
 }
 export declare class TextStyle implements ITextStyle {
+    numFontSize?: number;
     fontFamily?: string;
     fontSize?: string;
     fontStyle?: string;

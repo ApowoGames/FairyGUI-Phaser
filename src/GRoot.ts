@@ -38,7 +38,9 @@ export class GRoot extends GComponent {
 
     private static _inst: GRoot;
     public static dpr: number = 1;
+    public static defaultDpr: number = 1;
     public static uiScale: number = 1;
+    public static isHorizontal: boolean = false;
     public static contentDprLevel: number = 0;
     public static contentScaleLevel: number = 0;
     public static contentScaleWid: number = 0;
@@ -146,11 +148,10 @@ export class GRoot extends GComponent {
         (<any>this._scene).stage = this._uiStage;
         this._width = stageOptions.width;
         this._height = stageOptions.height;
-
-        if (!this._stageOptions.desginWidth)
-            this._stageOptions.desginWidth = this._width > this._height ? this._uiStage.stageOption.desginHeight : this._uiStage.stageOption.desginWidth;
-        if (!this._stageOptions.desginHeight)
-            this._stageOptions.desginHeight = this._height > this._width ? this._uiStage.stageOption.desginWidth : this._uiStage.stageOption.desginHeight;
+        if (!this._stageOptions.designWidth)
+            this._stageOptions.designWidth = this._width > this._height ? this._uiStage.stageOption.designHeight : this._uiStage.stageOption.designWidth;
+        if (!this._stageOptions.designHeight)
+            this._stageOptions.designHeight = this._height > this._width ? this._uiStage.stageOption.designWidth : this._uiStage.stageOption.designHeight;
 
 
         GRoot.inst.updateContentScaleLevel();
@@ -161,19 +162,19 @@ export class GRoot extends GComponent {
     }
 
     get stageWidth(): number {
-        return this._width;
+        return this._width / GRoot.dpr;
     }
 
     get stageHeight(): number {
-        return this._height;
+        return this._height / GRoot.dpr;
     }
 
-    get desginWidth(): number {
-        return this._stageOptions.desginWidth;
+    get designWidth(): number {
+        return this._stageOptions.designWidth;
     }
 
-    get desginHeight(): number {
-        return this._stageOptions.desginHeight;
+    get designHeight(): number {
+        return this._stageOptions.designHeight;
     }
 
     get contentScaleLevel(): number {
@@ -361,22 +362,27 @@ export class GRoot extends GComponent {
     }
 
     private updateContentScaleLevel() {
-        GRoot.contentScaleLevel = GRoot.inst.desginWidth / (GRoot.inst.stageWidth / GRoot.dpr) > 1 ? 1 : GRoot.inst.desginWidth / (GRoot.inst.stageWidth / GRoot.dpr);
-        // GRoot.contentScaleWid = this._width / this._stageOptions.desginWidth;
-        // GRoot.contentScaleHei = this._height / this._stageOptions.desginHeight;
-        // GRoot.contentScaleLevel = Math.round(GRoot.contentScaleWid < GRoot.contentScaleHei ? GRoot.contentScaleWid : GRoot.contentScaleHei);
+        GRoot.contentScaleLevel = GRoot.inst.designWidth / (GRoot.inst.stageWidth / GRoot.dpr) > 1 ? 1 : GRoot.inst.designWidth / (GRoot.inst.stageWidth / GRoot.dpr);
         const realWidth = this._width / this._stageOptions.dpr;
         const realHeight = this._height / this._stageOptions.dpr;
-        const _widthScale = realWidth > this._stageOptions.desginWidth ? 1 : realWidth / this._stageOptions.desginWidth;
-        const _heightScale = realHeight > this._stageOptions.desginHeight ? 1 : realHeight / this._stageOptions.desginHeight;
-        GRoot.uiScale = _widthScale > _heightScale ? _heightScale : _widthScale;
+        GRoot.isHorizontal = this._stageOptions.designWidth > this._stageOptions.designHeight ? true : false;
+        GRoot.contentScaleWid = Number((realWidth / this._stageOptions.designWidth).toFixed(4));
+        GRoot.contentScaleHei = Number((realHeight / this._stageOptions.designHeight).toFixed(4));
+        const _widthScale = GRoot.contentScaleWid; // realWidth > this._stageOptions.designWidth ? 1 : GRoot.contentScaleWid;
+        const _heightScale = GRoot.contentScaleHei; // realHeight > this._stageOptions.designHeight ? 1 : GRoot.contentScaleHei;
+        // 某些分辨率下，竖屏的高度缩放会大于横屏，所以加入横竖屏判断
+        GRoot.uiScale = _widthScale < _heightScale ? _widthScale : GRoot.isHorizontal ? _heightScale : _widthScale;
+        GRoot.uiScale = GRoot.uiScale > 1 ? 1 : GRoot.uiScale;
+        // 取小数点后四位，保证精度，部分手机分辨率宽高缩放可能相同到小数点后两位
+        GRoot.uiScale = Number(GRoot.uiScale.toFixed(4));
 
         // const camera = this._scene.cameras.main;
-        // camera.setScroll(-(this._width - this._stageOptions.desginWidth) / 2, -(this._height - this._stageOptions.desginHeight) / 2)
+        // camera.setScroll(-(this._width - this._stageOptions.designWidth) / 2, -(this._height - this._stageOptions.designHeight) / 2)
     }
 
     private updateContentDprLevel(): void {
-        GRoot.dpr = this._stageOptions.dpr;
+        // 取小数点后一位，保证精度（部分手机dpr配置为小数点1位）
+        GRoot.dpr = Number(this._stageOptions.dpr.toFixed(1));
         if (GRoot.dpr >= 3.5)
             GRoot.contentDprLevel = 3; //x4
         else if (GRoot.dpr >= 2.5)

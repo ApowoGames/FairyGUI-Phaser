@@ -1,6 +1,6 @@
 import { PackageItem } from './../../../PackageItem';
 import { ObjectType } from './../../../FieldTypes';
-import { UIPackage } from "../../..";
+import { GRoot, UIPackage } from "../../..";
 import { HitAreaManager } from "../hitareamanager/HitAreaManager";
 import { Pen } from "../penmanager/Pen";
 import { PenManager } from "../penmanager/PenManager";
@@ -224,11 +224,13 @@ function DrawImage(canvasText: CanvasText, x: number, y: number, imgKey: string,
             const key = obj.texture.key + "_" + obj.name + "_" + obj.width + "_" + obj.height;
             const context = canvasText.context;
             const frame = texture.get(key);
-
+            const dprOffset = GRoot.dpr * GRoot.uiScale;
             context.drawImage(
                 frame.source.image,
-                frame.cutX, frame.cutY, frame.cutWidth, frame.cutHeight,
-                x, y - frame.cutHeight, frame.cutWidth, frame.cutHeight
+                frame.cutX, frame.cutY,
+                frame.cutWidth, frame.cutHeight,
+                x, y - frame.cutHeight * dprOffset,
+                frame.cutWidth * dprOffset, frame.cutHeight * dprOffset
             );
 
             resolve();

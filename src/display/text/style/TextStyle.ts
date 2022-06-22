@@ -106,6 +106,7 @@ export interface ITextStyle {
 
 // @ts-ignore
 export class TextStyle implements ITextStyle {
+    numFontSize?: number = 16;
     fontFamily?: string = UIConfig.defaultFont;
     fontSize?: string = "16px";
     fontStyle?: string = "";
@@ -295,7 +296,7 @@ export class TextStyle implements ITextStyle {
 
             fontStyle = (fontSplit.length > 2) ? fontSplit[i++] : '';
             fontSize = fontSplit[i++] || '16px';
-            fontFamily = fontSplit[i++] || 'Courier';
+            fontFamily = fontSplit[i++] || UIConfig.defaultFont;//'Courier';
         }
 
         if (fontFamily !== this.fontFamily || fontSize !== this.fontSize || fontStyle !== this.fontStyle) {
@@ -325,7 +326,8 @@ export class TextStyle implements ITextStyle {
 
     setFontSize(size: string | number) {
         if (typeof size === "number") {
-            // size = (GRoot.inst.stageWidth / GRoot.dpr) / (GRoot.inst.desginWidth / size) / GRoot.uiScale;
+            this.numFontSize = size;
+            size *= GRoot.dpr * GRoot.uiScale;//Math.round((GRoot.inst.stageWidth / GRoot.dpr) / (GRoot.inst.designWidth / size));
             size = size.toString() + "px";
         }
         if (this.fontSize !== size) {

@@ -4,6 +4,7 @@ import { Controller } from './Controller';
 import { GScrollBar } from './GScrollBar';
 import { GComponent } from "./GComponent";
 export declare class ScrollPane {
+    private _showMask;
     private _owner;
     private _container;
     private _mask;
@@ -69,6 +70,8 @@ export declare class ScrollPane {
      * 用来判断当前是否有拖拽元素
      */
     private mRectangle;
+    private _offsetParamWid;
+    private _offsetParamHei;
     constructor(owner: GComponent);
     setup(buffer: ByteBuffer): Promise<void>;
     dispose(): void;

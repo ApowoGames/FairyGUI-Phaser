@@ -5,8 +5,7 @@ import { GTextField } from './GTextField';
 import { TextField } from './display/text/TextField';
 import { ByteBuffer, GRoot, UIConfig } from '.';
 import { HAlignModeString, VAlignModeString } from './display/text/Types';
-import { i18nStr } from './GRoot';
-import { ToolSet, UBBParser } from './utils';
+import { ToolSet } from './utils';
 import { UIPackage } from './UIPackage';
 export class GBasicTextField extends GTextField {
     protected _textField: TextField;
@@ -42,18 +41,17 @@ export class GBasicTextField extends GTextField {
 
     set adaptiveScaleX(val) {
         this._adaptiveScaleX = val;
-        this.doAlign();
+        //this.doAlign();
     }
 
     set adaptiveScaleY(val) {
         this._adaptiveScaleY = val;
-        this.doAlign();
+        //this.doAlign();
     }
 
     public createDisplayObject(): void {
         this._displayObject = this._textField = new TextField(this.scene);
         this._displayObject.mouseEnabled = false;
-        this._displayObject.texture.setFilter(Phaser.Textures.FilterMode.LINEAR);
     }
 
     public setup_afterAdd(buffer: ByteBuffer, beginPos: number): void {
@@ -99,7 +97,7 @@ export class GBasicTextField extends GTextField {
             // if (this._ubbEnabled)
             //     this._textField.text = UBBParser.inst.parse(text2, true);
             // else
-                this._textField.text = text2;
+            this._textField.text = text2;
         }
         else {
             this._textField.text = "";
@@ -110,17 +108,6 @@ export class GBasicTextField extends GTextField {
         // this._textField.typeset();
         this.updateSize();
         this.doAlign();
-        // // 由于canvas2D.measureText()获取的文本尺寸与fairygui编辑器中不同，这边手动调整下尺寸，便于编辑器控制
-        // const offsetWidthAuto = 0//this._widthAutoSize && this.parent.pivotX === 0 ? 3 : 0;
-        // const offsetHeightAuto = 0//this._heightAutoSize && this.parent.pivotY === 0 ? 4 : 0;
-        // const offsetParentWidth = this.parent._width * this.parent.pivotX;
-        // const offsetParentHeight = this.parent._height * this.parent.pivotY;
-
-        // const _x = this.initWidth - this._rawWidth >> 1;
-        // const _y = this.initHeight - this._rawHeight >> 1;
-        // this.setXY(this.x + _x, this.y + _y);
-        //}
-        //this.setSize(this._textWidth, this._textHeight);
     }
 
     public get text(): any {
@@ -145,12 +132,12 @@ export class GBasicTextField extends GTextField {
                     this._textField.setFont(UIConfig.defaultFont)
                 }
             });
-        else{
+        else {
             delete this._bitmapFont;
         }
-            
-       
-       
+
+
+
         // this._font = value;
         // if (this._font) {
         //     this._textField.setFont(this._font);
@@ -352,7 +339,8 @@ export class GBasicTextField extends GTextField {
         else {
             h = this.height;
             if (this._textHeight > h)
-                this._textHeight = h;
+                // this._textHeight = h;不是自动高度且小于设计尺寸，不改变文本渲染高度，否则文本会变形
+                h = this._textHeight;
             if (this._textField.displayHeight != this._textHeight)
                 this._textField.displayHeight = this._textHeight;
         }
@@ -632,9 +620,9 @@ export class GBasicTextField extends GTextField {
             let dx: number = this.width - this._textWidth;
             if (dx < 0) dx = 0;
             if (this.align === "center") {
-                this._xOffset = Math.floor(dx / 2);
+                this._xOffset = Math.floor(dx / 2) * GRoot.uiScale;
             } else {
-                this._xOffset = Math.floor(dx);
+                this._xOffset = Math.floor(GRoot.uiScale * dx);
             }
         }
         // 纵向
@@ -646,18 +634,15 @@ export class GBasicTextField extends GTextField {
             if (dh < 0)
                 dh = 0;
             if (this.valign == "center")
-                this._yOffset = Math.floor(dh / 2);
+                this._yOffset = Math.floor(GRoot.uiScale * dh / 2);
             else
-                this._yOffset = Math.floor(dh);
+                this._yOffset = Math.floor(GRoot.uiScale * dh);
         }
-        this.handleXYChanged();
+        this.handleXYChanged1();
     }
 
-    public flushVars(): void {
-        this.text = GRoot.inst.i18n ? this._baseText : this._text;
-    }
 
-    protected handleXYChanged(): void {
+    protected handleXYChanged1(): void {
         var xv: number = this._x + this._xOffset;
         var yv: number = this._y + this._yOffset;
 
@@ -668,15 +653,20 @@ export class GBasicTextField extends GTextField {
 
         // 由于canvas2D.measureText()获取的文本尺寸与fairygui编辑器中不同，这边手动调整下尺寸，便于编辑器控制
         const offsetWidthAuto = this._widthAutoSize && this.parent && this.parent.pivotX === 0 ? 3 : 0;
-        const offsetHeightAuto = this._heightAutoSize && this.parent && this.parent.pivotY === 0 ? 4 : 0;
+        const offsetHeightAuto = this._heightAutoSize && this.parent && this.parent.pivotY === 0 ? 5 : 0;
         const offsetParentWidth = this.parent ? this.parent._width * this.parent.pivotX : 0;
         const offsetParentHeight = this.parent ? this.parent._height * this.parent.pivotY : 0;
         const _x = Math.round(this.initWidth * this._pivotX);
         const _y = Math.round(this.initHeight * this._pivotY);
-        this._displayObject.setPosition(xv - offsetParentWidth + offsetWidthAuto - _x, yv - offsetParentHeight + offsetHeightAuto - _y);
-
+        const offset = GRoot.uiScale * GRoot.dpr;
+        const posX = this._widthAutoSize ? offset * xv : offset * (xv - offsetParentWidth + offsetWidthAuto - _x);
+        const posY = this._heightAutoSize ? offset * yv : offset * (yv - offsetParentHeight + offsetHeightAuto - _y);
+        this._displayObject.setPosition(posX, posY);
     }
 
+    public flushVars(): void {
+        this.text = GRoot.inst.i18n ? this._baseText : this._text;
+    }
 }
 
 export interface LineInfo {
@@ -687,5 +677,5 @@ export interface LineInfo {
     y: number;
 }
 
-const GUTTER_X: number = 2;
-const GUTTER_Y: number = 2;
+const GUTTER_X: number = 0;
+const GUTTER_Y: number = 0;

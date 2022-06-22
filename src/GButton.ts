@@ -312,6 +312,38 @@ export class GButton extends GComponent {
         }
     }
 
+    // protected handleXYChanged(): void {
+    //     var xv: number = this._x + this._xOffset;
+    //     var yv: number = this._y + this._yOffset;
+
+    //     if (this._pixelSnapping) {
+    //         xv = Math.round(xv);
+    //         yv = Math.round(yv);
+    //     }
+    //     this._displayObject.setPosition(xv * GRoot.dpr * GRoot.uiScale, yv * GRoot.dpr * GRoot.uiScale);
+    // }
+
+    // private _g;
+    public changeInteractive() {
+        if (this._displayObject) {
+            if (this._touchable) {
+                const realWid = this.initWidth * GRoot.dpr * GRoot.uiScale;
+                const realHei = this.initHeight * GRoot.dpr * GRoot.uiScale;
+                const rect: Phaser.Geom.Rectangle = new Phaser.Geom.Rectangle((0.5 - this._pivotX) * realWid, (0.5 - this._pivotY) * realHei,
+                    realWid, realHei);
+                if (!this._displayObject.input) this._displayObject.setInteractive(rect, Phaser.Geom.Rectangle.Contains);
+                else this._displayObject.input.hitArea = rect;
+
+                // if (this._g) (<Phaser.GameObjects.Container>this._displayObject).remove(this._g);
+                // else this._g = this.scene.make.graphics(undefined, false);
+                // this._g.clear();
+                // this._g.fillStyle(0x66cc00, 1);
+                // this._g.fillRoundedRect(0, 0, rect.width, rect.height, 5);//0, 0, this._width * GRoot.dpr, this._height * GRoot.dpr);
+                // this._displayObject.addAt(this._g, 0);
+            }
+        }
+    }
+
     public handleControllerChanged(c: Controller): void {
         super.handleControllerChanged(c);
 
@@ -435,6 +467,11 @@ export class GButton extends GComponent {
 
     public setup_afterAdd(buffer: ByteBuffer, beginPos: number): void {
         super.setup_afterAdd(buffer, beginPos);
+        // const g = this.scene.make.graphics(undefined, false);
+        // g.clear();
+        // g.fillStyle(0xFFCCAA);
+        // g.fillRoundedRect(0, 0, this.initWidth, this.initHeight);
+        // this._displayObject.addAt(g, 0);
         if (!buffer.seek(beginPos, 6))
             return;
 
@@ -474,11 +511,6 @@ export class GButton extends GComponent {
         if (buffer.readBool())
             this._soundVolumeScale = buffer.readFloat();
         this.selected = buffer.readBool();
-        // const g = this.scene.make.graphics(undefined, false);
-        // g.clear();
-        // g.fillStyle(0xFFCC00);
-        // g.fillRoundedRect(0, 0, this.initWidth, this.initHeight);
-        // this._displayObject.addAt(g, 0);
     }
 
     public async constructFromResource2(objectPool: GObject[], poolIndex: number): Promise<void> {

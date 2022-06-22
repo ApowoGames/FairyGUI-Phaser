@@ -129,20 +129,21 @@ export class GImage extends GObject {
         });
     }
 
+    handleSizeChanged() {
+        this._displayObject.setSize(this._width, this._height);
+        this.changeInteractive();
+        // (<Phaser.GameObjects.Container>this.displayObject).setDisplaySize(this._width, this._height);
+        // this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this._width, this._height), Phaser.Geom.Rectangle.Contains);
+    }
+
     protected handleXYChanged(): void {
         super.handleXYChanged();
-
         if (this._flip != FlipType.None) {
             if (this.scaleX == -1)
                 this.image.x += this._width;
             if (this.scaleY == -1)
                 this.image.y += this._height;
         }
-    }
-
-    protected handleSizeChanged(): void {
-        super.handleSizeChanged();
-        this.handleXYChanged();
     }
 
     public getProp(index: number): any {
@@ -178,20 +179,5 @@ export class GImage extends GObject {
             this._touchable = false;
             resolve();
         });
-    }
-
-    public setup_afterAdd(buffer: ByteBuffer, beginPos: number) {
-        super.setup_afterAdd(buffer, beginPos);
-        // this.handleXYChanged();
-        // this.setXY(this.x , this.y );
-        // if (this.parent && this._pivotAsAnchor && (this.parent.pivotX !== 0 || this.parent.pivotY !== 0)) {
-        //     const targetScale = this["_contentItem"] && this["_contentItem"].isHighRes ? 1 : GRoot.dpr;
-        //     const ownerScale = this["_contentItem"] && this["_contentItem"].isHighRes ? 1 : GRoot.dpr;
-        //     const _tmpX = this.x * GRoot.dpr - this.parent.initWidth * this.parent.pivotX;
-        //     // this.pivotX === 0 ? this.x : this.pivotX * this.initWidth * targetScale / this.adaptiveScaleX - this.parent.pivotX * this.parent.initWidth * ownerScale / this.parent.adaptiveScaleX;
-        //     const _tmpY = this.y * GRoot.dpr - this.parent.initHeight * (this.parent.pivotY);
-        //     // const _tmpY = this.pivotY === 0 ? this.y : this.pivotY * this.initHeight * targetScale / this.adaptiveScaleY - this.parent.pivotY * this.parent.initHeight * ownerScale / this.parent.adaptiveScaleY;
-        //     this.setXY(_tmpX, _tmpY);
-        // }
     }
 }

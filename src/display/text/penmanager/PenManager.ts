@@ -1,3 +1,4 @@
+import { GRoot } from "../../..";
 import { Pool } from "../../../utils/Pool";
 import { NewLineMode } from "../WrapText";
 import { Line } from "./Line";

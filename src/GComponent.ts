@@ -16,6 +16,7 @@ import { Graphics } from "./display/Graphics";
 import { GObject, sGlobalRect, sUpdateInDragging } from "./GObject";
 import { Decls, UIPackage } from "./UIPackage";
 import { GRoot, Image, DisplayObjectEvent, ObjectName } from ".";
+import { TextField } from './display/text/TextField';
 
 export enum ScreenType {
     NONE,
@@ -67,6 +68,7 @@ export class GComponent extends GObject {
     }
 
     public createDisplayObject(): void {
+        if (!this._scene) this.scene = GRoot.inst.scene;
         this._displayObject = this.scene.make.container(undefined, false);
         this._displayObject["$owner"] = this;
         this.container = this._displayObject;
@@ -717,7 +719,7 @@ export class GComponent extends GObject {
 
 
                 if (this.hitArea instanceof Phaser.Geom.Rectangle)
-                    this.hitArea.setTo(this.initWidth >> 1, this.initHeight >> 1, this.initWidth, this.initHeight);
+                    this.hitArea.setTo((0.5 - this._pivotX) * this.initWidth, (0.5 - this._pivotY) * this.initHeight, this.initWidth, this.initHeight);
                 this._displayObject.setInteractive(this.hitArea, Phaser.Geom.Rectangle.Contains);
             }
             else {
@@ -738,7 +740,7 @@ export class GComponent extends GObject {
     public set margin(value: Margin) {
         this._margin.copy(value);
         if (this.scrollRect) {
-            this.container.setPosition(this._margin.left + this._alignOffset.x, this._margin.top + this._alignOffset.y);
+            this.container.setPosition((this._margin.left + this._alignOffset.x) * GRoot.dpr, (this._margin.top + this._alignOffset.y) * GRoot.dpr);
         }
         this.handleSizeChanged();
     }
@@ -791,49 +793,6 @@ export class GComponent extends GObject {
         }
     }
 
-    public externalSetScale(sx: number, sy: number, screenType: ScreenType, force: boolean = false): void {
-        if (this._scaleX != sx || this._scaleY != sy || force) {
-            if (this._children) {
-                const len = this._children.length;
-                let scaleX: number = 1;
-                let scaleY: number = 1;
-                for (let i: number = 0; i < len; i++) {
-                    const component = this._children[i];
-                    if (component.name === "maskBG") {
-                        switch (screenType) {
-                            case ScreenType.FULL:
-                                scaleX = 1 / GRoot.uiScale;
-                                scaleY = 1 / GRoot.uiScale;
-                                break;
-                            case ScreenType.WIDTH:
-                                scaleX = 1 / GRoot.uiScale;
-                                break;
-                            case ScreenType.HEIGHT:
-                                scaleY = 1 / GRoot.uiScale;
-                                break;
-                            case ScreenType.NONE:
-                                scaleX = 1 / GRoot.uiScale;
-                                scaleY = 1 / GRoot.uiScale;
-                                break
-                        }
-                        component.setScale(scaleX, scaleY);
-                    }
-                    if (component.type === ObjectType.List) {
-                        component.setScale(GRoot.uiScale, GRoot.uiScale);
-                        // component.setXY(component.x + component.initWidth * (1 - GRoot.uiScale), component.y + component.initHeight * (1 - GRoot.uiScale));
-                    }
-                }
-            };
-            this._scaleX = sx * GRoot.uiScale;
-            this._scaleY = sy * GRoot.uiScale;
-            this.handleScaleChanged();
-            this.applyPivot();
-
-            this.updateGear(2);
-        }
-    }
-
-
     public get baseUserData(): string {
         var buffer: ByteBuffer = this.packageItem.rawData;
         buffer.seek(0, 4);
@@ -882,14 +841,14 @@ export class GComponent extends GObject {
                 this._displayObject.add(this.container);
             }
             this.updateMask();
-            this.container.setPosition(this._margin.left, this._margin.top);
+            this.container.setPosition(this._margin.left * GRoot.dpr, this._margin.top * GRoot.dpr);
         }
         else if (this._margin.left != 0 || this._margin.top != 0) {
             if (this._displayObject == this.container) {
                 this.container = new Phaser.GameObjects.Container(this.scene);
                 this._displayObject.add(this.container);
             }
-            this.container.setPosition(this._margin.left, this._margin.top);
+            this.container.setPosition(this._margin.left * GRoot.dpr, this._margin.top * GRoot.dpr);
         }
     }
 
@@ -934,7 +893,9 @@ export class GComponent extends GObject {
         if (!this._boundsChanged) {
             this._boundsChanged = true;
 
-            if (!this._renderTime) this.scene.time.addEvent(this._renderEvent);
+            // if (!this._renderTime) 
+            this.scene.time.delayedCall(200, this.__render, undefined, this);
+            //addEvent(this._renderEvent);
             //Laya.timer.callLater(this, this.__render);
         }
     }
@@ -999,10 +960,13 @@ export class GComponent extends GObject {
         this._boundsChanged = false;
 
         if (this._opaque) {
-            this.removeInteractive();
-            this.hitArea = new Phaser.Geom.Rectangle(ax + aw >> 1, ay + ah >> 1, aw, ah);
+            this.hitArea = new Phaser.Geom.Rectangle(0, 0, aw, ah);
+            if (this._displayObject) {
+                if (!this._displayObject.input) this._displayObject.setInteractive(this.hitArea, Phaser.Geom.Rectangle.Contains);
+                else this._displayObject.input.hitArea = this.hitArea;
+            }
             // console.log("set bounds", aw, ah);
-            this._displayObject.setInteractive(this.hitArea, Phaser.Geom.Rectangle.Contains);
+
             // if (this._g) {
             //     this._g.clear();
             // } else {
@@ -1511,7 +1475,7 @@ export class GComponent extends GObject {
                 }
                 const tx = !isGraphic ? mx.tx + this._maskDisplay.width / 2 : mx.tx;
                 const ty = !isGraphic ? mx.ty + this._maskDisplay.height / 2 : mx.ty;
-                this._maskDisplay.setPosition(tx, ty);
+                this._maskDisplay.setPosition(tx * GRoot.dpr, ty * GRoot.dpr);
                 if (this._maskReversed) {
                     if (isGraphic) {
                         this._displayObject.setMask(this._maskDisplay.createGeometryMask().setInvertAlpha(true));
@@ -1559,7 +1523,7 @@ export class GComponent extends GObject {
             }
             const tx = !isGraphic ? mx.tx + this._maskDisplay.width / 2 : mx.tx;
             const ty = !isGraphic ? mx.ty + this._maskDisplay.height / 2 : mx.ty;
-            this._maskDisplay.setPosition(tx, ty);
+            this._maskDisplay.setPosition(tx * GRoot.dpr, ty * GRoot.dpr);
         }
 
         if (this._maskDisplay.parentContainer) this._displayObject.remove(this._maskDisplay.parentContainer);
@@ -1600,7 +1564,7 @@ export class GComponent extends GObject {
                 if (obj && obj instanceof GComponent) {
                     const component = (<GComponent>obj);
                     if (component._scrollPane) {
-                        component._scrollPane.maskPosChange(posX, posY);
+                        component._scrollPane.maskPosChange(posX + component.x, posY + component.y);
                     }
                     const list = component._children;
                     list.forEach((obj) => {

@@ -43,7 +43,7 @@
         ListLayoutType[ListLayoutType["SingleRow"] = 1] = "SingleRow";
         ListLayoutType[ListLayoutType["FlowHorizontal"] = 2] = "FlowHorizontal";
         ListLayoutType[ListLayoutType["FlowVertical"] = 3] = "FlowVertical";
-        ListLayoutType[ListLayoutType["Pagination"] = 4] = "Pagination";
+        ListLayoutType[ListLayoutType["Pagination"] = 4] = "Pagination"; // 分页
     })(exports.ListLayoutType || (exports.ListLayoutType = {}));
     exports.ListSelectionMode = void 0;
     (function (ListSelectionMode) {
@@ -2138,6 +2138,7 @@
     Events.PULL_DOWN_RELEASE = "fui_pull_down_release";
     Events.PULL_UP_RELEASE = "fui_pull_up_release";
     Events.GEAR_STOP = "fui_gear_stop";
+    Events.LOADER_COMPLETE = "fui_loader_complete";
     Events.$event = new InteractiveEvent();
 
     class RelationItem {
@@ -2225,30 +2226,24 @@
                 return;
             var ox = this._owner.x;
             var oy = this._owner.y;
-            // const scaleWid = this._owner.width;
-            // const scaleHei = this._owner.height;
             for (var i = 0; i < cnt; i++) {
                 var info = this._defs[i];
                 switch (info.type) {
                     case exports.RelationType.Center_Center:
-                        // this._owner.x = this._owner.parent ? (this._owner.parent.width * GRoot.dpr * GRoot.contentScaleWid - scaleWid) / 2 : scaleWid / 2;
                         this._owner.x -= (0.5 - (applyPivot ? this._owner.pivotX : 0)) * dWidth;
                         break;
                     case exports.RelationType.Right_Center:
                     case exports.RelationType.Right_Left:
                     case exports.RelationType.Right_Right:
-                        // this._owner.x = this._owner.parent ? this._owner.parent.width * GRoot.dpr * GRoot.contentScaleWid - scaleWid : 0;
                         this._owner.x -= (1 - (applyPivot ? this._owner.pivotX : 0)) * dWidth;
                         break;
                     case exports.RelationType.Middle_Middle:
                         this._owner.y -= (0.5 - (applyPivot ? this._owner.pivotY : 0)) * dHeight;
-                        // this._owner.y = this._owner.parent ? ((this._owner.parent.height * GRoot.dpr * GRoot.contentScaleHei - scaleHei) / 2) : scaleHei / 2;
                         break;
                     case exports.RelationType.Bottom_Middle:
                     case exports.RelationType.Bottom_Top:
                     case exports.RelationType.Bottom_Bottom:
-                        // this._owner.y = this._owner.parent ? this._owner.parent.height * GRoot.dpr * GRoot.contentScaleHei - scaleHei : 0;
-                        this._owner.y -= (1 - (applyPivot ? this._owner.pivotY : 0)) * dHeight; // * GRoot.contentDprLevel;
+                        this._owner.y -= (1 - (applyPivot ? this._owner.pivotY : 0)) * dHeight;
                         break;
                 }
             }
@@ -2267,6 +2262,8 @@
         }
         applyOnXYChanged(info, dx, dy) {
             var tmp;
+            const isWidScale = GRoot.uiScale === GRoot.contentScaleWid;
+            const isHeiScale = GRoot.uiScale === GRoot.contentScaleHei;
             switch (info.type) {
                 case exports.RelationType.Left_Left:
                 case exports.RelationType.Left_Center:
@@ -2275,7 +2272,11 @@
                 case exports.RelationType.Right_Left:
                 case exports.RelationType.Right_Center:
                 case exports.RelationType.Right_Right:
-                    this._owner.x += dx;
+                    if (GRoot.uiScale !== 1 && dx !== 0) {
+                        this._owner.x = isWidScale ? (this._owner.x + dx) * GRoot.uiScale : (1 - GRoot.uiScale + this._owner.pivotX) * this._owner.initWidth + (this._owner.x + dx) * GRoot.uiScale;
+                    }
+                    else
+                        this._owner.x += dx;
                     break;
                 case exports.RelationType.Top_Top:
                 case exports.RelationType.Top_Middle:
@@ -2284,7 +2285,11 @@
                 case exports.RelationType.Bottom_Top:
                 case exports.RelationType.Bottom_Middle:
                 case exports.RelationType.Bottom_Bottom:
-                    this._owner.y += dy;
+                    if (GRoot.uiScale !== 1 && dy !== 0) {
+                        this._owner.y = isHeiScale ? (this._owner.y + dy) * GRoot.uiScale : (1 - GRoot.uiScale + this._owner.pivotY) * this._owner.initHeight + (this._owner.y + dy) * GRoot.uiScale;
+                    }
+                    else
+                        this._owner.y += dy;
                     break;
                 case exports.RelationType.Width:
                 case exports.RelationType.Height:
@@ -2342,10 +2347,11 @@
                 }
                 if (info.percent) {
                     if (this._targetWidth != 0)
-                        delta = this._target.width / this._targetWidth;
+                        delta = this._target._width / this._targetWidth;
                 }
-                else
-                    delta = this._target.width - this._targetWidth;
+                else {
+                    delta = this._target._width - this._targetWidth;
+                }
             }
             else {
                 if (this._target != this._owner.parent) {
@@ -2355,33 +2361,32 @@
                 }
                 if (info.percent) {
                     if (this._targetHeight != 0)
-                        delta = this._target.height / this._targetHeight;
+                        delta = this._target._height / this._targetHeight;
                 }
-                else
-                    delta = this._target.height - this._targetHeight;
+                else {
+                    delta = this._target._height - this._targetHeight;
+                }
             }
-            if (delta === NaN)
-                delta = 0;
-            // const targetScale = this._target["_contentItem"] && this._target["_contentItem"].isHighRes ? 1 : GRoot.dpr;
-            // const ownerScale = this._owner["_contentItem"] && this._owner["_contentItem"].isHighRes ? 1 : GRoot.dpr;
             switch (info.type) {
                 case exports.RelationType.Left_Left:
                     if (info.percent)
                         this._owner.xMin = pos + (this._owner.xMin - pos) * delta;
-                    else if (pivot != 0)
+                    else
                         this._owner.x += delta * (-pivot);
                     break;
                 case exports.RelationType.Left_Center:
                     if (info.percent)
                         this._owner.xMin = pos + (this._owner.xMin - pos) * delta;
-                    else
+                    else {
                         this._owner.x += delta * (0.5 - pivot);
+                    }
                     break;
                 case exports.RelationType.Left_Right:
                     if (info.percent)
                         this._owner.xMin = pos + (this._owner.xMin - pos) * delta;
-                    else
+                    else {
                         this._owner.x += delta * (1 - pivot);
+                    }
                     break;
                 case exports.RelationType.Center_Center:
                     if (info.percent)
@@ -2391,11 +2396,11 @@
                             this._owner.x += delta * (0.5 - pivot);
                         }
                         else {
-                            if (this._owner.type === exports.ObjectType.Text) {
-                                this._owner.x = (this._target._width - this._owner._width) / 2;
+                            if (this._owner.type === exports.ObjectType.Text || this._owner.type === exports.ObjectType.RichText) {
+                                this._owner.x = this._target._width - this._owner.initWidth * GRoot.uiScale >> 1;
                             }
                             else {
-                                this._owner.x = (this._target._width - this._owner._width * GRoot.uiScale) / 2;
+                                this._owner.x = this._target._width - this._owner._width * GRoot.uiScale >> 1;
                             }
                         }
                     }
@@ -2403,29 +2408,28 @@
                 case exports.RelationType.Right_Left:
                     if (info.percent)
                         this._owner.xMin = pos + (this._owner.xMin + this._owner._rawWidth - pos) * delta - this._owner._rawWidth;
-                    else if (pivot != 0)
+                    else if (delta != 0) {
                         this._owner.x += delta * (-pivot);
+                    }
                     break;
                 case exports.RelationType.Right_Center:
                     if (info.percent)
                         this._owner.xMin = pos + (this._owner.xMin + this._owner._rawWidth - pos) * delta - this._owner._rawWidth;
-                    else
+                    else {
                         this._owner.x += delta * (0.5 - pivot);
+                    }
                     break;
                 case exports.RelationType.Right_Right:
                     if (info.percent)
                         this._owner.xMin = pos + (this._owner.xMin + this._owner._rawWidth - pos) * delta - this._owner._rawWidth;
-                    else if (delta >= 0) {
-                        this._owner.x += delta * (1 - pivot);
-                    }
                     else {
-                        this._owner.x += this._owner._width * (1 - GRoot.uiScale);
+                        this._owner.x += delta * (1 - pivot);
                     }
                     break;
                 case exports.RelationType.Top_Top:
                     if (info.percent)
                         this._owner.yMin = pos + (this._owner.yMin - pos) * delta;
-                    else if (pivot != 0)
+                    else
                         this._owner.y += delta * (-pivot);
                     break;
                 case exports.RelationType.Top_Middle:
@@ -2444,23 +2448,18 @@
                     if (info.percent)
                         this._owner.yMin = pos + (this._owner.yMin + this._owner._rawHeight * 0.5 - pos) * delta - this._owner._rawHeight * 0.5;
                     else {
-                        if (delta >= 0) {
-                            this._owner.y += delta * (0.5 - pivot);
+                        if (this._owner.type === exports.ObjectType.Text || this.owner.type === exports.ObjectType.RichText) {
+                            this._owner.y = this._target._height - this._owner.initHeight * GRoot.uiScale >> 1;
                         }
                         else {
-                            if (this._owner.type === exports.ObjectType.Text) {
-                                this._owner.y = (this._target._height - this._owner._height) / 2;
-                            }
-                            else {
-                                this._owner.y = (this._target._height - this._owner._height * GRoot.uiScale) / 2;
-                            }
+                            this._owner.y = this._target._height - this._owner._height * GRoot.uiScale >> 1;
                         }
                     }
                     break;
                 case exports.RelationType.Bottom_Top:
                     if (info.percent)
                         this._owner.yMin = pos + (this._owner.yMin + this._owner._rawHeight - pos) * delta - this._owner._rawHeight;
-                    else if (pivot != 0)
+                    else
                         this._owner.y += delta * (-pivot);
                     break;
                 case exports.RelationType.Bottom_Middle:
@@ -2476,7 +2475,6 @@
                         this._owner.y += delta * (1 - pivot);
                     break;
                 case exports.RelationType.Width:
-                    this._owner.relationPivot = true;
                     if (this._owner._underConstruct && this._owner == this._target.parent)
                         v = this._owner.sourceWidth - this._target.initWidth;
                     else
@@ -2496,7 +2494,6 @@
                         this._owner.width = this._target._width + v;
                     break;
                 case exports.RelationType.Height:
-                    this._owner.relationPivot = true;
                     if (this._owner._underConstruct && this._owner == this._target.parent)
                         v = this._owner.sourceHeight - this._target.initHeight;
                     else
@@ -2638,8 +2635,8 @@
             this._target.onEvent(DisplayObjectEvent.SIZE_DELAY_CHANGE, this.__targetSizeWillChange, this);
             this._targetX = this._target.x;
             this._targetY = this._target.y;
-            this._targetWidth = this._target.initWidth;
-            this._targetHeight = this._target.initHeight;
+            this._targetWidth = this._target._rawWidth;
+            this._targetHeight = this._target._rawHeight;
         }
         __targetSizeWillChange() {
             this._owner.relations.sizeDirty = true;
@@ -3327,6 +3324,8 @@
             this._x = 0;
             this._y = 0;
             this._alpha = 1;
+            this._basePosX = 0;
+            this._basePosY = 0;
             this._rotation = 0;
             this._visible = true;
             // 可交互默认false
@@ -3344,10 +3343,13 @@
             this._adaptiveScaleY = 1;
             this._sortingOrder = 0;
             this._internalVisible = true;
+            // 记录是否已经调整过对象适配时而调整的缩放比例
+            this._extenalScaleBoo = false;
             this._xOffset = 0;
             this._yOffset = 0;
             this._worldTx = 0;
             this._worldTy = 0;
+            this._dprOffset = 1;
             this.minWidth = 0;
             this.minHeight = 0;
             this.maxWidth = 0;
@@ -3365,6 +3367,7 @@
             this._id = "" + _gInstanceCounter++;
             this.type = type;
             this._name = "";
+            this._dprOffset = GRoot.dpr * GRoot.uiScale;
             // todo 优先传入scene在创建display
             this.scene = scene;
             if (this.scene)
@@ -3372,6 +3375,18 @@
             this._displayStyle = new DisplayStyle();
             this._relations = new Relations(this);
             this._gears = new Array(10);
+        }
+        get basePosX() {
+            return this._basePosX;
+        }
+        get basePosY() {
+            return this._basePosY;
+        }
+        get extenalScaleBoo() {
+            return this._extenalScaleBoo;
+        }
+        set exteanalScaleBoo(val) {
+            this._extenalScaleBoo = val;
         }
         get adaptiveScaleX() {
             this._adaptiveScaleX = this.initWidth / this.sourceWidth;
@@ -3497,7 +3512,7 @@
         set timeEvent(value) {
             this._timeEvent = value;
         }
-        setXY(xv, yv, force = false) {
+        setXY(xv, yv, force = false, noEmitter = false) {
             if (this._x != xv || this._y != yv || force) {
                 var dx = xv - this._x;
                 var dy = yv - this._y;
@@ -3512,7 +3527,8 @@
                     this._parent.setBoundsChangedFlag();
                     if (this._group)
                         this._group.setBoundsChangedFlag(true);
-                    this.displayObject.emit(DisplayObjectEvent.XY_CHANGED);
+                    if (!noEmitter)
+                        this.displayObject.emit(DisplayObjectEvent.XY_CHANGED);
                 }
                 if (GObject.draggingObject == this && !sUpdateInDragging)
                     this.localToGlobalRect(0, 0, this._width, this._height, sGlobalRect);
@@ -3547,11 +3563,25 @@
         }
         center(restraint) {
             let r;
-            if (this._parent)
+            let parentWid = 0;
+            let parentHei = 0;
+            if (this._parent) {
                 r = this.parent;
-            else
+                if (this.parent instanceof GRoot) {
+                    parentWid = r.stageWidth;
+                    parentHei = r.stageHeight;
+                }
+                else {
+                    parentWid = r.width;
+                    parentHei = r.height;
+                }
+            }
+            else {
                 r = this.root;
-            this.setXY((r.width - this._width) / 2, (r.height - this._height) / 2);
+                parentWid = r.stageWidth;
+                parentHei = r.stageHeight;
+            }
+            this.setXY((parentWid - this._width) / 2, (parentHei - this._height) / 2);
             if (restraint) {
                 this.addRelation(r, exports.RelationType.Center_Center);
                 this.addRelation(r, exports.RelationType.Middle_Middle);
@@ -3576,7 +3606,7 @@
             this.setSize(this._rawWidth, value);
         }
         setSize(wv, hv, ignorePivot) {
-            if (this._rawWidth != wv || this._rawHeight != hv) {
+            if (this._rawWidth !== wv || this._rawHeight !== hv) {
                 this._rawWidth = wv;
                 this._rawHeight = hv;
                 if (wv < this.minWidth)
@@ -3605,58 +3635,13 @@
                 if (this instanceof GGroup)
                     this.resizeChildren(dWidth, dHeight);
                 this.updateGear(2);
-                // if (this._parent) {
-                //     this._relations.onOwnerSizeChanged(dWidth, dHeight, this._pivotAsAnchor || !ignorePivot);
-                //     this._parent.setBoundsChangedFlag();
-                //     if (this._group)
-                //         this._group.setBoundsChangedFlag();
-                // }
-                this.displayObject.emit(DisplayObjectEvent.SIZE_CHANGED);
-            }
-        }
-        externalSetSize(wv, hv, ignorePivot) {
-            if (this._rawWidth != wv || this._rawHeight != hv) {
-                this._rawWidth = wv;
-                this._rawHeight = hv;
-                if (wv < this.minWidth)
-                    wv = this.minWidth;
-                if (hv < this.minHeight)
-                    hv = this.minHeight;
-                if (this.maxWidth > 0 && wv > this.maxWidth)
-                    wv = this.maxWidth;
-                if (this.maxHeight > 0 && hv > this.maxHeight)
-                    hv = this.maxHeight;
-                var dWidth = wv - this._width;
-                var dHeight = hv - this._height;
-                this._width = wv;
-                this._height = hv;
-                this.handleSizeChanged();
-                if (this._pivotX != 0 || this._pivotY != 0) {
-                    if (!this._pivotAsAnchor) {
-                        if (!ignorePivot)
-                            this.setXY(this.x - this._pivotX * dWidth, this.y - this._pivotY * dHeight);
-                        this.updatePivotOffset();
-                    }
-                    else {
-                        this.applyPivot();
-                    }
-                }
-                if (this instanceof GGroup)
-                    this.resizeChildren(dWidth, dHeight);
-                this.updateGear(2);
-                if (this._parent) {
-                    this._relations.onOwnerSizeChanged(dWidth, dHeight, this._pivotAsAnchor || !ignorePivot);
-                    this._parent.setBoundsChangedFlag();
-                    if (this._group)
-                        this._group.setBoundsChangedFlag();
-                }
                 this.displayObject.emit(DisplayObjectEvent.SIZE_CHANGED);
             }
         }
         ensureSizeCorrect() {
         }
         makeFullScreen() {
-            this.setSize(GRoot.inst.width, GRoot.inst.height);
+            this.setSize(GRoot.inst.stageWidth, GRoot.inst.stageHeight);
         }
         get actualWidth() {
             return this.width * Math.abs(this._scaleX);
@@ -3759,6 +3744,22 @@
                     this._pivotOffsetY = 0;
                 }
             }
+            // if (this._displayObject) {
+            //     const transform = this._displayObject.getLocalTransformMatrix();
+            //     if (transform && (this._pivotX != 0 || this._pivotY != 0)) {
+            //         sHelperPoint.x = this._pivotX * this._width;
+            //         sHelperPoint.y = this._pivotY * this._height;
+            //         const pt: Phaser.Geom.Point = new Phaser.Geom.Point();
+            //         (<Phaser.Geom.Point>transform.transformPoint(this._pivotX * this.initWidth,
+            //             this._pivotY * this.initHeight, pt));
+            //         this._pivotOffsetX = this._pivotX * this._width - pt.x;
+            //         this._pivotOffsetY = this._pivotY * this._height - pt.y;
+            //     }
+            //     else {
+            //         this._pivotOffsetX = 0;
+            //         this._pivotOffsetY = 0;
+            //     }
+            // }
         }
         applyPivot() {
             if (this._pivotX != 0 || this._pivotY != 0) {
@@ -3789,26 +3790,31 @@
             //     || (this instanceof GTextField) && !(this instanceof GTextInput) && !(this instanceof GRichTextField))
             //     //Touch is not supported by GImage/GMovieClip/GTextField
             //     return;
+            this.changeInteractive();
+            this.updatePivotOffset();
+        }
+        // private _g: Phaser.GameObjects.Graphics;
+        changeInteractive() {
             if (this._displayObject) {
                 if (this._touchable) {
-                    // 注册点不在中心需要重新调整交互区域
-                    if (this._pivotX !== 0 || this._pivotY !== 0) {
-                        this.removeInteractive();
-                        this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, (this.initWidth / this.scaleX), (this.initHeight / this.scaleY)), Phaser.Geom.Rectangle.Contains);
-                    }
-                    else {
-                        this._displayObject.setInteractive(new Phaser.Geom.Rectangle(this.initWidth / 2, this.initWidth / 2, this.initWidth / this.scaleX, this.initHeight / this.scaleY), Phaser.Geom.Rectangle.Contains);
-                    }
-                }
-                else {
-                    this.removeInteractive();
+                    const realWid = this.initWidth * this._dprOffset;
+                    const realHei = this.initHeight * this._dprOffset;
+                    const rect = new Phaser.Geom.Rectangle((0.5 - this._pivotX) * realWid, (0.5 - this._pivotY) * realHei, realWid, realHei);
+                    if (!this._displayObject.input)
+                        this._displayObject.setInteractive(rect, Phaser.Geom.Rectangle.Contains);
+                    else
+                        this._displayObject.input.hitArea = rect;
+                    // if (this._g) (<Phaser.GameObjects.Container>this._displayObject).remove(this._g);
+                    // else this._g = this.scene.make.graphics(undefined, false);
+                    // this._g.clear();
+                    // this._g.fillStyle(0x66cc00, 0.5);
+                    // this._g.fillRoundedRect(0, 0, rect.width, rect.height, 5);//0, 0, this._width * GRoot.dpr, this._height * GRoot.dpr);
+                    // this._displayObject.addAt(this._g, 0);
                 }
             }
-            this.updatePivotOffset();
         }
         removeInteractive() {
             this._displayObject.disableInteractive();
-            this._displayObject.removeInteractive();
         }
         get grayed() {
             return this._grayed;
@@ -4130,6 +4136,7 @@
             this._displayStyle.hitArea = value;
         }
         dispose() {
+            this._extenalScaleBoo = false;
             this.removeFromParent();
             if (this._relations) {
                 this._relations.dispose();
@@ -4230,7 +4237,7 @@
             //     if (!ele.parentContainer) break;
             //     ele = ele.parentContainer;
             // }
-            return new Phaser.Geom.Point(worldMatrix.tx, worldMatrix.ty);
+            return new Phaser.Geom.Point(worldMatrix.tx / GRoot.dpr, worldMatrix.ty / GRoot.dpr);
         }
         globalToLocal(ax, ay, result) {
             ax = ax || 0;
@@ -4396,25 +4403,43 @@
         handleXYChanged() {
             var xv = this._x + this._xOffset;
             var yv = this._y + this._yOffset;
-            if (this.parent) {
-                if (this._relationPivot) {
-                    xv += this.parent.pivotOffsetX;
-                    yv += this.parent.pivotOffsetY;
-                }
-                if (this._pivotAsAnchor) {
-                    xv -= this.parent.initWidth * this.parent.pivotX;
-                    yv -= this.parent.initHeight * this.parent.pivotY;
-                }
+            let offsetXParam = GRoot.dpr * GRoot.uiScale;
+            let offsetYParam = GRoot.dpr * GRoot.uiScale;
+            if (this.parent && (this.parent.name === "")) {
+                offsetXParam = GRoot.dpr;
+                offsetYParam = GRoot.dpr;
             }
             if (this._pixelSnapping) {
                 xv = Math.round(xv);
                 yv = Math.round(yv);
             }
-            this._displayObject.setPosition(xv, yv);
+            this._displayObject.setPosition(xv * offsetXParam, yv * offsetYParam);
+            // var xv: number = this._x;
+            // var yv: number = this._y + this._yOffset;
+            // if (this._pivotAsAnchor) {
+            //     xv -= this._pivotX * this._width;
+            //     yv -= this._pivotY * this._height;
+            // }
+            // if (this._pixelSnapping) {
+            //     xv = Math.round(xv);
+            //     yv = Math.round(yv);
+            // }
+            // this._displayObject.setPosition(xv + this._pivotOffsetX, yv + this._pivotOffsetY);
         }
         handleSizeChanged() {
+            if (this.name === "maskBG" || (this.parent && this.parent.name === "maskBG") || (this._parent && this._parent.type === exports.ObjectType.List)) {
+                this._displayObject.setSize(this._width * GRoot.dpr, this._height * GRoot.dpr);
+            }
+            else if (this.type === exports.ObjectType.List) {
+                const contentScaleWid = GRoot.contentScaleWid > 1 ? GRoot.contentScaleWid : GRoot.uiScale;
+                const contentScaleHei = GRoot.contentScaleHei > 1 ? GRoot.contentScaleHei : GRoot.uiScale;
+                this._displayObject.setSize(this._width * GRoot.dpr * contentScaleWid, this._height * GRoot.dpr * contentScaleHei);
+            }
+            else {
+                this._displayObject.setSize(this._width * GRoot.dpr * GRoot.uiScale, this._height * GRoot.dpr * GRoot.uiScale);
+            }
+            this.changeInteractive();
             // (<Phaser.GameObjects.Container>this.displayObject).setDisplaySize(this._width, this._height);
-            this._displayObject.setSize(this._width, this._height);
             // this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this._width, this._height), Phaser.Geom.Rectangle.Contains);
         }
         handleScaleChanged() {
@@ -4483,6 +4508,7 @@
             if (buffer.readBool()) {
                 this.initWidth = buffer.readInt();
                 this.initHeight = buffer.readInt();
+                this.setSize(this.initWidth, this.initHeight, true);
                 // if (this.type === ObjectType.Image) {
                 //     (<Image>this.displayObject).changeSize(this.initWidth, this.initHeight);
                 // }
@@ -4521,7 +4547,7 @@
                 this.visible = false;
             // console.log("visible object ===>", this);
             const touchable = buffer.readBool();
-            if (this.type !== exports.ObjectType.Text) {
+            if (this.type !== exports.ObjectType.Text && this.type !== exports.ObjectType.Image) {
                 this.touchable = touchable;
             }
             // if (!buffer.readBool()) {
@@ -4569,6 +4595,8 @@
             this.setTouchable(this._touchable);
             this.adaptiveScaleX = this.initWidth / this.sourceWidth;
             this.adaptiveScaleY = this.initHeight / this.sourceHeight;
+            this._basePosX = this.x;
+            this._basePosY = this.y;
         }
         //drag support
         //-------------------------------------------------------------------
@@ -4630,8 +4658,8 @@
             if (GObject.draggingObject == this) {
                 // 若存在嵌套层级，实际位置会有偏差，所以引入世界坐标，做补正
                 this.worldMatrix;
-                const worldTx = this._worldTx;
-                const worldTy = this._worldTy;
+                const worldTx = this._worldTx / this._dprOffset;
+                const worldTy = this._worldTy / this._dprOffset;
                 var xx = this.scene.input.activePointer.x - sGlobalDragStart.x - worldTx + sGlobalRect.x;
                 var yy = this.scene.input.activePointer.y - sGlobalDragStart.y - worldTy + sGlobalRect.y;
                 if (this._dragBounds) {
@@ -4668,6 +4696,18 @@
                 this._dragTesting = false;
                 this.reset();
             }
+        }
+        get xOffset() {
+            return this._xOffset;
+        }
+        set xOffset(val) {
+            this._xOffset = val;
+        }
+        set yOffset(val) {
+            this._yOffset = val;
+        }
+        get yOffset() {
+            return this._yOffset;
         }
         //-------------------------------------------------------------------
         static cast(sprite) {
@@ -5072,1829 +5112,6 @@
         }
     }
 
-    class GGraph extends GObject {
-        constructor(scene, type) {
-            super(scene, type);
-            this._type = 0;
-            this._lineSize = 1;
-            this._lineColor = "#000000";
-            this._fillColor = "#FFFFFF";
-        }
-        get displayType() {
-            return this._type;
-        }
-        get graphics() {
-            return this._graphics;
-        }
-        drawRect(lineSize, lineColor, fillColor, cornerRadius) {
-            this._type = 1;
-            this._lineSize = lineSize;
-            this._lineColor = lineColor;
-            this._fillColor = fillColor;
-            this._cornerRadius = cornerRadius;
-            this.updateGraph();
-        }
-        drawEllipse(lineSize, lineColor, fillColor) {
-            this._type = 2;
-            this._lineSize = lineSize;
-            this._lineColor = lineColor;
-            this._fillColor = fillColor;
-            this.updateGraph();
-        }
-        drawRegularPolygon(lineSize, lineColor, fillColor, sides, startAngle, distances) {
-            this._type = 4;
-            this._lineSize = lineSize;
-            this._lineColor = lineColor;
-            this._fillColor = fillColor;
-            this._sides = sides;
-            this._startAngle = startAngle || 0;
-            this._distances = distances;
-            this.updateGraph();
-        }
-        drawPolygon(lineSize, lineColor, fillColor, points) {
-            this._type = 3;
-            this._lineSize = lineSize;
-            this._lineColor = lineColor;
-            this._fillColor = fillColor;
-            this._polygonPoints = points;
-            this.updateGraph();
-        }
-        get distances() {
-            return this._distances;
-        }
-        set distances(value) {
-            this._distances = value;
-            if (this._type == 3)
-                this.updateGraph();
-        }
-        get color() {
-            return this._fillColor;
-        }
-        set color(value) {
-            this._fillColor = value;
-            this.updateGear(4);
-            if (this._type != 0)
-                this.updateGraph();
-        }
-        handleXYChanged() {
-            var xv = this._x + this._xOffset;
-            var yv = this._y + this._yOffset;
-            if (this.parent) {
-                if (this._relationPivot) {
-                    xv += this.parent.pivotOffsetX;
-                    yv += this.parent.pivotOffsetY;
-                }
-                if (this._pivotAsAnchor) {
-                    xv -= this.parent.initWidth * this.parent.pivotX;
-                    yv -= this.parent.initHeight * this.parent.pivotY;
-                }
-            }
-            if (this._pixelSnapping) {
-                xv = Math.round(xv);
-                yv = Math.round(yv);
-            }
-            const _x = Math.round(this.initWidth * this._pivotX);
-            const _y = Math.round(this.initHeight * this._pivotY);
-            this._displayObject.setPosition(xv - _x, yv - _y);
-        }
-        updateGraph() {
-            this._displayObject.mouseEnabled = this.touchable;
-            if (this._graphics)
-                this._graphics.clear();
-            this._graphics = new Graphics(this.scene);
-            if (this._skewX != 0 || this._skewY != 0) {
-                this.setSkew(this._skewX, this._skewY);
-            }
-            var w = this.width;
-            var h = this.height;
-            if (w == 0 || h == 0)
-                return;
-            let fillColor;
-            let lineColor;
-            if (this._lineColor)
-                lineColor = Utils.toNumColor(this._lineColor);
-            // ============= rgba颜色值转换
-            if ( /*Render.isWebGL &&*/ToolSet.startsWith(this._fillColor, "rgba")) {
-                //webgl下laya未支持rgba格式
-                var arr = this._fillColor.substring(5, this._fillColor.lastIndexOf(")")).split(",");
-                var a = parseFloat(arr[3]);
-                if (a == 0)
-                    fillColor = null;
-                else {
-                    fillColor = Utils.toNumColor(Utils.toHexColor((parseInt(arr[0]) << 16) + (parseInt(arr[1]) << 8) + parseInt(arr[2])));
-                    this.alpha = a;
-                }
-            }
-            else {
-                fillColor = Utils.toNumColor(this._fillColor);
-            }
-            this._graphics.fillStyle(fillColor, this.alpha);
-            if (this._lineSize && lineColor)
-                this._graphics.lineStyle(this._lineSize, lineColor);
-            if (this._type == 1) {
-                // 画圆角
-                if (this._cornerRadius) {
-                    [
-                        ["moveTo", this._cornerRadius[0], 0],
-                        ["lineTo", w - this._cornerRadius[1], 0],
-                        ["arcTo", w, 0, w, this._cornerRadius[1], this._cornerRadius[1]],
-                        ["lineTo", w, h - this._cornerRadius[3]],
-                        ["arcTo", w, h, w - this._cornerRadius[3], h, this._cornerRadius[3]],
-                        ["lineTo", this._cornerRadius[2], h],
-                        ["arcTo", 0, h, 0, h - this._cornerRadius[2], this._cornerRadius[2]],
-                        ["lineTo", 0, this._cornerRadius[0]],
-                        ["arcTo", 0, 0, this._cornerRadius[0], 0, this._cornerRadius[0]],
-                        ["closePath"]
-                    ];
-                    this._graphics.fillRoundedRect(0, 0, w, h, this._cornerRadius[0]);
-                    if (this._lineSize > 0) {
-                        this._graphics.strokeRoundedRect(0, 0, w, h, this._cornerRadius[0]);
-                    }
-                    // gr.drawPath(0, 0, paths, fillColor ? { fillStyle: fillColor } : null, this._lineSize > 0 ? { strokeStyle: lineColor, lineWidth: this._lineSize } : null);
-                }
-                else
-                    this._graphics.fillRect(0, 0, w, h);
-                if (this._lineSize > 0) {
-                    this._graphics.strokeRect(0, 0, w, h);
-                }
-                // gr.drawRect(0, 0, w, h, fillColor, this._lineSize > 0 ? lineColor : null, this._lineSize);
-            }
-            else if (this._type == 2) {
-                this._graphics.fillCircle(w / 2, h / 2, w / 2);
-                if (this._lineSize > 0) {
-                    this._graphics.strokeCircle(w / 2, h / 2, w / 2);
-                }
-                // gr.drawCircle(w / 2, h / 2, w / 2, fillColor, this._lineSize > 0 ? lineColor : null, this._lineSize);
-            }
-            else if (this._type == 3) {
-                // ==== 优先处理点数据 偏移量，并以点形式保存
-                this.dealWithPolyPoints(0, 0);
-                // gr.drawPoly(0, 0, this._polygonPoints, fillColor, this._lineSize > 0 ? lineColor : null, this._lineSize);
-            }
-            else if (this._type == 4) {
-                if (!this._polygonPoints)
-                    this._polygonPoints = [];
-                var radius = Math.min(this._width, this._height) / 2;
-                this._polygonPoints.length = 0;
-                var angle = Utils.toRadian(this._startAngle);
-                var deltaAngle = 2 * Math.PI / this._sides;
-                var dist;
-                for (var i = 0; i < this._sides; i++) {
-                    if (this._distances) {
-                        dist = this._distances[i];
-                        if (isNaN(dist))
-                            dist = 1;
-                    }
-                    else
-                        dist = 1;
-                    var xv = radius + radius * dist * Math.cos(angle);
-                    var yv = radius + radius * dist * Math.sin(angle);
-                    this._polygonPoints.push(xv, yv);
-                    angle += deltaAngle;
-                }
-                this.dealWithPolyPoints(0, 0);
-                // gr.drawPoly(0, 0, this._polygonPoints, fillColor, this._lineSize > 0 ? lineColor : null, this._lineSize);
-            }
-            // this._displayObject.repaint();
-            this._displayObject.addAt(this._graphics);
-        }
-        dealWithPolyPoints(basePosX = 0, basePosY = 0) {
-            var offset = (this._lineSize >= 1 && this._lineColor) ? (this._lineSize % 2 === 0 ? 0 : 0.5) : 0;
-            const points = this._polygonPoints;
-            const points1 = [];
-            var ci = 0;
-            for (var i = 0, sz = points.length / 2; i < sz; i++) {
-                var x1 = points[ci] + basePosX + offset, y1 = points[ci + 1] + basePosY + offset;
-                points[ci] = x1;
-                points[ci + 1] = y1;
-                const point = new Phaser.Geom.Point(x1, y1);
-                points1.push(point);
-                ci += 2;
-            }
-            // ==== 开始画点路径
-            this._graphics.beginPath();
-            for (let i = 0; i < points1.length; i++) {
-                const point = points1[i];
-                this._graphics.moveTo(0, 0);
-                this._graphics.lineTo(point.x, point.y);
-            }
-            this._graphics.fillPath();
-            if (this._lineSize > 0) {
-                this._graphics.strokePath();
-            }
-            this._graphics.closePath();
-        }
-        replaceMe(target) {
-            // if (!this._parent)
-            //     throw "parent not set";
-            // target.name = this.name;
-            // target.alpha = this.alpha;
-            // target.rotation = this.rotation;
-            // target.visible = this.visible;
-            // target.touchable = this.touchable;
-            // target.grayed = this.grayed;
-            // target.setXY(this.x, this.y);
-            // target.setSize(this.width, this.height);
-            // var index: number = this._parent.getChildIndex(this);
-            // this._parent.addChildAt(target, index);
-            // target.relations.copyFrom(this.relations);
-            // this._parent.removeChild(this, true);
-        }
-        addBeforeMe(target) {
-            if (!this._parent)
-                throw "parent not set";
-            // var index: number = this._parent.getChildIndex(this);
-            // this._parent.addChildAt(target, index);
-        }
-        addAfterMe(target) {
-            if (!this._parent)
-                throw "parent not set";
-            // var index: number = this._parent.getChildIndex(this);
-            // index++;
-            // index++;
-            // this._parent.addChildAt(target, index);
-        }
-        setNativeObject(obj) {
-            this._type = 0;
-            // this._displayObject.mouseEnabled = this.touchable;
-            this._displayObject.graphics.clear();
-            this._displayObject.addChild(obj);
-        }
-        createDisplayObject() {
-            super.createDisplayObject();
-            this._displayObject.disableInteractive();
-            this._displayObject.removeInteractive();
-            // this._hitArea = new HitArea();
-            // this._hitArea.hit = this._displayObject.graphics;
-            // this._displayObject.hitArea = this._hitArea;
-        }
-        getProp(index) {
-            if (index == exports.ObjectPropID.Color)
-                return this.color;
-            else
-                return super.getProp(index);
-        }
-        setProp(index, value) {
-            if (index == exports.ObjectPropID.Color)
-                this.color = value;
-            else
-                super.setProp(index, value);
-        }
-        handleSizeChanged() {
-            super.handleSizeChanged();
-            if (this._type != 0)
-                this.updateGraph();
-        }
-        setSkew(sx, sy) {
-            // if (this._skewX != sx || this._skewY != sy) {
-            this._skewX = sx;
-            this._skewY = sy;
-            if (this._graphics) {
-                this._displayStyle.skewX = (-sx * Math.PI) / 180;
-                this._displayStyle.skewY = (sy * Math.PI) / 180;
-                this._graphics.skewX = this._displayStyle.skewX;
-                this._graphics.skewY = this._displayStyle.skewY;
-                this.applyPivot();
-            }
-            // }
-        }
-        setup_beforeAdd(buffer, beginPos) {
-            super.setup_beforeAdd(buffer, beginPos);
-            buffer.seek(beginPos, 5);
-            this._type = buffer.readByte();
-            if (this._type != 0) {
-                var i;
-                var cnt;
-                this._lineSize = buffer.readInt();
-                this._lineColor = buffer.readColorS(true);
-                this._fillColor = buffer.readColorS(true);
-                if (buffer.readBool()) {
-                    this._cornerRadius = [];
-                    for (i = 0; i < 4; i++)
-                        this._cornerRadius[i] = buffer.readFloat();
-                }
-                if (this._type == 3) {
-                    cnt = buffer.readShort();
-                    this._polygonPoints = [];
-                    this._polygonPoints.length = cnt;
-                    for (i = 0; i < cnt; i++)
-                        this._polygonPoints[i] = buffer.readFloat();
-                }
-                else if (this._type == 4) {
-                    this._sides = buffer.readShort();
-                    this._startAngle = buffer.readFloat();
-                    cnt = buffer.readShort();
-                    if (cnt > 0) {
-                        this._distances = [];
-                        for (i = 0; i < cnt; i++)
-                            this._distances[i] = buffer.readFloat();
-                    }
-                }
-                this.updateGraph();
-            }
-            this._touchable = false;
-        }
-    }
-
-    function fillImage(w, h, method, origin, clockwise, amount) {
-        if (amount <= 0)
-            return null;
-        else if (amount >= 0.9999)
-            return [0, 0, w, 0, w, h, 0, h];
-        var points;
-        switch (method) {
-            case exports.FillMethod.Horizontal:
-                points = fillHorizontal(w, h, origin, amount);
-                break;
-            case exports.FillMethod.Vertical:
-                points = fillVertical(w, h, origin, amount);
-                break;
-            case exports.FillMethod.Radial90:
-                points = fillRadial90(w, h, origin, clockwise, amount);
-                break;
-            case exports.FillMethod.Radial180:
-                points = fillRadial180(w, h, origin, clockwise, amount);
-                break;
-            case exports.FillMethod.Radial360:
-                points = fillRadial360(w, h, origin, clockwise, amount);
-                break;
-        }
-        return points;
-    }
-    function fillHorizontal(w, h, origin, amount) {
-        var w2 = w * amount;
-        if (origin == exports.FillOrigin.Left || origin == exports.FillOrigin.Top)
-            return [0, 0, w2, 0, w2, h, 0, h];
-        else
-            return [w, 0, w, h, w - w2, h, w - w2, 0];
-    }
-    function fillVertical(w, h, origin, amount) {
-        var h2 = h * amount;
-        if (origin == exports.FillOrigin.Left || origin == exports.FillOrigin.Top)
-            return [0, 0, 0, h2, w, h2, w, 0];
-        else
-            return [0, h, w, h, w, h - h2, 0, h - h2];
-    }
-    function fillRadial90(w, h, origin, clockwise, amount) {
-        if (clockwise && (origin == exports.FillOrigin.TopRight || origin == exports.FillOrigin.BottomLeft)
-            || !clockwise && (origin == exports.FillOrigin.TopLeft || origin == exports.FillOrigin.BottomRight)) {
-            amount = 1 - amount;
-        }
-        var v, v2, h2;
-        v = Math.tan(Math.PI / 2 * amount);
-        h2 = w * v;
-        v2 = (h2 - h) / h2;
-        var points;
-        switch (origin) {
-            case exports.FillOrigin.TopLeft:
-                if (clockwise) {
-                    if (h2 <= h)
-                        points = [0, 0, w, h2, w, 0];
-                    else
-                        points = [0, 0, w * (1 - v2), h, w, h, w, 0];
-                }
-                else {
-                    if (h2 <= h)
-                        points = [0, 0, w, h2, w, h, 0, h];
-                    else
-                        points = [0, 0, w * (1 - v2), h, 0, h];
-                }
-                break;
-            case exports.FillOrigin.TopRight:
-                if (clockwise) {
-                    if (h2 <= h)
-                        points = [w, 0, 0, h2, 0, h, w, h];
-                    else
-                        points = [w, 0, w * v2, h, w, h];
-                }
-                else {
-                    if (h2 <= h)
-                        points = [w, 0, 0, h2, 0, 0];
-                    else
-                        points = [w, 0, w * v2, h, 0, h, 0, 0];
-                }
-                break;
-            case exports.FillOrigin.BottomLeft:
-                if (clockwise) {
-                    if (h2 <= h)
-                        points = [0, h, w, h - h2, w, 0, 0, 0];
-                    else
-                        points = [0, h, w * (1 - v2), 0, 0, 0];
-                }
-                else {
-                    if (h2 <= h)
-                        points = [0, h, w, h - h2, w, h];
-                    else
-                        points = [0, h, w * (1 - v2), 0, w, 0, w, h];
-                }
-                break;
-            case exports.FillOrigin.BottomRight:
-                if (clockwise) {
-                    if (h2 <= h)
-                        points = [w, h, 0, h - h2, 0, h];
-                    else
-                        points = [w, h, w * v2, 0, 0, 0, 0, h];
-                }
-                else {
-                    if (h2 <= h)
-                        points = [w, h, 0, h - h2, 0, 0, w, 0];
-                    else
-                        points = [w, h, w * v2, 0, w, 0];
-                }
-                break;
-        }
-        return points;
-    }
-    function movePoints(points, offsetX, offsetY) {
-        var cnt = points.length;
-        for (var i = 0; i < cnt; i += 2) {
-            points[i] += offsetX;
-            points[i + 1] += offsetY;
-        }
-    }
-    function fillRadial180(w, h, origin, clockwise, amount) {
-        var points;
-        switch (origin) {
-            case exports.FillOrigin.Top:
-                if (amount <= 0.5) {
-                    amount = amount / 0.5;
-                    points = fillRadial90(w / 2, h, clockwise ? exports.FillOrigin.TopLeft : exports.FillOrigin.TopRight, clockwise, amount);
-                    if (clockwise)
-                        movePoints(points, w / 2, 0);
-                }
-                else {
-                    amount = (amount - 0.5) / 0.5;
-                    points = fillRadial90(w / 2, h, clockwise ? exports.FillOrigin.TopRight : exports.FillOrigin.TopLeft, clockwise, amount);
-                    if (clockwise)
-                        points.push(w, h, w, 0);
-                    else {
-                        movePoints(points, w / 2, 0);
-                        points.push(0, h, 0, 0);
-                    }
-                }
-                break;
-            case exports.FillOrigin.Bottom:
-                if (amount <= 0.5) {
-                    amount = amount / 0.5;
-                    points = fillRadial90(w / 2, h, clockwise ? exports.FillOrigin.BottomRight : exports.FillOrigin.BottomLeft, clockwise, amount);
-                    if (!clockwise)
-                        movePoints(points, w / 2, 0);
-                }
-                else {
-                    amount = (amount - 0.5) / 0.5;
-                    points = fillRadial90(w / 2, h, clockwise ? exports.FillOrigin.BottomLeft : exports.FillOrigin.BottomRight, clockwise, amount);
-                    if (clockwise) {
-                        movePoints(points, w / 2, 0);
-                        points.push(0, 0, 0, h);
-                    }
-                    else
-                        points.push(w, 0, w, h);
-                }
-                break;
-            case exports.FillOrigin.Left:
-                if (amount <= 0.5) {
-                    amount = amount / 0.5;
-                    points = fillRadial90(w, h / 2, clockwise ? exports.FillOrigin.BottomLeft : exports.FillOrigin.TopLeft, clockwise, amount);
-                    if (!clockwise)
-                        movePoints(points, 0, h / 2);
-                }
-                else {
-                    amount = (amount - 0.5) / 0.5;
-                    points = fillRadial90(w, h / 2, clockwise ? exports.FillOrigin.TopLeft : exports.FillOrigin.BottomLeft, clockwise, amount);
-                    if (clockwise) {
-                        movePoints(points, 0, h / 2);
-                        points.push(w, 0, 0, 0);
-                    }
-                    else
-                        points.push(w, h, 0, h);
-                }
-                break;
-            case exports.FillOrigin.Right:
-                if (amount <= 0.5) {
-                    amount = amount / 0.5;
-                    points = fillRadial90(w, h / 2, clockwise ? exports.FillOrigin.TopRight : exports.FillOrigin.BottomRight, clockwise, amount);
-                    if (clockwise)
-                        movePoints(points, 0, h / 2);
-                }
-                else {
-                    amount = (amount - 0.5) / 0.5;
-                    points = fillRadial90(w, h / 2, clockwise ? exports.FillOrigin.BottomRight : exports.FillOrigin.TopRight, clockwise, amount);
-                    if (clockwise)
-                        points.push(0, h, w, h);
-                    else {
-                        movePoints(points, 0, h / 2);
-                        points.push(0, 0, w, 0);
-                    }
-                }
-                break;
-        }
-        return points;
-    }
-    function fillRadial360(w, h, origin, clockwise, amount) {
-        var points;
-        switch (origin) {
-            case exports.FillOrigin.Top:
-                if (amount <= 0.5) {
-                    amount = amount / 0.5;
-                    points = fillRadial180(w / 2, h, clockwise ? exports.FillOrigin.Left : exports.FillOrigin.Right, clockwise, amount);
-                    if (clockwise)
-                        movePoints(points, w / 2, 0);
-                }
-                else {
-                    amount = (amount - 0.5) / 0.5;
-                    points = fillRadial180(w / 2, h, clockwise ? exports.FillOrigin.Right : exports.FillOrigin.Left, clockwise, amount);
-                    if (clockwise)
-                        points.push(w, h, w, 0, w / 2, 0);
-                    else {
-                        movePoints(points, w / 2, 0);
-                        points.push(0, h, 0, 0, w / 2, 0);
-                    }
-                }
-                break;
-            case exports.FillOrigin.Bottom:
-                if (amount <= 0.5) {
-                    amount = amount / 0.5;
-                    points = fillRadial180(w / 2, h, clockwise ? exports.FillOrigin.Right : exports.FillOrigin.Left, clockwise, amount);
-                    if (!clockwise)
-                        movePoints(points, w / 2, 0);
-                }
-                else {
-                    amount = (amount - 0.5) / 0.5;
-                    points = fillRadial180(w / 2, h, clockwise ? exports.FillOrigin.Left : exports.FillOrigin.Right, clockwise, amount);
-                    if (clockwise) {
-                        movePoints(points, w / 2, 0);
-                        points.push(0, 0, 0, h, w / 2, h);
-                    }
-                    else
-                        points.push(w, 0, w, h, w / 2, h);
-                }
-                break;
-            case exports.FillOrigin.Left:
-                if (amount <= 0.5) {
-                    amount = amount / 0.5;
-                    points = fillRadial180(w, h / 2, clockwise ? exports.FillOrigin.Bottom : exports.FillOrigin.Top, clockwise, amount);
-                    if (!clockwise)
-                        movePoints(points, 0, h / 2);
-                }
-                else {
-                    amount = (amount - 0.5) / 0.5;
-                    points = fillRadial180(w, h / 2, clockwise ? exports.FillOrigin.Top : exports.FillOrigin.Bottom, clockwise, amount);
-                    if (clockwise) {
-                        movePoints(points, 0, h / 2);
-                        points.push(w, 0, 0, 0, 0, h / 2);
-                    }
-                    else
-                        points.push(w, h, 0, h, 0, h / 2);
-                }
-                break;
-            case exports.FillOrigin.Right:
-                if (amount <= 0.5) {
-                    amount = amount / 0.5;
-                    points = fillRadial180(w, h / 2, clockwise ? exports.FillOrigin.Top : exports.FillOrigin.Bottom, clockwise, amount);
-                    if (clockwise)
-                        movePoints(points, 0, h / 2);
-                }
-                else {
-                    amount = (amount - 0.5) / 0.5;
-                    points = fillRadial180(w, h / 2, clockwise ? exports.FillOrigin.Bottom : exports.FillOrigin.Top, clockwise, amount);
-                    if (clockwise)
-                        points.push(0, h, w, h, w, h / 2);
-                    else {
-                        movePoints(points, 0, h / 2);
-                        points.push(0, 0, w, 0, w, h / 2);
-                    }
-                }
-                break;
-        }
-        return points;
-    }
-
-    exports.GRAPHICSTYPE = void 0;
-    (function (GRAPHICSTYPE) {
-        GRAPHICSTYPE["RECTANGLE"] = "rectangle";
-        GRAPHICSTYPE["CIRCLE"] = "circle";
-        GRAPHICSTYPE["POLY"] = "POLY";
-        GRAPHICSTYPE["ELLIPSE"] = "ellipse";
-    })(exports.GRAPHICSTYPE || (exports.GRAPHICSTYPE = {}));
-    class Graphics extends Phaser.GameObjects.Graphics {
-        constructor(scene) {
-            super(scene);
-            // 默认矩形
-            this._graphicsType = exports.GRAPHICSTYPE.RECTANGLE;
-            this._width = 0;
-            this._height = 0;
-            this._radius = 0;
-            this._points = [];
-        }
-        get width() {
-            return this._width;
-        }
-        get height() {
-            return this._height;
-        }
-        get radius() {
-            return this._radius;
-        }
-        get points() {
-            return this._points;
-        }
-        fillRect(x, y, width, height) {
-            this._graphicsType = exports.GRAPHICSTYPE.RECTANGLE;
-            this._width = width;
-            this._height = height;
-            return super.fillRect(x, y, this._width, this._height);
-        }
-        strokeRect(x, y, width, height) {
-            return super.strokeRect(x, y, width, height);
-        }
-        fillCircle(x, y, radius) {
-            this._graphicsType = exports.GRAPHICSTYPE.CIRCLE;
-            this._radius = radius;
-            return super.fillCircle(x, y, this._radius);
-        }
-        strokeCircle(x, y, radius) {
-            return super.strokeCircle(x, y, radius);
-        }
-        fillTriangle(x0, y0, x1, y1, x2, y2) {
-            // 三角形是多边形
-            // todo 扩展其他正多边形
-            this._graphicsType = exports.GRAPHICSTYPE.POLY;
-            this._points = [new Phaser.Geom.Point(x0, y0), new Phaser.Geom.Point(x1, y1), new Phaser.Geom.Point(x2, y2)];
-            return super.fillTriangle(x0, y0, x1, y1, x2, y2);
-        }
-        fillEllipse(x, y, width, height, smoothness) {
-            this._graphicsType = exports.GRAPHICSTYPE.ELLIPSE;
-            return super.fillEllipse(x, y, width, height, smoothness);
-        }
-        fillRoundedRect(x, y, width, height, radius) {
-            return super.fillRoundedRect(x, y, width, height, Number(radius));
-        }
-        strokeRoundedRect(x, y, width, height, radius) {
-            return super.strokeRoundedRect(x, y, width, height, Number(radius));
-        }
-        get graphicsType() {
-            return this._graphicsType;
-        }
-        set graphicsType(value) {
-            this._graphicsType = value;
-        }
-        clear() {
-            this._width = 0;
-            this._height = 0;
-            this._radius = 0;
-            this._points = [];
-            return super.clear();
-        }
-    }
-
-    const patches = ["[0][0]", "[1][0]", "[2][0]", "[0][1]", "[1][1]", "[2][1]", "[0][2]", "[1][2]", "[2][2]"];
-    class Image extends Phaser.GameObjects.Container {
-        constructor(scene) {
-            super(scene);
-            this._frame = 0;
-            this._sourceFrames = [];
-            this._playing = true;
-            this._frameCount = 0;
-            this._start = 0;
-            this._end = 0;
-            this._times = 0;
-            this._endAt = 0;
-            this._status = 0; //0-none, 1-next loop, 2-ending, 3-ended
-            this._frameImgs = new Map();
-            /**
-             * 是否已经fairy包装item中获取完数据
-             */
-            this._hasSetPackItem = false;
-            this._tileGridIndice = 0;
-            this._needRebuild = 0;
-            this._fillOrigin = 0;
-            this._fillAmount = 0;
-            this.finalXs = [];
-            this.finalYs = [];
-            this.tintFill = false;
-            /**
-             * 是否对九宫图片只做缩放，eg：当left，middle为0，则对原始图片进行缩放
-             */
-            this._scale9GridBool = false;
-            // this._renderTexture = this.scene.make.renderTexture(undefined, false);
-            // this._renderTexture.setPosition(0, 0);
-            // this.add(this._renderTexture);
-            // this.patchKey = Math.random() * 1000 + "";
-            // this.mouseEnabled = false;
-            this._color = "#FFFFFF";
-        }
-        get curImage() {
-            return this._curImg;
-        }
-        /**
-         * 九宫图的原始图片名字
-         */
-        get valueName() {
-            return this._valueName;
-        }
-        setTint(color) {
-            const _color = Utils.toNumColor(color);
-            this.list.forEach((img) => {
-                if (img) {
-                    img.clearTint();
-                    img.setTint(_color);
-                }
-            });
-        }
-        setSize(width, height, originFrame) {
-            this.width = width;
-            this.height = height;
-            const originWidth = this["$owner"].sourceWidth;
-            const originHeight = this["$owner"].sourceHeight;
-            if (this._scale9Grid) {
-                const _left = this._scale9Grid.left;
-                const _right = originWidth - this._scale9Grid.right;
-                const _top = this._scale9Grid.top;
-                const _bottom = originHeight - this._scale9Grid.bottom;
-                if (width < _left || width < _right || width < (_left + _right) || height < _top || height < _bottom || height < (_top + _bottom)) {
-                    this.finalXs = [0, 0, 0, this.width];
-                    this.finalYs = [0, 0, 0, this.height];
-                    this._scale9GridBool = true;
-                }
-                else {
-                    this.finalXs = [0, _left, width - _left - _right, width];
-                    this.finalYs = [0, _top, height - _top - _bottom, height];
-                    this._scale9GridBool = false;
-                }
-            }
-            else {
-                this.finalXs = [0, 0, 0, this.width];
-                this.finalYs = [0, 0, 0, this.height];
-            }
-            // 有texture资源后再创建九宫图片
-            if (!this.originFrame)
-                this.originFrame = originFrame;
-            if (this.originFrame) {
-                this.createPatches();
-                this.drawPatches();
-            }
-            this.markChanged(1);
-            return this;
-        }
-        changeSize(width, height, initBoo, originFrame) {
-            if (initBoo === undefined)
-                initBoo = false;
-            return new Promise((resolve, reject) => {
-                const key = this.valueName;
-                if (initBoo) {
-                    this.width = width;
-                    this.height = height;
-                    const originWidth = this["$owner"].sourceWidth;
-                    const originHeight = this["$owner"].sourceHeight;
-                    if (this._scale9Grid) {
-                        const _left = this._scale9Grid.left;
-                        const _right = originWidth - this._scale9Grid.right;
-                        const _top = this._scale9Grid.top;
-                        const _bottom = originHeight - this._scale9Grid.bottom;
-                        if (width < _left || width < _right || width < (_left + _right) || height < _top || height < _bottom || height < (_top + _bottom)) {
-                            this.finalXs = [0, 0, 0, this.width];
-                            this.finalYs = [0, 0, 0, this.height];
-                            this._scale9GridBool = true;
-                        }
-                        else {
-                            this.finalXs = [0, _left, width - _left - _right, width];
-                            this.finalYs = [0, _top, height - _top - _bottom, height];
-                            this._scale9GridBool = false;
-                        }
-                    }
-                    else {
-                        this.finalXs = [0, 0, 0, this.width];
-                        this.finalYs = [0, 0, 0, this.height];
-                    }
-                    // 有texture资源后再创建九宫图片
-                    if (!this.originFrame)
-                        this.originFrame = originFrame;
-                }
-                if (this.originFrame) {
-                    if (initBoo) {
-                        this.createPatches();
-                        // 当_curImg存在时，说明9宫切图已经保存了一份基础合图，无须再用renderTexture绘制
-                        if (!this._renderTexture && this._scale9Grid && !this._curImg) {
-                            this._renderTexture = this.scene.make.renderTexture({ x: 0, y: 0, width: this.width, height: this.height }, false);
-                        }
-                        else if (this._curImg) {
-                            this._renderTexture = null;
-                        }
-                    }
-                    this.drawPatches();
-                    if (this._renderTexture) {
-                        if (this.scene.textures.exists(key)) {
-                            this._curImg = this.scene.make.image({ key }, false);
-                            resolve(this);
-                        }
-                        else {
-                            this._renderTexture.snapshot((img) => {
-                                const fun = (cbKey) => {
-                                    this.scene.textures.off("addtexture", fun, this);
-                                    if (cbKey === this.patchKey || this.scene.textures.get(this.patchKey)) {
-                                        this._curImg = this.scene.make.image({ key: this.patchKey }, false);
-                                        this.markChanged(1);
-                                        resolve(this);
-                                    }
-                                };
-                                this.scene.textures.off("addtexture", fun, this);
-                                // 可能同时会有多个texture add事件派发，需要判读callbackkey和当前key是否一致
-                                this.scene.textures.on("addtexture", fun, this);
-                                if (!GRoot.inst.textureManager.get(key)) {
-                                    GRoot.inst.textureManager.add(key);
-                                }
-                                if (!this.scene.textures.get(this.patchKey)) {
-                                    this.scene.textures.addBase64(this.patchKey, img.src);
-                                }
-                                else {
-                                    fun(this.patchKey);
-                                }
-                                this._renderTexture.destroy();
-                            });
-                        }
-                    }
-                    else {
-                        resolve(this);
-                    }
-                }
-            });
-        }
-        createPatches() {
-            // The positions we want from the base texture
-            // 保存有x轴和y轴9宫坐标信息，如果存在坐标信息相同，则表示某一部分的图片尺寸为0，需要查看原因
-            const textureXs = this.finalXs; //[0, this._scale9Grid.left, this.originFrame.width - this._scale9Grid.right, this.originFrame.width];
-            const textureYs = this.finalYs; //[0, this._scale9Grid.top, this.originFrame.height - this._scale9Grid.bottom, this.originFrame.height];
-            let patchIndex = 0;
-            for (let yi = 0; yi < 3; yi++) {
-                for (let xi = 0; xi < 3; xi++) {
-                    this.createPatchFrame(this.getPatchNameByIndex(patchIndex), textureXs[xi], // x
-                    textureYs[yi], // y
-                    textureXs[xi + 1] - textureXs[xi], // width
-                    textureYs[yi + 1] - textureYs[yi] // height
-                    );
-                    ++patchIndex;
-                }
-            }
-        }
-        drawPatches() {
-            const tintFill = this.tintFill;
-            //如果是平铺，可以不移除tilesprite，只有9宫和正常贴图才需要
-            if (!this._scaleByTile)
-                this.removeAll(true);
-            // 非九宫直接画texture
-            if (!this._scale9Grid || this._scale9GridBool) {
-                const patch = this._sourceTexture.frames[this.getPatchNameByIndex(8)];
-                if (this._curImg) {
-                    this._curImg.destroy();
-                    this._curImg = null;
-                }
-                const name = !this._scale9Grid ? patch.name : "__BASE";
-                this._curImg = this.scene.make.image({ key: patch.texture.key, frame: name }, false);
-                // new Phaser.GameObjects.Image(this.scene, 0, 0, patch.texture.key, name);
-                this._curImg.setOrigin(0);
-                this._curImg.displayWidth = this.finalXs[3]; //+ (xi < 2 ? this.mCorrection : 0);
-                this._curImg.displayHeight = this.finalYs[3]; //+ (yi < 2 ? this.mCorrection : 0);
-                this._curImg.setPosition(this.finalXs[2], this.finalYs[2]);
-                // console.log("drawImage ===>", this._curImg, this.finalXs, this.finalYs);
-                this.add(this._curImg);
-                if (this.internalTint)
-                    this._curImg.setTint(this.internalTint);
-                this._curImg.tintFill = tintFill;
-                return;
-            }
-            let patchIndex = 0;
-            this["$owner"].sourceHeight;
-            const _left = this._scale9Grid.left;
-            for (let yi = 0; yi < 3; yi++) {
-                for (let xi = 0; xi < 3; xi++) {
-                    // 九宫逻辑中如果宽高为0，则不做后续处理
-                    // if (this.finalXs[xi + 1] - this.finalXs[xi] <= 0 || this.finalYs[yi + 1] - this.finalYs[yi] <= 0) {
-                    //     continue;
-                    // }
-                    const patch = this._sourceTexture.frames[this.getPatchNameByIndex(patchIndex)];
-                    const patchImg = this.scene.make.image({ key: patch.texture.key, frame: patch.name }, false);
-                    // new Phaser.GameObjects.Image(this.scene, 0, 0, patch.texture.key, patch.name);
-                    patchImg.setOrigin(0);
-                    let posx = this.finalXs[xi];
-                    let posy = this.finalYs[yi];
-                    if (xi === 2) {
-                        if (this.finalXs[2] < _left) {
-                            posx = _left;
-                        }
-                    }
-                    patchImg.setPosition(posx, posy);
-                    // const displayWidth = this.finalXs[xi + 1] - this.finalXs[xi] < 0 ? 0 : this.finalXs[xi + 1] - this.finalXs[xi]; //+ (xi < 2 ? this.mCorrection : 0);
-                    // const displayHeight = this.finalYs[yi + 1] - this.finalYs[yi] < 0 ? 0 : this.finalYs[yi + 1] - this.finalYs[yi];
-                    patchImg.displayWidth = this.finalXs[xi + 1] - this.finalXs[xi] < 0 ? 0 : this.finalXs[xi + 1] - this.finalXs[xi] + 1; //+ (xi < 2 ? this.mCorrection : 0);
-                    patchImg.displayHeight = this.finalYs[yi + 1] - this.finalYs[yi] < 0 ? 0 : this.finalYs[yi + 1] - this.finalYs[yi] + 1; //+ (yi < 2 ? this.mCorrection : 0);    
-                    // patchImg.setScale(
-                    //     displayWidth / patch.width,
-                    //     displayHeight / patch.height
-                    // );
-                    // console.log("drawImage ===>", patchImg, this.finalXs, this.finalYs);
-                    if (this._renderTexture && !this._renderTexture.dirty)
-                        this._renderTexture.draw(patchImg, patchImg.x, patchImg.y);
-                    this.add(patchImg);
-                    if (this.internalTint)
-                        patchImg.setTint(this.internalTint);
-                    patchImg.tintFill = tintFill;
-                    ++patchIndex;
-                }
-            }
-            // test position
-            // if (this["$owner"]._id === "n1") return;
-            // const g = this.scene.add.graphics(undefined);
-            // g.clear();
-            // g.fillStyle(0xFFCC00);
-            // g.fillRect(0, 0, 20, 20);
-            // this.add(g);
-        }
-        createPatchFrame(patch, x, y, width, height) {
-            if (this.originFrame && !this._sourceTexture)
-                this._sourceTexture = this.originFrame.texture;
-            if (this._sourceTexture.frames.hasOwnProperty(patch)) {
-                // console.log("patch cf", patch);
-                return;
-            }
-            // 在texture的frames列表中添加对应增加的frame
-            this._sourceTexture.add(patch, this.originFrame.sourceIndex, this.originFrame.cutX + x, this.originFrame.cutY + y, width, height);
-        }
-        getPatchNameByIndex(index) {
-            return this.originFrame.name + patches[index] + this.patchKey;
-        }
-        get display() {
-            return this._tileSprite || this._curImg;
-        }
-        get texture() {
-            return this._sourceTexture;
-        }
-        set texture(value) {
-            if (this._sourceTexture != value) {
-                this._sourceTexture = value;
-                if (this._sourceTexture)
-                    this.changeSize(this.width, this.height, true);
-                else
-                    this.changeSize(0, 0, true);
-                // todo 重绘
-                // this.scene.add.image(0, 0, this._sourceTexture);
-                // const frames = value.getFrameNames();
-                // const baseFrameName = frames[0];
-                // this._renderTexture.drawFrame(value.key, baseFrameName, 0, 0);
-                // this.repaint();
-                // this.markChanged(1);
-                // if (!this._sourceTexture.hasOwnProperty("useCount")) {
-                //     Object.defineProperties(this.texture, {
-                //         useCount: {
-                //             value: 0,
-                //             writable: true
-                //         }
-                //     });
-                // }
-                // // @ts-ignore
-                // this._sourceTexture.useCount++;
-            }
-        }
-        // public destroy(fromScene?: boolean): void {
-        //     if (this._sourceTexture) {
-        //         if (!this._sourceTexture.hasOwnProperty("useCount")) {
-        //             Object.defineProperties(this.texture, {
-        //                 useCount: {
-        //                     value: 0,
-        //                     writable: true
-        //                 }
-        //             });
-        //         }
-        //         // @ts-ignore
-        //         this._sourceTexture.useCount--;
-        //     }
-        //     super.destroy(fromScene);
-        // }
-        setPackItem(value) {
-            return new Promise((resolve, reject) => {
-                if (!value || !value.texture) {
-                    console.log("no packitem ===>", value);
-                    reject();
-                    return;
-                }
-                const _texture = value.texture;
-                this._valueName = _texture.key + "_" + value.name;
-                const name = this._valueName + "_" + this["$owner"].initWidth + "_" + this["$owner"].initHeight;
-                this.patchKey = name;
-                this._hasSetPackItem = true;
-                // 非九宫正常图片
-                if (!this._scale9Grid) {
-                    if (this.width !== _texture.frames["__BASE"].cutWidth || this.height !== _texture.frames["__BASE"].cutHeight) {
-                        // 手动将packitem数据组织成frame格式添加到大图集的frames中，内部会去重
-                        _texture.add(name, 0, value.x, value.y, value.width, value.height);
-                        if (!this.scene.textures.exists(name)) {
-                            const canvas = this.scene.textures.createCanvas(name, value.width, value.height);
-                            canvas.drawFrame(_texture.key, name, 0, 0);
-                            if (canvas && this._sourceTexture != canvas) {
-                                this._sourceTexture = canvas;
-                                this.originFrame = this._sourceTexture.frames["__BASE"];
-                                this.setSize(value.width, value.height);
-                                this.markChanged(1);
-                                resolve();
-                            }
-                        }
-                        else {
-                            let texture = this.scene.textures.get(name);
-                            if (texture && this._sourceTexture != texture) {
-                                this._sourceTexture = texture;
-                                this.originFrame = this._sourceTexture.frames["__BASE"];
-                                this.setSize(value.width, value.height);
-                                this.markChanged(1);
-                                resolve();
-                            }
-                        }
-                    }
-                    // 单张图片非图集
-                    else {
-                        const img = this.scene.make.image({ key: _texture.key }, false);
-                        // img.setTexture(_texture.key);
-                        this.add(img);
-                        this.markChanged(1);
-                        resolve();
-                    }
-                }
-                // 九宫图片 
-                else {
-                    // 手动将packitem数据组织成frame格式添加到大图集的frames中，内部会去重
-                    _texture.add(name, 0, value.x, value.y, value.width, value.height);
-                    if (!this.scene.textures.exists(name)) {
-                        const canvas = this.scene.textures.createCanvas(name, value.width, value.height);
-                        canvas.drawFrame(_texture.key, name, 0, 0);
-                        if (canvas && this._sourceTexture != canvas) {
-                            this._sourceTexture = canvas;
-                            this.originFrame = this._sourceTexture.frames["__BASE"];
-                            this.changeSize(value.width, value.height, true).then(() => {
-                                this.markChanged(1);
-                                resolve();
-                            });
-                        }
-                    }
-                    else {
-                        let texture = this.scene.textures.get(name);
-                        if (texture && this._sourceTexture != texture) {
-                            this._sourceTexture = texture;
-                            this.originFrame = this._sourceTexture.frames["__BASE"];
-                            this.changeSize(value.width, value.height, true).then(() => {
-                                this.markChanged(1);
-                                resolve();
-                            });
-                        }
-                    }
-                }
-            });
-        }
-        get scale9Grid() {
-            return this._scale9Grid;
-        }
-        set scale9Grid(value) {
-            this._scale9Grid = value;
-            this._sizeGrid = null;
-            this.markChanged(1);
-        }
-        get scaleByTile() {
-            return this._scaleByTile;
-        }
-        set scaleByTile(value) {
-            if (this._scaleByTile != value) {
-                this._scaleByTile = value;
-                this.markChanged(1);
-            }
-        }
-        get tileGridIndice() {
-            return this._tileGridIndice;
-        }
-        set tileGridIndice(value) {
-            if (this._tileGridIndice != value) {
-                this._tileGridIndice = value;
-                this.markChanged(1);
-            }
-        }
-        get fillMethod() {
-            return this._fillMethod;
-        }
-        set fillMethod(value) {
-            if (this._fillMethod != value) {
-                this._fillMethod = value;
-                if (this._fillMethod != 0) {
-                    if (!this._mask) {
-                        this._mask = new Graphics(this.scene);
-                        // this._mask.mouseEnabled = false;
-                    }
-                    this.mask = this._mask.createGeometryMask();
-                    this.markChanged(2);
-                }
-                else if (this.mask) {
-                    this._mask.clear();
-                    this.mask = null;
-                }
-            }
-        }
-        get fillOrigin() {
-            return this._fillOrigin;
-        }
-        set fillOrigin(value) {
-            if (this._fillOrigin != value) {
-                this._fillOrigin = value;
-                if (this._fillMethod != 0)
-                    this.markChanged(2);
-            }
-        }
-        get fillClockwise() {
-            return this._fillClockwise;
-        }
-        set fillClockwise(value) {
-            if (this._fillClockwise != value) {
-                this._fillClockwise = value;
-                if (this._fillMethod != 0)
-                    this.markChanged(2);
-            }
-        }
-        get fillAmount() {
-            return this._fillAmount;
-        }
-        set fillAmount(value) {
-            if (this._fillAmount != value) {
-                this._fillAmount = value;
-                if (this._fillMethod != 0)
-                    this.markChanged(2);
-            }
-        }
-        get color() {
-            return this._color;
-        }
-        set color(value) {
-            if (this._color != value) {
-                this._color = value;
-                ToolSet.setColorFilter(this, value);
-            }
-        }
-        markChanged(flag) {
-            if (!this._hasSetPackItem) {
-                return;
-            }
-            if (!this._needRebuild) {
-                this._needRebuild = flag;
-                this.rebuild();
-                // Laya.timer.callLater(this, this.rebuild);
-            }
-            else
-                this._needRebuild = this._needRebuild | flag; //  位运算（按位或） this._needRebuild |= flag; 
-        }
-        rebuild() {
-            if ((this._needRebuild & 1) != 0)
-                this.doDraw();
-            if ((this._needRebuild & 2) != 0 && this._fillMethod != 0)
-                this.doFill();
-            this._needRebuild = 0;
-        }
-        doDraw() {
-            var w = this.width;
-            var h = this.height;
-            var tex = this._sourceTexture;
-            if (tex == null || w == 0 || h == 0) {
-                return;
-            }
-            if (this._scaleByTile) {
-                if (this._curImg) {
-                    this._curImg.visible = false;
-                }
-                if (!this._tileSprite) {
-                    this._tileSprite = this.scene.make.tileSprite(undefined, false);
-                    this._tileSprite.setOrigin(0);
-                    this._tileSprite.setSize(w, h);
-                    this._tileSprite.setTexture(tex.key, "__BASE");
-                    this.add(this._tileSprite);
-                }
-                else {
-                    if (this._tileSprite.width != w || this._tileSprite.height != h) {
-                        this._tileSprite.setSize(w, h);
-                    }
-                }
-            }
-        }
-        doFill() {
-            var w = this["_width"];
-            var h = this["_height"];
-            var g = this._mask;
-            g.clear();
-            if (w == 0 || h == 0)
-                return;
-            var points = fillImage(w, h, this._fillMethod, this._fillOrigin, this._fillClockwise, this._fillAmount);
-            if (points == null) {
-                //不知道为什么，不这样操作一下空白的遮罩不能生效
-                this.mask = null;
-                this.mask = this._mask.createGeometryMask();
-                return;
-            }
-            // todo drawPoly
-            // g.drawPoly(0, 0, points, "#FFFFFF");
-        }
-    }
-
-    class GImage extends GObject {
-        constructor(scene, type) {
-            super(scene, type);
-            this._flip = 0;
-        }
-        get image() {
-            return this._image;
-        }
-        get color() {
-            return this.image.color;
-        }
-        set color(value) {
-            if (this.image.color != value) {
-                this.image.color = value;
-                this.updateGear(4);
-            }
-        }
-        get width() {
-            return this._width;
-        }
-        get height() {
-            return this._height;
-        }
-        set width(value) {
-            this.setSize(value, this._rawHeight);
-            this._displayObject.changeSize(this._width, this._height, true);
-        }
-        set height(value) {
-            this.setSize(this._rawWidth, value);
-            this._displayObject.changeSize(this._width, this._height, true);
-        }
-        get flip() {
-            return this._flip;
-        }
-        set flip(value) {
-            if (this._flip != value) {
-                this._flip = value;
-                var sx = 1, sy = 1;
-                if (this._flip == exports.FlipType.Horizontal || this._flip == exports.FlipType.Both)
-                    sx = -1;
-                if (this._flip == exports.FlipType.Vertical || this._flip == exports.FlipType.Both)
-                    sy = -1;
-                this.setScale(sx, sy);
-                this.handleXYChanged();
-            }
-        }
-        get fillMethod() {
-            return this.image.fillMethod;
-        }
-        set fillMethod(value) {
-            this.image.fillMethod = value;
-        }
-        get fillOrigin() {
-            return this.image.fillOrigin;
-        }
-        set fillOrigin(value) {
-            this.image.fillOrigin = value;
-        }
-        get fillClockwise() {
-            return this.image.fillClockwise;
-        }
-        set fillClockwise(value) {
-            this.image.fillClockwise = value;
-        }
-        get fillAmount() {
-            return this.image.fillAmount;
-        }
-        set fillAmount(value) {
-            this.image.fillAmount = value;
-        }
-        createDisplayObject() {
-            this._displayObject = this._image = new Image(this.scene);
-            // (<any>this._scene).stage.addChild(this._displayObject, 1);
-            this._displayObject["$owner"] = this;
-        }
-        constructFromResource() {
-            return new Promise((reslove, reject) => {
-                this._contentItem = this.packageItem.getBranch();
-                this.sourceWidth = this._contentItem.width;
-                this.sourceHeight = this._contentItem.height;
-                this.initWidth = this.sourceWidth;
-                this.initHeight = this.sourceHeight;
-                this._contentItem = this._contentItem.getHighResolution();
-                this._contentItem.load().then((packageItem) => {
-                    // 优先九宫格，初始化九宫格各类数据，防止setpackitem时位置数据缺失
-                    this.setSize(this._contentItem.width, this._contentItem.height);
-                    this.image.scale9Grid = this._contentItem.scale9Grid;
-                    this.image.scaleByTile = this._contentItem.scaleByTile;
-                    this.image.tileGridIndice = this._contentItem.tileGridIndice;
-                    this.image.setPackItem(this._contentItem).then(() => {
-                        reslove();
-                    });
-                    // console.log("image pos", this);
-                    // this.image.setPosition(this._contentItem.x, this._contentItem.y);
-                    // this.setSize(this.sourceWidth, this.sourceHeight);
-                });
-            });
-        }
-        handleXYChanged() {
-            super.handleXYChanged();
-            if (this._flip != exports.FlipType.None) {
-                if (this.scaleX == -1)
-                    this.image.x += this._width;
-                if (this.scaleY == -1)
-                    this.image.y += this._height;
-            }
-        }
-        handleSizeChanged() {
-            super.handleSizeChanged();
-            this.handleXYChanged();
-        }
-        getProp(index) {
-            if (index == exports.ObjectPropID.Color)
-                return this.color;
-            else
-                return super.getProp(index);
-        }
-        setProp(index, value) {
-            if (index == exports.ObjectPropID.Color)
-                this.color = value;
-            else
-                super.setProp(index, value);
-        }
-        setup_beforeAdd(buffer, beginPos) {
-            return new Promise((resolve, reject) => {
-                super.setup_beforeAdd(buffer, beginPos);
-                buffer.seek(beginPos, 5);
-                if (buffer.readBool())
-                    this.color = buffer.readColorS();
-                this.flip = buffer.readByte();
-                this.image.fillMethod = buffer.readByte();
-                if (this.image.fillMethod != 0) {
-                    this.image.fillOrigin = buffer.readByte();
-                    this.image.fillClockwise = buffer.readBool();
-                    this.image.fillAmount = buffer.readFloat();
-                }
-                this._touchable = false;
-                resolve();
-            });
-        }
-        setup_afterAdd(buffer, beginPos) {
-            super.setup_afterAdd(buffer, beginPos);
-            // this.handleXYChanged();
-            // this.setXY(this.x , this.y );
-            // if (this.parent && this._pivotAsAnchor && (this.parent.pivotX !== 0 || this.parent.pivotY !== 0)) {
-            //     const targetScale = this["_contentItem"] && this["_contentItem"].isHighRes ? 1 : GRoot.dpr;
-            //     const ownerScale = this["_contentItem"] && this["_contentItem"].isHighRes ? 1 : GRoot.dpr;
-            //     const _tmpX = this.x * GRoot.dpr - this.parent.initWidth * this.parent.pivotX;
-            //     // this.pivotX === 0 ? this.x : this.pivotX * this.initWidth * targetScale / this.adaptiveScaleX - this.parent.pivotX * this.parent.initWidth * ownerScale / this.parent.adaptiveScaleX;
-            //     const _tmpY = this.y * GRoot.dpr - this.parent.initHeight * (this.parent.pivotY);
-            //     // const _tmpY = this.pivotY === 0 ? this.y : this.pivotY * this.initHeight * targetScale / this.adaptiveScaleY - this.parent.pivotY * this.parent.initHeight * ownerScale / this.parent.adaptiveScaleY;
-            //     this.setXY(_tmpX, _tmpY);
-            // }
-        }
-    }
-
-    class MovieClip extends Image {
-        // private _movieUpdateEvent: any;
-        // private _movieTime: Phaser.Time.TimerEvent;
-        constructor(scene) {
-            super(scene);
-            this.repeatDelay = 0;
-            this.timeScale = 1;
-            this._interval = 70;
-            this._frameElapsed = 0; //当前帧延迟
-            this._repeatedCount = 0;
-            this._sourceWidth = 0;
-            this._sourceHeight = 0;
-            // this.mouseEnabled = false;
-            // this.setPlaySettings();
-            // this._movieUpdateEvent = { delay: this.interval, callback: this.update, callbackScope: this }
-            // this.on(Laya.Event.DISPLAY, this, this.__addToStage);
-            // this.on(Laya.Event.UNDISPLAY, this, this.__removeFromStage);
-        }
-        get display() {
-            return this._image || this._sprite;
-        }
-        setFilter(colorPipeLine) {
-            if (this.display) {
-                this.display.setPipeline(colorPipeLine);
-            }
-            else {
-                this._pipeline = colorPipeLine;
-            }
-        }
-        set interval(val) {
-            this._interval = val;
-            // this._movieUpdateEvent = { delay: this._interval, callback: this.update, callbackScope: this, loop: true}
-        }
-        get interval() {
-            return this._interval;
-        }
-        get frames() {
-            return this._frames;
-        }
-        set frames(value) {
-            this._frames = value;
-            if (value) {
-                this._frameCount = this._frames.length;
-                this["$owner"];
-                const frame = value[0];
-                if (value.length > 1) {
-                    const textureKey = frame.texture.key;
-                    const len = value.length;
-                    const name = frame.name.split("_")[0];
-                    const repeat = this._times > 0 ? this._times : -1;
-                    this._curKey = textureKey + "_mc";
-                    const frameRate = 1000 / this._interval;
-                    if (!this._sprite)
-                        this._sprite = this.scene.make.sprite({ key: textureKey }, false);
-                    if (!this.scene.game.anims.get(this._curKey))
-                        this.scene.anims.create({ key: this._curKey, frames: this._sprite.anims.generateFrameNames(textureKey, { prefix: name + "_", start: 0, end: len - 1 }), frameRate, repeat });
-                    this.add(this._sprite);
-                    this.checkTimer();
-                }
-                else {
-                    const textureKey = frame.texture.key;
-                    if (!this._image) {
-                        this._image = this.scene.make.image({ key: textureKey, frame: frame.name }, false);
-                        // new Phaser.GameObjects.Image(this.scene, 0, 0, textureKey, frame.name);
-                    }
-                    else {
-                        this._image.setTexture(textureKey, frame.name);
-                    }
-                    this.add(this._image);
-                }
-                if (this._pipeline)
-                    this.setFilter(this._pipeline);
-            }
-            else {
-                if (this._sprite) {
-                    this._sprite.stop();
-                    this.remove(this._sprite);
-                    this._sprite = null;
-                }
-                if (this._image) {
-                    this.remove(this._image);
-                    this._image = null;
-                }
-                this.checkTimer(false);
-            }
-        }
-        get frameCount() {
-            return this._frameCount;
-        }
-        get frame() {
-            return this._frame;
-        }
-        set frame(value) {
-            if (this._frame != value) {
-                if (this._frames && value >= this._frameCount)
-                    value = this._frameCount - 1;
-                this._frame = value;
-                this._frameElapsed = 0;
-                this.drawFrame();
-            }
-        }
-        get playing() {
-            return this._playing;
-        }
-        set playing(value) {
-            if (this._playing != value) {
-                this._playing = value;
-                this.checkTimer(value);
-            }
-        }
-        //从start帧开始，播放到end帧（-1表示结尾），重复times次（0表示无限循环），循环结束后，停止在endAt帧（-1表示参数end）
-        // public rewind(): void {
-        //     this._frame = 0;
-        //     this._frameElapsed = 0;
-        //     this._reversed = false;
-        //     this._repeatedCount = 0;
-        //     this.drawFrame();
-        // }
-        // public syncStatus(anotherMc: MovieClip): void {
-        //     this._frame = anotherMc._frame;
-        //     this._frameElapsed = anotherMc._frameElapsed;
-        //     this._reversed = anotherMc._reversed;
-        //     this._repeatedCount = anotherMc._repeatedCount;
-        //     this.drawFrame();
-        // }
-        advance(timeInMiniseconds) {
-            //     var beginFrame: number = this._frame;
-            //     var beginReversed: boolean = this._reversed;
-            //     var backupTime: number = timeInMiniseconds;
-            //     while (true) {
-            //         var tt: number = this.interval + this._frames[this._frame]["addDelay"];
-            //         if (this._frame == 0 && this._repeatedCount > 0)
-            //             tt += this.repeatDelay;
-            //         if (timeInMiniseconds < tt) {
-            //             this._frameElapsed = 0;
-            //             break;
-            //         }
-            //         timeInMiniseconds -= tt;
-            //         if (this.swing) {
-            //             if (this._reversed) {
-            //                 this._frame--;
-            //                 if (this._frame <= 0) {
-            //                     this._frame = 0;
-            //                     this._repeatedCount++;
-            //                     this._reversed = !this._reversed;
-            //                 }
-            //             }
-            //             else {
-            //                 this._frame++;
-            //                 if (this._frame > this._frameCount - 1) {
-            //                     this._frame = Math.max(0, this._frameCount - 2);
-            //                     this._repeatedCount++;
-            //                     this._reversed = !this._reversed;
-            //                 }
-            //             }
-            //         }
-            //         else {
-            //             this._frame++;
-            //             if (this._frame > this._frameCount - 1) {
-            //                 this._frame = 0;
-            //                 this._repeatedCount++;
-            //             }
-            //         }
-            //         if (this._frame == beginFrame && this._reversed == beginReversed) //走了一轮了
-            //         {
-            //             var roundTime: number = backupTime - timeInMiniseconds; //这就是一轮需要的时间
-            //             timeInMiniseconds -= Math.floor(timeInMiniseconds / roundTime) * roundTime; //跳过
-            //         }
-            //     }
-            //     this.drawFrame();
-        }
-        //从start帧开始，播放到end帧（-1表示结尾），重复times次（0表示无限循环），循环结束后，停止在endAt帧（-1表示参数end）
-        // public setPlaySettings(start?: number, end?: number, times?: number, endAt?: number, endHandler?: () => void): void {
-        //     if (start == undefined) start = 0;
-        //     if (end == undefined) end = -1;
-        //     if (times == undefined) times = 0;
-        //     if (endAt == undefined) endAt = -1;
-        //     this._start = start;
-        //     this._end = end;
-        //     if (this._end == -1 || this._end > this._frameCount - 1)
-        //         this._end = this._frameCount - 1;
-        //     this._times = times;
-        //     this._endAt = endAt;
-        //     if (this._endAt == -1)
-        //         this._endAt = this._end;
-        //     this._status = 0;
-        //     this._endHandler = endHandler;
-        //     this.frame = start;
-        // }
-        // public update(): void {
-        //     if (!this._playing || this._frameCount == 0 || this._status == 3)
-        //         return;
-        //     var frameRate: number = this.scene.game.config.fps.target;
-        //     var dt: number = frameRate;//Laya.timer.delta;
-        //     if (dt > 100)
-        //         dt = 100;
-        //     if (this.timeScale != 1)
-        //         dt *= this.timeScale;
-        //     this._frameElapsed += dt;
-        //     var tt: number = this.interval + this._frames[this._frame]["addDelay"];
-        //     if (this._frame == 0 && this._repeatedCount > 0)
-        //         tt += this.repeatDelay;
-        //     if (this._frameElapsed < tt)
-        //         return;
-        //     this._frameElapsed -= tt;
-        //     if (this._frameElapsed > this.interval)
-        //         this._frameElapsed = this.interval;
-        //     if (this.swing) {
-        //         if (this._reversed) {
-        //             this._frame--;
-        //             if (this._frame <= 0) {
-        //                 this._frame = 0;
-        //                 this._repeatedCount++;
-        //                 this._reversed = !this._reversed;
-        //             }
-        //         }
-        //         else {
-        //             this._frame++;
-        //             if (this._frame > this._frameCount - 1) {
-        //                 this._frame = Math.max(0, this._frameCount - 2);
-        //                 this._repeatedCount++;
-        //                 this._reversed = !this._reversed;
-        //             }
-        //         }
-        //     }
-        //     else {
-        //         this._frame++;
-        //         if (this._frame > this._frameCount - 1) {
-        //             this._frame = 0;
-        //             this._repeatedCount++;
-        //         }
-        //     }
-        //     if (this._status == 1) //new loop
-        //     {
-        //         this._frame = this._start;
-        //         this._frameElapsed = 0;
-        //         this._status = 0;
-        //     }
-        //     else if (this._status == 2) //ending
-        //     {
-        //         this._frame = this._endAt;
-        //         this._frameElapsed = 0;
-        //         this._status = 3; //ended
-        //         //play end
-        //         if (this._endHandler) {
-        //             var handler = this._endHandler;
-        //             this._endHandler = null;
-        //             handler();
-        //         }
-        //     }
-        //     else {
-        //         if (this._frame == this._end) {
-        //             if (this._times > 0) {
-        //                 this._times--;
-        //                 if (this._times == 0)
-        //                     this._status = 2;  //ending
-        //                 else
-        //                     this._status = 1; //new loop
-        //             }
-        //             else {
-        //                 this._status = 1; //new loop
-        //             }
-        //         }
-        //     }
-        //     this.drawFrame();
-        // }
-        drawFrame() {
-            if (this._frames && this._frameCount > 0 && this._frame < this._frames.length) {
-                var frame = this._frames[this._frame];
-                this.texture = frame.texture;
-            }
-            else
-                this.texture = null;
-            this.rebuild();
-        }
-        rebuild() {
-        }
-        destroy() {
-            if (this._sprite) {
-                this._sprite.stop();
-                this._sprite.destroy();
-                this._sprite = null;
-            }
-            if (this._image) {
-                this._image.destroy();
-                this._image = null;
-            }
-            this.checkTimer(false);
-            this._pipeline = null;
-            super.destroy();
-        }
-        checkTimer(playBoo = true) {
-            if (!this._sprite)
-                return;
-            if (playBoo) {
-                if (this._sprite.anims.isPlaying)
-                    return;
-                this._sprite.play(this._curKey);
-            }
-            else {
-                this._sprite.stop();
-            }
-        }
-    }
-
-    class GMovieClip extends GObject {
-        constructor(scene, type) {
-            super(scene, type);
-        }
-        get color() {
-            return this._movieClip.color;
-        }
-        set color(value) {
-            this._movieClip.color = value;
-        }
-        createDisplayObject() {
-            this._displayObject = this._movieClip = new MovieClip(this.scene);
-            // this._movieClip.mouseEnabled = false;
-            this._displayObject["$owner"] = this;
-        }
-        getChild() {
-            return null;
-        }
-        get playing() {
-            return this._movieClip.playing;
-        }
-        set playing(value) {
-            if (this._movieClip.playing != value) {
-                this._movieClip.playing = value;
-                this.updateGear(5);
-            }
-        }
-        get frame() {
-            return this._movieClip.frame;
-        }
-        set frame(value) {
-            if (this._movieClip.frame != value) {
-                this._movieClip.frame = value;
-                this.updateGear(5);
-            }
-        }
-        get timeScale() {
-            return this._movieClip.timeScale;
-        }
-        set timeScale(value) {
-            this._movieClip.timeScale = value;
-        }
-        advance(timeInMiniseconds) {
-            this._movieClip.advance(timeInMiniseconds);
-        }
-        //从start帧开始，播放到end帧（-1表示结尾），重复times次（0表示无限循环），循环结束后，停止在endAt帧（-1表示参数end）
-        setPlaySettings(start, end, times, endAt, endHandler) {
-            //  this._movieClip.setPlaySettings(start, end, times, endAt, endHandler);
-        }
-        set touchable(value) {
-            this._touchable = false;
-            // if (this._touchable != value) {
-            //     this.setTouchable(value);
-            // }
-        }
-        getProp(index) {
-            switch (index) {
-                case exports.ObjectPropID.Color:
-                    return this.color;
-                case exports.ObjectPropID.Playing:
-                    return this.playing;
-                case exports.ObjectPropID.Frame:
-                    return this.frame;
-                case exports.ObjectPropID.TimeScale:
-                    return this.timeScale;
-                default:
-                    return super.getProp(index);
-            }
-        }
-        setProp(index, value) {
-            switch (index) {
-                case exports.ObjectPropID.Color:
-                    this.color = value;
-                    break;
-                case exports.ObjectPropID.Playing:
-                    this.playing = value;
-                    break;
-                case exports.ObjectPropID.Frame:
-                    this.frame = value;
-                    break;
-                case exports.ObjectPropID.TimeScale:
-                    this.timeScale = value;
-                    break;
-                case exports.ObjectPropID.DeltaTime:
-                    this.advance(value);
-                    break;
-                default:
-                    super.setProp(index, value);
-                    break;
-            }
-        }
-        constructFromResource() {
-            return new Promise((reslove, reject) => {
-                this._contentItem = this.packageItem.getBranch();
-                this.sourceWidth = this._contentItem.width;
-                this.sourceHeight = this._contentItem.height;
-                this.initWidth = this.sourceWidth;
-                this.initHeight = this.sourceHeight;
-                this._contentItem = this._contentItem.getHighResolution();
-                this._contentItem.load().then((packageItem) => {
-                    // this._movieClip.setSize(packageItem.width, packageItem.height);
-                    this._movieClip.interval = packageItem.interval;
-                    this._movieClip.swing = packageItem.swing;
-                    this._movieClip.repeatDelay = packageItem.repeatDelay;
-                    this._movieClip.frames = packageItem.frames;
-                    reslove();
-                });
-            });
-        }
-        handleSizeChanged() {
-            this._displayObject.setSize(this._width, this._height);
-            // this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this._width, this._height), Phaser.Geom.Rectangle.Contains);
-        }
-        setup_beforeAdd(buffer, beginPos) {
-            super.setup_beforeAdd(buffer, beginPos);
-            buffer.seek(beginPos, 5);
-            if (buffer.readBool())
-                this.color = buffer.readColorS();
-            buffer.readByte(); //flip
-            this._movieClip.frame = buffer.readInt();
-            this._movieClip.playing = buffer.readBool();
-        }
-        handleXYChanged() {
-            var xv = this._x + this._xOffset;
-            var yv = this._y + this._yOffset;
-            if (this._pivotAsAnchor) {
-                xv -= this._pivotX * this._width;
-                yv -= this._pivotY * this._height;
-            }
-            if (this._pixelSnapping) {
-                xv = Math.round(xv);
-                yv = Math.round(yv);
-            }
-            let tmpX = xv + this._pivotOffsetX; //+ this._movieClip.frames[0].width >> 1;
-            let tmpY = yv + this._pivotOffsetY; //+ this._movieClip.frames[0].height >> 1;
-            this._displayObject.setPosition(tmpX, tmpY);
-        }
-    }
-
     class InputManager {
         constructor() {
             this._downHandlerMap = new Map();
@@ -7191,8 +5408,9 @@
             this.orientation = exports.StageOrientation.AUTO;
             this.dpr = 1;
             // 默认竖屏
-            this.desginWidth = 360;
-            this.desginHeight = 640;
+            this.isDesk = false; // 默认手机ui
+            this.designWidth = 360;
+            this.designHeight = 640;
             this.width = 480;
             this.height = 854;
             this.x = 0;
@@ -7271,7 +5489,8 @@
                     this.scene.sys.displayList.list[sortIndex] : this.scene.add.container(0, 0);
                 con = this.scene.make.container(undefined, false);
                 const len = parentContainer && parentContainer.list && parentContainer.list.length ? parentContainer.list.length : 0;
-                parentContainer.addAt(con, len);
+                if (parentContainer)
+                    parentContainer.addAt(con, len);
                 this.containerMap.set(sortIndex, con);
             }
             return con;
@@ -7635,6 +5854,84 @@
             }
         }
         return null;
+    }
+
+    exports.GRAPHICSTYPE = void 0;
+    (function (GRAPHICSTYPE) {
+        GRAPHICSTYPE["RECTANGLE"] = "rectangle";
+        GRAPHICSTYPE["CIRCLE"] = "circle";
+        GRAPHICSTYPE["POLY"] = "POLY";
+        GRAPHICSTYPE["ELLIPSE"] = "ellipse";
+    })(exports.GRAPHICSTYPE || (exports.GRAPHICSTYPE = {}));
+    class Graphics extends Phaser.GameObjects.Graphics {
+        constructor(scene) {
+            super(scene);
+            // 默认矩形
+            this._graphicsType = exports.GRAPHICSTYPE.RECTANGLE;
+            this._width = 0;
+            this._height = 0;
+            this._radius = 0;
+            this._points = [];
+        }
+        get width() {
+            return this._width;
+        }
+        get height() {
+            return this._height;
+        }
+        get radius() {
+            return this._radius;
+        }
+        get points() {
+            return this._points;
+        }
+        fillRect(x, y, width, height) {
+            this._graphicsType = exports.GRAPHICSTYPE.RECTANGLE;
+            this._width = width;
+            this._height = height;
+            return super.fillRect(x, y, this._width, this._height);
+        }
+        strokeRect(x, y, width, height) {
+            return super.strokeRect(x, y, width, height);
+        }
+        fillCircle(x, y, radius) {
+            this._graphicsType = exports.GRAPHICSTYPE.CIRCLE;
+            this._radius = radius;
+            return super.fillCircle(x, y, this._radius);
+        }
+        strokeCircle(x, y, radius) {
+            return super.strokeCircle(x, y, radius);
+        }
+        fillTriangle(x0, y0, x1, y1, x2, y2) {
+            // 三角形是多边形
+            // todo 扩展其他正多边形
+            this._graphicsType = exports.GRAPHICSTYPE.POLY;
+            this._points = [new Phaser.Geom.Point(x0, y0), new Phaser.Geom.Point(x1, y1), new Phaser.Geom.Point(x2, y2)];
+            return super.fillTriangle(x0, y0, x1, y1, x2, y2);
+        }
+        fillEllipse(x, y, width, height, smoothness) {
+            this._graphicsType = exports.GRAPHICSTYPE.ELLIPSE;
+            return super.fillEllipse(x, y, width, height, smoothness);
+        }
+        fillRoundedRect(x, y, width, height, radius) {
+            return super.fillRoundedRect(x, y, width, height, Number(radius));
+        }
+        strokeRoundedRect(x, y, width, height, radius) {
+            return super.strokeRoundedRect(x, y, width, height, Number(radius));
+        }
+        get graphicsType() {
+            return this._graphicsType;
+        }
+        set graphicsType(value) {
+            this._graphicsType = value;
+        }
+        clear() {
+            this._width = 0;
+            this._height = 0;
+            this._radius = 0;
+            this._points = [];
+            return super.clear();
+        }
     }
 
     /**
@@ -8992,8 +7289,20 @@
 
     class ScrollPane {
         constructor(owner) {
+            // 用于查看滚动页面实际交互位置
+            this._showMask = false;
             this._timeDelta = 0.08;
+            this._offsetParamWid = 1;
+            this._offsetParamHei = 1;
             this._owner = owner;
+            if (GRoot.contentScaleWid !== GRoot.uiScale)
+                this._offsetParamWid = GRoot.dpr;
+            else
+                this._offsetParamWid = GRoot.contentScaleWid * GRoot.dpr;
+            if (GRoot.contentScaleHei !== GRoot.uiScale)
+                this._offsetParamHei = GRoot.dpr;
+            else
+                this._offsetParamHei = GRoot.contentScaleHei * GRoot.dpr;
             this._refreshTimeEvent = { delay: this._timeDelta, callback: this.refresh, callbackScope: this };
             const _tweenUp = this._timeDelta; //  / owner.scene.game.config.fps.target;
             this._tweenUpdateTimeEvent = { delay: _tweenUp, callback: this.tweenUpdate, callbackScope: this, loop: true };
@@ -9521,7 +7830,7 @@
             _gestureFlag = 0;
             this._dragged = false;
             this._maskContainer.disableInteractive();
-            this._maskContainer.removeInteractive();
+            // this._maskContainer.removeInteractive();
         }
         lockHeader(size) {
             if (this._headerLockedSize == size)
@@ -9553,6 +7862,8 @@
             }
         }
         onOwnerSizeChanged() {
+            this._offsetParamWid = GRoot.dpr;
+            this._offsetParamHei = GRoot.dpr;
             this.setSize(this._owner.width, this._owner.height);
             this.posChanged(false);
         }
@@ -9592,7 +7903,13 @@
                     mx = this._owner.margin.left;
                 my = this._owner.margin.top;
             }
-            this._maskContainer.setPosition(mx, my);
+            // let _offsetParamWid = 1;
+            // let _offsetParamHei = 1;
+            // if (GRoot.contentScaleWid !== GRoot.uiScale) _offsetParamWid = GRoot.dpr;
+            // else _offsetParamWid = GRoot.uiScale * GRoot.dpr;
+            // if (GRoot.contentScaleHei !== GRoot.uiScale) _offsetParamHei = GRoot.dpr;
+            // else _offsetParamHei = GRoot.uiScale * GRoot.dpr;
+            this._maskContainer.setPosition(mx * this._offsetParamWid, my * this._offsetParamHei);
             mx = this._owner._alignOffset.x;
             my = this._owner._alignOffset.y;
             if (mx != 0 || my != 0 || this._dontClipMargin) {
@@ -9735,9 +8052,9 @@
             const viewSizeX = this._viewSize.x;
             const viewSizeY = this._viewSize.y;
             if (this.maskScrollRect && (this.maskScrollRect.width !== viewSizeX || this.maskScrollRect.height !== viewSizeY)) {
-                var rect = new Phaser.Geom.Rectangle(); //this._maskContainer["scrollRect"];
-                rect.width = viewSizeX;
-                rect.height = viewSizeY;
+                var rect = new Phaser.Geom.Rectangle();
+                rect.width = viewSizeX * this._offsetParamWid;
+                rect.height = viewSizeY * this._offsetParamHei;
                 if (this._vScrollNone && this._vtScrollBar)
                     rect.width += this._vtScrollBar.width;
                 if (this._hScrollNone && this._hzScrollBar)
@@ -9750,26 +8067,30 @@
                 this._maskContainer.clearMask();
                 this._mask.clear();
                 this._mask.fillStyle(0x00ff00, .4);
-                this._mask.fillRect(0, 0, this.maskScrollRect.width * GRoot.dpr, this.maskScrollRect.height * GRoot.dpr);
-                this._maskContainer.setInteractive(this.maskScrollRect, Phaser.Geom.Rectangle.Contains);
-                // 查看mask实际位置
-                // GRoot.inst.addToStage(this._mask);
+                this._mask.fillRect(0, 0, this.maskScrollRect.width, this.maskScrollRect.height);
+                if (this.maskScrollRect && this._maskContainer.scene) {
+                    if (!this._maskContainer.input)
+                        this._maskContainer.setInteractive(this.maskScrollRect, Phaser.Geom.Rectangle.Contains);
+                    else
+                        this._maskContainer.input.hitArea = this.maskScrollRect;
+                }
                 this._maskContainer.setMask(this._mask.createGeometryMask());
                 const worldMatrix = this._owner.parent && this._owner.parent.displayObject ?
                     this._owner.parent.displayObject.getWorldTransformMatrix()
                     : undefined;
                 const xv = this._owner.x;
                 const yv = this._owner.y;
-                const posX = worldMatrix ? worldMatrix.tx + xv : xv;
-                const posY = worldMatrix ? worldMatrix.ty + yv : yv;
+                const posX = worldMatrix ? worldMatrix.tx / GRoot.dpr + xv : xv;
+                const posY = worldMatrix ? worldMatrix.ty / GRoot.dpr + yv : yv;
                 this.maskPosChange(posX, posY);
             }
+            const offsetParam = GRoot.uiScale * GRoot.dpr;
             if (this._scrollType == exports.ScrollType.Horizontal || this._scrollType == exports.ScrollType.Both)
-                this._overlapSize.x = Math.ceil(Math.max(0, this._contentSize.x - this._viewSize.x));
+                this._overlapSize.x = Math.ceil(Math.max(0, this._contentSize.x - this._viewSize.x / GRoot.contentScaleWid)) * offsetParam;
             else
                 this._overlapSize.x = 0;
             if (this._scrollType == exports.ScrollType.Vertical || this._scrollType == exports.ScrollType.Both)
-                this._overlapSize.y = Math.ceil(Math.max(0, this._contentSize.y - this._viewSize.y));
+                this._overlapSize.y = Math.ceil(Math.max(0, this._contentSize.y - this._viewSize.y / GRoot.contentScaleHei)) * offsetParam;
             else
                 this._overlapSize.y = 0;
             //边界检查
@@ -9922,6 +8243,7 @@
                 // this._owner.scene.input.on("pointerout", this.__mouseUp, this);
             }
         }
+        // 实际像素尺寸检测(加入了dpr和scale)
         checkInBounds(pointer, gameObject) {
             if (!this.mRectangle) {
                 this.mRectangle = new Phaser.Geom.Rectangle(0, 0, 0, 0);
@@ -9929,9 +8251,9 @@
             const worldMatrix = gameObject.getWorldTransformMatrix();
             const zoom = worldMatrix.scaleX ? worldMatrix.scaleX : 1;
             this.mRectangle.left = 0;
-            this.mRectangle.right = gameObject.width;
+            this.mRectangle.right = gameObject.width / GRoot.uiScale;
             this.mRectangle.top = 0;
-            this.mRectangle.bottom = gameObject.height;
+            this.mRectangle.bottom = gameObject.height / GRoot.uiScale;
             const x = (pointer.x - worldMatrix.tx) / zoom;
             const y = (pointer.y - worldMatrix.ty) / zoom;
             // 点击在范围内
@@ -10019,7 +8341,7 @@
                 }
                 else
                     this._container.y = newPosY;
-                // console.log("containerY:====>", this._container.y);
+                console.log("containerY:====>", this._container.y);
             }
             if (sh) {
                 if (newPosX > 0) {
@@ -10062,7 +8384,7 @@
                 }
                 this._velocity.x = ToolSet.lerp(this._velocity.x, deltaPositionX * 60 / frameRate / deltaTime, deltaTime * 10);
                 this._velocity.y = ToolSet.lerp(this._velocity.y, deltaPositionY * 60 / frameRate / deltaTime, deltaTime * 10);
-                // console.log("velocity ===>", this._velocity);
+                // console.log("velocity ===>", this._velocity.y);
             }
             /*速度计算使用的是本地位移，但在后续的惯性滚动判断中需要用到屏幕位移，所以这里要记录一个位移的比例。
             */
@@ -10097,7 +8419,7 @@
             this._isHoldAreaDone = true;
             this._dragged = true;
             this._maskContainer.disableInteractive();
-            this._maskContainer.removeInteractive();
+            // this._maskContainer.removeInteractive();
             this.updateScrollBarPos();
             this.updateScrollBarVisible();
             if (this._pageMode)
@@ -10115,13 +8437,21 @@
             _gestureFlag = 0;
             if (!this._dragged || !this._touchEffect) {
                 this._dragged = false;
-                if (this.maskScrollRect && this._maskContainer.scene)
-                    this._maskContainer.setInteractive(this.maskScrollRect, Phaser.Geom.Rectangle.Contains);
+                if (this.maskScrollRect && this._maskContainer.scene) {
+                    if (!this._maskContainer.input)
+                        this._maskContainer.setInteractive(this.maskScrollRect, Phaser.Geom.Rectangle.Contains);
+                    else
+                        this._maskContainer.input.hitArea = this.maskScrollRect;
+                }
                 return;
             }
             this._dragged = false;
-            if (this.maskScrollRect)
-                this._maskContainer.setInteractive(this.maskScrollRect, Phaser.Geom.Rectangle.Contains);
+            if (this.maskScrollRect && this._maskContainer.scene) {
+                if (!this._maskContainer.input)
+                    this._maskContainer.setInteractive(this.maskScrollRect, Phaser.Geom.Rectangle.Contains);
+                else
+                    this._maskContainer.input.hitArea = this.maskScrollRect;
+            }
             this._tweenStart.setTo(this._container.x, this._container.y);
             sEndPos.setTo(this._tweenStart.x, this._tweenStart.y);
             var flag = false;
@@ -10207,22 +8537,13 @@
         }
         maskPosChange(x, y) {
             if (this.maskScrollRect) {
-                // var rect: Phaser.Geom.Rectangle = new Phaser.Geom.Rectangle()//this._maskContainer["scrollRect"];
-                // if (rect) {
-                //     rect.width = this._viewSize.x;
-                //     rect.height = this._viewSize.y;
-                //     if (this._vScrollNone && this._vtScrollBar)
-                //         rect.width += this._vtScrollBar.width;
-                //     if (this._hScrollNone && this._hzScrollBar)
-                //         rect.height += this._hzScrollBar.height;
-                //     if (this._dontClipMargin) {
-                //         rect.width += (this._owner.margin.left + this._owner.margin.right);
-                //         rect.height += (this._owner.margin.top + this._owner.margin.bottom);
-                //     }
-                // this.maskScrollRect = rect;
-                if (this._mask) {
-                    this._mask.setPosition(x * GRoot.dpr, y * GRoot.dpr);
-                }
+                this.maskScrollRect.setPosition(x * GRoot.dpr, y * GRoot.dpr);
+            }
+            if (this._mask) {
+                this._mask.setPosition(x * GRoot.dpr, y * GRoot.dpr);
+                // 查看mask实际位置
+                if (this._showMask)
+                    GRoot.inst.addToStage(this._mask);
             }
         }
         __click() {
@@ -10454,9 +8775,8 @@
                 var v2 = Math.abs(v) * this._velocityScale;
                 //在移动设备上，需要对不同分辨率做一个适配，我们的速度判断以1136分辨率为基准
                 const isMobile = this._owner.scene.game.device.os.desktop;
-                if (!isMobile)
-                    this._owner.scene.game.config.width;
-                v2 *= 1136 / Math.max(Number(this._owner.scene.game.config.width), Number(this._owner.scene.game.config.height)); // Math.max(Laya.stage.width, Laya.stage.height);
+                if (isMobile)
+                    v2 *= 1136 / Math.max(Number(this._owner.scene.game.config.width), Number(this._owner.scene.game.config.height)); // Math.max(Laya.stage.width, Laya.stage.height);
                 //这里有一些阈值的处理，因为在低速内，不希望产生较大的滚动（甚至不滚动）
                 var ratio = 0;
                 if (this._pageMode || !isMobile) {
@@ -12062,6 +10382,8 @@
             this._apexIndex = 0;
         }
         createDisplayObject() {
+            if (!this._scene)
+                this.scene = GRoot.inst.scene;
             this._displayObject = this.scene.make.container(undefined, false);
             this._displayObject["$owner"] = this;
             this.container = this._displayObject;
@@ -12634,7 +10956,7 @@
                         this.hitArea = new Phaser.Geom.Rectangle();
                     }
                     if (this.hitArea instanceof Phaser.Geom.Rectangle)
-                        this.hitArea.setTo(this.initWidth >> 1, this.initHeight >> 1, this.initWidth, this.initHeight);
+                        this.hitArea.setTo((0.5 - this._pivotX) * this.initWidth, (0.5 - this._pivotY) * this.initHeight, this.initWidth, this.initHeight);
                     this._displayObject.setInteractive(this.hitArea, Phaser.Geom.Rectangle.Contains);
                 }
                 else {
@@ -12652,7 +10974,7 @@
         set margin(value) {
             this._margin.copy(value);
             if (this.scrollRect) {
-                this.container.setPosition(this._margin.left + this._alignOffset.x, this._margin.top + this._alignOffset.y);
+                this.container.setPosition((this._margin.left + this._alignOffset.x) * GRoot.dpr, (this._margin.top + this._alignOffset.y) * GRoot.dpr);
             }
             this.handleSizeChanged();
         }
@@ -12693,46 +11015,6 @@
                 if (this.hitArea instanceof ChildHitArea)
                     this.hitArea = null;
                 return;
-            }
-        }
-        externalSetScale(sx, sy, screenType, force = false) {
-            if (this._scaleX != sx || this._scaleY != sy || force) {
-                if (this._children) {
-                    const len = this._children.length;
-                    let scaleX = 1;
-                    let scaleY = 1;
-                    for (let i = 0; i < len; i++) {
-                        const component = this._children[i];
-                        if (component.name === "maskBG") {
-                            switch (screenType) {
-                                case ScreenType.FULL:
-                                    scaleX = 1 / GRoot.uiScale;
-                                    scaleY = 1 / GRoot.uiScale;
-                                    break;
-                                case ScreenType.WIDTH:
-                                    scaleX = 1 / GRoot.uiScale;
-                                    break;
-                                case ScreenType.HEIGHT:
-                                    scaleY = 1 / GRoot.uiScale;
-                                    break;
-                                case ScreenType.NONE:
-                                    scaleX = 1 / GRoot.uiScale;
-                                    scaleY = 1 / GRoot.uiScale;
-                                    break;
-                            }
-                            component.setScale(scaleX, scaleY);
-                        }
-                        if (component.type === exports.ObjectType.List) {
-                            component.setScale(GRoot.uiScale, GRoot.uiScale);
-                            // component.setXY(component.x + component.initWidth * (1 - GRoot.uiScale), component.y + component.initHeight * (1 - GRoot.uiScale));
-                        }
-                    }
-                }
-                this._scaleX = sx * GRoot.uiScale;
-                this._scaleY = sy * GRoot.uiScale;
-                this.handleScaleChanged();
-                this.applyPivot();
-                this.updateGear(2);
             }
         }
         get baseUserData() {
@@ -12777,14 +11059,14 @@
                     this._displayObject.add(this.container);
                 }
                 this.updateMask();
-                this.container.setPosition(this._margin.left, this._margin.top);
+                this.container.setPosition(this._margin.left * GRoot.dpr, this._margin.top * GRoot.dpr);
             }
             else if (this._margin.left != 0 || this._margin.top != 0) {
                 if (this._displayObject == this.container) {
                     this.container = new Phaser.GameObjects.Container(this.scene);
                     this._displayObject.add(this.container);
                 }
-                this.container.setPosition(this._margin.left, this._margin.top);
+                this.container.setPosition(this._margin.left * GRoot.dpr, this._margin.top * GRoot.dpr);
             }
         }
         handleSizeChanged() {
@@ -12819,8 +11101,9 @@
                 return;
             if (!this._boundsChanged) {
                 this._boundsChanged = true;
-                if (!this._renderTime)
-                    this.scene.time.addEvent(this._renderEvent);
+                // if (!this._renderTime) 
+                this.scene.time.delayedCall(200, this.__render, undefined, this);
+                //addEvent(this._renderEvent);
                 //Laya.timer.callLater(this, this.__render);
             }
         }
@@ -12871,10 +11154,14 @@
         setBounds(ax, ay, aw, ah) {
             this._boundsChanged = false;
             if (this._opaque) {
-                this.removeInteractive();
-                this.hitArea = new Phaser.Geom.Rectangle(ax + aw >> 1, ay + ah >> 1, aw, ah);
+                this.hitArea = new Phaser.Geom.Rectangle(0, 0, aw, ah);
+                if (this._displayObject) {
+                    if (!this._displayObject.input)
+                        this._displayObject.setInteractive(this.hitArea, Phaser.Geom.Rectangle.Contains);
+                    else
+                        this._displayObject.input.hitArea = this.hitArea;
+                }
                 // console.log("set bounds", aw, ah);
-                this._displayObject.setInteractive(this.hitArea, Phaser.Geom.Rectangle.Contains);
                 // if (this._g) {
                 //     this._g.clear();
                 // } else {
@@ -13321,7 +11608,7 @@
                     }
                     const tx = !isGraphic ? mx.tx + this._maskDisplay.width / 2 : mx.tx;
                     const ty = !isGraphic ? mx.ty + this._maskDisplay.height / 2 : mx.ty;
-                    this._maskDisplay.setPosition(tx, ty);
+                    this._maskDisplay.setPosition(tx * GRoot.dpr, ty * GRoot.dpr);
                     if (this._maskReversed) {
                         if (isGraphic) {
                             this._displayObject.setMask(this._maskDisplay.createGeometryMask().setInvertAlpha(true));
@@ -13375,7 +11662,7 @@
                 }
                 const tx = !isGraphic ? mx.tx + this._maskDisplay.width / 2 : mx.tx;
                 const ty = !isGraphic ? mx.ty + this._maskDisplay.height / 2 : mx.ty;
-                this._maskDisplay.setPosition(tx, ty);
+                this._maskDisplay.setPosition(tx * GRoot.dpr, ty * GRoot.dpr);
             }
             if (this._maskDisplay.parentContainer)
                 this._displayObject.remove(this._maskDisplay.parentContainer);
@@ -13409,7 +11696,7 @@
                     if (obj && obj instanceof GComponent) {
                         const component = obj;
                         if (component._scrollPane) {
-                            component._scrollPane.maskPosChange(posX, posY);
+                            component._scrollPane.maskPosChange(posX + component.x, posY + component.y);
                         }
                         const list = component._children;
                         list.forEach((obj) => {
@@ -13573,10 +11860,10 @@
             this._scene.stage = this._uiStage;
             this._width = stageOptions.width;
             this._height = stageOptions.height;
-            if (!this._stageOptions.desginWidth)
-                this._stageOptions.desginWidth = this._width > this._height ? this._uiStage.stageOption.desginHeight : this._uiStage.stageOption.desginWidth;
-            if (!this._stageOptions.desginHeight)
-                this._stageOptions.desginHeight = this._height > this._width ? this._uiStage.stageOption.desginWidth : this._uiStage.stageOption.desginHeight;
+            if (!this._stageOptions.designWidth)
+                this._stageOptions.designWidth = this._width > this._height ? this._uiStage.stageOption.designHeight : this._uiStage.stageOption.designWidth;
+            if (!this._stageOptions.designHeight)
+                this._stageOptions.designHeight = this._height > this._width ? this._uiStage.stageOption.designWidth : this._uiStage.stageOption.designHeight;
             GRoot.inst.updateContentScaleLevel();
             GRoot.inst.updateContentDprLevel();
             // 初始化场景
@@ -13584,16 +11871,16 @@
             this.addListen();
         }
         get stageWidth() {
-            return this._width;
+            return this._width / GRoot.dpr;
         }
         get stageHeight() {
-            return this._height;
+            return this._height / GRoot.dpr;
         }
-        get desginWidth() {
-            return this._stageOptions.desginWidth;
+        get designWidth() {
+            return this._stageOptions.designWidth;
         }
-        get desginHeight() {
-            return this._stageOptions.desginHeight;
+        get designHeight() {
+            return this._stageOptions.designHeight;
         }
         get contentScaleLevel() {
             return GRoot.contentScaleLevel;
@@ -13757,20 +12044,25 @@
             this.updateContentDprLevel();
         }
         updateContentScaleLevel() {
-            GRoot.contentScaleLevel = GRoot.inst.desginWidth / (GRoot.inst.stageWidth / GRoot.dpr) > 1 ? 1 : GRoot.inst.desginWidth / (GRoot.inst.stageWidth / GRoot.dpr);
-            // GRoot.contentScaleWid = this._width / this._stageOptions.desginWidth;
-            // GRoot.contentScaleHei = this._height / this._stageOptions.desginHeight;
-            // GRoot.contentScaleLevel = Math.round(GRoot.contentScaleWid < GRoot.contentScaleHei ? GRoot.contentScaleWid : GRoot.contentScaleHei);
+            GRoot.contentScaleLevel = GRoot.inst.designWidth / (GRoot.inst.stageWidth / GRoot.dpr) > 1 ? 1 : GRoot.inst.designWidth / (GRoot.inst.stageWidth / GRoot.dpr);
             const realWidth = this._width / this._stageOptions.dpr;
             const realHeight = this._height / this._stageOptions.dpr;
-            const _widthScale = realWidth > this._stageOptions.desginWidth ? 1 : realWidth / this._stageOptions.desginWidth;
-            const _heightScale = realHeight > this._stageOptions.desginHeight ? 1 : realHeight / this._stageOptions.desginHeight;
-            GRoot.uiScale = _widthScale > _heightScale ? _heightScale : _widthScale;
+            GRoot.isHorizontal = this._stageOptions.designWidth > this._stageOptions.designHeight ? true : false;
+            GRoot.contentScaleWid = Number((realWidth / this._stageOptions.designWidth).toFixed(4));
+            GRoot.contentScaleHei = Number((realHeight / this._stageOptions.designHeight).toFixed(4));
+            const _widthScale = GRoot.contentScaleWid; // realWidth > this._stageOptions.designWidth ? 1 : GRoot.contentScaleWid;
+            const _heightScale = GRoot.contentScaleHei; // realHeight > this._stageOptions.designHeight ? 1 : GRoot.contentScaleHei;
+            // 某些分辨率下，竖屏的高度缩放会大于横屏，所以加入横竖屏判断
+            GRoot.uiScale = _widthScale < _heightScale ? _widthScale : GRoot.isHorizontal ? _heightScale : _widthScale;
+            GRoot.uiScale = GRoot.uiScale > 1 ? 1 : GRoot.uiScale;
+            // 取小数点后四位，保证精度，部分手机分辨率宽高缩放可能相同到小数点后两位
+            GRoot.uiScale = Number(GRoot.uiScale.toFixed(4));
             // const camera = this._scene.cameras.main;
-            // camera.setScroll(-(this._width - this._stageOptions.desginWidth) / 2, -(this._height - this._stageOptions.desginHeight) / 2)
+            // camera.setScroll(-(this._width - this._stageOptions.designWidth) / 2, -(this._height - this._stageOptions.designHeight) / 2)
         }
         updateContentDprLevel() {
-            GRoot.dpr = this._stageOptions.dpr;
+            // 取小数点后一位，保证精度（部分手机dpr配置为小数点1位）
+            GRoot.dpr = Number(this._stageOptions.dpr.toFixed(1));
             if (GRoot.dpr >= 3.5)
                 GRoot.contentDprLevel = 3; //x4
             else if (GRoot.dpr >= 2.5)
@@ -13910,12 +12202,1751 @@
         }
     }
     GRoot.dpr = 1;
+    GRoot.defaultDpr = 1;
     GRoot.uiScale = 1;
+    GRoot.isHorizontal = false;
     GRoot.contentDprLevel = 0;
     GRoot.contentScaleLevel = 0;
     GRoot.contentScaleWid = 0;
     GRoot.contentScaleHei = 0;
     GRoot._gmStatus = new GRootMouseStatus();
+
+    class GGraph extends GObject {
+        constructor(scene, type) {
+            super(scene, type);
+            this._type = 0;
+            this._lineSize = 1;
+            this._lineColor = "#000000";
+            this._fillColor = "#FFFFFF";
+        }
+        get displayType() {
+            return this._type;
+        }
+        get graphics() {
+            return this._graphics;
+        }
+        drawRect(lineSize, lineColor, fillColor, cornerRadius) {
+            this._type = 1;
+            this._lineSize = lineSize;
+            this._lineColor = lineColor;
+            this._fillColor = fillColor;
+            this._cornerRadius = cornerRadius;
+            this.updateGraph();
+        }
+        drawEllipse(lineSize, lineColor, fillColor) {
+            this._type = 2;
+            this._lineSize = lineSize;
+            this._lineColor = lineColor;
+            this._fillColor = fillColor;
+            this.updateGraph();
+        }
+        drawRegularPolygon(lineSize, lineColor, fillColor, sides, startAngle, distances) {
+            this._type = 4;
+            this._lineSize = lineSize;
+            this._lineColor = lineColor;
+            this._fillColor = fillColor;
+            this._sides = sides;
+            this._startAngle = startAngle || 0;
+            this._distances = distances;
+            this.updateGraph();
+        }
+        drawPolygon(lineSize, lineColor, fillColor, points) {
+            this._type = 3;
+            this._lineSize = lineSize;
+            this._lineColor = lineColor;
+            this._fillColor = fillColor;
+            this._polygonPoints = points;
+            this.updateGraph();
+        }
+        get distances() {
+            return this._distances;
+        }
+        set distances(value) {
+            this._distances = value;
+            if (this._type == 3)
+                this.updateGraph();
+        }
+        get color() {
+            return this._fillColor;
+        }
+        set color(value) {
+            this._fillColor = value;
+            this.updateGear(4);
+            if (this._type != 0)
+                this.updateGraph();
+        }
+        handleXYChanged() {
+            var xv = this._x + this._xOffset;
+            var yv = this._y + this._yOffset;
+            if (this.parent) {
+                if (this._relationPivot) {
+                    xv += this.parent.pivotOffsetX;
+                    yv += this.parent.pivotOffsetY;
+                }
+                if (this._pivotAsAnchor) {
+                    xv -= this.parent.initWidth * this.parent.pivotX;
+                    yv -= this.parent.initHeight * this.parent.pivotY;
+                }
+            }
+            if (this._pixelSnapping) {
+                xv = Math.round(xv);
+                yv = Math.round(yv);
+            }
+            const _x = Math.round(this.initWidth * this._pivotX);
+            const _y = Math.round(this.initHeight * this._pivotY);
+            this._displayObject.setPosition((xv - _x) * GRoot.dpr, (yv - _y) * GRoot.dpr);
+        }
+        updateGraph() {
+            this._displayObject.mouseEnabled = this.touchable;
+            if (this._graphics)
+                this._graphics.clear();
+            else
+                this._graphics = new Graphics(this.scene);
+            if (this._skewX != 0 || this._skewY != 0) {
+                this.setSkew(this._skewX, this._skewY);
+            }
+            var w = this.width * GRoot.dpr;
+            var h = this.height * GRoot.dpr;
+            if (w == 0 || h == 0)
+                return;
+            let fillColor;
+            let lineColor;
+            if (this._lineColor)
+                lineColor = Utils.toNumColor(this._lineColor);
+            // ============= rgba颜色值转换
+            if ( /*Render.isWebGL &&*/ToolSet.startsWith(this._fillColor, "rgba")) {
+                //webgl下laya未支持rgba格式
+                var arr = this._fillColor.substring(5, this._fillColor.lastIndexOf(")")).split(",");
+                var a = parseFloat(arr[3]);
+                if (a == 0)
+                    fillColor = null;
+                else {
+                    fillColor = Utils.toNumColor(Utils.toHexColor((parseInt(arr[0]) << 16) + (parseInt(arr[1]) << 8) + parseInt(arr[2])));
+                    this.alpha = a;
+                }
+            }
+            else {
+                fillColor = Utils.toNumColor(this._fillColor);
+            }
+            this._graphics.fillStyle(fillColor, this.alpha);
+            if (this._lineSize && lineColor)
+                this._graphics.lineStyle(this._lineSize, lineColor);
+            if (this._type == 1) {
+                // 画圆角
+                if (this._cornerRadius) {
+                    [
+                        ["moveTo", this._cornerRadius[0], 0],
+                        ["lineTo", w - this._cornerRadius[1], 0],
+                        ["arcTo", w, 0, w, this._cornerRadius[1], this._cornerRadius[1]],
+                        ["lineTo", w, h - this._cornerRadius[3]],
+                        ["arcTo", w, h, w - this._cornerRadius[3], h, this._cornerRadius[3]],
+                        ["lineTo", this._cornerRadius[2], h],
+                        ["arcTo", 0, h, 0, h - this._cornerRadius[2], this._cornerRadius[2]],
+                        ["lineTo", 0, this._cornerRadius[0]],
+                        ["arcTo", 0, 0, this._cornerRadius[0], 0, this._cornerRadius[0]],
+                        ["closePath"]
+                    ];
+                    this._graphics.fillRoundedRect(0, 0, w, h, this._cornerRadius[0]);
+                    if (this._lineSize > 0) {
+                        this._graphics.strokeRoundedRect(0, 0, w, h, this._cornerRadius[0]);
+                    }
+                    // gr.drawPath(0, 0, paths, fillColor ? { fillStyle: fillColor } : null, this._lineSize > 0 ? { strokeStyle: lineColor, lineWidth: this._lineSize } : null);
+                }
+                else
+                    this._graphics.fillRect(0, 0, w, h);
+                if (this._lineSize > 0) {
+                    this._graphics.strokeRect(0, 0, w, h);
+                }
+                // gr.drawRect(0, 0, w, h, fillColor, this._lineSize > 0 ? lineColor : null, this._lineSize);
+            }
+            else if (this._type == 2) {
+                this._graphics.fillCircle(w / 2, h / 2, w / 2);
+                if (this._lineSize > 0) {
+                    this._graphics.strokeCircle(w / 2, h / 2, w / 2);
+                }
+                // gr.drawCircle(w / 2, h / 2, w / 2, fillColor, this._lineSize > 0 ? lineColor : null, this._lineSize);
+            }
+            else if (this._type == 3) {
+                // ==== 优先处理点数据 偏移量，并以点形式保存
+                this.dealWithPolyPoints(0, 0);
+                // gr.drawPoly(0, 0, this._polygonPoints, fillColor, this._lineSize > 0 ? lineColor : null, this._lineSize);
+            }
+            else if (this._type == 4) {
+                if (!this._polygonPoints)
+                    this._polygonPoints = [];
+                var radius = Math.min(this._width, this._height) / 2;
+                this._polygonPoints.length = 0;
+                var angle = Utils.toRadian(this._startAngle);
+                var deltaAngle = 2 * Math.PI / this._sides;
+                var dist;
+                for (var i = 0; i < this._sides; i++) {
+                    if (this._distances) {
+                        dist = this._distances[i];
+                        if (isNaN(dist))
+                            dist = 1;
+                    }
+                    else
+                        dist = 1;
+                    var xv = radius + radius * dist * Math.cos(angle);
+                    var yv = radius + radius * dist * Math.sin(angle);
+                    this._polygonPoints.push(xv, yv);
+                    angle += deltaAngle;
+                }
+                this.dealWithPolyPoints(0, 0);
+                // gr.drawPoly(0, 0, this._polygonPoints, fillColor, this._lineSize > 0 ? lineColor : null, this._lineSize);
+            }
+            // this._displayObject.repaint();
+            this._displayObject.addAt(this._graphics);
+        }
+        dealWithPolyPoints(basePosX = 0, basePosY = 0) {
+            var offset = (this._lineSize >= 1 && this._lineColor) ? (this._lineSize % 2 === 0 ? 0 : 0.5) : 0;
+            const points = this._polygonPoints;
+            const points1 = [];
+            var ci = 0;
+            for (var i = 0, sz = points.length / 2; i < sz; i++) {
+                var x1 = points[ci] + basePosX + offset, y1 = points[ci + 1] + basePosY + offset;
+                points[ci] = x1;
+                points[ci + 1] = y1;
+                const point = new Phaser.Geom.Point(x1, y1);
+                points1.push(point);
+                ci += 2;
+            }
+            // ==== 开始画点路径
+            this._graphics.beginPath();
+            for (let i = 0; i < points1.length; i++) {
+                const point = points1[i];
+                this._graphics.moveTo(0, 0);
+                this._graphics.lineTo(point.x, point.y);
+            }
+            this._graphics.fillPath();
+            if (this._lineSize > 0) {
+                this._graphics.strokePath();
+            }
+            this._graphics.closePath();
+        }
+        replaceMe(target) {
+            // if (!this._parent)
+            //     throw "parent not set";
+            // target.name = this.name;
+            // target.alpha = this.alpha;
+            // target.rotation = this.rotation;
+            // target.visible = this.visible;
+            // target.touchable = this.touchable;
+            // target.grayed = this.grayed;
+            // target.setXY(this.x, this.y);
+            // target.setSize(this.width, this.height);
+            // var index: number = this._parent.getChildIndex(this);
+            // this._parent.addChildAt(target, index);
+            // target.relations.copyFrom(this.relations);
+            // this._parent.removeChild(this, true);
+        }
+        addBeforeMe(target) {
+            if (!this._parent)
+                throw "parent not set";
+            // var index: number = this._parent.getChildIndex(this);
+            // this._parent.addChildAt(target, index);
+        }
+        addAfterMe(target) {
+            if (!this._parent)
+                throw "parent not set";
+            // var index: number = this._parent.getChildIndex(this);
+            // index++;
+            // index++;
+            // this._parent.addChildAt(target, index);
+        }
+        setNativeObject(obj) {
+            this._type = 0;
+            // this._displayObject.mouseEnabled = this.touchable;
+            this._displayObject.graphics.clear();
+            this._displayObject.addChild(obj);
+        }
+        createDisplayObject() {
+            super.createDisplayObject();
+            this._displayObject.disableInteractive();
+            this._displayObject.removeInteractive();
+            // this._hitArea = new HitArea();
+            // this._hitArea.hit = this._displayObject.graphics;
+            // this._displayObject.hitArea = this._hitArea;
+        }
+        getProp(index) {
+            if (index == exports.ObjectPropID.Color)
+                return this.color;
+            else
+                return super.getProp(index);
+        }
+        setProp(index, value) {
+            if (index == exports.ObjectPropID.Color)
+                this.color = value;
+            else
+                super.setProp(index, value);
+        }
+        handleSizeChanged() {
+            super.handleSizeChanged();
+            if (this._type != 0)
+                this.updateGraph();
+        }
+        setSkew(sx, sy) {
+            // if (this._skewX != sx || this._skewY != sy) {
+            this._skewX = sx;
+            this._skewY = sy;
+            if (this._graphics) {
+                this._displayStyle.skewX = (-sx * Math.PI) / 180;
+                this._displayStyle.skewY = (sy * Math.PI) / 180;
+                this._graphics.skewX = this._displayStyle.skewX;
+                this._graphics.skewY = this._displayStyle.skewY;
+                this.applyPivot();
+            }
+            // }
+        }
+        setup_beforeAdd(buffer, beginPos) {
+            super.setup_beforeAdd(buffer, beginPos);
+            buffer.seek(beginPos, 5);
+            this._type = buffer.readByte();
+            if (this._type != 0) {
+                var i;
+                var cnt;
+                this._lineSize = buffer.readInt();
+                this._lineColor = buffer.readColorS(true);
+                this._fillColor = buffer.readColorS(true);
+                if (buffer.readBool()) {
+                    this._cornerRadius = [];
+                    for (i = 0; i < 4; i++)
+                        this._cornerRadius[i] = buffer.readFloat();
+                }
+                if (this._type == 3) {
+                    cnt = buffer.readShort();
+                    this._polygonPoints = [];
+                    this._polygonPoints.length = cnt;
+                    for (i = 0; i < cnt; i++)
+                        this._polygonPoints[i] = buffer.readFloat();
+                }
+                else if (this._type == 4) {
+                    this._sides = buffer.readShort();
+                    this._startAngle = buffer.readFloat();
+                    cnt = buffer.readShort();
+                    if (cnt > 0) {
+                        this._distances = [];
+                        for (i = 0; i < cnt; i++)
+                            this._distances[i] = buffer.readFloat();
+                    }
+                }
+                this.updateGraph();
+            }
+        }
+    }
+
+    function fillImage(w, h, method, origin, clockwise, amount) {
+        if (amount <= 0)
+            return null;
+        else if (amount >= 0.9999)
+            return [0, 0, w, 0, w, h, 0, h];
+        var points;
+        switch (method) {
+            case exports.FillMethod.Horizontal:
+                points = fillHorizontal(w, h, origin, amount);
+                break;
+            case exports.FillMethod.Vertical:
+                points = fillVertical(w, h, origin, amount);
+                break;
+            case exports.FillMethod.Radial90:
+                points = fillRadial90(w, h, origin, clockwise, amount);
+                break;
+            case exports.FillMethod.Radial180:
+                points = fillRadial180(w, h, origin, clockwise, amount);
+                break;
+            case exports.FillMethod.Radial360:
+                points = fillRadial360(w, h, origin, clockwise, amount);
+                break;
+        }
+        return points;
+    }
+    function fillHorizontal(w, h, origin, amount) {
+        var w2 = w * amount;
+        if (origin == exports.FillOrigin.Left || origin == exports.FillOrigin.Top)
+            return [0, 0, w2, 0, w2, h, 0, h];
+        else
+            return [w, 0, w, h, w - w2, h, w - w2, 0];
+    }
+    function fillVertical(w, h, origin, amount) {
+        var h2 = h * amount;
+        if (origin == exports.FillOrigin.Left || origin == exports.FillOrigin.Top)
+            return [0, 0, 0, h2, w, h2, w, 0];
+        else
+            return [0, h, w, h, w, h - h2, 0, h - h2];
+    }
+    function fillRadial90(w, h, origin, clockwise, amount) {
+        if (clockwise && (origin == exports.FillOrigin.TopRight || origin == exports.FillOrigin.BottomLeft)
+            || !clockwise && (origin == exports.FillOrigin.TopLeft || origin == exports.FillOrigin.BottomRight)) {
+            amount = 1 - amount;
+        }
+        var v, v2, h2;
+        v = Math.tan(Math.PI / 2 * amount);
+        h2 = w * v;
+        v2 = (h2 - h) / h2;
+        var points;
+        switch (origin) {
+            case exports.FillOrigin.TopLeft:
+                if (clockwise) {
+                    if (h2 <= h)
+                        points = [0, 0, w, h2, w, 0];
+                    else
+                        points = [0, 0, w * (1 - v2), h, w, h, w, 0];
+                }
+                else {
+                    if (h2 <= h)
+                        points = [0, 0, w, h2, w, h, 0, h];
+                    else
+                        points = [0, 0, w * (1 - v2), h, 0, h];
+                }
+                break;
+            case exports.FillOrigin.TopRight:
+                if (clockwise) {
+                    if (h2 <= h)
+                        points = [w, 0, 0, h2, 0, h, w, h];
+                    else
+                        points = [w, 0, w * v2, h, w, h];
+                }
+                else {
+                    if (h2 <= h)
+                        points = [w, 0, 0, h2, 0, 0];
+                    else
+                        points = [w, 0, w * v2, h, 0, h, 0, 0];
+                }
+                break;
+            case exports.FillOrigin.BottomLeft:
+                if (clockwise) {
+                    if (h2 <= h)
+                        points = [0, h, w, h - h2, w, 0, 0, 0];
+                    else
+                        points = [0, h, w * (1 - v2), 0, 0, 0];
+                }
+                else {
+                    if (h2 <= h)
+                        points = [0, h, w, h - h2, w, h];
+                    else
+                        points = [0, h, w * (1 - v2), 0, w, 0, w, h];
+                }
+                break;
+            case exports.FillOrigin.BottomRight:
+                if (clockwise) {
+                    if (h2 <= h)
+                        points = [w, h, 0, h - h2, 0, h];
+                    else
+                        points = [w, h, w * v2, 0, 0, 0, 0, h];
+                }
+                else {
+                    if (h2 <= h)
+                        points = [w, h, 0, h - h2, 0, 0, w, 0];
+                    else
+                        points = [w, h, w * v2, 0, w, 0];
+                }
+                break;
+        }
+        return points;
+    }
+    function movePoints(points, offsetX, offsetY) {
+        var cnt = points.length;
+        for (var i = 0; i < cnt; i += 2) {
+            points[i] += offsetX;
+            points[i + 1] += offsetY;
+        }
+    }
+    function fillRadial180(w, h, origin, clockwise, amount) {
+        var points;
+        switch (origin) {
+            case exports.FillOrigin.Top:
+                if (amount <= 0.5) {
+                    amount = amount / 0.5;
+                    points = fillRadial90(w / 2, h, clockwise ? exports.FillOrigin.TopLeft : exports.FillOrigin.TopRight, clockwise, amount);
+                    if (clockwise)
+                        movePoints(points, w / 2, 0);
+                }
+                else {
+                    amount = (amount - 0.5) / 0.5;
+                    points = fillRadial90(w / 2, h, clockwise ? exports.FillOrigin.TopRight : exports.FillOrigin.TopLeft, clockwise, amount);
+                    if (clockwise)
+                        points.push(w, h, w, 0);
+                    else {
+                        movePoints(points, w / 2, 0);
+                        points.push(0, h, 0, 0);
+                    }
+                }
+                break;
+            case exports.FillOrigin.Bottom:
+                if (amount <= 0.5) {
+                    amount = amount / 0.5;
+                    points = fillRadial90(w / 2, h, clockwise ? exports.FillOrigin.BottomRight : exports.FillOrigin.BottomLeft, clockwise, amount);
+                    if (!clockwise)
+                        movePoints(points, w / 2, 0);
+                }
+                else {
+                    amount = (amount - 0.5) / 0.5;
+                    points = fillRadial90(w / 2, h, clockwise ? exports.FillOrigin.BottomLeft : exports.FillOrigin.BottomRight, clockwise, amount);
+                    if (clockwise) {
+                        movePoints(points, w / 2, 0);
+                        points.push(0, 0, 0, h);
+                    }
+                    else
+                        points.push(w, 0, w, h);
+                }
+                break;
+            case exports.FillOrigin.Left:
+                if (amount <= 0.5) {
+                    amount = amount / 0.5;
+                    points = fillRadial90(w, h / 2, clockwise ? exports.FillOrigin.BottomLeft : exports.FillOrigin.TopLeft, clockwise, amount);
+                    if (!clockwise)
+                        movePoints(points, 0, h / 2);
+                }
+                else {
+                    amount = (amount - 0.5) / 0.5;
+                    points = fillRadial90(w, h / 2, clockwise ? exports.FillOrigin.TopLeft : exports.FillOrigin.BottomLeft, clockwise, amount);
+                    if (clockwise) {
+                        movePoints(points, 0, h / 2);
+                        points.push(w, 0, 0, 0);
+                    }
+                    else
+                        points.push(w, h, 0, h);
+                }
+                break;
+            case exports.FillOrigin.Right:
+                if (amount <= 0.5) {
+                    amount = amount / 0.5;
+                    points = fillRadial90(w, h / 2, clockwise ? exports.FillOrigin.TopRight : exports.FillOrigin.BottomRight, clockwise, amount);
+                    if (clockwise)
+                        movePoints(points, 0, h / 2);
+                }
+                else {
+                    amount = (amount - 0.5) / 0.5;
+                    points = fillRadial90(w, h / 2, clockwise ? exports.FillOrigin.BottomRight : exports.FillOrigin.TopRight, clockwise, amount);
+                    if (clockwise)
+                        points.push(0, h, w, h);
+                    else {
+                        movePoints(points, 0, h / 2);
+                        points.push(0, 0, w, 0);
+                    }
+                }
+                break;
+        }
+        return points;
+    }
+    function fillRadial360(w, h, origin, clockwise, amount) {
+        var points;
+        switch (origin) {
+            case exports.FillOrigin.Top:
+                if (amount <= 0.5) {
+                    amount = amount / 0.5;
+                    points = fillRadial180(w / 2, h, clockwise ? exports.FillOrigin.Left : exports.FillOrigin.Right, clockwise, amount);
+                    if (clockwise)
+                        movePoints(points, w / 2, 0);
+                }
+                else {
+                    amount = (amount - 0.5) / 0.5;
+                    points = fillRadial180(w / 2, h, clockwise ? exports.FillOrigin.Right : exports.FillOrigin.Left, clockwise, amount);
+                    if (clockwise)
+                        points.push(w, h, w, 0, w / 2, 0);
+                    else {
+                        movePoints(points, w / 2, 0);
+                        points.push(0, h, 0, 0, w / 2, 0);
+                    }
+                }
+                break;
+            case exports.FillOrigin.Bottom:
+                if (amount <= 0.5) {
+                    amount = amount / 0.5;
+                    points = fillRadial180(w / 2, h, clockwise ? exports.FillOrigin.Right : exports.FillOrigin.Left, clockwise, amount);
+                    if (!clockwise)
+                        movePoints(points, w / 2, 0);
+                }
+                else {
+                    amount = (amount - 0.5) / 0.5;
+                    points = fillRadial180(w / 2, h, clockwise ? exports.FillOrigin.Left : exports.FillOrigin.Right, clockwise, amount);
+                    if (clockwise) {
+                        movePoints(points, w / 2, 0);
+                        points.push(0, 0, 0, h, w / 2, h);
+                    }
+                    else
+                        points.push(w, 0, w, h, w / 2, h);
+                }
+                break;
+            case exports.FillOrigin.Left:
+                if (amount <= 0.5) {
+                    amount = amount / 0.5;
+                    points = fillRadial180(w, h / 2, clockwise ? exports.FillOrigin.Bottom : exports.FillOrigin.Top, clockwise, amount);
+                    if (!clockwise)
+                        movePoints(points, 0, h / 2);
+                }
+                else {
+                    amount = (amount - 0.5) / 0.5;
+                    points = fillRadial180(w, h / 2, clockwise ? exports.FillOrigin.Top : exports.FillOrigin.Bottom, clockwise, amount);
+                    if (clockwise) {
+                        movePoints(points, 0, h / 2);
+                        points.push(w, 0, 0, 0, 0, h / 2);
+                    }
+                    else
+                        points.push(w, h, 0, h, 0, h / 2);
+                }
+                break;
+            case exports.FillOrigin.Right:
+                if (amount <= 0.5) {
+                    amount = amount / 0.5;
+                    points = fillRadial180(w, h / 2, clockwise ? exports.FillOrigin.Top : exports.FillOrigin.Bottom, clockwise, amount);
+                    if (clockwise)
+                        movePoints(points, 0, h / 2);
+                }
+                else {
+                    amount = (amount - 0.5) / 0.5;
+                    points = fillRadial180(w, h / 2, clockwise ? exports.FillOrigin.Bottom : exports.FillOrigin.Top, clockwise, amount);
+                    if (clockwise)
+                        points.push(0, h, w, h, w, h / 2);
+                    else {
+                        movePoints(points, 0, h / 2);
+                        points.push(0, 0, w, 0, w, h / 2);
+                    }
+                }
+                break;
+        }
+        return points;
+    }
+
+    const patches = ["[0][0]", "[1][0]", "[2][0]", "[0][1]", "[1][1]", "[2][1]", "[0][2]", "[1][2]", "[2][2]"];
+    class Image extends Phaser.GameObjects.Container {
+        constructor(scene) {
+            super(scene);
+            this._frame = 0;
+            this._sourceFrames = [];
+            this._playing = true;
+            this._frameCount = 0;
+            this._start = 0;
+            this._end = 0;
+            this._times = 0;
+            this._endAt = 0;
+            this._status = 0; //0-none, 1-next loop, 2-ending, 3-ended
+            this._frameImgs = new Map();
+            /**
+             * 是否已经fairy包装item中获取完数据
+             */
+            this._hasSetPackItem = false;
+            this._tileGridIndice = 0;
+            this._needRebuild = 0;
+            this._fillOrigin = 0;
+            this._fillAmount = 0;
+            this.finalXs = [];
+            this.finalYs = [];
+            this.tintFill = false;
+            /**
+             * 是否对九宫图片只做缩放，eg：当left，middle为0，则对原始图片进行缩放
+             */
+            this._scale9GridBool = false;
+            // this._renderTexture = this.scene.make.renderTexture(undefined, false);
+            // this._renderTexture.setPosition(0, 0);
+            // this.add(this._renderTexture);
+            // this.patchKey = Math.random() * 1000 + "";
+            // this.mouseEnabled = false;
+            this._color = "#FFFFFF";
+        }
+        get curImage() {
+            return this._curImg;
+        }
+        /**
+         * 九宫图的原始图片名字
+         */
+        get valueName() {
+            return this._valueName;
+        }
+        setTint(color) {
+            const _color = Utils.toNumColor(color);
+            this.list.forEach((img) => {
+                if (img) {
+                    img.clearTint();
+                    img.setTint(_color);
+                }
+            });
+        }
+        setSize(width, height, originFrame) {
+            const originWidth = this["$owner"].sourceWidth;
+            const originHeight = this["$owner"].sourceHeight;
+            if (this._scale9Grid) {
+                const _left = this._scale9Grid.left;
+                const _right = (originWidth - this._scale9Grid.right);
+                const _top = this._scale9Grid.top;
+                const _bottom = (originHeight - this._scale9Grid.bottom);
+                if (width < _left || width < _right || width < (_left + _right) || height < _top || height < _bottom || height < (_top + _bottom)) {
+                    this.finalXs = [0, 0, 0, width];
+                    this.finalYs = [0, 0, 0, height];
+                    this._scale9GridBool = true;
+                }
+                else {
+                    this.finalXs = [0, _left, width - _left - _right, width];
+                    this.finalYs = [0, _top, height - _top - _bottom, height];
+                    this._scale9GridBool = false;
+                }
+            }
+            else {
+                this.finalXs = [0, 0, 0, width];
+                this.finalYs = [0, 0, 0, height];
+            }
+            // 有texture资源后再创建九宫图片
+            if (!this.originFrame)
+                this.originFrame = originFrame;
+            if (this.originFrame) {
+                this.createPatches();
+                this.drawPatches();
+            }
+            this.markChanged(1);
+            return super.setSize(width * GRoot.dpr, height * GRoot.dpr);
+        }
+        changeSize(width, height, initBoo, originFrame) {
+            if (initBoo === undefined)
+                initBoo = false;
+            return new Promise((resolve, reject) => {
+                const key = this.valueName;
+                //  if (this.width !== width || this.height !== height) {
+                if (initBoo) {
+                    const originWidth = this["$owner"].sourceWidth;
+                    const originHeight = this["$owner"].sourceHeight;
+                    if (this._scale9Grid) {
+                        const _left = this._scale9Grid.left;
+                        const _right = originWidth - this._scale9Grid.right;
+                        const _top = this._scale9Grid.top;
+                        const _bottom = originHeight - this._scale9Grid.bottom;
+                        if (width < _left || width < _right || width < (_left + _right) || height < _top || height < _bottom || height < (_top + _bottom)) {
+                            this.finalXs = [0, 0, 0, width];
+                            this.finalYs = [0, 0, 0, height];
+                            this._scale9GridBool = true;
+                        }
+                        else {
+                            this.finalXs = [0, _left, width - _left - _right, width];
+                            this.finalYs = [0, _top, height - _top - _bottom, height];
+                            this._scale9GridBool = false;
+                        }
+                    }
+                    else {
+                        this.finalXs = [0, 0, 0, width];
+                        this.finalYs = [0, 0, 0, height];
+                    }
+                    if (this.width !== width)
+                        this.width = width * GRoot.dpr;
+                    if (this.height !== height)
+                        this.height = height * GRoot.dpr;
+                    // 有texture资源后再创建九宫图片
+                    if (!this.originFrame)
+                        this.originFrame = originFrame;
+                }
+                if (this.originFrame) {
+                    if (initBoo) {
+                        this.createPatches();
+                        // 当_curImg存在时，说明9宫切图已经保存了一份基础合图，无须再用renderTexture绘制
+                        if (!this._renderTexture && this._scale9Grid && !this._curImg) {
+                            this._renderTexture = this.scene.make.renderTexture({ x: 0, y: 0, width: this.width, height: this.height }, false);
+                        }
+                        else if (this._curImg) {
+                            this._renderTexture = null;
+                        }
+                    }
+                    this.drawPatches();
+                    if (this._renderTexture) {
+                        if (this.scene.textures.exists(key)) {
+                            this._curImg = this.scene.make.image({ key }, false);
+                            resolve(this);
+                        }
+                        else {
+                            this._renderTexture.snapshot((img) => {
+                                const fun = (cbKey) => {
+                                    this.scene.textures.off("addtexture", fun, this);
+                                    if (cbKey === this.patchKey || this.scene.textures.get(this.patchKey)) {
+                                        this._curImg = this.scene.make.image({ key: this.patchKey }, false);
+                                        this.markChanged(1);
+                                        resolve(this);
+                                    }
+                                };
+                                this.scene.textures.off("addtexture", fun, this);
+                                // 可能同时会有多个texture add事件派发，需要判读callbackkey和当前key是否一致
+                                this.scene.textures.on("addtexture", fun, this);
+                                if (!GRoot.inst.textureManager.get(key)) {
+                                    GRoot.inst.textureManager.add(key);
+                                }
+                                if (!this.scene.textures.get(this.patchKey)) {
+                                    this.scene.textures.addBase64(this.patchKey, img.src);
+                                }
+                                else {
+                                    fun(this.patchKey);
+                                }
+                                this._renderTexture.destroy();
+                                this._renderTexture = null;
+                            });
+                        }
+                    }
+                    else {
+                        resolve(this);
+                    }
+                    //  }
+                }
+                else {
+                    resolve(this);
+                }
+            });
+        }
+        createPatches() {
+            // The positions we want from the base texture
+            // 保存有x轴和y轴9宫坐标信息，如果存在坐标信息相同，则表示某一部分的图片尺寸为0，需要查看原因
+            const textureXs = this.finalXs; //[0, this._scale9Grid.left, this.originFrame.width - this._scale9Grid.right, this.originFrame.width];
+            const textureYs = this.finalYs; //[0, this._scale9Grid.top, this.originFrame.height - this._scale9Grid.bottom, this.originFrame.height];
+            let patchIndex = 0;
+            for (let yi = 0; yi < 3; yi++) {
+                for (let xi = 0; xi < 3; xi++) {
+                    this.createPatchFrame(this.getPatchNameByIndex(patchIndex), textureXs[xi], // x
+                    textureYs[yi], // y
+                    (textureXs[xi + 1] - textureXs[xi]), // width
+                    (textureYs[yi + 1] - textureYs[yi]) // height
+                    );
+                    ++patchIndex;
+                }
+            }
+        }
+        drawPatches() {
+            const tintFill = this.tintFill;
+            //如果是平铺，可以不移除tilesprite，只有9宫和正常贴图才需要
+            if (!this._scaleByTile)
+                this.removeAll(true);
+            // 非九宫直接画texture
+            if (!this._scale9Grid || this._scale9GridBool) {
+                const patch = this._sourceTexture.frames[this.getPatchNameByIndex(8)];
+                if (this._curImg) {
+                    this._curImg.destroy();
+                    this._curImg = null;
+                }
+                const name = !this._scale9Grid ? patch.name : "__BASE";
+                this._curImg = this.scene.make.image({ key: patch.texture.key, frame: name }, false);
+                // new Phaser.GameObjects.Image(this.scene, 0, 0, patch.texture.key, name);
+                this._curImg.setOrigin(0);
+                this._curImg.setDisplaySize(this.finalXs[3] * GRoot.dpr, this.finalYs[3] * GRoot.dpr);
+                const pivotX = this["$owner"] && this["$owner"].parnet ? this["$owner"].parnet.pivotX : 0;
+                const pivotY = this["$owner"] && this["$owner"].parnet ? this["$owner"].parnet.pivotY : 0;
+                this._curImg.setPosition(this.finalXs[2] - this._curImg.displayWidth * pivotX, this.finalYs[2] - this._curImg.displayHeight * pivotY);
+                // if (owner.pivotX) owner.xOffset = -owner.pivotX*this.finalXs[3];
+                // if(owner.pivotY)owner.yOffset=-owner.pivotY*this.finalYs[3];
+                // console.log("drawImage ===>", this._curImg, this.finalXs, this.finalYs);
+                this.add(this._curImg);
+                if (this.internalTint)
+                    this._curImg.setTint(this.internalTint);
+                this._curImg.tintFill = tintFill;
+                return;
+            }
+            let patchIndex = 0;
+            const _left = this._scale9Grid.left * GRoot.dpr;
+            for (let yi = 0; yi < 3; yi++) {
+                for (let xi = 0; xi < 3; xi++) {
+                    // 九宫逻辑中如果宽高为0，则不做后续处理
+                    // if (this.finalXs[xi + 1] - this.finalXs[xi] <= 0 || this.finalYs[yi + 1] - this.finalYs[yi] <= 0) {
+                    //     continue;
+                    // }
+                    const patch = this._sourceTexture.frames[this.getPatchNameByIndex(patchIndex)];
+                    const patchImg = this.scene.make.image({ key: patch.texture.key, frame: patch.name }, false);
+                    // new Phaser.GameObjects.Image(this.scene, 0, 0, patch.texture.key, patch.name);
+                    patchImg.setOrigin(0);
+                    let _displayWid = this.finalXs[xi + 1] - this.finalXs[xi] < 0 ? 0 : (this.finalXs[xi + 1] - this.finalXs[xi]) * GRoot.dpr; //+ (xi < 2 ? this.mCorrection : 0);
+                    let _displayHei = this.finalYs[yi + 1] - this.finalYs[yi] < 0 ? 0 : (this.finalYs[yi + 1] - this.finalYs[yi]) * GRoot.dpr; //+ (yi < 2 ? this.mCorrection : 0);    
+                    patchImg.setDisplaySize(_displayWid, _displayHei);
+                    let posx = this.finalXs[xi] * GRoot.dpr;
+                    let posy = this.finalYs[yi] * GRoot.dpr;
+                    if (xi === 2) {
+                        if (posx < _left) {
+                            posx = _left;
+                        }
+                    }
+                    patchImg.setPosition(posx, posy);
+                    // console.log("drawImage ===>", patchImg, this.finalXs, this.finalYs);
+                    if (this._renderTexture && this._renderTexture.active)
+                        this._renderTexture.draw(patchImg, patchImg.x, patchImg.y);
+                    this.add(patchImg);
+                    if (this.internalTint)
+                        patchImg.setTint(this.internalTint);
+                    patchImg.tintFill = tintFill;
+                    ++patchIndex;
+                }
+            }
+            // test position
+            // if (this["$owner"]._id === "n1") return;
+            // const g = this.scene.add.graphics(undefined);
+            // g.clear();
+            // g.fillStyle(0xFFCC00);
+            // g.fillRect(0, 0, 20, 20);
+            // this.add(g);
+        }
+        createPatchFrame(patch, x, y, width, height) {
+            // if (!width || !height) return;
+            if (this.originFrame && !this._sourceTexture)
+                this._sourceTexture = this.originFrame.texture;
+            if (this._sourceTexture.frames.hasOwnProperty(patch)) {
+                // console.log("patch cf", patch);
+                return;
+            }
+            // 在texture的frames列表中添加对应增加的frame
+            this._sourceTexture.add(patch, this.originFrame.sourceIndex, this.originFrame.cutX + x, this.originFrame.cutY + y, width, height);
+        }
+        getPatchNameByIndex(index) {
+            return this.originFrame.name + patches[index] + this.patchKey;
+        }
+        get display() {
+            return this._tileSprite || this._curImg;
+        }
+        get texture() {
+            return this._sourceTexture;
+        }
+        set texture(value) {
+            if (this._sourceTexture != value) {
+                this._sourceTexture = value;
+                if (this._sourceTexture)
+                    this.changeSize(this.width / GRoot.dpr, this.height / GRoot.dpr, true);
+                else
+                    this.changeSize(0, 0, true);
+                // todo 重绘
+                // this.scene.add.image(0, 0, this._sourceTexture);
+                // const frames = value.getFrameNames();
+                // const baseFrameName = frames[0];
+                // this._renderTexture.drawFrame(value.key, baseFrameName, 0, 0);
+                // this.repaint();
+                // this.markChanged(1);
+                // if (!this._sourceTexture.hasOwnProperty("useCount")) {
+                //     Object.defineProperties(this.texture, {
+                //         useCount: {
+                //             value: 0,
+                //             writable: true
+                //         }
+                //     });
+                // }
+                // // @ts-ignore
+                // this._sourceTexture.useCount++;
+            }
+        }
+        // public destroy(fromScene?: boolean): void {
+        //     if (this._sourceTexture) {
+        //         if (!this._sourceTexture.hasOwnProperty("useCount")) {
+        //             Object.defineProperties(this.texture, {
+        //                 useCount: {
+        //                     value: 0,
+        //                     writable: true
+        //                 }
+        //             });
+        //         }
+        //         // @ts-ignore
+        //         this._sourceTexture.useCount--;
+        //     }
+        //     super.destroy(fromScene);
+        // }
+        setPackItem(value) {
+            return new Promise((resolve, reject) => {
+                if (!value || !value.texture) {
+                    console.log("no packitem ===>", value);
+                    reject();
+                    return;
+                }
+                const _texture = value.texture;
+                this._valueName = _texture.key + "_" + value.name;
+                const name = this._valueName + "_" + this["$owner"].initWidth + "_" + this["$owner"].initHeight;
+                this.patchKey = name;
+                this._hasSetPackItem = true;
+                // 非九宫正常图片
+                if (!this._scale9Grid) {
+                    if (this.width !== _texture.frames["__BASE"].cutWidth || this.height !== _texture.frames["__BASE"].cutHeight) {
+                        // 手动将packitem数据组织成frame格式添加到大图集的frames中，内部会去重
+                        _texture.add(name, 0, value.x, value.y, value.width, value.height);
+                        if (!this.scene.textures.exists(name)) {
+                            const canvas = this.scene.textures.createCanvas(name, value.width, value.height);
+                            canvas.drawFrame(_texture.key, name, 0, 0);
+                            if (canvas && this._sourceTexture != canvas) {
+                                this._sourceTexture = canvas;
+                                this.originFrame = this._sourceTexture.frames["__BASE"];
+                                this.setSize(value.width, value.height);
+                                this.markChanged(1);
+                                resolve();
+                            }
+                        }
+                        else {
+                            let texture = this.scene.textures.get(name);
+                            if (texture && this._sourceTexture != texture) {
+                                this._sourceTexture = texture;
+                                this.originFrame = this._sourceTexture.frames["__BASE"];
+                                this.setSize(value.width, value.height);
+                                this.markChanged(1);
+                                resolve();
+                            }
+                        }
+                    }
+                    // 单张图片非图集
+                    else {
+                        const img = this.scene.make.image({ key: _texture.key }, false);
+                        // img.setTexture(_texture.key);
+                        this.add(img);
+                        this.markChanged(1);
+                        resolve();
+                    }
+                }
+                // 九宫图片 
+                else {
+                    // 手动将packitem数据组织成frame格式添加到大图集的frames中，内部会去重
+                    _texture.add(name, 0, value.x, value.y, value.width, value.height);
+                    if (!this.scene.textures.exists(name)) {
+                        const canvas = this.scene.textures.createCanvas(name, value.width, value.height);
+                        canvas.drawFrame(_texture.key, name, 0, 0);
+                        if (canvas && this._sourceTexture != canvas) {
+                            this._sourceTexture = canvas;
+                            this.originFrame = this._sourceTexture.frames["__BASE"];
+                            this.changeSize(value.width, value.height, true).then(() => {
+                                this.markChanged(1);
+                                resolve();
+                            });
+                        }
+                    }
+                    else {
+                        let texture = this.scene.textures.get(name);
+                        if (texture && this._sourceTexture != texture) {
+                            this._sourceTexture = texture;
+                            this.originFrame = this._sourceTexture.frames["__BASE"];
+                            this.changeSize(value.width, value.height, true).then(() => {
+                                this.markChanged(1);
+                                resolve();
+                            });
+                        }
+                    }
+                }
+            });
+        }
+        get scale9Grid() {
+            return this._scale9Grid;
+        }
+        set scale9Grid(value) {
+            this._scale9Grid = value;
+            this._sizeGrid = null;
+            this.markChanged(1);
+        }
+        get scaleByTile() {
+            return this._scaleByTile;
+        }
+        set scaleByTile(value) {
+            if (this._scaleByTile != value) {
+                this._scaleByTile = value;
+                this.markChanged(1);
+            }
+        }
+        get tileGridIndice() {
+            return this._tileGridIndice;
+        }
+        set tileGridIndice(value) {
+            if (this._tileGridIndice != value) {
+                this._tileGridIndice = value;
+                this.markChanged(1);
+            }
+        }
+        get fillMethod() {
+            return this._fillMethod;
+        }
+        set fillMethod(value) {
+            if (this._fillMethod != value) {
+                this._fillMethod = value;
+                if (this._fillMethod != 0) {
+                    if (!this._mask) {
+                        this._mask = new Graphics(this.scene);
+                        // this._mask.mouseEnabled = false;
+                    }
+                    this.mask = this._mask.createGeometryMask();
+                    this.markChanged(2);
+                }
+                else if (this.mask) {
+                    this._mask.clear();
+                    this.mask = null;
+                }
+            }
+        }
+        get fillOrigin() {
+            return this._fillOrigin;
+        }
+        set fillOrigin(value) {
+            if (this._fillOrigin != value) {
+                this._fillOrigin = value;
+                if (this._fillMethod != 0)
+                    this.markChanged(2);
+            }
+        }
+        get fillClockwise() {
+            return this._fillClockwise;
+        }
+        set fillClockwise(value) {
+            if (this._fillClockwise != value) {
+                this._fillClockwise = value;
+                if (this._fillMethod != 0)
+                    this.markChanged(2);
+            }
+        }
+        get fillAmount() {
+            return this._fillAmount;
+        }
+        set fillAmount(value) {
+            if (this._fillAmount != value) {
+                this._fillAmount = value;
+                if (this._fillMethod != 0)
+                    this.markChanged(2);
+            }
+        }
+        get color() {
+            return this._color;
+        }
+        set color(value) {
+            if (this._color != value) {
+                this._color = value;
+                ToolSet.setColorFilter(this, value);
+            }
+        }
+        markChanged(flag) {
+            if (!this._hasSetPackItem) {
+                return;
+            }
+            if (!this._needRebuild) {
+                this._needRebuild = flag;
+                this.rebuild();
+                // Laya.timer.callLater(this, this.rebuild);
+            }
+            else
+                this._needRebuild = this._needRebuild | flag; //  位运算（按位或） this._needRebuild |= flag; 
+        }
+        rebuild() {
+            if ((this._needRebuild & 1) != 0)
+                this.doDraw();
+            if ((this._needRebuild & 2) != 0 && this._fillMethod != 0)
+                this.doFill();
+            this._needRebuild = 0;
+        }
+        doDraw() {
+            var w = this.width;
+            var h = this.height;
+            var tex = this._sourceTexture;
+            if (tex == null || w == 0 || h == 0) {
+                return;
+            }
+            if (this._scaleByTile) {
+                if (this._curImg) {
+                    this._curImg.visible = false;
+                }
+                if (!this._tileSprite) {
+                    this._tileSprite = this.scene.make.tileSprite(undefined, false);
+                    this._tileSprite.setOrigin(0);
+                    this._tileSprite.setSize(w, h);
+                    this._tileSprite.setTexture(tex.key, "__BASE");
+                    this.add(this._tileSprite);
+                }
+                else {
+                    if (this._tileSprite.width != w || this._tileSprite.height != h) {
+                        this._tileSprite.setSize(w, h);
+                    }
+                }
+            }
+        }
+        doFill() {
+            var w = this["_width"];
+            var h = this["_height"];
+            var g = this._mask;
+            g.clear();
+            if (w == 0 || h == 0)
+                return;
+            var points = fillImage(w, h, this._fillMethod, this._fillOrigin, this._fillClockwise, this._fillAmount);
+            if (points == null) {
+                //不知道为什么，不这样操作一下空白的遮罩不能生效
+                this.mask = null;
+                this.mask = this._mask.createGeometryMask();
+                return;
+            }
+            // todo drawPoly
+            // g.drawPoly(0, 0, points, "#FFFFFF");
+        }
+    }
+
+    class GImage extends GObject {
+        constructor(scene, type) {
+            super(scene, type);
+            this._flip = 0;
+        }
+        get image() {
+            return this._image;
+        }
+        get color() {
+            return this.image.color;
+        }
+        set color(value) {
+            if (this.image.color != value) {
+                this.image.color = value;
+                this.updateGear(4);
+            }
+        }
+        get width() {
+            return this._width;
+        }
+        get height() {
+            return this._height;
+        }
+        set width(value) {
+            this.setSize(value, this._rawHeight);
+            this._displayObject.changeSize(this._width, this._height, true);
+        }
+        set height(value) {
+            this.setSize(this._rawWidth, value);
+            this._displayObject.changeSize(this._width, this._height, true);
+        }
+        get flip() {
+            return this._flip;
+        }
+        set flip(value) {
+            if (this._flip != value) {
+                this._flip = value;
+                var sx = 1, sy = 1;
+                if (this._flip == exports.FlipType.Horizontal || this._flip == exports.FlipType.Both)
+                    sx = -1;
+                if (this._flip == exports.FlipType.Vertical || this._flip == exports.FlipType.Both)
+                    sy = -1;
+                this.setScale(sx, sy);
+                this.handleXYChanged();
+            }
+        }
+        get fillMethod() {
+            return this.image.fillMethod;
+        }
+        set fillMethod(value) {
+            this.image.fillMethod = value;
+        }
+        get fillOrigin() {
+            return this.image.fillOrigin;
+        }
+        set fillOrigin(value) {
+            this.image.fillOrigin = value;
+        }
+        get fillClockwise() {
+            return this.image.fillClockwise;
+        }
+        set fillClockwise(value) {
+            this.image.fillClockwise = value;
+        }
+        get fillAmount() {
+            return this.image.fillAmount;
+        }
+        set fillAmount(value) {
+            this.image.fillAmount = value;
+        }
+        createDisplayObject() {
+            this._displayObject = this._image = new Image(this.scene);
+            // (<any>this._scene).stage.addChild(this._displayObject, 1);
+            this._displayObject["$owner"] = this;
+        }
+        constructFromResource() {
+            return new Promise((reslove, reject) => {
+                this._contentItem = this.packageItem.getBranch();
+                this.sourceWidth = this._contentItem.width;
+                this.sourceHeight = this._contentItem.height;
+                this.initWidth = this.sourceWidth;
+                this.initHeight = this.sourceHeight;
+                this._contentItem = this._contentItem.getHighResolution();
+                this._contentItem.load().then((packageItem) => {
+                    // 优先九宫格，初始化九宫格各类数据，防止setpackitem时位置数据缺失
+                    this.setSize(this._contentItem.width, this._contentItem.height);
+                    this.image.scale9Grid = this._contentItem.scale9Grid;
+                    this.image.scaleByTile = this._contentItem.scaleByTile;
+                    this.image.tileGridIndice = this._contentItem.tileGridIndice;
+                    this.image.setPackItem(this._contentItem).then(() => {
+                        reslove();
+                    });
+                    // console.log("image pos", this);
+                    // this.image.setPosition(this._contentItem.x, this._contentItem.y);
+                    // this.setSize(this.sourceWidth, this.sourceHeight);
+                });
+            });
+        }
+        handleSizeChanged() {
+            this._displayObject.setSize(this._width, this._height);
+            this.changeInteractive();
+            // (<Phaser.GameObjects.Container>this.displayObject).setDisplaySize(this._width, this._height);
+            // this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this._width, this._height), Phaser.Geom.Rectangle.Contains);
+        }
+        handleXYChanged() {
+            super.handleXYChanged();
+            if (this._flip != exports.FlipType.None) {
+                if (this.scaleX == -1)
+                    this.image.x += this._width;
+                if (this.scaleY == -1)
+                    this.image.y += this._height;
+            }
+        }
+        getProp(index) {
+            if (index == exports.ObjectPropID.Color)
+                return this.color;
+            else
+                return super.getProp(index);
+        }
+        setProp(index, value) {
+            if (index == exports.ObjectPropID.Color)
+                this.color = value;
+            else
+                super.setProp(index, value);
+        }
+        setup_beforeAdd(buffer, beginPos) {
+            return new Promise((resolve, reject) => {
+                super.setup_beforeAdd(buffer, beginPos);
+                buffer.seek(beginPos, 5);
+                if (buffer.readBool())
+                    this.color = buffer.readColorS();
+                this.flip = buffer.readByte();
+                this.image.fillMethod = buffer.readByte();
+                if (this.image.fillMethod != 0) {
+                    this.image.fillOrigin = buffer.readByte();
+                    this.image.fillClockwise = buffer.readBool();
+                    this.image.fillAmount = buffer.readFloat();
+                }
+                this._touchable = false;
+                resolve();
+            });
+        }
+    }
+
+    class MovieClip extends Image {
+        // private _movieUpdateEvent: any;
+        // private _movieTime: Phaser.Time.TimerEvent;
+        constructor(scene) {
+            super(scene);
+            this.repeatDelay = 0;
+            this.timeScale = 1;
+            this._interval = 70;
+            this._frameElapsed = 0; //当前帧延迟
+            this._repeatedCount = 0;
+            this._sourceWidth = 0;
+            this._sourceHeight = 0;
+            // this.mouseEnabled = false;
+            // this.setPlaySettings();
+            // this._movieUpdateEvent = { delay: this.interval, callback: this.update, callbackScope: this }
+            // this.on(Laya.Event.DISPLAY, this, this.__addToStage);
+            // this.on(Laya.Event.UNDISPLAY, this, this.__removeFromStage);
+        }
+        get display() {
+            return this._image || this._sprite;
+        }
+        setFilter(colorPipeLine) {
+            if (this.display) {
+                this.display.setPipeline(colorPipeLine);
+            }
+            else {
+                this._pipeline = colorPipeLine;
+            }
+        }
+        set interval(val) {
+            this._interval = val;
+            // this._movieUpdateEvent = { delay: this._interval, callback: this.update, callbackScope: this, loop: true}
+        }
+        get interval() {
+            return this._interval;
+        }
+        get frames() {
+            return this._frames;
+        }
+        set frames(value) {
+            this._frames = value;
+            if (value) {
+                this._frameCount = this._frames.length;
+                this["$owner"];
+                const frame = value[0];
+                if (value.length > 1) {
+                    const textureKey = frame.texture.key;
+                    const len = value.length;
+                    const name = frame.name.split("_")[0];
+                    const repeat = this._times > 0 ? this._times : -1;
+                    this._curKey = textureKey + "_mc";
+                    const frameRate = 1000 / this._interval;
+                    if (!this._sprite)
+                        this._sprite = this.scene.make.sprite({ key: textureKey }, false);
+                    if (!this.scene.game.anims.get(this._curKey))
+                        this.scene.anims.create({ key: this._curKey, frames: this._sprite.anims.generateFrameNames(textureKey, { prefix: name + "_", start: 0, end: len - 1 }), frameRate, repeat });
+                    this.add(this._sprite);
+                    this.checkTimer();
+                }
+                else {
+                    const textureKey = frame.texture.key;
+                    if (!this._image) {
+                        this._image = this.scene.make.image({ key: textureKey, frame: frame.name }, false);
+                        // new Phaser.GameObjects.Image(this.scene, 0, 0, textureKey, frame.name);
+                    }
+                    else {
+                        this._image.setTexture(textureKey, frame.name);
+                    }
+                    this.add(this._image);
+                }
+                if (this._pipeline)
+                    this.setFilter(this._pipeline);
+            }
+            else {
+                if (this._sprite) {
+                    this._sprite.stop();
+                    this.remove(this._sprite);
+                    this._sprite = null;
+                }
+                if (this._image) {
+                    this.remove(this._image);
+                    this._image = null;
+                }
+                this.checkTimer(false);
+            }
+        }
+        get frameCount() {
+            return this._frameCount;
+        }
+        get frame() {
+            return this._frame;
+        }
+        set frame(value) {
+            if (this._frame != value) {
+                if (this._frames && value >= this._frameCount)
+                    value = this._frameCount - 1;
+                this._frame = value;
+                this._frameElapsed = 0;
+                this.drawFrame();
+            }
+        }
+        get playing() {
+            return this._playing;
+        }
+        set playing(value) {
+            if (this._playing != value) {
+                this._playing = value;
+                this.checkTimer(value);
+            }
+        }
+        //从start帧开始，播放到end帧（-1表示结尾），重复times次（0表示无限循环），循环结束后，停止在endAt帧（-1表示参数end）
+        // public rewind(): void {
+        //     this._frame = 0;
+        //     this._frameElapsed = 0;
+        //     this._reversed = false;
+        //     this._repeatedCount = 0;
+        //     this.drawFrame();
+        // }
+        // public syncStatus(anotherMc: MovieClip): void {
+        //     this._frame = anotherMc._frame;
+        //     this._frameElapsed = anotherMc._frameElapsed;
+        //     this._reversed = anotherMc._reversed;
+        //     this._repeatedCount = anotherMc._repeatedCount;
+        //     this.drawFrame();
+        // }
+        advance(timeInMiniseconds) {
+            //     var beginFrame: number = this._frame;
+            //     var beginReversed: boolean = this._reversed;
+            //     var backupTime: number = timeInMiniseconds;
+            //     while (true) {
+            //         var tt: number = this.interval + this._frames[this._frame]["addDelay"];
+            //         if (this._frame == 0 && this._repeatedCount > 0)
+            //             tt += this.repeatDelay;
+            //         if (timeInMiniseconds < tt) {
+            //             this._frameElapsed = 0;
+            //             break;
+            //         }
+            //         timeInMiniseconds -= tt;
+            //         if (this.swing) {
+            //             if (this._reversed) {
+            //                 this._frame--;
+            //                 if (this._frame <= 0) {
+            //                     this._frame = 0;
+            //                     this._repeatedCount++;
+            //                     this._reversed = !this._reversed;
+            //                 }
+            //             }
+            //             else {
+            //                 this._frame++;
+            //                 if (this._frame > this._frameCount - 1) {
+            //                     this._frame = Math.max(0, this._frameCount - 2);
+            //                     this._repeatedCount++;
+            //                     this._reversed = !this._reversed;
+            //                 }
+            //             }
+            //         }
+            //         else {
+            //             this._frame++;
+            //             if (this._frame > this._frameCount - 1) {
+            //                 this._frame = 0;
+            //                 this._repeatedCount++;
+            //             }
+            //         }
+            //         if (this._frame == beginFrame && this._reversed == beginReversed) //走了一轮了
+            //         {
+            //             var roundTime: number = backupTime - timeInMiniseconds; //这就是一轮需要的时间
+            //             timeInMiniseconds -= Math.floor(timeInMiniseconds / roundTime) * roundTime; //跳过
+            //         }
+            //     }
+            //     this.drawFrame();
+        }
+        //从start帧开始，播放到end帧（-1表示结尾），重复times次（0表示无限循环），循环结束后，停止在endAt帧（-1表示参数end）
+        // public setPlaySettings(start?: number, end?: number, times?: number, endAt?: number, endHandler?: () => void): void {
+        //     if (start == undefined) start = 0;
+        //     if (end == undefined) end = -1;
+        //     if (times == undefined) times = 0;
+        //     if (endAt == undefined) endAt = -1;
+        //     this._start = start;
+        //     this._end = end;
+        //     if (this._end == -1 || this._end > this._frameCount - 1)
+        //         this._end = this._frameCount - 1;
+        //     this._times = times;
+        //     this._endAt = endAt;
+        //     if (this._endAt == -1)
+        //         this._endAt = this._end;
+        //     this._status = 0;
+        //     this._endHandler = endHandler;
+        //     this.frame = start;
+        // }
+        // public update(): void {
+        //     if (!this._playing || this._frameCount == 0 || this._status == 3)
+        //         return;
+        //     var frameRate: number = this.scene.game.config.fps.target;
+        //     var dt: number = frameRate;//Laya.timer.delta;
+        //     if (dt > 100)
+        //         dt = 100;
+        //     if (this.timeScale != 1)
+        //         dt *= this.timeScale;
+        //     this._frameElapsed += dt;
+        //     var tt: number = this.interval + this._frames[this._frame]["addDelay"];
+        //     if (this._frame == 0 && this._repeatedCount > 0)
+        //         tt += this.repeatDelay;
+        //     if (this._frameElapsed < tt)
+        //         return;
+        //     this._frameElapsed -= tt;
+        //     if (this._frameElapsed > this.interval)
+        //         this._frameElapsed = this.interval;
+        //     if (this.swing) {
+        //         if (this._reversed) {
+        //             this._frame--;
+        //             if (this._frame <= 0) {
+        //                 this._frame = 0;
+        //                 this._repeatedCount++;
+        //                 this._reversed = !this._reversed;
+        //             }
+        //         }
+        //         else {
+        //             this._frame++;
+        //             if (this._frame > this._frameCount - 1) {
+        //                 this._frame = Math.max(0, this._frameCount - 2);
+        //                 this._repeatedCount++;
+        //                 this._reversed = !this._reversed;
+        //             }
+        //         }
+        //     }
+        //     else {
+        //         this._frame++;
+        //         if (this._frame > this._frameCount - 1) {
+        //             this._frame = 0;
+        //             this._repeatedCount++;
+        //         }
+        //     }
+        //     if (this._status == 1) //new loop
+        //     {
+        //         this._frame = this._start;
+        //         this._frameElapsed = 0;
+        //         this._status = 0;
+        //     }
+        //     else if (this._status == 2) //ending
+        //     {
+        //         this._frame = this._endAt;
+        //         this._frameElapsed = 0;
+        //         this._status = 3; //ended
+        //         //play end
+        //         if (this._endHandler) {
+        //             var handler = this._endHandler;
+        //             this._endHandler = null;
+        //             handler();
+        //         }
+        //     }
+        //     else {
+        //         if (this._frame == this._end) {
+        //             if (this._times > 0) {
+        //                 this._times--;
+        //                 if (this._times == 0)
+        //                     this._status = 2;  //ending
+        //                 else
+        //                     this._status = 1; //new loop
+        //             }
+        //             else {
+        //                 this._status = 1; //new loop
+        //             }
+        //         }
+        //     }
+        //     this.drawFrame();
+        // }
+        drawFrame() {
+            if (this._frames && this._frameCount > 0 && this._frame < this._frames.length) {
+                var frame = this._frames[this._frame];
+                this.texture = frame.texture;
+            }
+            else
+                this.texture = null;
+            this.rebuild();
+        }
+        rebuild() {
+        }
+        destroy() {
+            if (this._sprite) {
+                this._sprite.stop();
+                this._sprite.destroy();
+                this._sprite = null;
+            }
+            if (this._image) {
+                this._image.destroy();
+                this._image = null;
+            }
+            this.checkTimer(false);
+            this._pipeline = null;
+            super.destroy();
+        }
+        checkTimer(playBoo = true) {
+            if (!this._sprite)
+                return;
+            if (playBoo) {
+                if (this._sprite.anims.isPlaying)
+                    return;
+                this._sprite.play(this._curKey);
+            }
+            else {
+                this._sprite.stop();
+            }
+        }
+    }
+
+    class GMovieClip extends GObject {
+        constructor(scene, type) {
+            super(scene, type);
+        }
+        get color() {
+            return this._movieClip.color;
+        }
+        set color(value) {
+            this._movieClip.color = value;
+        }
+        createDisplayObject() {
+            this._displayObject = this._movieClip = new MovieClip(this.scene);
+            // this._movieClip.mouseEnabled = false;
+            this._displayObject["$owner"] = this;
+        }
+        getChild() {
+            return null;
+        }
+        get playing() {
+            return this._movieClip.playing;
+        }
+        set playing(value) {
+            if (this._movieClip.playing != value) {
+                this._movieClip.playing = value;
+                this.updateGear(5);
+            }
+        }
+        get frame() {
+            return this._movieClip.frame;
+        }
+        set frame(value) {
+            if (this._movieClip.frame != value) {
+                this._movieClip.frame = value;
+                this.updateGear(5);
+            }
+        }
+        get timeScale() {
+            return this._movieClip.timeScale;
+        }
+        set timeScale(value) {
+            this._movieClip.timeScale = value;
+        }
+        advance(timeInMiniseconds) {
+            this._movieClip.advance(timeInMiniseconds);
+        }
+        //从start帧开始，播放到end帧（-1表示结尾），重复times次（0表示无限循环），循环结束后，停止在endAt帧（-1表示参数end）
+        setPlaySettings(start, end, times, endAt, endHandler) {
+            //  this._movieClip.setPlaySettings(start, end, times, endAt, endHandler);
+        }
+        set touchable(value) {
+            this._touchable = false;
+            // if (this._touchable != value) {
+            //     this.setTouchable(value);
+            // }
+        }
+        getProp(index) {
+            switch (index) {
+                case exports.ObjectPropID.Color:
+                    return this.color;
+                case exports.ObjectPropID.Playing:
+                    return this.playing;
+                case exports.ObjectPropID.Frame:
+                    return this.frame;
+                case exports.ObjectPropID.TimeScale:
+                    return this.timeScale;
+                default:
+                    return super.getProp(index);
+            }
+        }
+        setProp(index, value) {
+            switch (index) {
+                case exports.ObjectPropID.Color:
+                    this.color = value;
+                    break;
+                case exports.ObjectPropID.Playing:
+                    this.playing = value;
+                    break;
+                case exports.ObjectPropID.Frame:
+                    this.frame = value;
+                    break;
+                case exports.ObjectPropID.TimeScale:
+                    this.timeScale = value;
+                    break;
+                case exports.ObjectPropID.DeltaTime:
+                    this.advance(value);
+                    break;
+                default:
+                    super.setProp(index, value);
+                    break;
+            }
+        }
+        constructFromResource() {
+            return new Promise((reslove, reject) => {
+                this._contentItem = this.packageItem.getBranch();
+                this.sourceWidth = this._contentItem.width;
+                this.sourceHeight = this._contentItem.height;
+                this.initWidth = this.sourceWidth;
+                this.initHeight = this.sourceHeight;
+                this._contentItem = this._contentItem.getHighResolution();
+                this._contentItem.load().then((packageItem) => {
+                    // this._movieClip.setSize(packageItem.width, packageItem.height);
+                    this._movieClip.interval = packageItem.interval;
+                    this._movieClip.swing = packageItem.swing;
+                    this._movieClip.repeatDelay = packageItem.repeatDelay;
+                    this._movieClip.frames = packageItem.frames;
+                    reslove();
+                });
+            });
+        }
+        handleSizeChanged() {
+            this._displayObject.setSize(this._width * GRoot.dpr, this._height * GRoot.dpr);
+            // this._displayObject.setInteractive(new Phaser.Geom.Rectangle(0, 0, this._width, this._height), Phaser.Geom.Rectangle.Contains);
+        }
+        setup_beforeAdd(buffer, beginPos) {
+            super.setup_beforeAdd(buffer, beginPos);
+            buffer.seek(beginPos, 5);
+            if (buffer.readBool())
+                this.color = buffer.readColorS();
+            buffer.readByte(); //flip
+            this._movieClip.frame = buffer.readInt();
+            this._movieClip.playing = buffer.readBool();
+        }
+        handleXYChanged() {
+            var xv = this._x + this._xOffset;
+            var yv = this._y + this._yOffset;
+            if (this._pivotAsAnchor) {
+                xv -= this._pivotX * this._width;
+                yv -= this._pivotY * this._height;
+            }
+            if (this._pixelSnapping) {
+                xv = Math.round(xv);
+                yv = Math.round(yv);
+            }
+            let tmpX = xv + this._pivotOffsetX; //+ this._movieClip.frames[0].width >> 1;
+            let tmpY = yv + this._pivotOffsetY; //+ this._movieClip.frames[0].height >> 1;
+            this._displayObject.setPosition(tmpX * GRoot.dpr, tmpY * GRoot.dpr);
+        }
+    }
 
     var TextType;
     (function (TextType) {
@@ -13969,6 +14000,23 @@
         set valign(value) {
             this._valign = value;
             this.doAlign();
+        }
+        handleSizeChanged() {
+            this._displayObject.setSize(this._width * this._dprOffset, this._height);
+            this.changeInteractive();
+        }
+        changeInteractive() {
+            if (this._displayObject) {
+                if (this._touchable) {
+                    const realWid = this._width * this._dprOffset;
+                    const realHei = this._height;
+                    const rect = new Phaser.Geom.Rectangle(0, 0, realWid, realHei);
+                    if (!this._displayObject.input)
+                        this._displayObject.setInteractive(rect, Phaser.Geom.Rectangle.Contains);
+                    else
+                        this._displayObject.input.hitArea = rect;
+                }
+            }
         }
         get leading() {
             return this._lead;
@@ -14857,6 +14905,18 @@
         }
     }
 
+    var LinesPool = new Pool();
+    function GetLine(text, width, newLineMode) {
+        var l = LinesPool.pop();
+        if (!l) {
+            l = { text: "", width: 0, newLineMode: 0 };
+        }
+        l.text = text;
+        l.width = width;
+        l.newLineMode = newLineMode;
+        return l;
+    }
+
     var WrapMode;
     (function (WrapMode) {
         WrapMode[WrapMode["none"] = 0] = "none";
@@ -14888,7 +14948,7 @@
             let line = lines[i];
             let newLineMode = (i === lastLineIdx) ? NewLineMode.none : NewLineMode.raw;
             if (wrapMode === WrapMode.none) {
-                result.push(CreateLineInfo(line, getTextWidthCallback(line, context), newLineMode));
+                result.push(GetLine(line, getTextWidthCallback(line, context), newLineMode));
                 continue;
             }
             if (i === 0) {
@@ -14901,59 +14961,118 @@
             if (line.length <= 100) {
                 let textWidth = getTextWidthCallback(line, context);
                 if (textWidth <= remainWidth) {
-                    result.push(CreateLineInfo(line, textWidth, newLineMode));
+                    result.push(GetLine(line, textWidth, newLineMode));
                     continue;
                 }
             }
             // Character mode
-            let tokenArray;
+            let tokenArray, isSpaceCharacterEnd;
             if (wrapMode === WrapMode.word) { // Word mode            
                 tokenArray = line.split(' ');
+                isSpaceCharacterEnd = (tokenArray[tokenArray.length - 1] === '');
+                if (isSpaceCharacterEnd) {
+                    tokenArray.length -= 1;
+                }
             }
             else {
                 tokenArray = line;
             }
-            let curLineText = '', lineText = '', lineWidth = 0;
+            // let curLineText = '',
+            let lineText = '', lineWidth = 0;
+            let currLineWidth;
+            let token, tokenWidth, isLastToken;
+            let whiteSpaceWidth = (wrapMode === WrapMode.word) ? getTextWidthCallback(' ', context) : undefined;
             for (let j = 0, tokenLen = tokenArray.length; j < tokenLen; j++) {
-                let token = tokenArray[j];
-                if (wrapMode === WrapMode.word) {
-                    curLineText += token;
-                    if (j < (tokenLen - 1)) {
-                        curLineText += ' ';
+                token = tokenArray[j];
+                tokenWidth = getTextWidthCallback(token, context);
+                isLastToken = (j === (tokenLen - 1));
+                if (wrapMode === WrapMode.word && (!isLastToken || isSpaceCharacterEnd)) {
+                    token += ' ';
+                    tokenWidth += whiteSpaceWidth;
+                }
+                if (wrapMode === WrapMode.word && (tokenWidth > wrapWidth)) {
+                    if (lineText !== '') {
+                        // Has pending lineText, flush it out
+                        result.push(GetLine(lineText, lineWidth, NewLineMode.wrapped));
                     }
+                    else if ((j === 0) && (offset > 0)) {
+                        // No pending lineText, but has previous text. Append a newline
+                        result.push(GetLine('', 0, NewLineMode.wrapped));
+                    }
+                    // Word break
+                    result.push(...WrapText(token, getTextWidthCallback, context, WrapMode.char, wrapWidth, 0));
+                    // Continue at last-wordBreak-line
+                    // const lastwordBreakLine = result.pop();
+                    // lineText = lastwordBreakLine.text;
+                    // lineWidth = lastwordBreakLine.width;
+                    // // Free this line 导致最后一行不见
+                    // FreeLine(lastwordBreakLine);
+                    // // Special case : Start at a space character, discard it
+                    // if (lineText === ' ') {
+                    //     lineText = '';
+                    //     lineWidth = 0;
+                    // }
+                    continue;
                 }
-                else {
-                    curLineText += token;
-                }
-                let currLineWidth = getTextWidthCallback(curLineText, context);
+                currLineWidth = lineWidth + tokenWidth;
                 if (currLineWidth > remainWidth) {
-                    // new line
-                    if (j === 0) {
-                        result.push(CreateLineInfo('', 0, NewLineMode.wrapped));
-                    }
-                    else {
-                        result.push(CreateLineInfo(lineText, lineWidth, NewLineMode.wrapped));
-                        curLineText = token;
-                        if (wrapMode === WrapMode.word) {
-                            if (j < (tokenLen - 1)) {
-                                curLineText += ' ';
-                            }
-                        }
-                        currLineWidth = getTextWidthCallback(curLineText, context);
-                    }
+                    // New line
+                    result.push(GetLine(lineText, lineWidth, NewLineMode.wrapped));
+                    lineText = token;
+                    lineWidth = tokenWidth;
                     remainWidth = wrapWidth;
                 }
-                lineText = curLineText;
-                lineWidth = currLineWidth;
+                else {
+                    // Append token, continue
+                    lineText += token;
+                    lineWidth = currLineWidth;
+                }
+                if (isLastToken) {
+                    // Flush remain text
+                    result.push(GetLine(lineText, lineWidth, newLineMode));
+                }
+                // if (wrapMode === WrapMode.word) {
+                //     curLineText += token;
+                //     if (j < (tokenLen - 1)) {
+                //         curLineText += ' ';
+                //     }
+                // } else {
+                //     curLineText += token;
+                // }
+                // let currLineWidth = getTextWidthCallback(curLineText, context);
+                // if (currLineWidth > remainWidth) {
+                //     // new line
+                //     if (j === 0) {
+                //         result.push(
+                //             CreateLineInfo('', 0, NewLineMode.wrapped)
+                //         );
+                //     } else {
+                //         result.push(
+                //             CreateLineInfo(lineText, lineWidth, NewLineMode.wrapped)
+                //         );
+                //         curLineText = token;
+                //         if (wrapMode === WrapMode.word) {
+                //             if (j < (tokenLen - 1)) {
+                //                 curLineText += ' ';
+                //             }
+                //         }
+                //         currLineWidth = getTextWidthCallback(curLineText, context);
+                //     }
+                //     remainWidth = wrapWidth;
+                // }
+                // lineText = curLineText;
+                // lineWidth = currLineWidth;
             } // For token in tokenArray
-            // Flush remain text
-            result.push(CreateLineInfo(lineText, lineWidth, newLineMode));
         } // For each line in lines
         return result;
     }
-    let CreateLineInfo = function (text, width, newLineMode) {
-        return { text: text, width: width, newLineMode: newLineMode };
-    };
+    // let CreateLineInfo = function (
+    //     text: string,
+    //     width: number,
+    //     newLineMode: NewLineMode
+    // ): LineInfo {
+    //     return { text: text, width: width, newLineMode: newLineMode }
+    // }
 
     class Line {
         constructor() {
@@ -15281,6 +15400,7 @@
         let curProp;
         let wrapLines;
         let cursorX = 0;
+        const dprOffset = GRoot.dpr * GRoot.uiScale;
         for (const match of matchs) {
             const result = canvasText.parser.tagTextToProp(match, curProp);
             let plainText = result.text;
@@ -15297,8 +15417,8 @@
                     imgWidth = 0;
                     imgHeight = 0;
                 }
-                penManager.addImagePen(cursorX, 0, imgWidth, imgHeight, Phaser.Utils.Objects.Clone(curProp));
-                cursorX += imgWidth;
+                penManager.addImagePen(cursorX, 0, imgWidth * dprOffset, imgHeight * dprOffset, Phaser.Utils.Objects.Clone(curProp));
+                cursorX += imgWidth * dprOffset;
             }
             else if (plainText !== "") {
                 context.save();
@@ -15307,7 +15427,7 @@
                 SyncStyle(context, curStyle);
                 let strokeThickness = curStyle.strokeThickness;
                 let halfStrokeThickness = strokeThickness >> 1;
-                wrapLines = WrapText(plainText, GetTextWidth, context, wrapMode, wrapWidth, cursorX);
+                wrapLines = WrapText(plainText, GetTextWidth, context, wrapMode, wrapWidth * GRoot.dpr * GRoot.uiScale, cursorX);
                 // Style of wrapped lines are the same, and has the same text height
                 let textHeightResult = GetTextHeightMetrics('|MÉq', context);
                 for (const n of wrapLines) {
@@ -15544,7 +15664,8 @@
                 const key = obj.texture.key + "_" + obj.name + "_" + obj.width + "_" + obj.height;
                 const context = canvasText.context;
                 const frame = texture.get(key);
-                context.drawImage(frame.source.image, frame.cutX, frame.cutY, frame.cutWidth, frame.cutHeight, x, y - frame.cutHeight, frame.cutWidth, frame.cutHeight);
+                const dprOffset = GRoot.dpr * GRoot.uiScale;
+                context.drawImage(frame.source.image, frame.cutX, frame.cutY, frame.cutWidth, frame.cutHeight, x, y - frame.cutHeight * dprOffset, frame.cutWidth * dprOffset, frame.cutHeight * dprOffset);
                 resolve();
             });
         });
@@ -15924,6 +16045,7 @@
     // @ts-ignore
     class TextStyle {
         constructor(text, style) {
+            this.numFontSize = 16;
             this.fontFamily = UIConfig.defaultFont;
             this.fontSize = "16px";
             this.fontStyle = "";
@@ -16069,7 +16191,7 @@
                 var i = 0;
                 fontStyle = (fontSplit.length > 2) ? fontSplit[i++] : '';
                 fontSize = fontSplit[i++] || '16px';
-                fontFamily = fontSplit[i++] || 'Courier';
+                fontFamily = fontSplit[i++] || UIConfig.defaultFont; //'Courier';
             }
             if (fontFamily !== this.fontFamily || fontSize !== this.fontSize || fontStyle !== this.fontStyle) {
                 this.fontFamily = fontFamily;
@@ -16093,7 +16215,8 @@
         }
         setFontSize(size) {
             if (typeof size === "number") {
-                // size = (GRoot.inst.stageWidth / GRoot.dpr) / (GRoot.inst.desginWidth / size) / GRoot.uiScale;
+                this.numFontSize = size;
+                size *= GRoot.dpr * GRoot.uiScale; //Math.round((GRoot.inst.stageWidth / GRoot.dpr) / (GRoot.inst.designWidth / size));
                 size = size.toString() + "px";
             }
             if (this.fontSize !== size) {
@@ -17243,7 +17366,7 @@
                 if (!src)
                     return null;
                 if (this.defaultImgWidth)
-                    return "<img src=\"" + src + "\" width=\"" + this.defaultImgWidth + "\" height=\"" + this.defaultImgHeight + "\"/>";
+                    return "<img src=\"" + src + "\" width=\"" + this.defaultImgWidth * GRoot.dpr * GRoot.uiScale + "\" height=\"" + this.defaultImgHeight * GRoot.dpr * GRoot.uiScale + "\"/>";
                 else
                     return "<img src=\"" + src + "\"/>";
             }
@@ -17488,16 +17611,15 @@
         }
         set adaptiveScaleX(val) {
             this._adaptiveScaleX = val;
-            this.doAlign();
+            //this.doAlign();
         }
         set adaptiveScaleY(val) {
             this._adaptiveScaleY = val;
-            this.doAlign();
+            //this.doAlign();
         }
         createDisplayObject() {
             this._displayObject = this._textField = new TextField(this.scene);
             this._displayObject.mouseEnabled = false;
-            this._displayObject.texture.setFilter(Phaser.Textures.FilterMode.LINEAR);
         }
         setup_afterAdd(buffer, beginPos) {
             super.setup_afterAdd(buffer, beginPos);
@@ -17550,16 +17672,6 @@
             // this._textField.typeset();
             this.updateSize();
             this.doAlign();
-            // // 由于canvas2D.measureText()获取的文本尺寸与fairygui编辑器中不同，这边手动调整下尺寸，便于编辑器控制
-            // const offsetWidthAuto = 0//this._widthAutoSize && this.parent.pivotX === 0 ? 3 : 0;
-            // const offsetHeightAuto = 0//this._heightAutoSize && this.parent.pivotY === 0 ? 4 : 0;
-            // const offsetParentWidth = this.parent._width * this.parent.pivotX;
-            // const offsetParentHeight = this.parent._height * this.parent.pivotY;
-            // const _x = this.initWidth - this._rawWidth >> 1;
-            // const _y = this.initHeight - this._rawHeight >> 1;
-            // this.setXY(this.x + _x, this.y + _y);
-            //}
-            //this.setSize(this._textWidth, this._textHeight);
         }
         get text() {
             return this._text;
@@ -17751,7 +17863,8 @@
             else {
                 h = this.height;
                 if (this._textHeight > h)
-                    this._textHeight = h;
+                    // this._textHeight = h;不是自动高度且小于设计尺寸，不改变文本渲染高度，否则文本会变形
+                    h = this._textHeight;
                 if (this._textField.displayHeight != this._textHeight)
                     this._textField.displayHeight = this._textHeight;
             }
@@ -18001,10 +18114,10 @@
                 if (dx < 0)
                     dx = 0;
                 if (this.align === "center") {
-                    this._xOffset = Math.floor(dx / 2);
+                    this._xOffset = Math.floor(dx / 2) * GRoot.uiScale;
                 }
                 else {
-                    this._xOffset = Math.floor(dx);
+                    this._xOffset = Math.floor(GRoot.uiScale * dx);
                 }
             }
             // 纵向
@@ -18016,16 +18129,13 @@
                 if (dh < 0)
                     dh = 0;
                 if (this.valign == "center")
-                    this._yOffset = Math.floor(dh / 2);
+                    this._yOffset = Math.floor(GRoot.uiScale * dh / 2);
                 else
-                    this._yOffset = Math.floor(dh);
+                    this._yOffset = Math.floor(GRoot.uiScale * dh);
             }
-            this.handleXYChanged();
+            this.handleXYChanged1();
         }
-        flushVars() {
-            this.text = GRoot.inst.i18n ? this._baseText : this._text;
-        }
-        handleXYChanged() {
+        handleXYChanged1() {
             var xv = this._x + this._xOffset;
             var yv = this._y + this._yOffset;
             if (this._pixelSnapping) {
@@ -18034,16 +18144,22 @@
             }
             // 由于canvas2D.measureText()获取的文本尺寸与fairygui编辑器中不同，这边手动调整下尺寸，便于编辑器控制
             const offsetWidthAuto = this._widthAutoSize && this.parent && this.parent.pivotX === 0 ? 3 : 0;
-            const offsetHeightAuto = this._heightAutoSize && this.parent && this.parent.pivotY === 0 ? 4 : 0;
+            const offsetHeightAuto = this._heightAutoSize && this.parent && this.parent.pivotY === 0 ? 5 : 0;
             const offsetParentWidth = this.parent ? this.parent._width * this.parent.pivotX : 0;
             const offsetParentHeight = this.parent ? this.parent._height * this.parent.pivotY : 0;
             const _x = Math.round(this.initWidth * this._pivotX);
             const _y = Math.round(this.initHeight * this._pivotY);
-            this._displayObject.setPosition(xv - offsetParentWidth + offsetWidthAuto - _x, yv - offsetParentHeight + offsetHeightAuto - _y);
+            const offset = GRoot.uiScale * GRoot.dpr;
+            const posX = this._widthAutoSize ? offset * xv : offset * (xv - offsetParentWidth + offsetWidthAuto - _x);
+            const posY = this._heightAutoSize ? offset * yv : offset * (yv - offsetParentHeight + offsetHeightAuto - _y);
+            this._displayObject.setPosition(posX, posY);
+        }
+        flushVars() {
+            this.text = GRoot.inst.i18n ? this._baseText : this._text;
         }
     }
-    const GUTTER_X = 2;
-    const GUTTER_Y = 2;
+    const GUTTER_X = 0;
+    const GUTTER_Y = 0;
 
     class GRichTextField extends GBasicTextField {
         constructor(scene, type) {
@@ -18323,10 +18439,10 @@
                 tmpX += worldMatrix.tx;
                 tmpY += worldMatrix.ty;
             }
-            const left = this.x * GRoot.dpr * GRoot.uiScale + tmpX;
-            const right = this.x * GRoot.dpr * GRoot.uiScale + this._width * GRoot.dpr * GRoot.uiScale + tmpX;
-            const top = this.y * GRoot.dpr * GRoot.uiScale + tmpY;
-            const bottom = this.y * GRoot.dpr * GRoot.uiScale + this._height * GRoot.dpr * GRoot.uiScale + tmpY;
+            const left = this.x + tmpX;
+            const right = this.x + this._width + tmpX;
+            const top = this.y + tmpY;
+            const bottom = this.y + this._height + tmpY;
             if (px < left || px > right || py < top || py > bottom)
                 return false;
             return true;
@@ -18542,11 +18658,24 @@
         get url() {
             return this._url;
         }
+        get touchable() {
+            return this._touchable;
+        }
+        set touchable(value) {
+            if (this._touchable != value) {
+                this.setTouchable(value);
+            }
+        }
+        changeInteractive() {
+            super.changeInteractive();
+        }
         set url(value) {
             if (this._url == value)
                 return;
             this._url = value;
             this.loadContent().then(() => {
+                // 加载完成事件
+                Events.dispatch(Events.LOADER_COMPLETE, this.displayObject, { target: this.displayObject });
             });
             this.updateGear(7);
         }
@@ -18811,6 +18940,89 @@
             }
         }
         updateLayout() {
+            const offset = GRoot.dpr * GRoot.uiScale;
+            // if (!this._content2 && !this._content.texture && !this._content.frames) {
+            //     if (this._autoSize) {
+            //         this._updatingLayout = true;
+            //         this.setSize(50, 30);
+            //         this._updatingLayout = false;
+            //     }
+            //     return;
+            // }
+            // let cw = this.sourceWidth;
+            // let ch = this.sourceHeight;
+            // if (this._autoSize) {
+            //     this._updatingLayout = true;
+            //     if (cw == 0)
+            //         cw = 50;
+            //     if (ch == 0)
+            //         ch = 30;
+            //     this.setSize(cw, ch);
+            //     this._updatingLayout = false;
+            //     if (cw == this._width && ch == this._height) {
+            //         if (this._content2) {
+            //             this._content2.setXY(0, 0);
+            //             this._content2.setScale(1, 1);
+            //         }
+            //         else {
+            //             this._content.setSize(cw, ch);
+            //             this._content.setPosition(0, 0);
+            //         }
+            //         return;
+            //     }
+            // }
+            // var sx: number = 1, sy: number = 1;
+            // if (this._fill != LoaderFillType.None) {
+            //     sx = this.width / this.sourceWidth;
+            //     sy = this.height / this.sourceHeight;
+            //     if (sx != 1 || sy != 1) {
+            //         if (this._fill == LoaderFillType.ScaleMatchHeight)
+            //             sx = sy;
+            //         else if (this._fill == LoaderFillType.ScaleMatchWidth)
+            //             sy = sx;
+            //         else if (this._fill == LoaderFillType.Scale) {
+            //             if (sx > sy)
+            //                 sx = sy;
+            //             else
+            //                 sy = sx;
+            //         }
+            //         else if (this._fill == LoaderFillType.ScaleNoBorder) {
+            //             if (sx > sy)
+            //                 sy = sx;
+            //             else
+            //                 sx = sy;
+            //         }
+            //         if (this._shrinkOnly) {
+            //             if (sx > 1)
+            //                 sx = 1;
+            //             if (sy > 1)
+            //                 sy = 1;
+            //         }
+            //         cw = this.sourceWidth * sx;
+            //         ch = this.sourceHeight * sy;
+            //     }
+            // }
+            // if (this._content2)
+            //     this._content2.setScale(sx, sy);
+            // else
+            //     this._content.setSize(cw, ch);
+            // var nx: number, ny: number;
+            // if (this._align == "center")
+            //     nx = Math.floor((this.width - cw) / 2);
+            // else if (this._align == "right")
+            //     nx = this.width - cw;
+            // else
+            //     nx = 0;
+            // if (this._valign == "middle")
+            //     ny = Math.floor((this.height - ch) / 2);
+            // else if (this._valign == "bottom")
+            //     ny = this.height - ch;
+            // else
+            //     ny = 0;
+            // if (this._content2)
+            //     this._content2.setXY(nx, ny);
+            // else
+            //     this._content.setPosition(nx * GRoot.dpr + cw / 2, ny * GRoot.dpr + ch / 2);
             if (!this._content2 && !this._content.texture && !this._content.frames) {
                 if (this._autoSize) {
                     this._updatingLayout = true;
@@ -18847,6 +19059,8 @@
                 cw = this.sourceWidth;
                 ch = this.sourceHeight;
             }
+            // cw *= offset;
+            // ch *= offset;
             if (this._autoSize) {
                 this._updatingLayout = true;
                 if (cw == 0)
@@ -18894,20 +19108,20 @@
                         if (sy > 1)
                             sy = 1;
                     }
-                    cw = Math.round(this.sourceWidth * sx);
-                    ch = Math.round(this.sourceHeight * sy);
+                    cw = Math.round(this.sourceWidth * sx) * offset;
+                    ch = Math.round(this.sourceHeight * sy) * offset;
                 }
             }
             this.adaptiveScaleX = sx;
             this.adaptiveScaleY = sy;
             if (this._content2)
-                this._content2.setScale(sx, sy);
+                this._content2.setScale(sx * offset, sy * offset);
             else {
                 // 通过编辑器获取的高清资源
                 if (this._contentItem && this._contentItem.isHighRes)
                     this._content.setSize(cw, ch);
                 else
-                    this._content.setScale(sx, sy);
+                    this._content.setScale(sx * offset, sy * offset);
                 // if (this._content.frames) {
                 //     this._content.setSize(cw, ch, this._content.frames[0]);
                 // } else {
@@ -18916,15 +19130,15 @@
             }
             var nx, ny;
             if (this._align == "center")
-                nx = (0.5 - pivotX) * cw + Math.floor((this.width - cw) / 2);
+                nx = (0.5 - pivotX) * cw + Math.floor((this.width * offset - cw) / 2);
             else if (this._align == "right")
-                nx = (0.5 - pivotX) * cw + (this.width - cw);
+                nx = (0.5 - pivotX) * cw + (this.width * offset - cw);
             else
                 nx = (0.5 - pivotX) * cw;
             if (this._valign == "middle")
-                ny = (0.5 - pivotY) * ch + Math.floor((this.height - ch) / 2);
+                ny = (0.5 - pivotY) * ch + Math.floor((this.height * offset - ch) / 2);
             else if (this._valign == "bottom")
-                ny = (0.5 - pivotY) * ch + (this.height - ch);
+                ny = (0.5 - pivotY) * ch + (this.height * offset - ch);
             else
                 ny = (0.5 - pivotY) * ch;
             // 需要将位置除以缩放值进行计算，因为缩放后位置会产生偏移
@@ -19265,6 +19479,35 @@
                 }
             }
         }
+        // protected handleXYChanged(): void {
+        //     var xv: number = this._x + this._xOffset;
+        //     var yv: number = this._y + this._yOffset;
+        //     if (this._pixelSnapping) {
+        //         xv = Math.round(xv);
+        //         yv = Math.round(yv);
+        //     }
+        //     this._displayObject.setPosition(xv * GRoot.dpr * GRoot.uiScale, yv * GRoot.dpr * GRoot.uiScale);
+        // }
+        // private _g;
+        changeInteractive() {
+            if (this._displayObject) {
+                if (this._touchable) {
+                    const realWid = this.initWidth * GRoot.dpr * GRoot.uiScale;
+                    const realHei = this.initHeight * GRoot.dpr * GRoot.uiScale;
+                    const rect = new Phaser.Geom.Rectangle((0.5 - this._pivotX) * realWid, (0.5 - this._pivotY) * realHei, realWid, realHei);
+                    if (!this._displayObject.input)
+                        this._displayObject.setInteractive(rect, Phaser.Geom.Rectangle.Contains);
+                    else
+                        this._displayObject.input.hitArea = rect;
+                    // if (this._g) (<Phaser.GameObjects.Container>this._displayObject).remove(this._g);
+                    // else this._g = this.scene.make.graphics(undefined, false);
+                    // this._g.clear();
+                    // this._g.fillStyle(0x66cc00, 1);
+                    // this._g.fillRoundedRect(0, 0, rect.width, rect.height, 5);//0, 0, this._width * GRoot.dpr, this._height * GRoot.dpr);
+                    // this._displayObject.addAt(this._g, 0);
+                }
+            }
+        }
         handleControllerChanged(c) {
             super.handleControllerChanged(c);
             if (this._relatedController == c)
@@ -19374,6 +19617,11 @@
         }
         setup_afterAdd(buffer, beginPos) {
             super.setup_afterAdd(buffer, beginPos);
+            // const g = this.scene.make.graphics(undefined, false);
+            // g.clear();
+            // g.fillStyle(0xFFCCAA);
+            // g.fillRoundedRect(0, 0, this.initWidth, this.initHeight);
+            // this._displayObject.addAt(g, 0);
             if (!buffer.seek(beginPos, 6))
                 return;
             const type = buffer.readByte();
@@ -19409,11 +19657,6 @@
             if (buffer.readBool())
                 this._soundVolumeScale = buffer.readFloat();
             this.selected = buffer.readBool();
-            // const g = this.scene.make.graphics(undefined, false);
-            // g.clear();
-            // g.fillStyle(0xFFCC00);
-            // g.fillRoundedRect(0, 0, this.initWidth, this.initHeight);
-            // this._displayObject.addAt(g, 0);
         }
         constructFromResource2(objectPool, poolIndex) {
             const _super = Object.create(null, {
@@ -20698,19 +20941,19 @@
             this.scene.input.on(InteractiveEvent.GAMEOBJECT_MOVE, this.__gripMouseMove, this);
             this.scene.input.on(InteractiveEvent.GAMEOBJECT_UP, this.__gripMouseUp, this);
             // this.globalToLocal(pointer.x, pointer.y, this._dragOffset);
-            this._dragOffset.x = pointer.worldX - this._grip.x;
-            this._dragOffset.y = pointer.worldY - this._grip.y;
+            this._dragOffset.x = pointer.worldX / this._dprOffset - this._grip.x;
+            this._dragOffset.y = pointer.worldY / this._dprOffset - this._grip.y;
         }
         __gripMouseMove(pointer) {
             if (!this.onStage)
                 return;
             // var pt: Phaser.Geom.Point = this.globalToLocal(pointer.x, pointer.y, s_vec2);
             if (this._vertical) {
-                var curY = pointer.worldY - this._dragOffset.y;
+                var curY = pointer.worldY / this._dprOffset - this._dragOffset.y;
                 this._target.setPercY((curY) / (this._bar.height - this._grip.height), false);
             }
             else {
-                var curX = pointer.worldX - this._dragOffset.x;
+                var curX = pointer.worldX / this._dprOffset - this._dragOffset.x;
                 this._target.setPercX((curX) / (this._bar.width - this._grip.width), false);
             }
         }
@@ -20764,6 +21007,8 @@
             this._firstIndex = 0; //the top left index
             this._curLineItemCount = 0; //item count in one line
             this._virtualListChanged = 0; //1-content changed, 2-size changed
+            this._virtualWidth = 0;
+            this._virtualHeight = 0;
             this.itemInfoVer = 0; //用来标志item是否在本次处理中已经被重用了
             this._timeDelta = 500;
             this.shiftKey = false;
@@ -20780,6 +21025,7 @@
             this._align = "left";
             this._verticalAlign = "top";
             this._tempItemList = [];
+            this.name = "stage";
             this._container = scene.make.container(undefined, false);
             this._displayObject.add(this._container);
             // todo click 优先添加监听，防止scrollpane的pointerup将参数修改，影响glist _clickItem逻辑
@@ -20881,7 +21127,7 @@
         }
         set lineGap(value) {
             if (this._lineGap != value) {
-                this._lineGap = value;
+                this._lineGap = value * GRoot.dpr;
                 this.setBoundsChangedFlag();
                 if (this._virtual)
                     this.setVirtualListChangedFlag(true);
@@ -20892,7 +21138,7 @@
         }
         set columnGap(value) {
             if (this._columnGap != value) {
-                this._columnGap = value;
+                this._columnGap = value * GRoot.dpr;
                 this.setBoundsChangedFlag();
                 if (this._virtual)
                     this.setVirtualListChangedFlag(true);
@@ -21805,7 +22051,8 @@
                 }
                 if (this._virtualListChanged != 0) {
                     if (this._refreshListTime) {
-                        this._refreshListTime.remove(false);
+                        this.scene.time.removeEvent(this._refreshListEvent);
+                        // this._refreshListTime.remove(false);
                         this._refreshListTime = null;
                     }
                     //Laya.timer.clear(this, this._refreshVirtualList);
@@ -21839,7 +22086,8 @@
             if (this._virtualListChanged != 0) {
                 this._refreshVirtualList();
                 if (this._refreshListTime) {
-                    this._refreshListTime.remove(false);
+                    this.scene.time.removeEvent(this._refreshListEvent);
+                    // this._refreshListTime.remove(false);
                     this._refreshListTime = null;
                 }
                 // Laya.timer.clear(this, this._refreshVirtualList);
@@ -21905,8 +22153,10 @@
                 var len = Math.ceil(this._realNumItems / this._curLineItemCount) * this._curLineItemCount;
                 var len2 = Math.min(this._curLineItemCount, this._realNumItems);
                 if (this._layout == exports.ListLayoutType.SingleColumn || this._layout == exports.ListLayoutType.FlowHorizontal) {
-                    for (i = 0; i < len; i += this._curLineItemCount)
-                        ch += this._virtualItems[i].height + this._lineGap;
+                    for (i = 0; i < len; i += this._curLineItemCount) {
+                        const obj = this._virtualItems[i].obj;
+                        ch += obj && obj.initHeight > this._virtualItems[i].height ? obj.initHeight + this._lineGap : this._virtualItems[i].height + this._lineGap;
+                    }
                     if (ch > 0)
                         ch -= this._lineGap;
                     if (this._autoResizeItem)
@@ -21919,8 +22169,10 @@
                     }
                 }
                 else if (this._layout == exports.ListLayoutType.SingleRow || this._layout == exports.ListLayoutType.FlowVertical) {
-                    for (i = 0; i < len; i += this._curLineItemCount)
-                        cw += this._virtualItems[i].width + this._columnGap;
+                    for (i = 0; i < len; i += this._curLineItemCount) {
+                        const obj = this._virtualItems[i].obj;
+                        cw += obj && obj.initWidth > this._virtualItems[i].width ? obj.initWidth + this._columnGap : this._virtualItems[i].width + this._columnGap;
+                    }
                     if (cw > 0)
                         cw -= this._columnGap;
                     if (this._autoResizeItem)
@@ -21938,6 +22190,8 @@
                     ch = this.viewHeight;
                 }
             }
+            this._virtualWidth = cw;
+            this._virtualHeight = ch;
             this.handleAlign(cw, ch);
             this._scrollPane.setContentSize(cw, ch);
             this._eventLocked = false;
@@ -22133,9 +22387,10 @@
         }
         handleScroll1(forceUpdate) {
             return new Promise((reslove, reject) => {
-                var pos = this._scrollPane.scrollingPosY;
+                var pos = this._scrollPane.scrollingPosY / this._dprOffset;
                 var max = pos + this._scrollPane.viewHeight;
                 var end = max == this._scrollPane.contentHeight; //这个标志表示当前需要滚动到最末，无论内容变化大小
+                // console.log("scrollPosY", pos);
                 //寻找当前位置的第一条项目
                 s_n = pos;
                 // const singleHei = this._virtualItems[0].height * this._virtualItems.length + this._lineGap * (this._virtualItems.length - 1);
@@ -22147,6 +22402,7 @@
                     reslove(false);
                     return;
                 }
+                console.log("index:", this._firstIndex);
                 var oldFirstIndex = this._firstIndex;
                 // console.log("newFirstIndex ===>", newFirstIndex);
                 // console.log("oldFirstIndex ===>", oldFirstIndex);
@@ -22201,8 +22457,14 @@
                 };
                 const fun1 = () => {
                     if (needRender) {
-                        if (this._autoResizeItem && (this._layout == exports.ListLayoutType.SingleColumn || this._columnCount > 0))
-                            ii.obj.setSize(partSize, ii.obj.height, true);
+                        if (this._autoResizeItem) {
+                            if (this._layout == exports.ListLayoutType.SingleColumn || this._columnCount > 0) {
+                                ii.obj.setSize(partSize, ii.obj.initHeight * GRoot.uiScale, true);
+                            }
+                            else if (this._layout == exports.ListLayoutType.FlowHorizontal && GRoot.uiScale < 1) {
+                                ii.obj.setSize(ii.obj.initWidth * GRoot.uiScale, ii.obj.initHeight * GRoot.uiScale, true);
+                            }
+                        }
                         this.itemRenderer.runWith([curIndex % this._numItems, ii.obj]);
                         // console.log("handle1 ===>", curIndex);
                         if (curIndex % this._curLineItemCount == 0) {
@@ -22216,13 +22478,13 @@
                         ii.height = Math.ceil(ii.obj.height);
                     }
                     ii.updateFlag = this.itemInfoVer;
-                    ii.obj.setXY(curX, curY);
+                    ii.obj.setXY(curX / GRoot.uiScale, curY);
                     if (curIndex == newFirstIndex) //要显示多1条才不会穿帮
-                        max += ii.height;
+                        max += ii.obj.initHeight;
                     curX += ii.width + this._columnGap;
                     if (curIndex % this._curLineItemCount == this._curLineItemCount - 1) {
                         curX = 0;
-                        curY += ii.height + this._lineGap;
+                        curY += ii.obj.initHeight + this._lineGap;
                     }
                     curIndex++;
                     if (curIndex < this._realNumItems && (end || curY < max)) {
@@ -22334,7 +22596,7 @@
         }
         handleScroll2(forceUpdate) {
             return __awaiter(this, void 0, void 0, function* () {
-                var pos = this._scrollPane.scrollingPosX;
+                var pos = this._scrollPane.scrollingPosX / this._dprOffset;
                 var max = pos + this._scrollPane.viewWidth;
                 var end = pos == this._scrollPane.contentWidth; //这个标志表示当前需要滚动到最末，无论内容变化大小
                 //寻找当前位置的第一条项目
@@ -22424,7 +22686,7 @@
                     }
                     if (needRender) {
                         if (this._autoResizeItem && (this._layout == exports.ListLayoutType.SingleRow || this._lineCount > 0))
-                            ii.obj.setSize(ii.obj.width, partSize, true);
+                            ii.obj.setSize(ii.obj.initWidth * GRoot.uiScale, partSize, true);
                         this.itemRenderer.runWith([curIndex % this._numItems, ii.obj]);
                         if (curIndex % this._curLineItemCount == 0) {
                             deltaSize += Math.ceil(ii.obj.width) - ii.width;
@@ -22439,12 +22701,12 @@
                     ii.updateFlag = this.itemInfoVer;
                     ii.obj.setXY(curX, curY);
                     if (curIndex == newFirstIndex) //要显示多一条才不会穿帮
-                        max += ii.width;
+                        max += ii.obj.initWidth;
                     curY += ii.height + this._lineGap;
                     // console.log("curY ===>", curY);
                     if (curIndex % this._curLineItemCount == this._curLineItemCount - 1) {
                         curY = 0;
-                        curX += ii.width + this._columnGap;
+                        curX += ii.obj.initWidth + this._columnGap;
                     }
                     curIndex++;
                 }
@@ -22473,7 +22735,7 @@
         }
         handleScroll3(forceUpdate) {
             return __awaiter(this, void 0, void 0, function* () {
-                var pos = this._scrollPane.scrollingPosX;
+                var pos = this._scrollPane.scrollingPosX / this._dprOffset;
                 //寻找当前位置的第一条项目
                 s_n = pos;
                 var newFirstIndex = this.getIndexOnPos3(forceUpdate);
@@ -22566,9 +22828,9 @@
                             if (this._curLineItemCount == this._columnCount && this._curLineItemCount2 == this._lineCount)
                                 ii.obj.setSize(partWidth, partHeight, true);
                             else if (this._curLineItemCount == this._columnCount)
-                                ii.obj.setSize(partWidth, ii.obj.height, true);
+                                ii.obj.setSize(partWidth, ii.obj.initHeight * GRoot.uiScale, true);
                             else if (this._curLineItemCount2 == this._lineCount)
-                                ii.obj.setSize(ii.obj.width, partHeight, true);
+                                ii.obj.setSize(ii.obj.initWidth * GRoot.uiScale, partHeight, true);
                         }
                         this.itemRenderer.runWith([i % this._numItems, ii.obj]);
                         ii.width = Math.ceil(ii.obj.width);
@@ -22658,22 +22920,22 @@
             var newOffsetY = 0;
             if (contentHeight < this.viewHeight) {
                 if (this._verticalAlign == "middle")
-                    newOffsetY = Math.floor((this.viewHeight - contentHeight) / 2);
+                    newOffsetY = Math.floor((this.viewHeight - contentHeight) / 2) * this._dprOffset;
                 else if (this._verticalAlign == "bottom")
-                    newOffsetY = this.viewHeight - contentHeight;
+                    newOffsetY = (this.viewHeight - contentHeight) * this._dprOffset;
             }
             if (contentWidth < this.viewWidth) {
                 if (this._align == "center")
-                    newOffsetX = Math.floor((this.viewWidth - contentWidth) / 2);
+                    newOffsetX = Math.floor((this.viewWidth - contentWidth) / 2) * this._dprOffset;
                 else if (this._align == "right")
-                    newOffsetX = this.viewWidth - contentWidth;
+                    newOffsetX = (this.viewWidth - contentWidth) * this._dprOffset;
             }
-            if (newOffsetX != this._alignOffset.x || newOffsetY != this._alignOffset.y) {
+            if (newOffsetX != this._alignOffset.x * this._dprOffset || newOffsetY != this._alignOffset.y * this._dprOffset) {
                 this._alignOffset.setTo(newOffsetX, newOffsetY);
                 if (this._scrollPane)
                     this._scrollPane.adjustMaskContainer();
                 else
-                    this._container.setPosition(this._margin.left + this._alignOffset.x, this._margin.top + this._alignOffset.y);
+                    this._container.setPosition((this._margin.left + this._alignOffset.x) * this._dprOffset, (this._margin.top + this._alignOffset.y) * this._dprOffset);
             }
         }
         updateBounds() {
@@ -22698,6 +22960,7 @@
             if (this._layout == exports.ListLayoutType.SingleColumn) {
                 for (i = 0; i < cnt; i++) {
                     child = this.getChildAt(i);
+                    const baseHei = child.height;
                     if (this.foldInvisibleItems && !child.visible)
                         continue;
                     if (curY != 0)
@@ -22705,8 +22968,8 @@
                     // console.log("curY 0===>", curY, i);
                     child.y = curY;
                     if (this._autoResizeItem)
-                        child.setSize(viewWidth, child.height, true);
-                    curY += Math.ceil(child.height);
+                        child.setSize(viewWidth, child.height * GRoot.uiScale, true);
+                    curY += Math.ceil(baseHei);
                     if (child.width > maxWidth)
                         maxWidth = child.width;
                 }
@@ -22718,7 +22981,7 @@
                         child = this.getChildAt(i);
                         if (this.foldInvisibleItems && !child.visible)
                             continue;
-                        child.setSize(viewWidth, child.height, true);
+                        child.setSize(viewWidth, child.height * GRoot.uiScale, true);
                         if (child.width > maxWidth)
                             maxWidth = child.width;
                     }
@@ -22728,14 +22991,15 @@
             else if (this._layout == exports.ListLayoutType.SingleRow) {
                 for (i = 0; i < cnt; i++) {
                     child = this.getChildAt(i);
+                    const baseWid = child.width;
                     if (this.foldInvisibleItems && !child.visible)
                         continue;
                     if (curX != 0)
                         curX += this._columnGap;
                     child.x = curX;
                     if (this._autoResizeItem)
-                        child.setSize(child.width, viewHeight, true);
-                    curX += Math.ceil(child.width);
+                        child.setSize(child.width * GRoot.uiScale, viewHeight, true);
+                    curX += Math.ceil(baseWid);
                     if (child.height > maxHeight)
                         maxHeight = child.height;
                 }
@@ -22746,7 +23010,7 @@
                         child = this.getChildAt(i);
                         if (this.foldInvisibleItems && !child.visible)
                             continue;
-                        child.setSize(child.width, viewHeight, true);
+                        child.setSize(child.width * GRoot.uiScale, viewHeight, true);
                         if (child.height > maxHeight)
                             maxHeight = child.height;
                     }
@@ -22757,6 +23021,7 @@
                 if (this._autoResizeItem && this._columnCount > 0) {
                     for (i = 0; i < cnt; i++) {
                         child = this.getChildAt(i);
+                        const baseHei = child.height;
                         if (this.foldInvisibleItems && !child.visible)
                             continue;
                         lineSize += child.sourceWidth;
@@ -22770,14 +23035,14 @@
                                     continue;
                                 child.setXY(curX, curY);
                                 if (j < i) {
-                                    child.setSize(child.sourceWidth + Math.round(child.sourceWidth * ratio), child.height, true);
+                                    child.setSize(child.sourceWidth + Math.round(child.sourceWidth * ratio), child.height * GRoot.uiScale, true);
                                     curX += Math.ceil(child.width) + this._columnGap;
                                 }
                                 else {
-                                    child.setSize(viewWidth - curX, child.height, true);
+                                    child.setSize(viewWidth - curX, child.height * GRoot.uiScale, true);
                                 }
-                                if (child.height > maxHeight)
-                                    maxHeight = child.height;
+                                if (baseHei > maxHeight)
+                                    maxHeight = baseHei;
                             }
                             //new line
                             curY += Math.ceil(maxHeight) + this._lineGap;
@@ -22809,7 +23074,7 @@
                         curX += Math.ceil(child.width);
                         if (curX > maxWidth)
                             maxWidth = curX;
-                        if (child.height > maxHeight)
+                        if (child.width > maxHeight)
                             maxHeight = child.height;
                         j++;
                     }
@@ -22821,6 +23086,7 @@
                 if (this._autoResizeItem && this._lineCount > 0) {
                     for (i = 0; i < cnt; i++) {
                         child = this.getChildAt(i);
+                        const baseWid = child.width;
                         if (this.foldInvisibleItems && !child.visible)
                             continue;
                         lineSize += child.sourceHeight;
@@ -22834,14 +23100,14 @@
                                     continue;
                                 child.setXY(curX, curY);
                                 if (j < i) {
-                                    child.setSize(child.width, child.sourceHeight + Math.round(child.sourceHeight * ratio), true);
+                                    child.setSize(child.width * GRoot.uiScale, child.sourceHeight + Math.round(child.sourceHeight * ratio), true);
                                     curY += Math.ceil(child.height) + this._lineGap;
                                 }
                                 else {
-                                    child.setSize(child.width, viewHeight - curY, true);
+                                    child.setSize(child.width * GRoot.uiScale, viewHeight - curY, true);
                                 }
-                                if (child.width > maxWidth)
-                                    maxWidth = child.width;
+                                if (baseWid > maxWidth)
+                                    maxWidth = baseWid;
                             }
                             //new line
                             curX += Math.ceil(maxWidth) + this._columnGap;
@@ -22888,10 +23154,11 @@
                 if (this._autoResizeItem && this._columnCount > 0) {
                     for (i = 0; i < cnt; i++) {
                         child = this.getChildAt(i);
+                        const baseHei = child.height;
                         if (this.foldInvisibleItems && !child.visible)
                             continue;
                         if (j == 0 && (this._lineCount != 0 && k >= this._lineCount
-                            || this._lineCount == 0 && curY + child.height > viewHeight)) {
+                            || this._lineCount == 0 && curY + baseHei > viewHeight)) {
                             //new page
                             page++;
                             curY = 0;
@@ -22904,18 +23171,19 @@
                             curX = 0;
                             for (j = lineStart; j <= i; j++) {
                                 child = this.getChildAt(j);
+                                const baseWid = child.width;
                                 if (this.foldInvisibleItems && !child.visible)
                                     continue;
                                 child.setXY(page * viewWidth + curX, curY);
                                 if (j < i) {
-                                    child.setSize(child.sourceWidth + Math.round(child.sourceWidth * ratio), this._lineCount > 0 ? eachHeight : child.height, true);
-                                    curX += Math.ceil(child.width) + this._columnGap;
+                                    child.setSize(child.sourceWidth + Math.round(child.sourceWidth * ratio), this._lineCount > 0 ? eachHeight : baseHei, true);
+                                    curX += Math.ceil(baseWid) + this._columnGap;
                                 }
                                 else {
-                                    child.setSize(viewWidth - curX, this._lineCount > 0 ? eachHeight : child.height, true);
+                                    child.setSize(viewWidth - curX, this._lineCount > 0 ? eachHeight : child.height * GRoot.uiScale, true);
                                 }
-                                if (child.height > maxHeight)
-                                    maxHeight = child.height;
+                                if (baseHei > maxHeight)
+                                    maxHeight = baseHei;
                             }
                             //new line
                             curY += Math.ceil(maxHeight) + this._lineGap;
@@ -22935,7 +23203,7 @@
                         if (curX != 0)
                             curX += this._columnGap;
                         if (this._autoResizeItem && this._lineCount > 0)
-                            child.setSize(child.width, eachHeight, true);
+                            child.setSize(child.width * GRoot.uiScale, eachHeight, true);
                         if (this._columnCount != 0 && j >= this._columnCount
                             || this._columnCount == 0 && curX + child.width > viewWidth && maxHeight != 0) {
                             //new line
@@ -22964,6 +23232,10 @@
                 ch = page > 0 ? viewHeight : curY + Math.ceil(maxHeight);
                 cw = (page + 1) * viewWidth;
             }
+            if (this._virtual) {
+                cw = cw > this._virtualWidth ? cw : this._virtualWidth;
+                ch = ch > this._virtualHeight ? ch : this._virtualHeight;
+            }
             this.handleAlign(cw, ch);
             this.setBounds(0, 0, cw, ch);
         }
@@ -22978,11 +23250,12 @@
                 this._align = i1 == 0 ? "left" : (i1 == 1 ? "center" : "right");
                 i1 = buffer.readByte();
                 this._verticalAlign = i1 == 0 ? "top" : (i1 == 1 ? "middle" : "bottom");
-                this._lineGap = buffer.readShort();
-                this._columnGap = buffer.readShort();
+                this._lineGap = buffer.readShort() * GRoot.dpr;
+                this._columnGap = buffer.readShort() * GRoot.dpr;
                 this._lineCount = buffer.readShort();
                 this._columnCount = buffer.readShort();
-                this._autoResizeItem = buffer.readBool();
+                const _autoResize = buffer.readBool();
+                this._autoResizeItem = _autoResize ? _autoResize : GRoot.uiScale < 1;
                 this._childrenRenderOrder = buffer.readByte();
                 this._apexIndex = buffer.readShort();
                 if (buffer.readBool()) {
@@ -23024,6 +23297,17 @@
                     });
                 }
             });
+        }
+        handleXYChanged() {
+            var xv = this._x + this._xOffset;
+            var yv = this._y + this._yOffset;
+            let offsetXParam = GRoot.dpr;
+            let offsetYParam = GRoot.dpr;
+            if (this._pixelSnapping) {
+                xv = Math.round(xv);
+                yv = Math.round(yv);
+            }
+            this._displayObject.setPosition(xv * offsetXParam, yv * offsetYParam);
         }
         readItems(buffer) {
             return new Promise((resolve, reject) => {

@@ -30,14 +30,15 @@ export interface UIStageOptions {
     osd: string;
     res: string;
     resUI: string;
+    isDesk: boolean;
     scaleMode?: StageScaleMode;
     orientation?: StageOrientation;
     dpr: number;
     x: number;
     y: number;
     // 16:9 = 3840×2160 2560X1440 1920×1080 1600×900 1366×768 1280×720 1024×576 960×540 854×480 720×405 640x360
-    desginWidth: number;
-    desginHeight: number;
+    designWidth: number;
+    designHeight: number;
     width: number;
     height: number;
     alignV?: StageAlign,
@@ -52,8 +53,9 @@ export class DefaultUIStageOptions implements UIStageOptions {
     public orientation?: StageOrientation = StageOrientation.AUTO;
     public dpr: number = 1;
     // 默认竖屏
-    public desginWidth: number = 360;
-    public desginHeight: number = 640;
+    public isDesk: boolean = false; // 默认手机ui
+    public designWidth: number = 360;
+    public designHeight: number = 640;
     public width: number = 480;
     public height: number = 854;
     public x: number = 0;
@@ -148,11 +150,11 @@ export class UIStage extends Phaser.Events.EventEmitter {
         if (!this.containerMap) this.containerMap = new Map();
         let con = this.containerMap.get(sortIndex);
         if (!con) {
-            const parentContainer = <Phaser.GameObjects.Container>this.scene.sys.displayList.list[sortIndex] ? 
-            <Phaser.GameObjects.Container>this.scene.sys.displayList.list[sortIndex] : this.scene.add.container(0, 0);
+            const parentContainer = <Phaser.GameObjects.Container>this.scene.sys.displayList.list[sortIndex] ?
+                <Phaser.GameObjects.Container>this.scene.sys.displayList.list[sortIndex] : this.scene.add.container(0, 0);
             con = this.scene.make.container(undefined, false);
             const len = parentContainer && parentContainer.list && parentContainer.list.length ? parentContainer.list.length : 0
-            parentContainer.addAt(con, len);
+            if (parentContainer) parentContainer.addAt(con, len);
             this.containerMap.set(sortIndex, con);
         }
         return con;
