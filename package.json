@@ -12,7 +12,9 @@
     "patch": "yarn version --patch && yarn ver",
     "dts": "dts-bundle --configJson dts-bundle.json && rm -rf types"
   },
-  "dependencies": {},
+  "dependencies": {
+    "phaser3": "^0.4.34"
+  },
   "devDependencies": {
     "@babel/plugin-transform-runtime": "^7.16.5",
     "@rollup/plugin-node-resolve": "^13.0.4",

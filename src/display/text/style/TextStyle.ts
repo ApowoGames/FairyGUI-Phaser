@@ -3,7 +3,7 @@ import { CONST } from "../const";
 import { FillStyleType, HAlignModeString, VAlignModeString } from "../Types";
 import { GRoot, UIConfig } from "../../..";
 import { WrapMode } from "../WrapText";
-import { MeasureText } from "../measureText";
+import { MeasureText } from "../MeasureText";
 
 
 //  Key: [ Object Key, Default Value ]
